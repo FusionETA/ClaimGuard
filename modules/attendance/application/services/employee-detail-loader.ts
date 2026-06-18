@@ -2,6 +2,7 @@ import "server-only"
 
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type { EmployeeDetailData } from "@/modules/attendance/domain/models"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 
 export async function loadEmployeeDetail(
   employeeId: string,
@@ -43,7 +44,8 @@ export async function loadEmployeeDetail(
 }
 
 export async function loadOrgEmployeeListForAdmin(orgId: string | null) {
-  return attendanceRepository.getOrgEmployeeList(orgId)
+  const policyIdScope = await getActiveAdminPolicyScope()
+  return attendanceRepository.getOrgEmployeeList(orgId, { policyIdScope })
 }
 
 export async function loadEmployeeDetailForAdmin(

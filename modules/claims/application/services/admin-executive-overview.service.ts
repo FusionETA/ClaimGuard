@@ -6,6 +6,19 @@ import { getOrSetCache } from "@/lib/cache"
 import { toNumber } from "@/lib/decimal"
 import { key } from "@/lib/redis"
 import { executiveOverviewRepository } from "@/modules/claims/infrastructure/executive-overview.repository"
+import {
+  getActiveAdminClaimPaymentTypeScope,
+  getActiveAdminEmployeeIdScope,
+} from "@/modules/organization/application/services/admin-access.service"
+import { resolveAssignedProjects } from "@/modules/organization/domain/models"
+
+function paymentTypeTag(
+  paymentTypes: Array<"PERSONAL" | "COMPANY"> | undefined,
+): string {
+  if (!paymentTypes) return "_all"
+  if (paymentTypes.length === 0) return "_none"
+  return `t:${[...paymentTypes].sort().join(",")}`
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -122,15 +135,35 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
   // most a 1-minute lag even on a heavily-cached page.
   const now = new Date()
   const monthKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`
+  // Resolve scope at the cache-key layer so two admins with different
+  // grants don't share a stale aggregate. `null` (owner / legacy)
+  // collapses to "_all" so existing entries remain hot.
+  const [restrictToEmployeeIds, paymentTypes] = await Promise.all([
+    getActiveAdminEmployeeIdScope(orgId),
+    getActiveAdminClaimPaymentTypeScope(),
+  ])
+  const scopeTag =
+    restrictToEmployeeIds === null
+      ? "_all"
+      : `emp:${[...restrictToEmployeeIds].sort().join(",")}`
   return getOrSetCache(
-    key("org", orgId, "exec-overview", monthKey),
+    key(
+      "org",
+      orgId,
+      "exec-overview",
+      monthKey,
+      scopeTag,
+      paymentTypeTag(paymentTypes),
+    ),
     60,
-    () => loadAdminExecutiveOverview(orgId),
+    () => loadAdminExecutiveOverview(orgId, restrictToEmployeeIds, paymentTypes),
   )
 }
 
 async function loadAdminExecutiveOverview(
   orgId: string,
+  restrictToEmployeeIds: string[] | null,
+  paymentTypes: Array<"PERSONAL" | "COMPANY"> | undefined,
 ): Promise<AdminExecutiveOverview> {
   const now = new Date()
   const monthStart = startOfMonth(now)
@@ -139,6 +172,14 @@ async function loadAdminExecutiveOverview(
   const staleCutoff = new Date(now.getTime() - STALE_PENDING_DAYS * 86_400_000)
   const otLookback = new Date(now.getTime() - SLOW_OT_LOOKBACK_DAYS * 86_400_000)
   const overturnLookback = new Date(now.getTime() - 90 * 86_400_000)
+
+  // The admin's allowed employee scope + claim-type filter were
+  // already resolved by the cached wrapper. Build the option bag the
+  // repo methods take. Claim queries get both filters; OT / attendance
+  // / chain-step queries only take the employee scope (paymentTypes
+  // doesn't apply to them).
+  const scopeOpt = { restrictToEmployeeIds }
+  const claimScopeOpt = { restrictToEmployeeIds, paymentTypes }
 
   // Each call below maps 1:1 to a query that used to live inline as raw
   // `prisma.*.findMany` — moved into `executive-overview.repository.ts` so
@@ -154,21 +195,28 @@ async function loadAdminExecutiveOverview(
     rejectedClaims,
     chainStepRows,
   ] = await Promise.all([
-    executiveOverviewRepository.getMonthClaimsForOrg(orgId, monthStart, monthEnd),
-    executiveOverviewRepository.getAttendanceRecordsForOrg(orgId, last30Days, now),
-    executiveOverviewRepository.getReviewedOtApprovalsForOrg(orgId, otLookback),
-    executiveOverviewRepository.getPendingOtApprovalsForOrg(orgId),
-    executiveOverviewRepository.getStalePendingClaims(orgId, staleCutoff, 5),
+    executiveOverviewRepository.getMonthClaimsForOrg(orgId, monthStart, monthEnd, claimScopeOpt),
+    executiveOverviewRepository.getAttendanceRecordsForOrg(orgId, last30Days, now, scopeOpt),
+    executiveOverviewRepository.getReviewedOtApprovalsForOrg(orgId, otLookback, scopeOpt),
+    executiveOverviewRepository.getPendingOtApprovalsForOrg(orgId, scopeOpt),
+    executiveOverviewRepository.getStalePendingClaims(orgId, staleCutoff, 5, claimScopeOpt),
     executiveOverviewRepository.getOrgClaimCutoffDay(orgId),
-    executiveOverviewRepository.getClaimsInRunForOrg(orgId, monthStart, monthEnd),
-    executiveOverviewRepository.getRejectedClaimsSinceForOrg(orgId, overturnLookback),
-    executiveOverviewRepository.getChainStepsForOrg(orgId),
+    executiveOverviewRepository.getClaimsInRunForOrg(orgId, monthStart, monthEnd, claimScopeOpt),
+    executiveOverviewRepository.getRejectedClaimsSinceForOrg(orgId, overturnLookback, claimScopeOpt),
+    executiveOverviewRepository.getChainStepsForOrg(orgId, scopeOpt),
   ])
 
   // ── 1. Project claims breakdown ────────────────────────────────────────────
   const projectMap = new Map<string, ProjectClaimSpend>()
   for (const c of monthClaims) {
-    const project = c.project?.name?.trim() || "Unassigned"
+    // Match the detail dialog's resolution order: claim's own
+    // `projectId` → employee's primary project assignment → "Unassigned".
+    const assignedProjects = (
+      c.employee?.employeeProfile?.projectAssignments ?? []
+    ).map((a) => ({ id: a.project.id, name: a.project.name }))
+    const primaryAssigned = resolveAssignedProjects(assignedProjects)[0]
+    const project =
+      c.project?.name?.trim() || primaryAssigned?.name?.trim() || "Unassigned"
     const amount = num(c.amount)
     const row = projectMap.get(project) ?? { project, totalAmount: 0, claimCount: 0 }
     row.totalAmount += amount

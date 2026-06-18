@@ -12,6 +12,16 @@ import { getPrismaClient } from "@/lib/prisma"
 export type ExecMonthClaimRow = {
   amount: { toString(): string } | number | string
   project: { name: string } | null
+  /// Employee's primary project — derived from their first
+  /// `EmployeeProjectAssignment`. Used as a fallback for the Project
+  /// claims breakdown when the claim's own `projectId` is null, so the
+  /// card agrees with the detail dialog (which derives the same value
+  /// via `resolvePrimaryProjectName`).
+  employee: {
+    employeeProfile: {
+      projectAssignments: Array<{ project: { id: string; name: string } }>
+    } | null
+  } | null
 }
 
 export type ExecAttendanceRecordRow = {
@@ -63,18 +73,47 @@ export const executiveOverviewRepository = {
     orgId: string,
     monthStart: Date,
     monthEnd: Date,
+    options?: {
+      restrictToEmployeeIds?: string[] | null
+      paymentTypes?: Array<"PERSONAL" | "COMPANY">
+    },
   ): Promise<ExecMonthClaimRow[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const scope = options?.restrictToEmployeeIds ?? null
+    if (Array.isArray(scope) && scope.length === 0) return []
+    const paymentTypes = options?.paymentTypes
+    if (paymentTypes && paymentTypes.length === 0) return []
     return prisma.claim.findMany({
       where: {
         organizationId: orgId,
         submittedAt: { gte: monthStart, lte: monthEnd },
         status: { not: "REJECTED" },
+        ...(scope ? { employeeId: { in: scope } } : {}),
+        ...(paymentTypes && paymentTypes.length > 0
+          ? { paymentType: { in: paymentTypes } }
+          : {}),
       },
       select: {
         amount: true,
+        // Prefer the claim's own projectId FK to XeroProject. When null
+        // (legacy / admin-created rows), the service falls back to the
+        // employee's primary project assignment so the Project claims
+        // card agrees with the detail dialog.
         project: { select: { name: true } },
+        employee: {
+          select: {
+            employeeProfile: {
+              select: {
+                projectAssignments: {
+                  select: {
+                    project: { select: { id: true, name: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     })
   },
@@ -83,13 +122,17 @@ export const executiveOverviewRepository = {
     orgId: string,
     from: Date,
     to: Date,
+    options?: { restrictToEmployeeIds?: string[] | null },
   ): Promise<ExecAttendanceRecordRow[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const scope = options?.restrictToEmployeeIds ?? null
+    if (Array.isArray(scope) && scope.length === 0) return []
     return prisma.attendanceRecord.findMany({
       where: {
         date: { gte: from, lte: to },
         employee: { organizationId: orgId },
+        ...(scope ? { employeeId: { in: scope } } : {}),
       },
       select: {
         status: true,
@@ -102,15 +145,19 @@ export const executiveOverviewRepository = {
   async getReviewedOtApprovalsForOrg(
     orgId: string,
     since: Date,
+    options?: { restrictToEmployeeIds?: string[] | null },
   ): Promise<ExecOtReviewedRow[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const scope = options?.restrictToEmployeeIds ?? null
+    if (Array.isArray(scope) && scope.length === 0) return []
     return prisma.approvalRequest.findMany({
       where: {
         kind: "OT",
         reviewerId: { not: null },
         reviewedAt: { not: null, gte: since },
         employee: { organizationId: orgId },
+        ...(scope ? { employeeId: { in: scope } } : {}),
       },
       select: {
         submittedAt: true,
@@ -121,14 +168,20 @@ export const executiveOverviewRepository = {
     })
   },
 
-  async getPendingOtApprovalsForOrg(orgId: string): Promise<ExecOtPendingRow[]> {
+  async getPendingOtApprovalsForOrg(
+    orgId: string,
+    options?: { restrictToEmployeeIds?: string[] | null },
+  ): Promise<ExecOtPendingRow[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const scope = options?.restrictToEmployeeIds ?? null
+    if (Array.isArray(scope) && scope.length === 0) return []
     return prisma.approvalRequest.findMany({
       where: {
         kind: "OT",
         status: "PENDING",
         employee: { organizationId: orgId },
+        ...(scope ? { employeeId: { in: scope } } : {}),
       },
       select: {
         employeeId: true,
@@ -140,14 +193,26 @@ export const executiveOverviewRepository = {
     orgId: string,
     olderThan: Date,
     take: number,
+    options?: {
+      restrictToEmployeeIds?: string[] | null
+      paymentTypes?: Array<"PERSONAL" | "COMPANY">
+    },
   ): Promise<ExecStalePendingClaimRow[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const scope = options?.restrictToEmployeeIds ?? null
+    if (Array.isArray(scope) && scope.length === 0) return []
+    const paymentTypes = options?.paymentTypes
+    if (paymentTypes && paymentTypes.length === 0) return []
     return prisma.claim.findMany({
       where: {
         organizationId: orgId,
         status: { in: ["PENDING", "SUBMITTED"] },
         submittedAt: { lt: olderThan },
+        ...(scope ? { employeeId: { in: scope } } : {}),
+        ...(paymentTypes && paymentTypes.length > 0
+          ? { paymentType: { in: paymentTypes } }
+          : {}),
       },
       orderBy: { submittedAt: "asc" },
       take,
@@ -176,13 +241,25 @@ export const executiveOverviewRepository = {
     orgId: string,
     monthStart: Date,
     monthEnd: Date,
+    options?: {
+      restrictToEmployeeIds?: string[] | null
+      paymentTypes?: Array<"PERSONAL" | "COMPANY">
+    },
   ): Promise<ExecRunClaimRow[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const scope = options?.restrictToEmployeeIds ?? null
+    if (Array.isArray(scope) && scope.length === 0) return []
+    const paymentTypes = options?.paymentTypes
+    if (paymentTypes && paymentTypes.length === 0) return []
     return prisma.claim.findMany({
       where: {
         organizationId: orgId,
         claimRunMonth: { gte: monthStart, lte: monthEnd },
+        ...(scope ? { employeeId: { in: scope } } : {}),
+        ...(paymentTypes && paymentTypes.length > 0
+          ? { paymentType: { in: paymentTypes } }
+          : {}),
       },
       select: { amount: true, status: true },
     })
@@ -191,24 +268,44 @@ export const executiveOverviewRepository = {
   async getRejectedClaimsSinceForOrg(
     orgId: string,
     since: Date,
+    options?: {
+      restrictToEmployeeIds?: string[] | null
+      paymentTypes?: Array<"PERSONAL" | "COMPANY">
+    },
   ): Promise<ExecRejectedClaimRow[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const scope = options?.restrictToEmployeeIds ?? null
+    if (Array.isArray(scope) && scope.length === 0) return []
+    const paymentTypes = options?.paymentTypes
+    if (paymentTypes && paymentTypes.length === 0) return []
     return prisma.claim.findMany({
       where: {
         organizationId: orgId,
         status: "REJECTED",
         lastReviewedAt: { gte: since },
+        ...(scope ? { employeeId: { in: scope } } : {}),
+        ...(paymentTypes && paymentTypes.length > 0
+          ? { paymentType: { in: paymentTypes } }
+          : {}),
       },
       select: { id: true, employeeId: true, lastReviewerId: true },
     })
   },
 
-  async getChainStepsForOrg(orgId: string): Promise<ExecChainStepRow[]> {
+  async getChainStepsForOrg(
+    orgId: string,
+    options?: { restrictToEmployeeIds?: string[] | null },
+  ): Promise<ExecChainStepRow[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const scope = options?.restrictToEmployeeIds ?? null
+    if (Array.isArray(scope) && scope.length === 0) return []
     return prisma.approvalChainStep.findMany({
-      where: { employee: { organizationId: orgId } },
+      where: {
+        employee: { organizationId: orgId },
+        ...(scope ? { employeeId: { in: scope } } : {}),
+      },
       select: {
         employeeId: true,
         step: true,

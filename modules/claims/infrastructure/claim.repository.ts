@@ -1012,13 +1012,33 @@ export const claimRepository = {
    *              badge dropped to 0 the moment a supervisor approved,
    *              even though the admin still had work waiting.
    */
-  async countPendingForOrganization(organizationId: string): Promise<number> {
+  async countPendingForOrganization(
+    organizationId: string,
+    options?: {
+      policyIdScope?: string[] | null
+      paymentTypes?: Array<"PERSONAL" | "COMPANY">
+    },
+  ): Promise<number> {
     const prisma = getPrismaClient()
     if (!prisma) return 0
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return 0
+    const paymentTypes = options?.paymentTypes
+    if (paymentTypes && paymentTypes.length === 0) return 0
     return prisma.claim.count({
       where: {
         organizationId,
         status: { in: ["PENDING", "SUBMITTED", "APPROVED"] },
+        ...(paymentTypes && paymentTypes.length > 0
+          ? { paymentType: { in: paymentTypes } }
+          : {}),
+        ...(policyIdScope && policyIdScope.length > 0
+          ? {
+              employee: {
+                employeeProfile: { policyId: { in: policyIdScope } },
+              },
+            }
+          : {}),
       },
     })
   },
@@ -1112,13 +1132,46 @@ export const claimRepository = {
 
   async getClaimsForOrganization(
     organizationId: string,
+    options?: {
+      /// Optional employee-policy scope. When non-null, only claims whose
+      /// submitter is on one of the listed policies are returned. `null`
+      /// or omitted = no filter (full access for owners + legacy admins).
+      /// Empty array = scope is empty → 0 rows (the admin was restricted
+      /// to nothing).
+      policyIdScope?: string[] | null
+      /// Optional payment-type filter. Mirrors `getClaimsAwaitingSync`:
+      /// pass `["PERSONAL"]` / `["COMPANY"]` / `["PERSONAL","COMPANY"]`
+      /// to restrict the queue based on the admin's `claims_personal` /
+      /// `claims_company` module grants. Omit / undefined = no filter.
+      /// Empty array = no module is granted → 0 rows.
+      paymentTypes?: Array<"PERSONAL" | "COMPANY">
+    },
   ): Promise<ClaimRecord[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
+      return []
+    }
+    const paymentTypes = options?.paymentTypes
+    if (paymentTypes && paymentTypes.length === 0) return []
+
     const rows = await prisma.claim.findMany({
       where: {
         organizationId,
+        ...(paymentTypes && paymentTypes.length > 0
+          ? { paymentType: { in: paymentTypes } }
+          : {}),
+        ...(policyIdScope && policyIdScope.length > 0
+          ? {
+              employee: {
+                employeeProfile: {
+                  policyId: { in: policyIdScope },
+                },
+              },
+            }
+          : {}),
       },
       include: claimInclude,
       orderBy: { submittedAt: "desc" },
@@ -1188,17 +1241,40 @@ export const claimRepository = {
   async getClaimsAwaitingSync(
     organizationId: string,
     _xeroConnectionId?: string,
+    options?: {
+      policyIdScope?: string[] | null
+      paymentTypes?: Array<"PERSONAL" | "COMPANY">
+    },
   ): Promise<ClaimRecord[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+    const paymentTypes = options?.paymentTypes
+    // When the caller passed an empty paymentTypes array, the admin's
+    // module access excludes both PERSONAL and COMPANY claims — nothing
+    // visible. Return empty rather than running a no-op query.
+    if (paymentTypes && paymentTypes.length === 0) return []
 
     const rows = await prisma.claim.findMany({
       where: {
         organizationId,
         status: "REVIEWED",
-        // Both PERSONAL and COMPANY claims surface here. The "Ready to
-        // Pay" tab splits them: PERSONAL → payroll or bill, COMPANY →
-        // Spend Money.
+        // Both PERSONAL and COMPANY claims surface here unless the
+        // admin's module access narrows it.
+        ...(paymentTypes && paymentTypes.length > 0
+          ? { paymentType: { in: paymentTypes } }
+          : {}),
+        // Restrict by policy when scope is set (admin can only see
+        // employees in their granted policy list).
+        ...(policyIdScope && policyIdScope.length > 0
+          ? {
+              employee: {
+                employeeProfile: { policyId: { in: policyIdScope } },
+              },
+            }
+          : {}),
         // Hide claims already on a payroll run — they appear under that
         // run's Reimbursements card and only re-surface if detached.
         payrollRunAttachment: { is: null },

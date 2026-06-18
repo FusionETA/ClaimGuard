@@ -17,6 +17,7 @@ import {
   type LoanStatus,
 } from "@/modules/payroll/domain/loans"
 import { employeeLoanRepository } from "@/modules/payroll/infrastructure/employee-loan.repository"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 
@@ -87,21 +88,33 @@ export async function getLoansPageData(): Promise<LoansPageData | null> {
   const ctx = await requireAdminOrg()
   if (!ctx) return null
 
+  // Per-admin policy scope tagged into the key + threaded into both the
+  // loan list and the picker so a restricted admin only sees loans for
+  // employees on their granted policies.
+  const policyIdScope = await getActiveAdminPolicyScope()
+  const scopeTag =
+    policyIdScope === null
+      ? "_all"
+      : `p:${[...policyIdScope].sort().join(",")}`
+
   // 10-min TTL; busted by `bustPayrollCaches` (org payroll:* namespace)
   // on every loan create/edit/cancel and on run submissions (which
   // change repayment progress).
   return getOrSetCache(
-    key("org", ctx.orgId, "payroll", "page", "loans"),
+    key("org", ctx.orgId, "payroll", "page", "loans", scopeTag),
     600,
-    () => loadLoansPageData(ctx.orgId),
+    () => loadLoansPageData(ctx.orgId, policyIdScope),
   )
 }
 
-async function loadLoansPageData(orgId: string): Promise<LoansPageData> {
+async function loadLoansPageData(
+  orgId: string,
+  policyIdScope: string[] | null,
+): Promise<LoansPageData> {
   const [loans, submittedPeriods, employees] = await Promise.all([
-    employeeLoanRepository.listForOrganization(orgId),
+    employeeLoanRepository.listForOrganization(orgId, { policyIdScope }),
     payrollRunRepository.listSubmittedPeriods(orgId),
-    payrollProfileRepository.listReadyForPayroll(orgId),
+    payrollProfileRepository.listReadyForPayroll(orgId, { policyIdScope }),
   ])
 
   const withProgress: EmployeeLoanWithProgress[] = loans.map((loan) => {

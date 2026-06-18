@@ -14,6 +14,7 @@ import {
   leaveRepository,
 } from "@/modules/leave/infrastructure/leave-repository"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 
 /// Resolve the default entitlement days for an employee × leave type.
 /// Resolution order:
@@ -715,9 +716,17 @@ export async function listAllEmployeeBalancesForOrg(
   const prisma = getLeavePrismaClientSafe()
   if (!prisma) return []
 
+  // Per-admin policy scope — restricted admins only see their granted
+  // policies' employee balances. Empty scope → 0 rows.
+  const policyIdScope = await getActiveAdminPolicyScope()
+  if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+
   const employees = await prisma.employeeProfile.findMany({
     where: {
       user: { organizationId, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
+      ...(policyIdScope && policyIdScope.length > 0
+        ? { policyId: { in: policyIdScope } }
+        : {}),
     },
     select: {
       id: true,

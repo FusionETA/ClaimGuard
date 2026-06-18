@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { AdminSettingsPanelPage } from "@/app/(admin)/admin/settings/settings-panel-page"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 
 const CLAIMS_SETTINGS_TABS = new Set(["claims", "runs", "currencies"])
 
@@ -19,6 +20,8 @@ export default async function AdminSettingsPage({
   if (tab === "leave") {
     redirect("/admin/leave/settings")
   }
+
+  await requireAdminModule("settings")
 
   return (
     <AdminSettingsPanelPage

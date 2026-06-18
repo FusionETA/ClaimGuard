@@ -135,7 +135,15 @@ export function PayrollEmployeeDetail(props: {
   /// Org-hierarchy editing context. Null only when the member couldn't
   /// be resolved (defensive) — in that case the Company tab is hidden.
   company: EmployeeCompanyData | null
+  /// When false, all editable inputs and action buttons inside the
+  /// tabbed form are disabled via a wrapping `<fieldset disabled>` and
+  /// a banner explains the read-only state. Tab navigation stays
+  /// interactive so the admin can still browse Personal / Employment /
+  /// Statutory / Company. Defaults to true for callers that pre-date
+  /// the read-only mode.
+  canEdit?: boolean
 }) {
+  const canEdit = props.canEdit ?? true
   const [tab, setTab] = useState<Tab>("personal")
   // Mirror the profile in state so the tab-pill highlight clears AS
   // THE ADMIN TYPES, instead of waiting for a save. Inputs stay
@@ -208,6 +216,13 @@ export function PayrollEmployeeDetail(props: {
 
   return (
     <div className="space-y-6">
+      {!canEdit && (
+        <div className="rounded-2xl border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+          View only — your access doesn&apos;t include the Manage Employee
+          module, so the fields below are disabled. Ask the owner if you
+          need to make changes.
+        </div>
+      )}
       <nav className="flex flex-wrap gap-3 border-y border-border/60 py-5">
         <TabPill
           active={tab === "personal"}
@@ -241,6 +256,11 @@ export function PayrollEmployeeDetail(props: {
         ) : null}
       </nav>
 
+      {/* `<fieldset disabled>` natively disables every input, select,
+          textarea and button inside the tab content + lower cards,
+          giving us read-only mode without touching every field. Tab
+          pills above stay clickable. */}
+      <fieldset disabled={!canEdit} className="m-0 border-0 p-0 space-y-6">
       {tab === "personal" && (
         <PersonalTab
           userId={props.userId}
@@ -288,6 +308,7 @@ export function PayrollEmployeeDetail(props: {
 
       <LhdnFormsCard userId={props.userId} profile={props.profile} />
       <ArchiveCard userId={props.userId} profile={props.profile} />
+      </fieldset>
     </div>
   )
 }
@@ -3123,7 +3144,7 @@ function SalaryHistoryDialog(props: {
             up here.
           </p>
         ) : (
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto px-1">
             {props.history.map((change) => (
               <SalaryHistoryRow key={change.id} change={change} />
             ))}

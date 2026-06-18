@@ -4,6 +4,7 @@ import { isAdminRole } from "@/lib/auth/types"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
 import { bustOrgConfigCaches, bustPayrollCaches } from "@/lib/cache-invalidation"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { key } from "@/lib/redis"
 import type {
@@ -82,12 +83,20 @@ export async function getManageEmployeesPageData(): Promise<{
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
+  // Per-admin policy scope tag in the cache key — two admins with
+  // different grants shouldn't share an entry. `null` (owner / legacy)
+  // collapses to the existing `_all` segment so already-cached entries
+  // remain hot.
+  const policyIdScope = await getActiveAdminPolicyScope()
+  const scopeTag =
+    policyIdScope === null ? "_all" : `p:${[...policyIdScope].sort().join(",")}`
+
   // 10-min TTL under the org "config" namespace. Busted by
   // `bustOrgConfigCaches` on hierarchy/member edits AND — because the
   // list shows payroll-readiness — by the payroll-profile save/archive
   // actions (which now also call bustOrgConfigCaches).
   return getOrSetCache(
-    key("org", orgId, "config", "page", "manage-employees"),
+    key("org", orgId, "config", "page", "manage-employees", scopeTag),
     600,
     () => loadManageEmployeesPageData(orgId),
   )
@@ -108,13 +117,16 @@ async function loadManageEmployeesPageData(orgId: string): Promise<{
   const prisma = getPrismaClient()
   if (!prisma) return null
 
+  // Restrict the employee list to the admin's granted policies.
+  const policyIdScope = await getActiveAdminPolicyScope()
+
   const [org, employees, policies, leaveTypesRaw, policyDefaults] =
     await Promise.all([
       prisma.organization.findUnique({
         where: { id: orgId },
         select: { name: true },
       }),
-      payrollProfileRepository.listForOrganization(orgId),
+      payrollProfileRepository.listForOrganization(orgId, { policyIdScope }),
       policyRepository.listForOrganization(orgId),
       listLeaveTypes(orgId, false),
       leaveRepository.listPolicyDefaults(orgId),

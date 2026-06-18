@@ -21,6 +21,10 @@ import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type { RollCallPerson } from "@/modules/attendance/domain/models"
+import {
+  getActiveAdminPolicyScope,
+  requireAdminModule,
+} from "@/modules/organization/application/services/admin-access.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 import { loadSelfieStorageStatsAction } from "./actions"
@@ -79,6 +83,7 @@ export default async function AdminAttendancePage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
   const session = await requirePortalSession("ADMIN")
+  await requireAdminModule("attendance")
   const orgId = resolveActiveOrgId(session) ?? null
   const params = (await searchParams) ?? {}
 
@@ -94,6 +99,7 @@ export default async function AdminAttendancePage({
   const initialTo = todayIso()
 
   const supervisorSettings = await getOrgSupervisorSettings(orgId)
+  const policyIdScope = await getActiveAdminPolicyScope()
 
   const [
     overview,
@@ -186,6 +192,7 @@ export default async function AdminAttendancePage({
       from: new Date(initialFrom),
       to: new Date(initialTo),
       page: 0,
+      policyIdScope,
     }),
   ])
 

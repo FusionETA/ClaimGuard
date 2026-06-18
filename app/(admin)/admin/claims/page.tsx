@@ -7,12 +7,14 @@ import { MetricCard } from "@/components/claims/metric-card"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { formatCurrency } from "@/lib/utils"
 import { getAdminClaimsPageData } from "@/modules/claims/application/services/admin-page-data.service"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 
 const ACTIVE_CONNECTION_COOKIE = "claimguard_active_connection"
 
 export default async function AdminClaimsPage() {
   const session = await getCurrentSession()
   if (!session) redirect("/login")
+  await requireAdminModule(["claims_personal", "claims_company"])
 
   const cookieStore = await cookies()
   const cookieConnectionId = cookieStore.get(ACTIVE_CONNECTION_COOKIE)?.value

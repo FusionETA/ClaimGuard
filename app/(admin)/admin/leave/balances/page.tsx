@@ -5,6 +5,7 @@ import { LeaveBalancesGrid } from "@/components/leave/leave-balances-grid"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
 import { listAllEmployeeBalancesForOrg } from "@/modules/leave/application/services/leave-entitlements.service"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 
 /**
  * /admin/leave/balances
@@ -17,6 +18,7 @@ import { listAllEmployeeBalancesForOrg } from "@/modules/leave/application/servi
 export default async function AdminLeaveBalancesPage() {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) redirect("/login")
+  await requireAdminModule("leave")
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) redirect("/admin/settings")
 

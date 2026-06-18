@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { NewPayrollRunForm } from "@/components/admin/new-payroll-run-form"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 import { getPayrollRunsPageData } from "@/modules/payroll/application/services/payroll-run.service"
 import {
   PAYROLL_RUN_STATUS_LABELS,
@@ -27,6 +28,7 @@ import {
  * provides a period picker to create a new draft.
  */
 export default async function AdminPayrollRunsPage() {
+  await requireAdminModule("payroll")
   const data = await getPayrollRunsPageData()
   if (!data) redirect("/admin")
 

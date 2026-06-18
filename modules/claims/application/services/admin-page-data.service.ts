@@ -8,6 +8,7 @@ import {
   getAdminDashboard,
 } from "@/modules/claims/application/services/admin-portal.service"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 import { getOrganizationHierarchy } from "@/modules/organization/application/services/organization-admin.service"
 import type {
   AdminDashboardData,
@@ -265,7 +266,9 @@ async function loadAdminSettingsPageData(input: {
         ? organizationRepository.getCustomChartAccountsForOrganization(input.organizationId)
         : Promise.resolve([]),
       input.organizationId
-        ? organizationRepository.getOrganizationMembers(input.organizationId)
+        ? organizationRepository.getOrganizationMembers(input.organizationId, {
+            policyIdScope: await getActiveAdminPolicyScope(),
+          })
         : Promise.resolve([]),
       adminAttendanceService.getWorkingHours(input.organizationId ?? null),
       adminAttendanceService.getOrgTimezone(input.organizationId ?? null),
@@ -324,24 +327,44 @@ export async function getAdminCompanyStructurePageData(input: {
 }): Promise<AdminCompanyStructurePageData | null> {
   if (!input.organizationId) return null
 
+  // Per-admin policy scope — restricts which members the structure view
+  // shows. Resolved here so the cache key can include a scope tag and
+  // two admins with different grants don't collide.
+  const policyIdScope = await getActiveAdminPolicyScope()
+  const scopeTag =
+    policyIdScope === null
+      ? "_all"
+      : `p:${[...policyIdScope].sort().join(",")}`
+
   // 1-hour TTL — projects/teams/members change rarely once an org is
   // set up, and `bustOrgConfigCaches` invalidates on every team /
   // member / project mutation.
   return getOrSetCache(
-    key("org", input.organizationId, "config", "page", "company-structure"),
+    key(
+      "org",
+      input.organizationId,
+      "config",
+      "page",
+      "company-structure",
+      scopeTag,
+    ),
     3600,
-    () => loadAdminCompanyStructurePageData(input.organizationId!),
+    () =>
+      loadAdminCompanyStructurePageData(input.organizationId!, policyIdScope),
   )
 }
 
 async function loadAdminCompanyStructurePageData(
   organizationId: string,
+  policyIdScope: string[] | null,
 ): Promise<AdminCompanyStructurePageData | null> {
   const [organization, projects, teams, members] = await Promise.all([
     organizationRepository.getOrganizationById(organizationId),
     organizationRepository.getProjectsForOrganization(organizationId),
     organizationRepository.listTeamsWithMembers(organizationId),
-    organizationRepository.getOrganizationMembers(organizationId),
+    organizationRepository.getOrganizationMembers(organizationId, {
+      policyIdScope,
+    }),
   ])
 
   return {

@@ -8,6 +8,7 @@ import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 
 import { loadEmployeeHoursSummaryAction } from "../../hours-summary-actions"
 
@@ -29,6 +30,7 @@ export default async function AdminEmployeeDetailPage({
 }) {
   const { employeeId } = await params
   const session = await requirePortalSession("ADMIN")
+  await requireAdminModule("attendance")
   const orgId = resolveActiveOrgId(session) ?? null
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()

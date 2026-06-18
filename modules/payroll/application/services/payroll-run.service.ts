@@ -6,6 +6,7 @@ import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { toNumber } from "@/lib/decimal"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 import { key } from "@/lib/redis"
 import {
   attendancePercentOf,
@@ -113,13 +114,17 @@ async function loadPayrollRunsPageData(orgId: string): Promise<{
   const prisma = getPrismaClient()
   if (!prisma) return null
 
+  // Eligible employee count restricts to the admin's policy scope so
+  // a policy-restricted admin sees a correct "X of Y employees ready"
+  // headline on the runs list.
+  const policyIdScope = await getActiveAdminPolicyScope()
   const [org, runs, employees] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: orgId },
       select: { name: true },
     }),
     payrollRunRepository.listForOrganization(orgId),
-    payrollProfileRepository.listForOrganization(orgId),
+    payrollProfileRepository.listForOrganization(orgId, { policyIdScope }),
   ])
 
   return {
@@ -147,6 +152,10 @@ export async function getPayrollRunDetailPageData(input: {
   const prisma = getPrismaClient()
   if (!prisma) return null
 
+  // Restrict the per-run "Will be included" / "Incomplete" preview to
+  // the admin's policy scope. For SUBMITTED runs this also restricts
+  // which payslips appear in the detail view.
+  const detailPolicyIdScope = await getActiveAdminPolicyScope()
   const [org, run, employees] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: orgId },
@@ -155,8 +164,11 @@ export async function getPayrollRunDetailPageData(input: {
     payrollRunRepository.getByIdForOrg({
       id: input.runId,
       organizationId: orgId,
+      policyIdScope: detailPolicyIdScope,
     }),
-    payrollProfileRepository.listForOrganization(orgId),
+    payrollProfileRepository.listForOrganization(orgId, {
+      policyIdScope: detailPolicyIdScope,
+    }),
   ])
 
   if (!run) return null
@@ -1462,40 +1474,42 @@ export async function getPayrollRunDetailWithPayslipsPageData(input: {
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
+  // Per-admin policy scope tagged into the cache key so two restricted
+  // admins viewing the same submitted run see only their employees.
+  const policyIdScope = await getActiveAdminPolicyScope()
+  const scopeTag =
+    policyIdScope === null
+      ? "_all"
+      : `p:${[...policyIdScope].sort().join(",")}`
+
   // 1-hour TTL — keyed on runId so each run has its own slot. Every
   // payroll mutation (generate, adjustment save, attach/detach, status
   // transition, Xero sync) calls `bustPayrollCaches({ organizationId })`.
-  // The version segment intentionally bypasses older cached payloads:
-  //  - v2 added the "hide already-Xero-synced claims" filter
-  //  - v3 added per-employee working-hours (HRS %) + salary-type fields
-  //  - v4 made attendance authoritative (no attendance → 0%, not blank)
-  //  - v5 gated HRS on policy attendance access ("—" + full pay when off)
-  //  - v6 made HRS display-only (pay reverted to day-based proration)
-  //  - v7 force-refresh so payslips carry worked/expected hours for HRS
   return getOrSetCache(
-    key("org", orgId, "payroll", "page", "run-detail:v7", input.runId),
+    key("org", orgId, "payroll", "page", "run-detail:v7", input.runId, scopeTag),
     3600,
-    () => loadPayrollRunDetailWithPayslipsPageData(input, orgId),
+    () => loadPayrollRunDetailWithPayslipsPageData(input, orgId, policyIdScope),
   )
 }
 
 async function loadPayrollRunDetailWithPayslipsPageData(
   input: { runId: string },
   orgId: string,
+  policyIdScope: string[] | null = null,
 ): Promise<PayrollRunDetailWithPayslipsPageData | null> {
   const base = await getPayrollRunDetailPageData(input)
   if (!base) return null
 
   const [payslips, attachments, attachableClaims, adjustments, readyProfiles, policies] =
     await Promise.all([
-      payslipRepository.listForRun(input.runId),
+      payslipRepository.listForRun(input.runId, { policyIdScope }),
       payrollRunClaimRepository.listForRun(input.runId),
       payrollRunClaimRepository.listAttachableForOrg({
         organizationId: orgId,
         excludeAttached: true,
       }),
       payrollRunAdjustmentRepository.listForRun(input.runId),
-      payrollProfileRepository.listReadyForPayroll(orgId),
+      payrollProfileRepository.listReadyForPayroll(orgId, { policyIdScope }),
       policyRepository.listForOrganization(orgId),
     ])
 

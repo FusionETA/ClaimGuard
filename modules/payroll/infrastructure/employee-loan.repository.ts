@@ -84,11 +84,23 @@ const withEmployee = {
  * is derived in the service from SUBMITTED runs, not stored here.
  */
 export const employeeLoanRepository = {
-  async listForOrganization(organizationId: string): Promise<EmployeeLoanData[]> {
+  async listForOrganization(
+    organizationId: string,
+    options?: { policyIdScope?: string[] | null },
+  ): Promise<EmployeeLoanData[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const rows = await prisma.employeeLoan.findMany({
-      where: { organizationId },
+      where: {
+        organizationId,
+        ...(policyIdScope && policyIdScope.length > 0
+          ? {
+              employeeProfile: { policyId: { in: policyIdScope } },
+            }
+          : {}),
+      },
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
       include: withEmployee,
     })

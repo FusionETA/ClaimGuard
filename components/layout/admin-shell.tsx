@@ -62,11 +62,25 @@ type AdminNavItem = {
   href: Route
   label: string
   icon: typeof LayoutDashboard
-  children?: ReadonlyArray<{ href: Route; label: string }>
+  /// Module keys (from `ADMIN_MODULES`) that gate visibility of this
+  /// item. Item is shown when the admin has ANY of these modules. Omit
+  /// for items that should always be visible (Executive Overview).
+  requiresModules?: ReadonlyArray<string>
+  children?: ReadonlyArray<{
+    href: Route
+    label: string
+    /// Optional per-child gate. Same semantics as the parent's
+    /// `requiresModules`: child is shown only when the admin has at
+    /// least one of these modules. Omit for children that should
+    /// always be visible (e.g. Manage Employee, which renders as a
+    /// read-only browse when `hierarchy` is not granted).
+    requiresModules?: ReadonlyArray<string>
+  }>
 }
 
 const adminNav: ReadonlyArray<AdminNavItem> = [
   {
+    // Always visible — every admin needs a landing page.
     href: "/admin",
     label: "Executive Overview",
     icon: LayoutDashboard,
@@ -75,6 +89,7 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/attendance",
     label: "Attendance",
     icon: CalendarClock,
+    requiresModules: ["attendance"],
     children: [
       { href: "/admin/attendance", label: "Overview" },
       { href: "/admin/attendance/employees", label: "Employees" },
@@ -84,6 +99,11 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/claims",
     label: "Claims",
     icon: Receipt,
+    // Claims is split into Personal + Company sub-modules. Show the
+    // parent if the admin has EITHER. The Claims queue page itself can
+    // further filter what rows are visible based on the more specific
+    // key.
+    requiresModules: ["claims_personal", "claims_company"],
     children: [
       { href: "/admin/claims", label: "Queue" },
       { href: "/admin/claims/payroll-ready" as Route, label: "Ready to Pay" },
@@ -99,6 +119,7 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/payroll" as Route,
     label: "Payroll",
     icon: Banknote,
+    requiresModules: ["payroll"],
     children: [
       { href: "/admin/payroll" as Route, label: "Overview" },
       { href: "/admin/payroll/runs" as Route, label: "Payroll Runs" },
@@ -117,6 +138,7 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/leave" as Route,
     label: "Leave",
     icon: CalendarDays,
+    requiresModules: ["leave"],
     children: [
       { href: "/admin/leave" as Route, label: "Overview" },
       { href: "/admin/leave/balances" as Route, label: "Balances" },
@@ -128,11 +150,20 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     // the order shown in the dropdown. Clicking parent → first child is
     // the standard admin-nav pattern; without this the parent would
     // always land on /admin/hierarchy (Employees) regardless of order.
+    //
+    // Parent has no `requiresModules` — Manage Employee is the read-only
+    // browse surface that every admin can see (mutations are disabled
+    // when `hierarchy` is not granted). The Company Structure child is
+    // gated separately below.
     href: "/admin/company-structure" as Route,
     label: "Company/Employee",
     icon: Network,
     children: [
-      { href: "/admin/company-structure" as Route, label: "Company Structure" },
+      {
+        href: "/admin/company-structure" as Route,
+        label: "Company Structure",
+        requiresModules: ["company_structure"],
+      },
       { href: "/admin/hierarchy" as Route, label: "Manage Employee" },
     ],
   },
@@ -143,11 +174,13 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/audit" as Route,
     label: "Activity Log",
     icon: History,
+    requiresModules: ["audit_log"],
   },
   {
     href: "/admin/settings",
     label: "System Settings",
     icon: Settings2,
+    requiresModules: ["settings"],
     children: [
       { href: "/admin/settings?tab=organization", label: "Organization" },
       { href: "/admin/settings?tab=accounts", label: "Accounts" },
@@ -161,6 +194,47 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     ],
   },
 ]
+
+/**
+ * Filter the admin nav by an admin's module-access scope. `accessModules`
+ * comes from the AdminOrganization row for the active org — `null` means
+ * full access (owners, legacy admins with no row). When a list is passed,
+ * we keep items whose `requiresModules` overlaps the granted set, and
+ * always keep items without a `requiresModules` declaration (Executive
+ * Overview).
+ */
+function filterAdminNav(
+  nav: ReadonlyArray<AdminNavItem>,
+  accessModules: ReadonlyArray<string> | null,
+): ReadonlyArray<AdminNavItem> {
+  if (accessModules === null) return nav
+  const granted = new Set(accessModules)
+  const itemAllowed = (req: ReadonlyArray<string> | undefined) =>
+    !req || req.length === 0 || req.some((m) => granted.has(m))
+  return nav
+    .map((item) => {
+      const children = item.children?.filter((c) => itemAllowed(c.requiresModules))
+      if (!children) return item
+      // When the parent's declared href points at a child that got
+      // filtered out, redirect the parent click to the first remaining
+      // child. Otherwise admins land on a forbidden page — e.g. the
+      // Company/Employee parent points at /admin/company-structure, but
+      // a `hierarchy`-only admin should jump to /admin/hierarchy.
+      const declaredChildVisible = item.children?.some(
+        (c) => c.href === item.href && children.some((kept) => kept.href === c.href),
+      )
+      const parentHref =
+        declaredChildVisible || !children[0] ? item.href : children[0].href
+      return { ...item, children, href: parentHref }
+    })
+    .filter((item) => {
+      if (!itemAllowed(item.requiresModules)) return false
+      // Drop parents whose every child got filtered out (avoid an empty
+      // dropdown). Parents with no children declared aren't affected.
+      if (item.children && item.children.length === 0) return false
+      return true
+    })
+}
 
 function getTitle(pathname: string) {
   if (pathname.startsWith("/admin/claims")) {
@@ -214,6 +288,13 @@ type AdminShellProps = {
   user: AuthenticatedSession
   organizationName?: string
   activeOrganizationId?: string
+  /// Module-access scope for the active org. `null` = full access
+  /// (Owner role or legacy admin without an AdminOrganization row).
+  /// A `string[]` (possibly empty) restricts the visible sidebar nav
+  /// to items whose `requiresModules` overlaps the array. Resolved
+  /// server-side by the layout and threaded down; the client doesn't
+  /// re-fetch it.
+  accessModules?: ReadonlyArray<string> | null
 }
 
 export function AdminShell({
@@ -221,7 +302,11 @@ export function AdminShell({
   user,
   organizationName,
   activeOrganizationId,
+  accessModules,
 }: AdminShellProps) {
+  // Filter the full nav down to what this admin is allowed to see.
+  // `null` (default) → keep everything (owner / legacy admin).
+  const visibleNav = filterAdminNav(adminNav, accessModules ?? null)
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -324,7 +409,7 @@ export function AdminShell({
         </Link>
 
         <nav className="mt-10 space-y-2">
-          {adminNav.map((item) => {
+          {visibleNav.map((item) => {
             const Icon = item.icon
             // The per-employee detail editor still lives at the legacy
             // URL /admin/payroll/employees/[id], but conceptually it's
@@ -493,7 +578,7 @@ export function AdminShell({
 
         <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden print:hidden">
           <div className="grid grid-cols-4 gap-1">
-            {adminNav.map((item) => {
+            {visibleNav.map((item) => {
               const active =
                 pathname === item.href || pathname.startsWith(item.href + "/")
               const Icon = item.icon

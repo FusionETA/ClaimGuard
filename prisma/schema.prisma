@@ -301,7 +301,25 @@ model AdminOrganization {
   id             String       @id @default(cuid())
   adminId        String
   organizationId String
+  /// JSON array of admin module keys the admin can access in this org
+  /// (e.g. ["claims_personal","payroll","leave"]). `null` = full access
+  /// (legacy behaviour for admins added before this column shipped — they
+  /// keep equal-tier access until the owner edits it). Empty array = no
+  /// modules visible (rare; effectively locked out).
+  /// Source enum lives in `components/admin/admin-access-picker.tsx`
+  /// (`ADMIN_MODULES`) until we promote it to a Prisma enum.
+  modules        Json?
+  /// JSON array of EmployeePolicy ids the admin can manage in this org.
+  /// `null` = all policies. Empty array = no policies. Used by claims /
+  /// leave / attendance / payroll preview to filter the employees this
+  /// admin can see.
+  policyIds      Json?
   createdAt      DateTime     @default(now())
+  // `@default(now())` backfills existing rows when this column was
+  // added; `@updatedAt` makes Prisma stamp it on every write going
+  // forward. Without the default, db push would refuse to add the
+  // column to a table that already has rows.
+  updatedAt      DateTime     @default(now()) @updatedAt
   admin          User         @relation("AdminOrganizations", fields: [adminId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 

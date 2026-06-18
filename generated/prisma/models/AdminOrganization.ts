@@ -29,6 +29,7 @@ export type AdminOrganizationMinAggregateOutputType = {
   adminId: string | null
   organizationId: string | null
   createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type AdminOrganizationMaxAggregateOutputType = {
@@ -36,13 +37,17 @@ export type AdminOrganizationMaxAggregateOutputType = {
   adminId: string | null
   organizationId: string | null
   createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type AdminOrganizationCountAggregateOutputType = {
   id: number
   adminId: number
   organizationId: number
+  modules: number
+  policyIds: number
   createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -52,6 +57,7 @@ export type AdminOrganizationMinAggregateInputType = {
   adminId?: true
   organizationId?: true
   createdAt?: true
+  updatedAt?: true
 }
 
 export type AdminOrganizationMaxAggregateInputType = {
@@ -59,13 +65,17 @@ export type AdminOrganizationMaxAggregateInputType = {
   adminId?: true
   organizationId?: true
   createdAt?: true
+  updatedAt?: true
 }
 
 export type AdminOrganizationCountAggregateInputType = {
   id?: true
   adminId?: true
   organizationId?: true
+  modules?: true
+  policyIds?: true
   createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -145,7 +155,10 @@ export type AdminOrganizationGroupByOutputType = {
   id: string
   adminId: string
   organizationId: string
+  modules: runtime.JsonValue | null
+  policyIds: runtime.JsonValue | null
   createdAt: Date
+  updatedAt: Date
   _count: AdminOrganizationCountAggregateOutputType | null
   _min: AdminOrganizationMinAggregateOutputType | null
   _max: AdminOrganizationMaxAggregateOutputType | null
@@ -173,7 +186,10 @@ export type AdminOrganizationWhereInput = {
   id?: Prisma.StringFilter<"AdminOrganization"> | string
   adminId?: Prisma.StringFilter<"AdminOrganization"> | string
   organizationId?: Prisma.StringFilter<"AdminOrganization"> | string
+  modules?: Prisma.JsonNullableFilter<"AdminOrganization">
+  policyIds?: Prisma.JsonNullableFilter<"AdminOrganization">
   createdAt?: Prisma.DateTimeFilter<"AdminOrganization"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"AdminOrganization"> | Date | string
   admin?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
@@ -182,7 +198,10 @@ export type AdminOrganizationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   adminId?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
+  modules?: Prisma.SortOrderInput | Prisma.SortOrder
+  policyIds?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   admin?: Prisma.UserOrderByWithRelationInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
   _relevance?: Prisma.AdminOrganizationOrderByRelevanceInput
@@ -196,7 +215,10 @@ export type AdminOrganizationWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.AdminOrganizationWhereInput | Prisma.AdminOrganizationWhereInput[]
   adminId?: Prisma.StringFilter<"AdminOrganization"> | string
   organizationId?: Prisma.StringFilter<"AdminOrganization"> | string
+  modules?: Prisma.JsonNullableFilter<"AdminOrganization">
+  policyIds?: Prisma.JsonNullableFilter<"AdminOrganization">
   createdAt?: Prisma.DateTimeFilter<"AdminOrganization"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"AdminOrganization"> | Date | string
   admin?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id" | "adminId_organizationId">
@@ -205,7 +227,10 @@ export type AdminOrganizationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   adminId?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
+  modules?: Prisma.SortOrderInput | Prisma.SortOrder
+  policyIds?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.AdminOrganizationCountOrderByAggregateInput
   _max?: Prisma.AdminOrganizationMaxOrderByAggregateInput
   _min?: Prisma.AdminOrganizationMinOrderByAggregateInput
@@ -218,12 +243,18 @@ export type AdminOrganizationScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"AdminOrganization"> | string
   adminId?: Prisma.StringWithAggregatesFilter<"AdminOrganization"> | string
   organizationId?: Prisma.StringWithAggregatesFilter<"AdminOrganization"> | string
+  modules?: Prisma.JsonNullableWithAggregatesFilter<"AdminOrganization">
+  policyIds?: Prisma.JsonNullableWithAggregatesFilter<"AdminOrganization">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AdminOrganization"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AdminOrganization"> | Date | string
 }
 
 export type AdminOrganizationCreateInput = {
   id?: string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  updatedAt?: Date | string
   admin: Prisma.UserCreateNestedOneWithoutAdminOrganizationsInput
   organization: Prisma.OrganizationCreateNestedOneWithoutAdminMembersInput
 }
@@ -232,12 +263,18 @@ export type AdminOrganizationUncheckedCreateInput = {
   id?: string
   adminId: string
   organizationId: string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AdminOrganizationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   admin?: Prisma.UserUpdateOneRequiredWithoutAdminOrganizationsNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutAdminMembersNestedInput
 }
@@ -246,26 +283,38 @@ export type AdminOrganizationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   adminId?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AdminOrganizationCreateManyInput = {
   id?: string
   adminId: string
   organizationId: string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AdminOrganizationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AdminOrganizationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   adminId?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AdminOrganizationListRelationFilter = {
@@ -293,7 +342,10 @@ export type AdminOrganizationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   adminId?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
+  modules?: Prisma.SortOrder
+  policyIds?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AdminOrganizationMaxOrderByAggregateInput = {
@@ -301,6 +353,7 @@ export type AdminOrganizationMaxOrderByAggregateInput = {
   adminId?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AdminOrganizationMinOrderByAggregateInput = {
@@ -308,6 +361,7 @@ export type AdminOrganizationMinOrderByAggregateInput = {
   adminId?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AdminOrganizationCreateNestedManyWithoutAdminInput = {
@@ -396,14 +450,20 @@ export type AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput =
 
 export type AdminOrganizationCreateWithoutAdminInput = {
   id?: string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutAdminMembersInput
 }
 
 export type AdminOrganizationUncheckedCreateWithoutAdminInput = {
   id?: string
   organizationId: string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AdminOrganizationCreateOrConnectWithoutAdminInput = {
@@ -439,19 +499,28 @@ export type AdminOrganizationScalarWhereInput = {
   id?: Prisma.StringFilter<"AdminOrganization"> | string
   adminId?: Prisma.StringFilter<"AdminOrganization"> | string
   organizationId?: Prisma.StringFilter<"AdminOrganization"> | string
+  modules?: Prisma.JsonNullableFilter<"AdminOrganization">
+  policyIds?: Prisma.JsonNullableFilter<"AdminOrganization">
   createdAt?: Prisma.DateTimeFilter<"AdminOrganization"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"AdminOrganization"> | Date | string
 }
 
 export type AdminOrganizationCreateWithoutOrganizationInput = {
   id?: string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  updatedAt?: Date | string
   admin: Prisma.UserCreateNestedOneWithoutAdminOrganizationsInput
 }
 
 export type AdminOrganizationUncheckedCreateWithoutOrganizationInput = {
   id?: string
   adminId: string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AdminOrganizationCreateOrConnectWithoutOrganizationInput = {
@@ -483,49 +552,73 @@ export type AdminOrganizationUpdateManyWithWhereWithoutOrganizationInput = {
 export type AdminOrganizationCreateManyAdminInput = {
   id?: string
   organizationId: string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AdminOrganizationUpdateWithoutAdminInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutAdminMembersNestedInput
 }
 
 export type AdminOrganizationUncheckedUpdateWithoutAdminInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AdminOrganizationUncheckedUpdateManyWithoutAdminInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AdminOrganizationCreateManyOrganizationInput = {
   id?: string
   adminId: string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AdminOrganizationUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   admin?: Prisma.UserUpdateOneRequiredWithoutAdminOrganizationsNestedInput
 }
 
 export type AdminOrganizationUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   adminId?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AdminOrganizationUncheckedUpdateManyWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   adminId?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -534,7 +627,10 @@ export type AdminOrganizationSelect<ExtArgs extends runtime.Types.Extensions.Int
   id?: boolean
   adminId?: boolean
   organizationId?: boolean
+  modules?: boolean
+  policyIds?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   admin?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["adminOrganization"]>
@@ -545,10 +641,13 @@ export type AdminOrganizationSelectScalar = {
   id?: boolean
   adminId?: boolean
   organizationId?: boolean
+  modules?: boolean
+  policyIds?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type AdminOrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "adminId" | "organizationId" | "createdAt", ExtArgs["result"]["adminOrganization"]>
+export type AdminOrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "adminId" | "organizationId" | "modules" | "policyIds" | "createdAt" | "updatedAt", ExtArgs["result"]["adminOrganization"]>
 export type AdminOrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   admin?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -564,7 +663,25 @@ export type $AdminOrganizationPayload<ExtArgs extends runtime.Types.Extensions.I
     id: string
     adminId: string
     organizationId: string
+    /**
+     * JSON array of admin module keys the admin can access in this org
+     * (e.g. ["claims_personal","payroll","leave"]). `null` = full access
+     * (legacy behaviour for admins added before this column shipped — they
+     * keep equal-tier access until the owner edits it). Empty array = no
+     * modules visible (rare; effectively locked out).
+     * Source enum lives in `components/admin/admin-access-picker.tsx`
+     * (`ADMIN_MODULES`) until we promote it to a Prisma enum.
+     */
+    modules: runtime.JsonValue | null
+    /**
+     * JSON array of EmployeePolicy ids the admin can manage in this org.
+     * `null` = all policies. Empty array = no policies. Used by claims /
+     * leave / attendance / payroll preview to filter the employees this
+     * admin can see.
+     */
+    policyIds: runtime.JsonValue | null
     createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["adminOrganization"]>
   composites: {}
 }
@@ -939,7 +1056,10 @@ export interface AdminOrganizationFieldRefs {
   readonly id: Prisma.FieldRef<"AdminOrganization", 'String'>
   readonly adminId: Prisma.FieldRef<"AdminOrganization", 'String'>
   readonly organizationId: Prisma.FieldRef<"AdminOrganization", 'String'>
+  readonly modules: Prisma.FieldRef<"AdminOrganization", 'Json'>
+  readonly policyIds: Prisma.FieldRef<"AdminOrganization", 'Json'>
   readonly createdAt: Prisma.FieldRef<"AdminOrganization", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"AdminOrganization", 'DateTime'>
 }
     
 

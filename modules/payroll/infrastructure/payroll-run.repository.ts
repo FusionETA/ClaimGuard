@@ -209,14 +209,43 @@ export const payrollRunRepository = {
   async getByIdForOrg(input: {
     id: string
     organizationId: string
+    /// Optional employee-policy scope. Affects the `payslipCount` shown
+    /// on the run header — restricted admins see the count of payslips
+    /// for employees they can see, not the run-wide count. `null` =
+    /// no scope (owner / legacy admin).
+    policyIdScope?: string[] | null
   }): Promise<PayrollRunRow | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
 
+    const policyIdScope = input.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
+      // Restricted admin with no policy scope still sees the run row
+      // (so they don't 404), but `payslipCount` reports 0.
+      const row0 = await prisma.payrollRun.findFirst({
+        where: { id: input.id, organizationId: input.organizationId },
+      })
+      if (!row0) return null
+      return { ...mapPayrollRun(row0), payslipCount: 0 }
+    }
+
     const row = await prisma.payrollRun.findFirst({
       where: { id: input.id, organizationId: input.organizationId },
       include: {
-        _count: { select: { payslips: true } },
+        _count: {
+          select: {
+            payslips:
+              policyIdScope && policyIdScope.length > 0
+                ? {
+                    where: {
+                      employeeProfile: {
+                        policyId: { in: policyIdScope },
+                      },
+                    },
+                  }
+                : true,
+          },
+        },
       },
     })
     if (!row) return null

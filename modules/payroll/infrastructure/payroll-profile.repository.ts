@@ -156,9 +156,13 @@ export const payrollProfileRepository = {
    */
   async listForOrganization(
     organizationId: string,
+    options?: { policyIdScope?: string[] | null },
   ): Promise<PayrollEmployeeRow[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
 
     // Pull all employees in the org with their EmployeeProfile +
     // optional PayrollProfile in one query.
@@ -166,7 +170,10 @@ export const payrollProfileRepository = {
       where: {
         organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-        employeeProfile: { isNot: null },
+        employeeProfile:
+          policyIdScope && policyIdScope.length > 0
+            ? { is: { policyId: { in: policyIdScope } } }
+            : { isNot: null },
       },
       select: {
         id: true,
@@ -216,6 +223,7 @@ export const payrollProfileRepository = {
    */
   async listReadyForPayroll(
     organizationId: string,
+    options?: { policyIdScope?: string[] | null },
   ): Promise<
     Array<{
       userId: string
@@ -242,6 +250,9 @@ export const payrollProfileRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+
     // Mirror the listForOrganization shape — Prisma's nested filter for
     // optional 1:1 + non-null + property-match is awkward; we filter
     // in memory, which is cheap at org-scale headcounts.
@@ -249,7 +260,10 @@ export const payrollProfileRepository = {
       where: {
         organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-        employeeProfile: { isNot: null },
+        employeeProfile:
+          policyIdScope && policyIdScope.length > 0
+            ? { is: { policyId: { in: policyIdScope } } }
+            : { isNot: null },
       },
       select: {
         id: true,

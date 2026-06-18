@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { getCurrentSession } from "@/lib/auth/session"
 import { formatCurrency } from "@/lib/utils"
 import { getClaimsReportPageData } from "@/modules/claims/application/services/claims-breakdown.service"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 
 /**
  * /admin/claims/breakdown — admin "Reports" page.
@@ -48,6 +49,7 @@ export default async function AdminClaimsReportsPage({
 }) {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) redirect("/login")
+  await requireAdminModule(["claims_personal", "claims_company"])
 
   const params = await searchParams
   const projectIds = parseCsvIds(params.projects)

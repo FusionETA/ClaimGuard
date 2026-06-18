@@ -2,6 +2,7 @@
 
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 
 function parseRange(fromIso: string, toIso: string): { from: Date; to: Date } {
   const from = new Date(fromIso)
@@ -24,6 +25,7 @@ export async function loadOrgHistoryAction(
 ) {
   const session = await requirePortalSession("ADMIN")
   const { from, to } = parseRange(fromIso, toIso)
+  const policyIdScope = await getActiveAdminPolicyScope()
   return adminAttendanceService.getOrgHistory({
     orgId: resolveActiveOrgId(session) ?? null,
     from,
@@ -33,5 +35,6 @@ export async function loadOrgHistoryAction(
     q,
     statuses: statuses.length > 0 ? statuses : undefined,
     page,
+    policyIdScope,
   })
 }

@@ -4,6 +4,7 @@ import { getOrSetCache } from "@/lib/cache"
 import { key } from "@/lib/redis"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 import type {
   AdminOrgOverview,
   ApprovalRequestView,
@@ -24,15 +25,38 @@ function seg(v: string | null | undefined): string {
   return v && v.length > 0 ? v : "_"
 }
 
+/**
+ * Derive a deterministic cache-key segment from the per-admin policy
+ * scope. `null` = full access (owner / legacy) shares the original cache
+ * entries (no scope tag); a restricted scope sorts + joins the IDs so
+ * `{a,b}` and `{b,a}` land on the same key.
+ */
+function scopeSeg(policyIdScope: string[] | null): string {
+  if (policyIdScope === null) return "_all"
+  if (policyIdScope.length === 0) return "_none"
+  return `p:${[...policyIdScope].sort().join(",")}`
+}
+
 export const adminAttendanceService = {
   async getOrgOverview(
     orgId: string | null,
     projectId?: string | null,
   ): Promise<AdminOrgOverview> {
+    const policyIdScope = await getActiveAdminPolicyScope()
     return getOrSetCache(
-      key("org", seg(orgId), "attendance", "overview", seg(projectId)),
+      key(
+        "org",
+        seg(orgId),
+        "attendance",
+        "overview",
+        seg(projectId),
+        scopeSeg(policyIdScope),
+      ),
       60,
-      () => attendanceRepository.getOrgOverview(orgId, projectId),
+      () =>
+        attendanceRepository.getOrgOverview(orgId, projectId, {
+          policyIdScope,
+        }),
     )
   },
 
@@ -42,6 +66,7 @@ export const adminAttendanceService = {
     teamId?: string | null,
     q?: string | null,
   ): Promise<TodayRollCall> {
+    const policyIdScope = await getActiveAdminPolicyScope()
     // "Today" — include date so caches don't survive a midnight rollover.
     const today = new Date().toISOString().slice(0, 10)
     return getOrSetCache(
@@ -54,17 +79,31 @@ export const adminAttendanceService = {
         seg(projectId),
         seg(teamId),
         seg(q),
+        scopeSeg(policyIdScope),
       ),
       60,
-      () => attendanceRepository.getTodayRollCall(orgId, projectId, teamId, q),
+      () =>
+        attendanceRepository.getTodayRollCall(orgId, projectId, teamId, q, {
+          policyIdScope,
+        }),
     )
   },
 
   async getAllPendingApprovals(orgId: string | null): Promise<ApprovalRequestView[]> {
+    const policyIdScope = await getActiveAdminPolicyScope()
     return getOrSetCache(
-      key("org", seg(orgId), "attendance", "pending-approvals"),
+      key(
+        "org",
+        seg(orgId),
+        "attendance",
+        "pending-approvals",
+        scopeSeg(policyIdScope),
+      ),
       60,
-      () => attendanceRepository.getAllPendingApprovals(orgId),
+      () =>
+        attendanceRepository.getAllPendingApprovals(orgId, {
+          policyIdScope,
+        }),
     )
   },
 
@@ -80,6 +119,7 @@ export const adminAttendanceService = {
     totalOnLeave: number
     pendingOT: number
   }> {
+    const policyIdScope = await getActiveAdminPolicyScope()
     return getOrSetCache(
       key(
         "org",
@@ -89,9 +129,13 @@ export const adminAttendanceService = {
         from.toISOString(),
         to.toISOString(),
         seg(projectId),
+        scopeSeg(policyIdScope),
       ),
       60,
-      () => attendanceRepository.getAggregateStats(from, to, orgId, projectId),
+      () =>
+        attendanceRepository.getAggregateStats(from, to, orgId, projectId, {
+          policyIdScope,
+        }),
     )
   },
 
@@ -130,6 +174,7 @@ export const adminAttendanceService = {
     teamId?: string | null,
     q?: string | null,
   ) {
+    const policyIdScope = await getActiveAdminPolicyScope()
     return attendanceRepository.getHoursSummary({
       orgId,
       from,
@@ -137,6 +182,7 @@ export const adminAttendanceService = {
       projectId,
       teamId,
       q,
+      policyIdScope,
     })
   },
 
@@ -156,7 +202,10 @@ export const adminAttendanceService = {
     teamId?: string | null,
     q?: string | null,
   ) {
-    return attendanceRepository.getDailyActivity(orgId, projectId, teamId, q)
+    const policyIdScope = await getActiveAdminPolicyScope()
+    return attendanceRepository.getDailyActivity(orgId, projectId, teamId, q, {
+      policyIdScope,
+    })
   },
 
   async getOffSiteClockIns(
@@ -165,11 +214,13 @@ export const adminAttendanceService = {
     teamId?: string | null,
     q?: string | null,
   ) {
+    const policyIdScope = await getActiveAdminPolicyScope()
     return attendanceRepository.getOffSiteClockInsForToday(
       orgId,
       projectId,
       teamId,
       q,
+      { policyIdScope },
     )
   },
 
@@ -207,7 +258,11 @@ export const adminAttendanceService = {
     teamId?: string | null
     q?: string | null
   }) {
-    return attendanceRepository.getSupervisorPerformance(args)
+    const policyIdScope = await getActiveAdminPolicyScope()
+    return attendanceRepository.getSupervisorPerformance({
+      ...args,
+      policyIdScope,
+    })
   },
 
   async getApprovalAuditLog(
@@ -219,6 +274,7 @@ export const adminAttendanceService = {
     q?: string | null,
     statuses?: Array<"APPROVED" | "REJECTED" | "PENDING">,
   ) {
+    const policyIdScope = await getActiveAdminPolicyScope()
     return attendanceRepository.getApprovalAuditLog({
       orgId,
       from,
@@ -227,6 +283,7 @@ export const adminAttendanceService = {
       teamId,
       q,
       statuses,
+      policyIdScope,
     })
   },
 
@@ -239,6 +296,7 @@ export const adminAttendanceService = {
     q?: string | null
     statuses?: string[]
     page: number
+    policyIdScope?: string[] | null
   }) {
     return attendanceRepository.getOrgAttendanceHistory({
       ...args,

@@ -6,18 +6,25 @@ import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { ensureDefaultLeaveTypesForOrg } from "@/modules/leave/application/services/leave-defaults.service"
 import { listLeaveTypes } from "@/modules/leave/application/services/leave-types.service"
 import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
+import {
+  getActiveAdminPolicyScope,
+  requireAdminModule,
+} from "@/modules/organization/application/services/admin-access.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 
 export default async function AdminLeaveSettingsPage() {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) redirect("/login")
+  await requireAdminModule("leave")
   const orgId = resolveActiveOrgId(session)
   if (!orgId) redirect("/admin")
 
   // Seed the org's built-in leave types if missing. No-op when they
   // already exist. Existing rows are never overwritten.
   await ensureDefaultLeaveTypesForOrg(orgId)
+
+  const policyIdScope = await getActiveAdminPolicyScope()
 
   const year = new Date().getUTCFullYear()
   const [
@@ -31,15 +38,22 @@ export default async function AdminLeaveSettingsPage() {
     listLeaveTypes(orgId, true),
     policyRepository.listForOrganization(orgId),
     leaveRepository.listPolicyDefaults(orgId),
-    leaveRepository.listEmployeesForLeaveSettings(orgId),
-    leaveRepository.listEmployeeEntitlementsForOrg(orgId, year),
+    leaveRepository.listEmployeesForLeaveSettings(orgId, { policyIdScope }),
+    leaveRepository.listEmployeeEntitlementsForOrg(orgId, year, {
+      policyIdScope,
+    }),
     organizationRepository.getOrganizationById(orgId),
   ])
 
   // Settings UI only needs id/name/isDefault — strip the rest and drop
   // archived policies (matches the previous `archivedAt: null` filter).
+  // Restricted admins only see the policies they were granted access to;
+  // owners / legacy admins (`policyIdScope === null`) see them all.
+  const allowedPolicyIds =
+    policyIdScope === null ? null : new Set(policyIdScope)
   const policies = allPolicies
     .filter((p) => !p.archived)
+    .filter((p) => allowedPolicyIds === null || allowedPolicyIds.has(p.id))
     .map((p) => ({ id: p.id, name: p.name, isDefault: p.isDefault }))
     .sort((a, b) => {
       if (a.isDefault !== b.isDefault) return a.isDefault ? -1 : 1

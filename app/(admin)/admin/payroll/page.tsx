@@ -27,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { getCurrentSession } from "@/lib/auth/session"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 
 /**
  * Payroll overview / landing page.
@@ -39,6 +40,7 @@ import { getCurrentSession } from "@/lib/auth/session"
 export default async function AdminPayrollPage() {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) redirect("/login")
+  await requireAdminModule("payroll")
 
   return (
     <div className="space-y-6">

@@ -9,6 +9,7 @@ import { PayrollEmployeeDetail } from "@/components/admin/payroll-employee-detai
 import type { EmployeeCompanyData } from "@/components/admin/employee-company-form"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getAdminHierarchyPageData } from "@/modules/claims/application/services/admin-page-data.service"
+import { hasAdminModule } from "@/modules/organization/application/services/admin-access.service"
 import { getPayrollEmployeeDetailPageData } from "@/modules/payroll/application/services/payroll-profile.service"
 import { isPayrollProfileComplete } from "@/modules/payroll/domain/models"
 
@@ -32,6 +33,13 @@ export default async function AdminPayrollEmployeeDetailPage({
     // Either not signed in as admin, no org, or employee not in this org.
     redirect("/admin/hierarchy")
   }
+  // Read-only when the admin's access doesn't include the Manage
+  // Employee module. The detail page still renders so admins can browse
+  // — every form field is disabled via `<fieldset disabled>` inside
+  // PayrollEmployeeDetail. (Server actions are the next defensive
+  // layer; mutating from a stale tab while access was revoked still
+  // works for now — out of scope for this pass.)
+  const canEdit = await hasAdminModule("hierarchy")
 
   // Org-hierarchy context for the "Company" tab. Resolve the matching
   // member (OrganizationMember.id === User.id) plus the option lists the
@@ -129,6 +137,7 @@ export default async function AdminPayrollEmployeeDetailPage({
         defaultEpfEmployerRate={data.defaultEpfEmployerRate}
         salaryHistory={data.salaryHistory}
         company={company}
+        canEdit={canEdit}
       />
     </div>
   )

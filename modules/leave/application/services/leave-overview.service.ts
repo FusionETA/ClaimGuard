@@ -3,6 +3,7 @@ import "server-only"
 import { getOrSetCache } from "@/lib/cache"
 import { getLeavePrismaClientSafe } from "@/modules/leave/infrastructure/leave-repository"
 import { key } from "@/lib/redis"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 
 export type OnLeaveTodayEntry = {
   employeeId: string
@@ -20,18 +21,24 @@ export type OnLeaveTodayEntry = {
 export async function getOnLeaveTodayForOrg(
   orgId: string,
 ): Promise<OnLeaveTodayEntry[] | null> {
+  const policyIdScope = await getActiveAdminPolicyScope()
+  if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+  const scopeTag =
+    policyIdScope === null ? "_all" : `p:${[...policyIdScope].sort().join(",")}`
   // 10-min TTL; busted by `bustLeaveCaches` on leave mutations. The
   // "today" window shifts at midnight — the short TTL bounds that
-  // staleness to at most one window.
+  // staleness to at most one window. Scope tag keeps two admins with
+  // different policy grants from sharing entries.
   return getOrSetCache(
-    key("org", orgId, "leave", "on-leave-today"),
+    key("org", orgId, "leave", "on-leave-today", scopeTag),
     600,
-    () => loadOnLeaveTodayForOrg(orgId),
+    () => loadOnLeaveTodayForOrg(orgId, policyIdScope),
   )
 }
 
 async function loadOnLeaveTodayForOrg(
   orgId: string,
+  policyIdScope: string[] | null,
 ): Promise<OnLeaveTodayEntry[] | null> {
   const prisma = getLeavePrismaClientSafe()
   if (!prisma) return null
@@ -53,7 +60,12 @@ async function loadOnLeaveTodayForOrg(
       status: "APPROVED",
       startDate: { lte: todayEnd },
       endDate: { gte: todayStart },
-      employee: { user: { organizationId: orgId } },
+      employee: {
+        user: { organizationId: orgId },
+        ...(policyIdScope && policyIdScope.length > 0
+          ? { policyId: { in: policyIdScope } }
+          : {}),
+      },
     },
     include: {
       leaveType: { select: { code: true, name: true } },
@@ -111,8 +123,15 @@ export async function listLeaveAuditLog(
   const prisma = getLeavePrismaClientSafe()
   if (!prisma) return []
 
+  const policyIdScope = await getActiveAdminPolicyScope()
+  if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+  const policyFilter =
+    policyIdScope && policyIdScope.length > 0
+      ? { policyId: { in: policyIdScope } }
+      : {}
+
   const where: Record<string, unknown> = {
-    employee: { user: { organizationId: orgId } },
+    employee: { user: { organizationId: orgId }, ...policyFilter },
   }
   if (filters.status && filters.status !== "ALL") {
     where.status = filters.status
@@ -143,6 +162,7 @@ export async function listLeaveAuditLog(
           { email: { contains: needle } },
         ],
       },
+      ...policyFilter,
     }
   }
 
@@ -223,7 +243,24 @@ export async function getLeaveOverviewForOrg(orgId: string): Promise<LeaveOvervi
     }
   }
 
-  const orgScope = { employee: { user: { organizationId: orgId } } }
+  const policyIdScope = await getActiveAdminPolicyScope()
+  if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
+    return {
+      year,
+      totals: { pending: 0, approved: 0, rejected: 0, cancelled: 0 },
+      daysUsedByType: [],
+      onLeaveToday: [],
+      recentApplications: [],
+    }
+  }
+  const orgScope = {
+    employee: {
+      user: { organizationId: orgId },
+      ...(policyIdScope && policyIdScope.length > 0
+        ? { policyId: { in: policyIdScope } }
+        : {}),
+    },
+  }
   const yearStart = new Date(Date.UTC(year, 0, 1))
   const yearEnd = new Date(Date.UTC(year, 11, 31, 23, 59, 59))
   const today = new Date()

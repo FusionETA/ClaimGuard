@@ -9,6 +9,7 @@ import {
   listLeaveAuditLog,
 } from "@/modules/leave/application/services/leave-overview.service"
 import { listLeaveTypes } from "@/modules/leave/application/services/leave-types.service"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 
 function startOfMonthIso(): string {
   const d = new Date()
@@ -24,6 +25,7 @@ function todayIso(): string {
 export default async function AdminLeavePage() {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) redirect("/login")
+  await requireAdminModule("leave")
   const orgId = resolveActiveOrgId(session)
   if (!orgId) redirect("/admin")
 

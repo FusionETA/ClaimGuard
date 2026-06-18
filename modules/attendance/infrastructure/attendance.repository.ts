@@ -2619,7 +2619,10 @@ export const attendanceRepository = {
     }
   },
 
-  async getOrgEmployeeList(orgId: string | null): Promise<
+  async getOrgEmployeeList(
+    orgId: string | null,
+    options?: { policyIdScope?: string[] | null },
+  ): Promise<
     Array<{
       id: string
       name: string
@@ -2635,10 +2638,18 @@ export const attendanceRepository = {
     }>
   > {
     if (!orgId) return []
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const prisma = getClient()
     const today = startOfDay(new Date())
     const users = await prisma.user.findMany({
-      where: { organizationId: orgId, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
+      where: {
+        organizationId: orgId,
+        role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        ...(policyIdScope && policyIdScope.length > 0
+          ? { employeeProfile: { policyId: { in: policyIdScope } } }
+          : {}),
+      },
       orderBy: [{ role: "asc" }, { name: "asc" }],
       select: {
         id: true,
@@ -2744,6 +2755,7 @@ export const attendanceRepository = {
     projectId?: string | null,
     teamId?: string | null,
     q?: string | null,
+    options?: { policyIdScope?: string[] | null },
   ): Promise<
     Array<{
       id: string
@@ -2770,6 +2782,8 @@ export const attendanceRepository = {
     }>
   > {
     if (!orgId) return []
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const prisma = getClient()
     const today = startOfDay(new Date())
 
@@ -2785,6 +2799,9 @@ export const attendanceRepository = {
         organizationId: orgId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
         ...(employeeIds ? { id: { in: employeeIds } } : {}),
+        ...(policyIdScope && policyIdScope.length > 0
+          ? { employeeProfile: { policyId: { in: policyIdScope } } }
+          : {}),
       },
       orderBy: [{ name: "asc" }],
       select: {
@@ -2926,6 +2943,7 @@ export const attendanceRepository = {
     projectId?: string | null,
     teamId?: string | null,
     q?: string | null,
+    options?: { policyIdScope?: string[] | null },
   ): Promise<
     Array<{
       id: string
@@ -2940,6 +2958,8 @@ export const attendanceRepository = {
     }>
   > {
     if (!orgId) return []
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const prisma = getClient()
     const today = startOfDay(new Date())
 
@@ -2958,7 +2978,12 @@ export const attendanceRepository = {
         clockInDistanceMeters: { gt: radius },
         ...(projectId ? { projectId } : {}),
         ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
-        employee: { organizationId: orgId },
+        employee: {
+          organizationId: orgId,
+          ...(policyIdScope && policyIdScope.length > 0
+            ? { employeeProfile: { policyId: { in: policyIdScope } } }
+            : {}),
+        },
       },
       orderBy: { clockInDistanceMeters: "desc" },
       select: {
@@ -3280,11 +3305,23 @@ export const attendanceRepository = {
 
   // ── Admin ─────────────────────────────────────────────────────────────
 
-  async getAllPendingApprovals(orgId?: string | null): Promise<ApprovalRequestView[]> {
+  async getAllPendingApprovals(
+    orgId?: string | null,
+    options?: { policyIdScope?: string[] | null },
+  ): Promise<ApprovalRequestView[]> {
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const prisma = getClient()
-    const where = orgId
-      ? { status: "PENDING" as const, employee: { organizationId: orgId } }
-      : { status: "PENDING" as const }
+    const employeeFilter = {
+      ...(orgId ? { organizationId: orgId } : {}),
+      ...(policyIdScope && policyIdScope.length > 0
+        ? { employeeProfile: { policyId: { in: policyIdScope } } }
+        : {}),
+    }
+    const where =
+      orgId || policyIdScope
+        ? { status: "PENDING" as const, employee: employeeFilter }
+        : { status: "PENDING" as const }
     const records = await prisma.approvalRequest.findMany({
       where,
       orderBy: { submittedAt: "desc" },
@@ -3298,7 +3335,21 @@ export const attendanceRepository = {
   async getOrgOverview(
     orgId: string | null,
     projectId?: string | null,
+    options?: { policyIdScope?: string[] | null },
   ): Promise<AdminOrgOverview> {
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
+      // Empty policy scope = admin sees no employees → return an empty
+      // overview shape rather than a noisy zero-headcount one.
+      return {
+        headcount: 0,
+        presentToday: 0,
+        lateToday: 0,
+        onLeaveToday: 0,
+        pendingApprovals: 0,
+        byProject: [],
+      }
+    }
     const prisma = getClient()
     const today = startOfDay(new Date())
 
@@ -3310,19 +3361,32 @@ export const attendanceRepository = {
       employeeIds = await this.getEmployeeIdsForProject(orgId, projectId)
     }
 
+    const policyEmployeeFilter =
+      policyIdScope && policyIdScope.length > 0
+        ? { employeeProfile: { policyId: { in: policyIdScope } } }
+        : {}
+
     const userWhere = orgId ? { organizationId: orgId } : {}
     const headcount = await prisma.user.count({
       where: {
         ...userWhere,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
         ...(employeeIds ? { id: { in: employeeIds } } : {}),
+        ...policyEmployeeFilter,
       },
     })
 
     const todayRecords = await prisma.attendanceRecord.findMany({
       where: {
         date: today,
-        ...(orgId ? { employee: { organizationId: orgId } } : {}),
+        ...(orgId || policyIdScope
+          ? {
+              employee: {
+                ...(orgId ? { organizationId: orgId } : {}),
+                ...policyEmployeeFilter,
+              },
+            }
+          : {}),
         ...(projectId ? { projectId } : {}),
         ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
       },
@@ -3378,6 +3442,7 @@ export const attendanceRepository = {
     to: Date,
     orgId: string | null,
     projectId?: string | null,
+    options?: { policyIdScope?: string[] | null },
   ): Promise<{
     totalAttendanceRecords: number
     totalLate: number
@@ -3385,14 +3450,33 @@ export const attendanceRepository = {
     totalOnLeave: number
     pendingOT: number
   }> {
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
+      return {
+        totalAttendanceRecords: 0,
+        totalLate: 0,
+        totalMissing: 0,
+        totalOnLeave: 0,
+        pendingOT: 0,
+      }
+    }
     const prisma = getClient()
     let employeeIds: string[] | null = null
     if (projectId && orgId) {
       employeeIds = await this.getEmployeeIdsForProject(orgId, projectId)
     }
+    const policyEmployeeFilter =
+      policyIdScope && policyIdScope.length > 0
+        ? { employeeProfile: { policyId: { in: policyIdScope } } }
+        : {}
+    const employeeFilter = {
+      ...(orgId ? { organizationId: orgId } : {}),
+      ...policyEmployeeFilter,
+    }
+    const hasEmployeeFilter = orgId || policyIdScope
     const baseWhere = {
       date: { gte: startOfDay(from), lte: endOfDay(to) },
-      ...(orgId ? { employee: { organizationId: orgId } } : {}),
+      ...(hasEmployeeFilter ? { employee: employeeFilter } : {}),
       ...(projectId ? { projectId } : {}),
       ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
     }
@@ -3406,7 +3490,7 @@ export const attendanceRepository = {
           where: {
             kind: "OT",
             status: "PENDING",
-            ...(orgId ? { employee: { organizationId: orgId } } : {}),
+            ...(hasEmployeeFilter ? { employee: employeeFilter } : {}),
             ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
           },
         }),
@@ -3431,7 +3515,12 @@ export const attendanceRepository = {
     projectId?: string | null,
     teamId?: string | null,
     q?: string | null,
+    options?: { policyIdScope?: string[] | null },
   ): Promise<TodayRollCall> {
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
+      return { late: [], onLeave: [], notClockedIn: [] }
+    }
     const prisma = getClient()
     const today = startOfDay(new Date())
 
@@ -3447,6 +3536,11 @@ export const attendanceRepository = {
       }
     }
 
+    const policyEmployeeFilter =
+      policyIdScope && policyIdScope.length > 0
+        ? { employeeProfile: { policyId: { in: policyIdScope } } }
+        : {}
+
     const userWhere = orgId ? { organizationId: orgId } : {}
 
     const [employees, todayRecords] = await Promise.all([
@@ -3455,6 +3549,7 @@ export const attendanceRepository = {
           ...userWhere,
           role: { in: ["EMPLOYEE", "SUPERVISOR"] },
           ...(employeeIds ? { id: { in: employeeIds } } : {}),
+          ...policyEmployeeFilter,
         },
         select: {
           id: true,
@@ -3546,6 +3641,7 @@ export const attendanceRepository = {
     q?: string | null
     from: Date
     to: Date
+    policyIdScope?: string[] | null
   }): Promise<{
     totals: HoursBuckets & { expectedMin: number }
     employees: Array<{
@@ -3560,6 +3656,13 @@ export const attendanceRepository = {
       buckets: HoursBuckets & { expectedMin: number }
     }>
   }> {
+    const policyIdScope = args.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
+      return {
+        totals: { ...EMPTY_BUCKETS, expectedMin: 0 },
+        employees: [],
+      }
+    }
     const prisma = getClient()
     const from = startOfDay(args.from)
     const to = endOfDay(args.to)
@@ -3571,6 +3674,9 @@ export const attendanceRepository = {
       employeeWhere.id = args.employeeId
     } else if (args.orgId) {
       employeeWhere.organizationId = args.orgId
+    }
+    if (policyIdScope && policyIdScope.length > 0) {
+      employeeWhere.employeeProfile = { policyId: { in: policyIdScope } }
     }
     if (args.orgId && (args.projectId || args.teamId || args.q)) {
       const ids = await this.resolveScopedEmployeeIds(args.orgId, {
@@ -4058,6 +4164,7 @@ export const attendanceRepository = {
     projectId?: string | null
     teamId?: string | null
     q?: string | null
+    policyIdScope?: string[] | null
   }): Promise<
     Array<{
       reviewerId: string
@@ -4074,13 +4181,20 @@ export const attendanceRepository = {
     const from = startOfDay(args.from)
     const to = endOfDay(args.to)
 
+    const policyIdScope = args.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const where: Record<string, unknown> = {
       status: { in: ["APPROVED", "REJECTED"] },
       reviewedAt: { gte: from, lte: to },
       reviewerId: { not: null },
     }
-    if (args.orgId) {
-      where.employee = { organizationId: args.orgId }
+    const employeeFilter: Record<string, unknown> = {}
+    if (args.orgId) employeeFilter.organizationId = args.orgId
+    if (policyIdScope && policyIdScope.length > 0) {
+      employeeFilter.employeeProfile = { policyId: { in: policyIdScope } }
+    }
+    if (Object.keys(employeeFilter).length > 0) {
+      where.employee = employeeFilter
     }
     if (args.orgId && (args.projectId || args.teamId || args.q)) {
       const empIds = await this.resolveScopedEmployeeIds(args.orgId, {
@@ -4180,6 +4294,7 @@ export const attendanceRepository = {
     teamId?: string | null
     q?: string | null
     statuses?: Array<"APPROVED" | "REJECTED" | "PENDING">
+    policyIdScope?: string[] | null
   }): Promise<
     Array<{
       id: string
@@ -4219,8 +4334,15 @@ export const attendanceRepository = {
     } else {
       where.reviewedAt = { gte: from, lte: to }
     }
-    if (args.orgId) {
-      where.employee = { organizationId: args.orgId }
+    const policyIdScope = args.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+    const auditEmployeeFilter: Record<string, unknown> = {}
+    if (args.orgId) auditEmployeeFilter.organizationId = args.orgId
+    if (policyIdScope && policyIdScope.length > 0) {
+      auditEmployeeFilter.employeeProfile = { policyId: { in: policyIdScope } }
+    }
+    if (Object.keys(auditEmployeeFilter).length > 0) {
+      where.employee = auditEmployeeFilter
     }
     if (args.orgId && (args.projectId || args.teamId || args.q)) {
       const empIds = await this.resolveScopedEmployeeIds(args.orgId, {
@@ -4520,11 +4642,17 @@ export const attendanceRepository = {
     statuses?: string[]
     page: number
     pageSize: number
+    policyIdScope?: string[] | null
   }): Promise<{ rows: AttendanceRecordView[]; total: number }> {
     const prisma = getClient()
     const from = startOfDay(args.from)
     const to = endOfDay(args.to)
     const pageSize = args.pageSize
+
+    const policyIdScope = args.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
+      return { rows: [], total: 0 }
+    }
 
     const recordWhere: Record<string, unknown> = {
       date: { gte: from, lte: to },
@@ -4534,17 +4662,31 @@ export const attendanceRepository = {
       recordWhere.status = { in: args.statuses }
     }
 
+    // Build the `employee` relation filter — org + optional policy gate.
+    // When the project/team/q filters resolve to a concrete id list we
+    // switch to `employeeId IN (...)` instead, but we still apply the
+    // policy gate inside the resolver via an outer filter on the result.
+    const employeeFilter: Record<string, unknown> = {}
+    if (args.orgId) employeeFilter.organizationId = args.orgId
+    if (policyIdScope && policyIdScope.length > 0) {
+      employeeFilter.employeeProfile = { policyId: { in: policyIdScope } }
+    }
+
     if (args.orgId) {
-      const employeeIds = await this.resolveScopedEmployeeIds(args.orgId, {
+      const scopedIds = await this.resolveScopedEmployeeIds(args.orgId, {
         projectId: args.projectId,
         teamId: args.teamId,
         q: args.q,
       })
-      if (employeeIds !== null) {
-        if (employeeIds.length === 0) return { rows: [], total: 0 }
-        recordWhere.employeeId = { in: employeeIds }
-      } else {
-        recordWhere.employee = { organizationId: args.orgId }
+      if (scopedIds !== null) {
+        if (scopedIds.length === 0) return { rows: [], total: 0 }
+        recordWhere.employeeId = { in: scopedIds }
+        // Still narrow by policy via the relation filter when scoped.
+        if (Object.keys(employeeFilter).length > 0) {
+          recordWhere.employee = employeeFilter
+        }
+      } else if (Object.keys(employeeFilter).length > 0) {
+        recordWhere.employee = employeeFilter
       }
     }
 

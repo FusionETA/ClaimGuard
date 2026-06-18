@@ -12,6 +12,7 @@ import {
   getAdminSettingsPageData,
   getInUseTenantIds,
 } from "@/modules/claims/application/services/admin-page-data.service"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
@@ -60,9 +61,16 @@ export async function AdminSettingsPanelPage({
     ? await apiIntegrationRepository.listForOrganization(orgIdForAdmins)
     : []
 
-  const policies = orgIdForAdmins
+  // Filter the Policies tab to only policies the admin was granted
+  // access to. Owners / legacy admins (null scope) see them all.
+  const policyIdScope = await getActiveAdminPolicyScope()
+  const allPolicies = orgIdForAdmins
     ? await policyRepository.listForOrganization(orgIdForAdmins)
     : []
+  const policies =
+    policyIdScope === null
+      ? allPolicies
+      : allPolicies.filter((p) => policyIdScope.includes(p.id))
 
   // Live read of the org's Xero Tracking Categories for the picker on the
   // Projects tab. Skipped when there's no active connection. We also pull

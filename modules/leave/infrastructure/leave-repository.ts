@@ -116,13 +116,21 @@ export const leaveRepository = {
    */
   async listEmployeesForLeaveSettings(
     orgId: string,
+    options?: { policyIdScope?: string[] | null },
   ): Promise<
     Array<{ id: string; policyId: string | null; name: string; email: string }>
   > {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const rows = await prisma.employeeProfile.findMany({
-      where: { user: { organizationId: orgId } },
+      where: {
+        user: { organizationId: orgId },
+        ...(policyIdScope && policyIdScope.length > 0
+          ? { policyId: { in: policyIdScope } }
+          : {}),
+      },
       orderBy: { user: { name: "asc" } },
       select: {
         id: true,
@@ -181,6 +189,7 @@ export const leaveRepository = {
   async listEmployeeEntitlementsForOrg(
     orgId: string,
     year: number,
+    options?: { policyIdScope?: string[] | null },
   ): Promise<
     Array<{
       employeeId: string
@@ -191,10 +200,17 @@ export const leaveRepository = {
   > {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const rows = await prisma.leaveEntitlement.findMany({
       where: {
         year,
-        employee: { user: { organizationId: orgId } },
+        employee: {
+          user: { organizationId: orgId },
+          ...(policyIdScope && policyIdScope.length > 0
+            ? { policyId: { in: policyIdScope } }
+            : {}),
+        },
       },
       select: {
         employeeId: true,
@@ -647,12 +663,22 @@ export const leaveRepository = {
    * (status PENDING). Drives the admin overview "Leave" quick-action
    * badge. Scoped via employee → user → organization.
    */
-  async countPendingForOrganization(organizationId: string): Promise<number> {
+  async countPendingForOrganization(
+    organizationId: string,
+    options?: { policyIdScope?: string[] | null },
+  ): Promise<number> {
     const prisma = requirePrisma()
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return 0
     return prisma.leaveApplication.count({
       where: {
         status: "PENDING",
-        employee: { user: { organizationId } },
+        employee: {
+          user: { organizationId },
+          ...(policyIdScope && policyIdScope.length > 0
+            ? { policyId: { in: policyIdScope } }
+            : {}),
+        },
       },
     })
   },

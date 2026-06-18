@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { LoansManager } from "@/components/admin/loans-manager"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 import { getLoansPageData } from "@/modules/payroll/application/services/loan.service"
 
 /**
@@ -12,6 +13,7 @@ import { getLoansPageData } from "@/modules/payroll/application/services/loan.se
  * Deduction" category (`deduct_advance`) and reduces take-home pay.
  */
 export default async function AdminPayrollLoansPage() {
+  await requireAdminModule("payroll")
   const data = await getLoansPageData()
   if (!data) redirect("/login")
 

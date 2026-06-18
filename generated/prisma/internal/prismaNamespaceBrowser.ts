@@ -254,7 +254,10 @@ export const AdminOrganizationScalarFieldEnum = {
   id: 'id',
   adminId: 'adminId',
   organizationId: 'organizationId',
-  createdAt: 'createdAt'
+  modules: 'modules',
+  policyIds: 'policyIds',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type AdminOrganizationScalarFieldEnum = (typeof AdminOrganizationScalarFieldEnum)[keyof typeof AdminOrganizationScalarFieldEnum]

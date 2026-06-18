@@ -38,6 +38,10 @@ import {
   SubmitPayrollRunButton,
 } from "@/components/admin/submit-payroll-run-buttons"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import {
+  getActiveAdminPolicyScope,
+  requireAdminModule,
+} from "@/modules/organization/application/services/admin-access.service"
 import { getPayrollReportsModalData } from "@/modules/payroll/application/services/payroll-reports.service"
 import { getPayrollRunReadiness } from "@/modules/payroll/application/services/payroll-readiness.service"
 import { getXeroConnectionSummary } from "@/modules/organization/application/services/xero-connection.service"
@@ -74,6 +78,7 @@ export default async function AdminPayrollRunDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  await requireAdminModule("payroll")
   const data = await getPayrollRunDetailWithPayslipsPageData({ runId: id })
   if (!data) redirect("/admin/payroll/runs")
 
@@ -122,6 +127,16 @@ export default async function AdminPayrollRunDetailPage({
       : ((await getSalaryChangeHintsForRun({ runId: id })) ?? [])
 
   const ready = data.employees.filter((e) => e.ready)
+  // Detect "the run had payslips but my policy scope hid them all".
+  // Owners / legacy admins have `policyIdScope === null` (no filter) —
+  // for them an empty SUBMITTED run is genuinely empty. Restricted
+  // admins with a non-null scope see a friendlier banner explaining
+  // the run isn't empty in absolute terms, just empty for them.
+  const policyIdScope = await getActiveAdminPolicyScope()
+  const hiddenByPolicyFilter =
+    data.run.status === "SUBMITTED" &&
+    data.payslips.length === 0 &&
+    policyIdScope !== null
   // Excluded employees (salary = 0) are NOT in the "needs setup"
   // bucket — they're intentionally opted out, not broken. Keep them
   // visible in their own section so admins can see who's being
@@ -398,12 +413,35 @@ export default async function AdminPayrollRunDetailPage({
       )}
 
       {ready.length === 0 && data.payslips.length === 0 && (
-        <Card className="print:hidden">
+        <Card
+          className={
+            hiddenByPolicyFilter
+              ? "border-amber-300/60 bg-amber-50/40 dark:border-amber-700/40 dark:bg-amber-950/20 print:hidden"
+              : "print:hidden"
+          }
+        >
           <CardHeader>
-            <CardDescription>
-              No employees ready for payroll. Complete an
-              employee&apos;s payroll profile to include them on the
-              next run.
+            <CardDescription
+              className={
+                hiddenByPolicyFilter
+                  ? "text-amber-900 dark:text-amber-200"
+                  : undefined
+              }
+            >
+              {hiddenByPolicyFilter ? (
+                <>
+                  This payroll run has no employees in your assigned
+                  policies. Other policies&apos; payslips were excluded
+                  by your access scope — ask the owner if you need a
+                  broader view.
+                </>
+              ) : (
+                <>
+                  No employees ready for payroll. Complete an
+                  employee&apos;s payroll profile to include them on
+                  the next run.
+                </>
+              )}
             </CardDescription>
           </CardHeader>
         </Card>

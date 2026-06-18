@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/auth/types"
 
 import { randomBytes } from "node:crypto"
 
+import { Prisma } from "@/generated/prisma/client"
 import { hashPassword } from "@/lib/auth/password"
 import { parseAllowedCurrencies } from "@/lib/currencies"
 import { toNumber } from "@/lib/decimal"
@@ -77,6 +78,23 @@ export type XeroConnectionRecord = {
 // `toNumber` lives in `lib/decimal.ts` — re-aliased locally for the older
 // callers below that pass a fallback positionally.
 const toNumberOr = (value: unknown, fallback: number) => toNumber(value, fallback)
+
+/**
+ * Coerce a Prisma `Json?` column value into a `string[]` (or `null` when
+ * the column was null). Used for the access-scope columns on
+ * AdminOrganization (`modules`, `policyIds`) which we want as plain
+ * string arrays in TypeScript but live as JSON in MariaDB.
+ *
+ * Returns `null` for null / undefined / non-array values so the caller
+ * can fall back to "full access" semantics cleanly. Non-string entries
+ * inside the array are skipped (defensive — we never write them, but a
+ * hand-edit could).
+ */
+function jsonToStringArray(value: unknown): string[] | null {
+  if (value == null) return null
+  if (!Array.isArray(value)) return null
+  return value.filter((v): v is string => typeof v === "string")
+}
 
 function mapOrganizationSummary(
   org?:
@@ -552,14 +570,39 @@ export const organizationRepository = {
     return { id: org.id, name: org.name }
   },
 
-  async linkAdminToOrganization(adminId: string, organizationId: string): Promise<void> {
+  /**
+   * Add an admin to an org. Optional `access` lets the owner restrict
+   * modules / policies at invite time; omit it (or pass null) for full
+   * access (legacy behaviour). On an existing link, the access is
+   * REPLACED — owners can use this method to revoke previously-granted
+   * scope by re-linking with a narrower scope.
+   */
+  async linkAdminToOrganization(
+    adminId: string,
+    organizationId: string,
+    access?: {
+      modules?: string[] | null
+      policyIds?: string[] | null
+    },
+  ): Promise<void> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
+    const modules = access?.modules ?? null
+    const policyIds = access?.policyIds ?? null
+
     await prisma.adminOrganization.upsert({
       where: { adminId_organizationId: { adminId, organizationId } },
-      create: { adminId, organizationId },
-      update: {},
+      create: {
+        adminId,
+        organizationId,
+        modules: modules ?? Prisma.JsonNull,
+        policyIds: policyIds ?? Prisma.JsonNull,
+      },
+      update: {
+        modules: modules ?? Prisma.JsonNull,
+        policyIds: policyIds ?? Prisma.JsonNull,
+      },
     })
   },
 
@@ -709,6 +752,14 @@ export const organizationRepository = {
       name: string
       role: "ADMIN" | "OWNER"
       createdAt: string
+      /// Module + policy access scope for this admin in this org. `null`
+      /// on either field means "full access" (legacy behaviour for
+      /// rows written before the access columns shipped). Always `null`
+      /// for OWNER rows — owners always have full access by definition.
+      access: {
+        modules: string[] | null
+        policyIds: string[] | null
+      }
     }>
   > {
     const prisma = getPrismaClient()
@@ -730,17 +781,136 @@ export const organizationRepository = {
         name: true,
         role: true,
         createdAt: true,
+        // Pull the matching AdminOrganization row to read access scope.
+        // Only the row for THIS org matters — multi-org admins have
+        // independent scope per org.
+        adminOrganizations: {
+          where: { organizationId },
+          select: { modules: true, policyIds: true },
+          take: 1,
+        },
       },
       orderBy: { createdAt: "asc" },
     })
 
-    return rows.map((u) => ({
-      id: u.id,
-      email: u.email,
-      name: u.name,
-      role: u.role as "ADMIN" | "OWNER",
-      createdAt: u.createdAt.toISOString(),
-    }))
+    return rows.map((u) => {
+      const adminOrg = u.adminOrganizations[0]
+      // Owners get full access regardless of what's stored.
+      const isOwner = u.role === "OWNER"
+      return {
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        role: u.role as "ADMIN" | "OWNER",
+        createdAt: u.createdAt.toISOString(),
+        access: {
+          modules: isOwner
+            ? null
+            : (jsonToStringArray(adminOrg?.modules) ?? null),
+          policyIds: isOwner
+            ? null
+            : (jsonToStringArray(adminOrg?.policyIds) ?? null),
+        },
+      }
+    })
+  },
+
+  /**
+   * Resolve the module-access scope for the signed-in admin in ONE org —
+   * used by the admin shell to filter sidebar nav. Returns:
+   *   • `null` → full access (Owner role, or the legacy default when
+   *     the `modules` column hasn't been written yet).
+   *   • `string[]` → restricted to these module keys.
+   *
+   * Caller passes `userRole` so we can early-return for OWNERs without
+   * touching the AdminOrganization row. Returns `null` when there's no
+   * AdminOrganization row at all (legacy/primary admins whose link
+   * lives only via `User.organizationId`) — they keep the existing
+   * equal-tier behaviour until the owner edits their scope.
+   */
+  async getAdminModulesForOrg(input: {
+    adminId: string
+    organizationId: string
+    userRole: "ADMIN" | "OWNER" | "EMPLOYEE" | "SUPERVISOR"
+  }): Promise<string[] | null> {
+    if (input.userRole === "OWNER") return null
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.adminOrganization.findUnique({
+      where: {
+        adminId_organizationId: {
+          adminId: input.adminId,
+          organizationId: input.organizationId,
+        },
+      },
+      select: { modules: true },
+    })
+    if (!row) return null
+    return jsonToStringArray(row.modules)
+  },
+
+  /**
+   * Twin to `getAdminModulesForOrg` — reads the policy-id scope used by
+   * row-level filters on every list query (claims, leave, attendance,
+   * employees). Owner returns null; legacy admin (no row) returns null;
+   * restricted admin returns their picked ids. Empty array means "scope
+   * is empty — show no rows" (rare but legitimate).
+   */
+  async getAdminPolicyIdsForOrg(input: {
+    adminId: string
+    organizationId: string
+    userRole: "ADMIN" | "OWNER" | "EMPLOYEE" | "SUPERVISOR"
+  }): Promise<string[] | null> {
+    if (input.userRole === "OWNER") return null
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.adminOrganization.findUnique({
+      where: {
+        adminId_organizationId: {
+          adminId: input.adminId,
+          organizationId: input.organizationId,
+        },
+      },
+      select: { policyIds: true },
+    })
+    if (!row) return null
+    return jsonToStringArray(row.policyIds)
+  },
+
+  /**
+   * Replace an admin's module + policy access scope for ONE org.
+   * Caller passes `null` for either field to mean "full access" (clears
+   * the column to NULL). Passes an empty array for "no access".
+   *
+   * Owner-only at the action layer — this repo method just persists.
+   * Idempotent: re-saving the same values is a harmless write.
+   */
+  async updateAdminAccess(input: {
+    adminId: string
+    organizationId: string
+    modules: string[] | null
+    policyIds: string[] | null
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) return
+    await prisma.adminOrganization.upsert({
+      where: {
+        adminId_organizationId: {
+          adminId: input.adminId,
+          organizationId: input.organizationId,
+        },
+      },
+      create: {
+        adminId: input.adminId,
+        organizationId: input.organizationId,
+        modules: input.modules ?? Prisma.JsonNull,
+        policyIds: input.policyIds ?? Prisma.JsonNull,
+      },
+      update: {
+        modules: input.modules ?? Prisma.JsonNull,
+        policyIds: input.policyIds ?? Prisma.JsonNull,
+      },
+    })
   },
 
   /**
@@ -921,6 +1091,13 @@ export const organizationRepository = {
     email: string
     name: string
     password: string
+    /// Optional initial access scope picked on the invite form. Omit
+    /// or pass null for full access (legacy behaviour). The owner can
+    /// edit scope from the admin row's "Manage access" dialog later.
+    access?: {
+      modules?: string[] | null
+      policyIds?: string[] | null
+    }
   }): Promise<{ id: string; email: string; name: string }> {
     const prisma = getPrismaClient()
     if (!prisma) {
@@ -942,6 +1119,9 @@ export const organizationRepository = {
       )
     }
 
+    const modules = input.access?.modules ?? null
+    const policyIds = input.access?.policyIds ?? null
+
     const created = await prisma.user.create({
       data: {
         email,
@@ -955,7 +1135,11 @@ export const organizationRepository = {
         // organizationId set; everyone else is a join-row only.
         organizationId: input.organizationId,
         adminOrganizations: {
-          create: { organizationId: input.organizationId },
+          create: {
+            organizationId: input.organizationId,
+            modules: modules ?? Prisma.JsonNull,
+            policyIds: policyIds ?? Prisma.JsonNull,
+          },
         },
       },
       select: { id: true, email: true, name: true },
@@ -1349,9 +1533,21 @@ export const organizationRepository = {
 
   async getOrganizationMembers(
     organizationId: string,
+    options?: {
+      /// Optional employee-policy scope. When non-null, only employees
+      /// whose `EmployeeProfile.policyId` is in the list are returned.
+      /// Mirrors the same shape as the Claims repo filter so callers can
+      /// thread a single `policyIdScope` through.
+      policyIdScope?: string[] | null
+    },
   ): Promise<OrganizationMember[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
+      return []
+    }
 
     // The org connects to at most one Xero tenant — resolve it once and
     // attach to every member (the per-row link was removed).
@@ -1364,6 +1560,13 @@ export const organizationRepository = {
       where: {
         organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        ...(policyIdScope && policyIdScope.length > 0
+          ? {
+              employeeProfile: {
+                policyId: { in: policyIdScope },
+              },
+            }
+          : {}),
       },
       include: {
         organization: true,
@@ -2721,6 +2924,26 @@ export const organizationRepository = {
         type: data.type,
         isSelectable: data.isSelectable,
       },
+    })
+  },
+
+  /// Flip a single custom account's `isSelectable` flag without
+  /// touching code/name/type. Used by the inline Selectable toggle in
+  /// the Custom claim accounts list — easier than re-passing the full
+  /// row through `updateCustomChartAccount` from the client.
+  async setCustomChartAccountSelectable(data: {
+    id: string
+    organizationId: string
+    isSelectable: boolean
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    await prisma.chartOfAccount.updateMany({
+      where: { id: data.id, organizationId: data.organizationId, isCustom: true },
+      data: { isSelectable: data.isSelectable },
     })
   },
 

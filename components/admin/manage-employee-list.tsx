@@ -46,25 +46,38 @@ export function ManageEmployeeList({
   policies,
   leaveTypes,
   policyDefaults,
+  canEdit = true,
 }: {
   employees: PayrollEmployeeRow[]
   policies: EmployeePolicy[]
   leaveTypes: AddEmployeeLeaveType[]
   policyDefaults: PolicyDefaultRow[]
+  /// When false, the directory is rendered as a read-only browse —
+  /// Add Employee + Import buttons are hidden, and a banner explains
+  /// the restriction.
+  canEdit?: boolean
 }) {
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <ImportPayrollEmployeesButton
-          leaveTypes={leaveTypes}
-          policyDefaults={policyDefaults}
-        />
-        <AddEmployeeDialog
-          policies={policies}
-          leaveTypes={leaveTypes}
-          policyDefaults={policyDefaults}
-        />
-      </div>
+      {canEdit ? (
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <ImportPayrollEmployeesButton
+            leaveTypes={leaveTypes}
+            policyDefaults={policyDefaults}
+          />
+          <AddEmployeeDialog
+            policies={policies}
+            leaveTypes={leaveTypes}
+            policyDefaults={policyDefaults}
+          />
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+          View only — your access doesn&apos;t include the Manage Employee
+          module, so adding, importing, or editing employees is disabled.
+          Ask the owner if you need to make changes.
+        </div>
+      )}
       <PayrollEmployeeListTables employees={employees} />
     </div>
   )
@@ -166,7 +179,7 @@ function AddEmployeeDialog({
           action={formAction}
           className="mt-4 flex min-h-0 flex-1 flex-col gap-4"
         >
-          <div className="flex-1 space-y-4 overflow-y-auto pr-1">
+          <div className="flex-1 space-y-4 overflow-y-auto px-1">
           <input type="hidden" name="policyId" value={policyId} />
           <input type="hidden" name="role" value="EMPLOYEE" />
           <Labelled label="Full name">

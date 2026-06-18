@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { ManageEmployeeList } from "@/components/admin/manage-employee-list"
+import { hasAdminModule } from "@/modules/organization/application/services/admin-access.service"
 import { getManageEmployeesPageData } from "@/modules/payroll/application/services/payroll-profile.service"
 
 /**
@@ -15,6 +16,11 @@ import { getManageEmployeesPageData } from "@/modules/payroll/application/servic
 export default async function AdminManageEmployeePage() {
   const data = await getManageEmployeesPageData()
   if (!data) redirect("/login")
+
+  // The tab is always visible (even when `hierarchy` is not granted), so
+  // admins can still browse the directory. Mutations — Add Employee +
+  // Import — are hidden when the admin lacks the module.
+  const canEdit = await hasAdminModule("hierarchy")
 
   const ready = data.employees.filter((e) => e.isComplete && !e.isArchived)
   const incomplete = data.employees.filter((e) => !e.isComplete && !e.isArchived)
@@ -41,6 +47,7 @@ export default async function AdminManageEmployeePage() {
         policies={data.policies}
         leaveTypes={data.leaveTypes}
         policyDefaults={data.policyDefaults}
+        canEdit={canEdit}
       />
     </div>
   )

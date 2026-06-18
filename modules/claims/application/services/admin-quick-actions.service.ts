@@ -4,6 +4,10 @@ import { isAdminRole } from "@/lib/auth/types"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
+import {
+  getActiveAdminClaimPaymentTypeScope,
+  getActiveAdminPolicyScope,
+} from "@/modules/organization/application/services/admin-access.service"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 
@@ -38,11 +42,18 @@ export async function getAdminQuickActionCounts(): Promise<AdminQuickActionCount
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return empty
 
+  const [policyIdScope, paymentTypes] = await Promise.all([
+    getActiveAdminPolicyScope(),
+    getActiveAdminClaimPaymentTypeScope(),
+  ])
   const [pendingClaims, runs, employees, pendingLeave] = await Promise.all([
-    claimRepository.countPendingForOrganization(orgId),
+    claimRepository.countPendingForOrganization(orgId, {
+      policyIdScope,
+      paymentTypes,
+    }),
     payrollRunRepository.listForOrganization(orgId),
-    payrollProfileRepository.listForOrganization(orgId),
-    leaveRepository.countPendingForOrganization(orgId),
+    payrollProfileRepository.listForOrganization(orgId, { policyIdScope }),
+    leaveRepository.countPendingForOrganization(orgId, { policyIdScope }),
   ])
 
   return {

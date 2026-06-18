@@ -534,6 +534,109 @@ export async function importManualProjectsAction(
   return { status: "success", ...result }
 }
 
+export async function updateCustomAccountAction(input: {
+  id: string
+  code: string
+  name: string
+  type?: string
+  isSelectable: boolean
+}): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { ok: false, message: "No organization found." }
+  }
+  const code = input.code.trim()
+  const name = input.name.trim()
+  const type = input.type?.trim() || undefined
+  if (!code || !name) {
+    return { ok: false, message: "Account code and name are required." }
+  }
+  try {
+    await organizationRepository.updateCustomChartAccount({
+      id: input.id,
+      organizationId,
+      code,
+      name,
+      type,
+      isSelectable: input.isSelectable,
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message: safeErrorMessage(error, "Unable to update account."),
+    }
+  }
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "coa.update",
+    status: "SUCCESS",
+    summary: `Updated custom chart-of-account ${code} "${name}"${type ? ` (${type})` : ""}`,
+    targetType: "chart-account",
+    targetId: input.id,
+    metadata: { code, name, type, isSelectable: input.isSelectable },
+  })
+  await revalidateAdminSurfaces(organizationId)
+  return { ok: true, message: "Account updated." }
+}
+
+export async function setCustomAccountSelectableAction(
+  id: string,
+  isSelectable: boolean,
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { ok: false, message: "No organization found." }
+  }
+  try {
+    await organizationRepository.setCustomChartAccountSelectable({
+      id,
+      organizationId,
+      isSelectable,
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message: safeErrorMessage(error, "Unable to update account."),
+    }
+  }
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "coa.selectable.update",
+    status: "SUCCESS",
+    summary: `${isSelectable ? "Enabled" : "Hid"} custom account from claim picker`,
+    targetType: "chart-account",
+    targetId: id,
+    metadata: { isSelectable },
+  })
+  await revalidateAdminSurfaces(organizationId)
+  return {
+    ok: true,
+    message: isSelectable
+      ? "Account is now selectable."
+      : "Account hidden from claim picker.",
+  }
+}
+
 export async function deleteCustomAccountAction(
   id: string
 ): Promise<{ ok: boolean; message: string }> {
@@ -2060,6 +2163,26 @@ const inviteAdminSchema = z.object({
 })
 
 /**
+ * Parse the CSV hidden inputs the AdminAccessPicker writes into the form
+ * (`accessModules`, `accessPolicyIds`) into clean string arrays — OR
+ * `undefined` when the field wasn't on the form at all. We treat
+ * `undefined` as "owner didn't customise — apply legacy full access",
+ * which the repo persists as NULL. An empty string ("") means the owner
+ * explicitly selected nothing → empty array → effectively locked out.
+ */
+function parseCsvAccess(formData: FormData, field: string): string[] | null | undefined {
+  const raw = formData.get(field)
+  if (raw == null) return undefined
+  const str = String(raw).trim()
+  // Empty string is the "owner unchecked everything" case → empty array.
+  if (str.length === 0) return []
+  return str
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+}
+
+/**
  * Owner-only: invite an admin to the ACTIVE organization, by email.
  *
  * Three outcomes:
@@ -2111,6 +2234,14 @@ export async function createAdminAction(
   }
   const { email, name, password, confirm } = parsed.data
 
+  // Access scope from the invite-form pickers (`accessModules` /
+  // `accessPolicyIds` CSV hidden inputs). `undefined` here means the
+  // form didn't include them (older clients, programmatic calls, etc.)
+  // → fall back to full access. Empty array = owner explicitly picked
+  // nothing.
+  const inviteModules = parseCsvAccess(formData, "accessModules")
+  const invitePolicyIds = parseCsvAccess(formData, "accessPolicyIds")
+
   try {
     const existing = await organizationRepository.findUserByEmail(email)
 
@@ -2147,6 +2278,12 @@ export async function createAdminAction(
       await organizationRepository.linkAdminToOrganization(
         existing.id,
         organizationId,
+        // Apply the invite-form scope to the new join row. Owner can
+        // re-edit from the admin list afterwards.
+        {
+          modules: inviteModules ?? null,
+          policyIds: invitePolicyIds ?? null,
+        },
       )
       await revalidateAdminSurfaces(organizationId)
       return {
@@ -2171,6 +2308,10 @@ export async function createAdminAction(
       email,
       name,
       password,
+      access: {
+        modules: inviteModules ?? null,
+        policyIds: invitePolicyIds ?? null,
+      },
     })
   } catch (error) {
     return {
@@ -2240,6 +2381,67 @@ export async function removeAdminAction(
 
   await revalidateAdminSurfaces(organizationId)
   return { status: "success", message: "Admin access removed." }
+}
+
+/**
+ * Owner-only: update an existing admin's module + policy access scope
+ * for the ACTIVE organization. Called from the "Manage access" dialog on
+ * each admin row. Does NOT change membership — just the per-org scope.
+ *
+ * Reads `accessModules` + `accessPolicyIds` as CSV hidden inputs (same
+ * shape the invite form uses). Owners cannot edit their own row (they
+ * always have full access) or an OWNER row (same reason).
+ */
+export async function saveAdminAccessAction(
+  _previousState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+  if (!session) {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+  if (!isOwnerRole(session.role)) {
+    return {
+      status: "error",
+      message: "Only the owner can change admin access.",
+    }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "No active organisation." }
+  }
+
+  const adminId = String(formData.get("adminId") ?? "").trim()
+  if (!adminId) {
+    return { status: "error", message: "Missing admin id." }
+  }
+  if (adminId === session.userId) {
+    return {
+      status: "error",
+      message: "You can't change your own access.",
+    }
+  }
+
+  const modules = parseCsvAccess(formData, "accessModules")
+  const policyIds = parseCsvAccess(formData, "accessPolicyIds")
+
+  try {
+    await organizationRepository.updateAdminAccess({
+      adminId,
+      organizationId,
+      modules: modules ?? null,
+      policyIds: policyIds ?? null,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message: safeErrorMessage(error, "Could not update access."),
+    }
+  }
+
+  await revalidateAdminSurfaces(organizationId)
+  return { status: "success", message: "Admin access updated." }
 }
 
 // ----------------------------------------------------------------------------

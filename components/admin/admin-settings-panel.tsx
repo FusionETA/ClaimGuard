@@ -1,10 +1,10 @@
 "use client"
 
-import { useActionState, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react"
+import { useActionState, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react"
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
-import { CalendarDays, Clock, Coins, Download, Loader2, MapPin, Plus, Search, Trash2, UserPlus } from "lucide-react"
+import { CalendarDays, Clock, Coins, Download, Loader2, MapPin, Pencil, Plus, Search, ShieldCheck, Trash2, UserPlus } from "lucide-react"
 
 import { CURRENCY_CATALOG } from "@/lib/currencies"
 
@@ -16,7 +16,6 @@ import {
 import {
   createCustomAccountAction,
   createManualProjectAction,
-  deleteCustomAccountAction,
   deleteManualProjectAction,
   createAdminAction,
   removeAdminAction,
@@ -46,6 +45,17 @@ import {
   updateProjectAction,
 } from "@/app/(admin)/admin/settings/actions"
 import { ImportCsvButton } from "@/components/admin/import-csv-button"
+import {
+  ADMIN_MODULES,
+  AccessSummaryChips,
+  AdminAccessPicker,
+  arePoliciesLocked,
+  fullAccess,
+  orgWideModuleLabels,
+  type AdminAccess,
+  type AdminModuleKey,
+} from "@/components/admin/admin-access-picker"
+import { AdminAccessDialog } from "@/components/admin/admin-access-dialog"
 import { EmployeePoliciesTab } from "@/components/admin/employee-policies-tab"
 import {
   XeroTrackingCategoryPicker,
@@ -58,6 +68,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 // activeTab === "api" render block below.
 // import { ApiIntegrationsTab } from "@/components/admin/api-integrations-tab"
 import { ComingSoonCard } from "@/components/ui/coming-soon-card"
+import {
+  CustomAccountEditDialog,
+  CustomAccountTypeSelect,
+} from "@/components/admin/custom-account-edit-dialog"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -616,6 +630,14 @@ export function AdminSettingsPanel({
     name: string
     role: "ADMIN" | "OWNER"
     createdAt: string
+    /// Persisted access scope from `AdminOrganization`. `null` on
+    /// either field = full access (legacy admins, or owner). Server
+    /// repo returns this — pass it straight through; the section
+    /// component handles defaulting.
+    access?: {
+      modules: string[] | null
+      policyIds: string[] | null
+    }
   }>
   /// Email of the currently logged-in admin — used to flag "(You)" in
   /// the admin list and avoid showing a "remove me" UI for self.
@@ -686,11 +708,19 @@ export function AdminSettingsPanel({
   // past every row to review the few that have policy.
   const [limitSearch, setLimitSearch] = useState("")
   const [limitTypeFilter, setLimitTypeFilter] = useState<string>("all")
-  const [limitOnlyConfigured, setLimitOnlyConfigured] = useState<boolean>(true)
+  // Default to "All accounts" so admins see the full list on landing —
+  // they flip to "With limit only" when reviewing existing caps.
+  const [limitOnlyConfigured, setLimitOnlyConfigured] = useState<boolean>(false)
   // Search/filter for the Mileage-eligible accounts card. Same reasoning.
   const [mileageSearch, setMileageSearch] = useState("")
   const [mileageTypeFilter, setMileageTypeFilter] = useState<string>("all")
-  const [mileageOnlyEnabled, setMileageOnlyEnabled] = useState<boolean>(true)
+  const [mileageOnlyEnabled, setMileageOnlyEnabled] = useState<boolean>(false)
+  // Type picker for the "Add custom account" form. Free-text via the
+  // "Custom…" option inside `CustomAccountTypeSelect`; emitted to the
+  // server via a hidden input on the form.
+  const [newAccountType, setNewAccountType] = useState<string>("")
+  // Open state for the per-row edit dialog. `null` = closed.
+  const [editingAccountId, setEditingAccountId] = useState<string | null>(null)
   const [switchPending, startSwitch] = useTransition()
 
   // Custom mode = no Xero connections exist at all
@@ -859,6 +889,12 @@ export function AdminSettingsPanel({
   useToastOnAction(projectsState)
   useToastOnAction(selectTenantState)
   useToastOnAction(createAccountState)
+  // Clear the controlled Type picker after a successful create. The
+  // uncontrolled Code / Name / Selectable inputs reset automatically
+  // because useActionState re-mounts the form on success.
+  useEffect(() => {
+    if (createAccountState.status === "success") setNewAccountType("")
+  }, [createAccountState])
   useToastOnAction(selectedBankState)
   useToastOnAction(createProjectState)
   useToastOnAction(mileageDefaultsState)
@@ -867,15 +903,6 @@ export function AdminSettingsPanel({
 
   function handleSwitchConnection(connectionId: string) {
     startSwitch(() => switchActiveXeroConnectionAction(connectionId))
-  }
-
-  async function handleDeleteCustomAccount(id: string) {
-    const result = await deleteCustomAccountAction(id)
-    if (result.ok) {
-      toast({ title: result.message, variant: "success" })
-    } else {
-      toast({ title: result.message, variant: "error" })
-    }
   }
 
   async function handleDeleteProject(id: string) {
@@ -1081,31 +1108,36 @@ export function AdminSettingsPanel({
             </CardContent>
           </Card>
 
-          {/* Admins — manage who has full admin access to this org. */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-primary" />
-                Admins
-              </CardTitle>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                People who can review claims, sync to Xero, manage settings, and invite further
-                admins. New admins get full equal-tier access.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <AdminsManagerSection
-                admins={admins}
-                currentAdminEmail={currentAdminEmail}
-                canManage={canManageAdmins}
-                inviteAction={createAdminAction_}
-                inviteState={createAdminState}
-                invitePending={createAdminPending}
-                removeAction={removeAdminAction_}
-                removePending={removeAdminPending}
-              />
-            </CardContent>
-          </Card>
+          {/* Admins — only the owner manages who has admin access, so
+              non-owners don't see the card at all (avoids exposing other
+              admins' emails + access scope to peer admins). */}
+          {canManageAdmins ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserPlus className="h-5 w-5 text-primary" />
+                  Admins
+                </CardTitle>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  People who can review claims, sync to Xero, manage settings, and invite further
+                  admins. New admins get full equal-tier access.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <AdminsManagerSection
+                  admins={admins}
+                  currentAdminEmail={currentAdminEmail}
+                  canManage={canManageAdmins}
+                  policies={policies}
+                  inviteAction={createAdminAction_}
+                  inviteState={createAdminState}
+                  invitePending={createAdminPending}
+                  removeAction={removeAdminAction_}
+                  removePending={removeAdminPending}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
 
         </div>
       ) : null}
@@ -1268,10 +1300,10 @@ export function AdminSettingsPanel({
                         className="flex-1 min-w-[180px]"
                         required
                       />
-                      <Input
-                        name="type"
-                        placeholder="Type (optional)"
-                        className="w-36"
+                      <input type="hidden" name="type" value={newAccountType} />
+                      <CustomAccountTypeSelect
+                        value={newAccountType}
+                        onValueChange={setNewAccountType}
                       />
                       <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
                         <input type="checkbox" name="isSelectable" value="true" className="h-4 w-4 rounded border-border text-primary" />
@@ -1298,8 +1330,8 @@ export function AdminSettingsPanel({
                           key={account.id}
                           className="flex items-start justify-between gap-3 rounded-[20px] border border-border/70 bg-surface-low p-4"
                         >
-                          <div>
-                            <p className="font-bold text-foreground">
+                          <div className="min-w-0">
+                            <p className="font-bold text-foreground truncate">
                               {account.code} · {account.name}
                             </p>
                             <p className="mt-1 text-sm text-muted-foreground">
@@ -1308,12 +1340,27 @@ export function AdminSettingsPanel({
                           </div>
                           <button
                             type="button"
-                            onClick={() => handleDeleteCustomAccount(account.id)}
-                            className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
-                            aria-label={`Delete ${account.name}`}
+                            onClick={() => setEditingAccountId(account.id)}
+                            className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
+                            aria-label={`Edit ${account.name}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" />
                           </button>
+                          {editingAccountId === account.id ? (
+                            <CustomAccountEditDialog
+                              open
+                              onOpenChange={(next) =>
+                                setEditingAccountId(next ? account.id : null)
+                              }
+                              account={{
+                                id: account.id,
+                                code: account.code,
+                                name: account.name,
+                                type: account.type ?? null,
+                                isSelectable: account.isSelectable,
+                              }}
+                            />
+                          ) : null}
                         </div>
                       ))}
                     </div>
@@ -3919,6 +3966,7 @@ function AdminsManagerSection({
   admins,
   currentAdminEmail,
   canManage,
+  policies,
   inviteAction,
   inviteState,
   invitePending,
@@ -3931,11 +3979,21 @@ function AdminsManagerSection({
     name: string
     role: "ADMIN" | "OWNER"
     createdAt: string
+    /// Persisted access scope from `AdminOrganization` for THIS org.
+    /// `null` on either field = full access. Owners are always null
+    /// here (they have full access by definition).
+    access?: {
+      modules: string[] | null
+      policyIds: string[] | null
+    }
   }>
   currentAdminEmail?: string
   /// Only owners can add/remove admins. When false, the list renders
   /// read-only (no invite form, no remove buttons).
   canManage: boolean
+  /// Active-org employee policies. Used as the option list for the
+  /// "Policies" picker on each admin's access scope.
+  policies: EmployeePolicy[]
   inviteAction: (formData: FormData) => void
   inviteState: InviteAdminActionState
   invitePending: boolean
@@ -3944,20 +4002,133 @@ function AdminsManagerSection({
 }) {
   const formRef = useRef<HTMLFormElement | null>(null)
 
+  // ─── Access-scope (seeded from server) ──────────────────────────────
+  //
+  // Each admin row arrives with `access: { modules, policyIds }` from
+  // the server. `null` on either field means full access (legacy admins
+  // before the access columns shipped, or the Owner row). We expand
+  // null → "all values" here so the UI chips + the edit dialog can show
+  // the effective state uniformly. Saves flow through the server action
+  // in `AdminAccessDialog`; revalidation refreshes this prop.
+  const policyOptions = useMemo(
+    () => policies.map((p) => ({ value: p.id, label: p.name })),
+    [policies],
+  )
+  const allPolicyIds = useMemo(() => policies.map((p) => p.id), [policies])
+  function accessFor(admin: (typeof admins)[number]): AdminAccess {
+    const persisted = admin.access
+    if (!persisted) return fullAccess(allPolicyIds)
+    return {
+      modules:
+        persisted.modules == null
+          ? (ADMIN_MODULES.map((m) => m.value) as AdminModuleKey[])
+          : (persisted.modules as AdminModuleKey[]),
+      policyIds: persisted.policyIds == null ? allPolicyIds : persisted.policyIds,
+    }
+  }
+  // Edit-access dialog state. `null` = closed.
+  const [editingAdminId, setEditingAdminId] = useState<string | null>(null)
+  const editingAdmin = editingAdminId
+    ? admins.find((a) => a.id === editingAdminId) ?? null
+    : null
+
+  // ─── Invite-time access scope ────────────────────────────────────────
+  //
+  // The two pickers in the invite form. Defaults to FULL (matches
+  // today's equal-tier behaviour). Reset on a successful invite so the
+  // next invite doesn't carry stale picks.
+  const [inviteModules, setInviteModules] = useState<AdminModuleKey[]>(
+    () => ADMIN_MODULES.map((m) => m.value),
+  )
+  const [invitePolicies, setInvitePolicies] = useState<string[]>(allPolicyIds)
+  useEffect(() => {
+    // When the org's policy list refreshes, re-seed invite-side picks
+    // to "all" so the picker doesn't end up showing stale ids.
+    setInvitePolicies(allPolicyIds)
+  }, [allPolicyIds])
+
   function handleInvite(formData: FormData) {
     inviteAction(formData)
     // Clear only on a created/linked success; keep values on "confirm"
     // so the email is still in the box behind the confirm panel.
     if (inviteState.status === "success") {
       formRef.current?.reset()
+      setInviteModules(ADMIN_MODULES.map((m) => m.value))
+      setInvitePolicies(allPolicyIds)
     }
   }
 
   const needsConfirm = inviteState.status === "confirm" && !!inviteState.confirm
 
+  // ─── Tabs inside the card ────────────────────────────────────────────
+  //
+  // Owner sees two tabs — "Manage admins" (default — list with edit /
+  // delete) and "Add admin" (the invite form). Non-owners see just the
+  // list (no tabs, no add form). On a successful invite we bounce back
+  // to the Manage tab so the owner sees the new admin land in the list.
+  const [adminTab, setAdminTab] = useState<"manage" | "add">("manage")
+  useEffect(() => {
+    if (inviteState.status === "success") setAdminTab("manage")
+  }, [inviteState])
+
   return (
     <div className="space-y-5">
-      {/* Existing admins list */}
+      {editingAdmin ? (
+        <AdminAccessDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setEditingAdminId(null)
+          }}
+          adminId={editingAdmin.id}
+          adminName={editingAdmin.name}
+          initialAccess={accessFor(editingAdmin)}
+          policyOptions={policyOptions}
+        />
+      ) : null}
+
+      {/* Owner-only tab strip — switches between the admin list and the
+          invite form. Non-owners skip this and see the read-only list
+          rendered below. */}
+      {canManage ? (
+        <div
+          role="tablist"
+          aria-label="Admin management"
+          className="inline-flex rounded-xl border border-border/60 bg-surface-low p-1 text-sm"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={adminTab === "manage"}
+            onClick={() => setAdminTab("manage")}
+            className={cn(
+              "rounded-lg px-4 py-1.5 font-semibold transition-colors",
+              adminTab === "manage"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Manage admins ({admins.length})
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={adminTab === "add"}
+            onClick={() => setAdminTab("add")}
+            className={cn(
+              "rounded-lg px-4 py-1.5 font-semibold transition-colors",
+              adminTab === "add"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Add admin
+          </button>
+        </div>
+      ) : null}
+
+      {/* Existing admins list — visible on "Manage" tab, OR always when
+          the viewer can't manage (non-owner read-only mode). */}
+      {!canManage || adminTab === "manage" ? (
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           Current admins ({admins.length})
@@ -3994,33 +4165,59 @@ function AdminsManagerSection({
                       ) : null}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">{a.email}</p>
+                    {/* Owner always has unconditional access — no chips. */}
+                    {!isOwner ? (
+                      <AccessSummaryChips
+                        access={accessFor(a)}
+                        totalPolicies={policies.length}
+                      />
+                    ) : null}
                   </div>
-                  {canRemove ? (
-                    <form action={removeAction}>
-                      <input type="hidden" name="adminId" value={a.id} />
-                      <input type="hidden" name="email" value={a.email} />
+                  <div className="flex shrink-0 items-center gap-1">
+                    {/* Edit access — only owners can change another
+                        admin's scope; never for the Owner row (they
+                        have full access by definition) nor the
+                        current user editing themselves. */}
+                    {canManage && !isOwner && !isYou ? (
                       <Button
-                        type="submit"
+                        type="button"
                         variant="ghost"
                         size="sm"
-                        className="shrink-0 text-destructive hover:text-destructive"
-                        disabled={removePending}
-                        title="Remove this admin's access to this organisation"
+                        onClick={() => setEditingAdminId(a.id)}
+                        title="Manage which modules and policies this admin can access"
                       >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Remove access</span>
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Manage access</span>
                       </Button>
-                    </form>
-                  ) : null}
+                    ) : null}
+                    {canRemove ? (
+                      <form action={removeAction}>
+                        <input type="hidden" name="adminId" value={a.id} />
+                        <input type="hidden" name="email" value={a.email} />
+                        <Button
+                          type="submit"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          disabled={removePending}
+                          title="Remove this admin's access to this organisation"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Remove access</span>
+                        </Button>
+                      </form>
+                    ) : null}
+                  </div>
                 </li>
               )
             })}
           </ul>
         )}
       </div>
+      ) : null}
 
-      {/* Invite form — owners only */}
-      {canManage ? (
+      {/* Invite form — owner-only, only on the "Add admin" tab. */}
+      {canManage && adminTab === "add" ? (
         <div className="rounded-2xl border border-border/60 bg-surface-low p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Add another admin
@@ -4114,6 +4311,78 @@ function AdminsManagerSection({
               </p>
             </div>
 
+            {/* Access scope — two multi-pickers with Select-all. UI-
+                first prototype: the values are kept in local state and
+                forwarded as hidden inputs so a future server action
+                can pick them up without changing this form's shape. */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <p className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                Access scope
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Pick which modules and policies the new admin can see.
+                Defaults to everything granted (matches today&apos;s
+                equal-tier behaviour) — untick to restrict.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-muted-foreground">
+                Modules
+              </label>
+              <AdminAccessPicker
+                label="Modules"
+                options={ADMIN_MODULES}
+                value={inviteModules}
+                onChange={(v) => setInviteModules(v as AdminModuleKey[])}
+                disabled={invitePending}
+              />
+              {/* Mirror picks as a single CSV hidden input so the
+                  existing FormData-based action can grab them. */}
+              <input
+                type="hidden"
+                name="accessModules"
+                value={inviteModules.join(",")}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-muted-foreground">
+                Policies
+              </label>
+              <AdminAccessPicker
+                label="Policies"
+                options={policyOptions}
+                value={
+                  arePoliciesLocked(inviteModules)
+                    ? allPolicyIds
+                    : invitePolicies
+                }
+                onChange={setInvitePolicies}
+                disabled={invitePending || arePoliciesLocked(inviteModules)}
+              />
+              <input
+                type="hidden"
+                name="accessPolicyIds"
+                value={
+                  arePoliciesLocked(inviteModules)
+                    ? allPolicyIds.join(",")
+                    : invitePolicies.join(",")
+                }
+              />
+              {arePoliciesLocked(inviteModules) ? (
+                <p className="rounded-md border border-amber-400/40 bg-amber-50/40 px-2 py-1.5 text-[11px] leading-5 text-amber-800 dark:bg-amber-950/20 dark:text-amber-200">
+                  Locked to <strong>All policies</strong> because{" "}
+                  <strong>
+                    {orgWideModuleLabels(inviteModules).join(", ")}
+                  </strong>{" "}
+                  {orgWideModuleLabels(inviteModules).length === 1
+                    ? "operates"
+                    : "operate"}{" "}
+                  at the organization level.
+                </p>
+              ) : null}
+            </div>
+
             <div className="sm:col-span-2 sm:justify-self-end">
               <Button type="submit" className="rounded-xl" disabled={invitePending}>
                 {invitePending ? (
@@ -4131,11 +4400,14 @@ function AdminsManagerSection({
             </div>
           </form>
         </div>
-      ) : (
+      ) : null}
+
+      {/* Read-only hint for non-owner admins viewing the list. */}
+      {!canManage ? (
         <p className="text-xs leading-5 text-muted-foreground">
           Only the owner can add or remove admins.
         </p>
-      )}
+      ) : null}
     </div>
   )
 }

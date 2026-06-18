@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 
 import { Cp38ConverterModal } from "@/components/admin/cp38-converter-modal"
 import { PayrollAnnualDownloadsCard } from "@/components/admin/payroll-annual-downloads-card"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 import { getPayrollAnnualReportsPageData } from "@/modules/payroll/application/services/payroll-annual-reports.service"
 
 /**
@@ -17,6 +18,7 @@ export default async function AdminAnnualPayrollFormsPage({
 }: {
   searchParams: Promise<{ year?: string }>
 }) {
+  await requireAdminModule("payroll")
   const params = await searchParams
   const yearParam = params.year ? Number(params.year) : null
   const year =

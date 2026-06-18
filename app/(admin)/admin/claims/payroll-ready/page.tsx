@@ -5,6 +5,11 @@ import { ClaimPayrollReadyList } from "@/components/admin/claim-payroll-ready-li
 import { Card, CardContent } from "@/components/ui/card"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
+import {
+  getActiveAdminPolicyScope,
+  hasAdminModule,
+  requireAdminModule,
+} from "@/modules/organization/application/services/admin-access.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 
@@ -26,6 +31,7 @@ import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-r
 export default async function AdminClaimsPayrollReadyPage() {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) redirect("/login")
+  await requireAdminModule(["claims_personal", "claims_company"])
 
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
@@ -41,8 +47,23 @@ export default async function AdminClaimsPayrollReadyPage() {
     )
   }
 
+  // Per-policy scope + per-claim-type module gate. PERSONAL claims are
+  // visible to admins with the `claims_personal` module; COMPANY claims
+  // to admins with `claims_company`. Owners / legacy admins see both.
+  const [policyIdScope, canSeePersonal, canSeeCompany] = await Promise.all([
+    getActiveAdminPolicyScope(),
+    hasAdminModule("claims_personal"),
+    hasAdminModule("claims_company"),
+  ])
+  const paymentTypes: Array<"PERSONAL" | "COMPANY"> = []
+  if (canSeePersonal) paymentTypes.push("PERSONAL")
+  if (canSeeCompany) paymentTypes.push("COMPANY")
+
   const [claims, allRuns, xeroConnectionId] = await Promise.all([
-    claimRepository.getClaimsAwaitingSync(organizationId),
+    claimRepository.getClaimsAwaitingSync(organizationId, undefined, {
+      policyIdScope,
+      paymentTypes,
+    }),
     payrollRunRepository.listForOrganization(organizationId),
     organizationRepository.getActiveXeroConnectionId(organizationId),
   ])

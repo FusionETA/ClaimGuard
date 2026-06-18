@@ -10,6 +10,7 @@ import {
   humanizeAuditAction,
   OPERATIONAL_ACTION_PREFIXES,
 } from "@/modules/audit/domain/models"
+import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 
 const PAGE_SIZE = 15
 
@@ -33,6 +34,7 @@ export default async function AdminAuditPage({
 }) {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) redirect("/login")
+  await requireAdminModule("audit_log")
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) redirect("/admin")
 
