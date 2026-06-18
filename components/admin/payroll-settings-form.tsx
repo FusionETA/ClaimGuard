@@ -112,9 +112,17 @@ export function PayrollSettingsForm(props: {
   // saved password. The tab is purely a convenience feature so we use
   // a soft definition; admins who don't want to save credentials
   // simply leave the dot showing.
-  const credentialsComplete = props.portalCredentials.some(
+  // Credentials tab is purely a convenience feature (lets admins copy
+  // saved portal logins) — no downstream report depends on it, so we
+  // treat it as OPTIONAL: no red warning state. Subtitle just reports
+  // how many of the two portals (KWSP, PERKESO) have credentials
+  // saved, or "Optional" when none.
+  const credentialsSavedCount = props.portalCredentials.filter(
     (c) => c.hasPassword,
-  )
+  ).length
+  const credentialsComplete = credentialsSavedCount > 0
+  const credentialsSubtitle =
+    credentialsSavedCount > 0 ? `${credentialsSavedCount} saved` : undefined
 
   return (
     <div className="space-y-6">
@@ -136,6 +144,8 @@ export function PayrollSettingsForm(props: {
         <TabPill
           active={tab === "credentials"}
           complete={credentialsComplete}
+          optional
+          optionalSubtitle={credentialsSubtitle}
           onClick={() => setTab("credentials")}
         >
           Credentials
@@ -241,18 +251,38 @@ function isBlank(value: string | null | undefined): boolean {
 function TabPill({
   active,
   complete,
+  optional = false,
+  optionalSubtitle,
   onClick,
   children,
 }: {
   active: boolean
   complete: boolean
+  /// When true the tab is informational/convenience only — never shows
+  /// the red ring or "Required fields missing" subtitle, even when
+  /// `complete=false`. Used for tabs like Credentials where the data
+  /// is purely admin-convenience and not required for any downstream
+  /// statutory document generation.
+  optional?: boolean
+  /// Subtitle override for optional tabs. When `complete=true` the
+  /// tab shows "Saved" (or this override if passed); when
+  /// `complete=false` it shows "Optional".
+  optionalSubtitle?: string
   onClick: () => void
   children: React.ReactNode
 }) {
   // When the tab still has required fields blank, ring the pill in red
   // and show a tiny red dot — so the admin sees at a glance which tab
   // is blocking statutory document generation. Clears when every
-  // required field in that tab is filled.
+  // required field in that tab is filled. Optional tabs skip the red
+  // treatment entirely (see `optional` prop above).
+  const showRequiredWarning = !complete && !optional
+  let subtitle: string
+  if (optional) {
+    subtitle = complete ? (optionalSubtitle ?? "Saved") : "Optional"
+  } else {
+    subtitle = complete ? "Completed" : "Required fields missing"
+  }
   return (
     <button
       type="button"
@@ -262,11 +292,11 @@ function TabPill({
         active
           ? "border-primary bg-primary text-primary-foreground shadow-sm"
           : "border-border/70 bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-        !complete && !active && "border-destructive/60 ring-1 ring-destructive/30",
-        !complete && active && "ring-2 ring-destructive/50",
+        showRequiredWarning && !active && "border-destructive/60 ring-1 ring-destructive/30",
+        showRequiredWarning && active && "ring-2 ring-destructive/50",
       )}
     >
-      {!complete ? (
+      {showRequiredWarning ? (
         <span
           aria-hidden
           className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-destructive"
@@ -276,14 +306,14 @@ function TabPill({
       <span
         className={cn(
           "mt-0.5 block text-[11px] font-medium leading-tight",
-          complete
-            ? active
+          showRequiredWarning
+            ? "text-destructive"
+            : active
               ? "text-primary-foreground/75"
-              : "text-muted-foreground"
-            : "text-destructive",
+              : "text-muted-foreground",
         )}
       >
-        {complete ? "Completed" : "Required fields missing"}
+        {subtitle}
       </span>
     </button>
   )
