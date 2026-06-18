@@ -1088,6 +1088,7 @@ export const attendanceRepository = {
       status: string | null
       latitude: number | null
       longitude: number | null
+      workingDays: string | null
     }>
   } | null> {
     const prisma = getClient()
@@ -1106,6 +1107,7 @@ export const attendanceRepository = {
                     status: true,
                     latitude: true,
                     longitude: true,
+                    workingDays: true,
                   },
                 },
               },
@@ -4018,8 +4020,8 @@ export const attendanceRepository = {
     if (q) {
       conditions.push({
         OR: [
-          { name: { contains: q, mode: "insensitive" } },
-          { email: { contains: q, mode: "insensitive" } },
+          { name: { contains: q } },
+          { email: { contains: q } },
         ],
       })
     }
@@ -4496,6 +4498,16 @@ export const attendanceRepository = {
     }
 
     return out
+  },
+
+  async getProjectHolidayName(projectId: string, date: Date): Promise<string | null> {
+    const prisma = getClient()
+    const day = startOfDay(date)
+    const row = await prisma.projectHoliday.findUnique({
+      where: { projectId_date: { projectId, date: day } },
+      select: { name: true },
+    })
+    return row?.name ?? null
   },
 
   async getOrgAttendanceHistory(args: {

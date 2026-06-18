@@ -18,8 +18,10 @@ import type {
   ClockEventLite,
 } from "@/modules/attendance/domain/models"
 import { checkGeofence, type GeofenceCheck } from "@/lib/geo"
+import { parseWorkingDays, isoWeekday } from "@/modules/attendance/domain/hours-summary"
 
 import {
+  checkProjectHolidayAction,
   clockInAction,
   clockOutAction,
   endBreakAction,
@@ -352,6 +354,13 @@ export function ClockCard({
   /// Client-side validation message for the project picker. Cleared as
   /// soon as the user picks a project.
   const [projectError, setProjectError] = useState<string | null>(null)
+  /// When the employee tries to clock in on a rest day or public holiday,
+  /// we pause and show a warning dialog. The formData is held here so we
+  /// can resume the flow if they confirm.
+  const [restDayWarning, setRestDayWarning] = useState<{
+    formData: FormData
+    reason: string
+  } | null>(null)
 
   useEffect(() => {
     // Policy opt-out: skip GPS entirely when neither geofence nor
@@ -419,17 +428,41 @@ export function ClockCard({
 
   async function handleClockIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (isResolving || pendingAction || selfiePending) return
+    if (isResolving || pendingAction || selfiePending || restDayWarning) return
     if (!selected) {
       setProjectError("Please select a project before clocking in.")
       return
     }
     setProjectError(null)
     const formData = new FormData(e.currentTarget)
+    await checkRestDayAndProceed(formData)
+  }
+
+  async function checkRestDayAndProceed(formData: FormData) {
+    const project = projects.find((p) => p.id === selected) ?? null
+    const today = new Date()
+    const todayWeekday = isoWeekday(today)
+    const workingDays = parseWorkingDays(project?.workingDays ?? null)
+    const isRestDay = !workingDays.has(todayWeekday)
+
+    if (isRestDay) {
+      setRestDayWarning({ formData, reason: "rest day" })
+      return
+    }
+
+    if (project?.id) {
+      const holidayName = await checkProjectHolidayAction(project.id)
+      if (holidayName) {
+        setRestDayWarning({ formData, reason: `public holiday (${holidayName})` })
+        return
+      }
+    }
+
+    await continueClockIn(formData)
+  }
+
+  async function continueClockIn(formData: FormData) {
     if (requiresSelfieOnClockIn && !formData.get("selfie")) {
-      // Pause here, ask the employee to take a selfie. The rest of the
-      // flow (GPS, geofence, remark, dispatch) resumes from
-      // proceedClockIn() once the photo is confirmed.
       setSelfiePending(formData)
       return
     }
@@ -815,6 +848,18 @@ export function ClockCard({
           onCancel={onSelfieCancelled}
         />
       ) : null}
+
+      {restDayWarning ? (
+        <RestDayWarningDialog
+          reason={restDayWarning.reason}
+          onConfirm={() => {
+            const fd = restDayWarning.formData
+            setRestDayWarning(null)
+            void continueClockIn(fd)
+          }}
+          onCancel={() => setRestDayWarning(null)}
+        />
+      ) : null}
     </Card>
     <ClockOutSummaryDialog
       todayRecord={clockOutDraft ? todayRecord : null}
@@ -1137,6 +1182,49 @@ function DistanceIndicator({
     <div>
       {status}
       {debug}
+    </div>
+  )
+}
+
+function RestDayWarningDialog({
+  reason,
+  onConfirm,
+  onCancel,
+}: {
+  reason: string
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-3xl border border-border/60 bg-card p-6 shadow-xl">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-tertiary/15">
+          <AlertTriangle className="h-6 w-6 text-tertiary" />
+        </div>
+        <h2 className="text-base font-bold text-foreground">
+          Clock in on a {reason}?
+        </h2>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Today is a <span className="font-semibold text-foreground">{reason}</span>. Are you
+          sure you want to clock in?
+        </p>
+        <div className="mt-5 flex gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 rounded-2xl border border-border/60 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex-1 rounded-2xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+          >
+            Yes, clock in
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

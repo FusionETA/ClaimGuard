@@ -371,6 +371,7 @@ export const employeeAttendanceService = {
         name: project.name,
         latitude: project.latitude,
         longitude: project.longitude,
+        workingDays: project.workingDays ?? null,
       }))
   },
 

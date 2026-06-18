@@ -119,6 +119,10 @@ export type AttendanceProjectView = {
   name: string
   latitude: number | null
   longitude: number | null
+  /** Comma-separated ISO weekday numbers (1=Mon…7=Sun) from XeroProject.workingDays.
+   *  Null means all weekdays apply (use default). Passed to the client so it can
+   *  check whether today is a rest day before clock-in. */
+  workingDays: string | null
 }
 
 export type ClockEventLite = {

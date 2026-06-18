@@ -6,6 +6,7 @@ import { safeErrorMessage } from "@/lib/errors"
 import { requirePortalSession } from "@/lib/auth/session"
 import { bustAttendanceCaches } from "@/lib/cache-invalidation"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 
 export type ClockInState = { error?: string }
 
@@ -207,4 +208,16 @@ export async function updateTodayRemarkAction(
     organizationId: session.organizationId,
   })
   return { ok: true }
+}
+
+/**
+ * Check whether today is a public holiday for the given project.
+ * Returns the holiday name if it is, null otherwise.
+ * Called client-side just before the clock-in confirmation dialog.
+ */
+export async function checkProjectHolidayAction(
+  projectId: string,
+): Promise<string | null> {
+  await requirePortalSession("EMPLOYEE")
+  return attendanceRepository.getProjectHolidayName(projectId, new Date())
 }
