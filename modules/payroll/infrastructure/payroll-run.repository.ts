@@ -446,6 +446,41 @@ export const payrollRunRepository = {
    * raising, so a benign race condition doesn't fail the parent
    * mutation that already succeeded.
    */
+  /**
+   * Bump `lastMutatedAt` on every DRAFT run in an org. Called when a
+   * payroll-calc-affecting field changes on an employee's profile
+   * (SOCSO scheme, PCB-borne-by-employer toggle, EPF rate, date of
+   * birth, citizenship flag, etc.) — any open draft for that month
+   * now reflects a stale calc and the admin must click Generate again
+   * to refresh the cached payslip numbers. We sweep all DRAFTS rather
+   * than per-employee because:
+   *   - Drafts already filter by joinDate / leaveDate; the affected
+   *     employee may not be in every draft, but Generate is idempotent.
+   *   - Querying "drafts that already have a payslip for this
+   *     employeeId" requires another join. The blunt sweep is cheaper
+   *     and the worst case is one extra Generate click on a draft
+   *     that didn't actually need it.
+   *
+   * No-op when there are no DRAFTs. Best-effort: errors are logged but
+   * not re-thrown so the caller's primary save isn't blocked by this
+   * UX-only timestamp.
+   */
+  async markDraftsStaleForOrg(organizationId: string): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) return
+    try {
+      await prisma.payrollRun.updateMany({
+        where: { organizationId, status: "DRAFT" },
+        data: { lastMutatedAt: new Date() },
+      })
+    } catch (err) {
+      console.error("[payrollRunRepository.markDraftsStaleForOrg]", {
+        organizationId,
+        err,
+      })
+    }
+  },
+
   async markMutated(runId: string): Promise<void> {
     const prisma = getPrismaClient()
     if (!prisma) return

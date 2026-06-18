@@ -5,7 +5,10 @@ import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
 import { bustOrgConfigCaches, bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
-import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
+import {
+  getPayrollPrismaClientSafe as getPrismaClient,
+  payrollRunRepository,
+} from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { key } from "@/lib/redis"
 import type {
   PayrollEmployeeRow,
@@ -289,6 +292,14 @@ export async function upsertPayrollProfile(input: {
   // payroll. Bust both so neither shows stale state after an edit.
   await bustOrgConfigCaches({ organizationId: orgId })
   await bustPayrollCaches({ organizationId: orgId })
+
+  // Mark every DRAFT run in the org as stale. A PayrollProfile save
+  // can touch any of ~30 calc-affecting fields (SOCSO scheme, EPF
+  // rate, PCB-borne, DOB, citizenship, relief flags, etc.) and we
+  // don't diff per-field — the cost of a false positive is one extra
+  // "Generate" click; the cost of a false negative is wrong PCB /
+  // SOCSO numbers shipping. Mark broadly, regenerate cheaply.
+  await payrollRunRepository.markDraftsStaleForOrg(orgId)
 
   return result
 }
