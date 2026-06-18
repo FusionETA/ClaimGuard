@@ -229,4 +229,20 @@ export const adminAttendanceService = {
       statuses,
     })
   },
+
+  async getOrgHistory(args: {
+    orgId: string | null
+    from: Date
+    to: Date
+    projectId?: string | null
+    teamId?: string | null
+    q?: string | null
+    statuses?: string[]
+    page: number
+  }) {
+    return attendanceRepository.getOrgAttendanceHistory({
+      ...args,
+      pageSize: 50,
+    })
+  },
 }

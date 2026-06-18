@@ -25,9 +25,15 @@ type Props = {
   projects: Array<{ id: string; name: string }>
   teams: Array<{ id: string; name: string; projectName: string }>
   value: TableFilterValue
+  /**
+   * When provided, the filter bar calls this instead of pushing to the
+   * URL. Useful for client-side panels that manage their own state and
+   * call a server action directly (e.g. the history panel).
+   */
+  onChange?: (next: TableFilterValue) => void
 }
 
-export function TableFilterBar({ prefix, projects, teams, value }: Props) {
+export function TableFilterBar({ prefix, projects, teams, value, onChange }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -53,10 +59,19 @@ export function TableFilterBar({ prefix, projects, teams, value }: Props) {
   }
 
   function setProject(next: string) {
+    if (onChange) {
+      const projectId = next === ALL ? null : next
+      const teamId =
+        next !== ALL &&
+        teams.some((t) => t.id === value.teamId && projects.find((pj) => pj.id === next))
+          ? value.teamId
+          : null
+      onChange({ ...value, projectId, teamId })
+      return
+    }
     pushParams((p) => {
       if (next === ALL) p.delete(projectKey)
       else p.set(projectKey, next)
-      // Clear team if it doesn't belong to the new project scope.
       if (next !== ALL) {
         const stillValid = teams.some(
           (t) => t.id === value.teamId && projects.find((pj) => pj.id === next),
@@ -67,6 +82,10 @@ export function TableFilterBar({ prefix, projects, teams, value }: Props) {
   }
 
   function setTeam(next: string) {
+    if (onChange) {
+      onChange({ ...value, teamId: next === ALL ? null : next })
+      return
+    }
     pushParams((p) => {
       if (next === ALL) p.delete(teamKey)
       else p.set(teamKey, next)
@@ -74,8 +93,12 @@ export function TableFilterBar({ prefix, projects, teams, value }: Props) {
   }
 
   function commitSearch(next: string) {
+    const trimmed = next.trim() || null
+    if (onChange) {
+      onChange({ ...value, q: trimmed })
+      return
+    }
     pushParams((p) => {
-      const trimmed = next.trim()
       if (!trimmed) p.delete(qKey)
       else p.set(qKey, trimmed)
     })

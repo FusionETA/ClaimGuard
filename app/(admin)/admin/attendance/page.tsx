@@ -10,6 +10,7 @@ import { ApprovalAuditLog } from "@/components/attendance/approval-audit-log"
 import { DailyActivityTable } from "@/components/attendance/daily-activity-table"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
 import { OffSiteLogCard } from "@/components/attendance/off-site-log-card"
+import { OrgHistoryPanel } from "@/components/attendance/org-history-panel"
 import { SupervisorPerformanceCard } from "@/components/attendance/supervisor-performance-card"
 import {
   TableFilterBar,
@@ -23,6 +24,7 @@ import type { RollCallPerson } from "@/modules/attendance/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 import { loadSelfieStorageStatsAction } from "./actions"
+import { loadOrgHistoryAction } from "./history-actions"
 import {
   loadApprovalAuditLogForFiltersAction,
   loadOrgHoursSummaryForFiltersAction,
@@ -107,6 +109,7 @@ export default async function AdminAttendancePage({
     timezone,
     initialPendingRejected,
     offSiteRows,
+    initialHistory,
   ] = await Promise.all([
     adminAttendanceService.getOrgOverview(orgId, null),
     adminAttendanceService.getAggregateStats(
@@ -178,6 +181,12 @@ export default async function AdminAttendancePage({
       osFilter.teamId,
       osFilter.q,
     ),
+    adminAttendanceService.getOrgHistory({
+      orgId,
+      from: new Date(initialFrom),
+      to: new Date(initialTo),
+      page: 0,
+    }),
   ])
 
   const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }))
@@ -186,6 +195,19 @@ export default async function AdminAttendancePage({
     name: t.name,
     projectName: t.projectName,
   }))
+
+  const historyContent = (
+    <OrgHistoryPanel
+      initialFrom={initialFrom}
+      initialTo={initialTo}
+      initialRows={initialHistory.rows}
+      initialTotal={initialHistory.total}
+      loadAction={loadOrgHistoryAction}
+      projects={projectOptions}
+      teams={teamOptions}
+      timezone={timezone}
+    />
+  )
 
   const hoursAction = loadOrgHoursSummaryForFiltersAction.bind(null, hsFilter)
   const auditAction = loadApprovalAuditLogForFiltersAction.bind(null, auFilter)
@@ -350,6 +372,7 @@ export default async function AdminAttendancePage({
         today={todayContent}
         analytics={analyticsContent}
         performance={performanceContent}
+        history={historyContent}
       />
     </div>
   )

@@ -172,6 +172,7 @@ function buildApprovalDetail(base: string, notes: string | undefined): string {
 type PrismaAttendance = {
   id: string
   employeeId: string
+  employee?: { name: string } | null
   date: Date
   timeIn: Date | null
   timeOut: Date | null
@@ -234,6 +235,7 @@ function attendanceToView(r: PrismaAttendance): AttendanceRecordView {
   return {
     id: r.id,
     employeeId: r.employeeId,
+    name: r.employee?.name ?? null,
     date: r.date.toISOString().slice(0, 10),
     timeIn: r.timeIn?.toISOString() ?? null,
     timeOut: r.timeOut?.toISOString() ?? null,
@@ -4494,5 +4496,60 @@ export const attendanceRepository = {
     }
 
     return out
+  },
+
+  async getOrgAttendanceHistory(args: {
+    orgId: string | null
+    from: Date
+    to: Date
+    projectId?: string | null
+    teamId?: string | null
+    q?: string | null
+    statuses?: string[]
+    page: number
+    pageSize: number
+  }): Promise<{ rows: AttendanceRecordView[]; total: number }> {
+    const prisma = getClient()
+    const from = startOfDay(args.from)
+    const to = endOfDay(args.to)
+    const pageSize = args.pageSize
+
+    const recordWhere: Record<string, unknown> = {
+      date: { gte: from, lte: to },
+    }
+
+    if (args.statuses && args.statuses.length > 0) {
+      recordWhere.status = { in: args.statuses }
+    }
+
+    if (args.orgId) {
+      const employeeIds = await this.resolveScopedEmployeeIds(args.orgId, {
+        projectId: args.projectId,
+        teamId: args.teamId,
+        q: args.q,
+      })
+      if (employeeIds !== null) {
+        if (employeeIds.length === 0) return { rows: [], total: 0 }
+        recordWhere.employeeId = { in: employeeIds }
+      } else {
+        recordWhere.employee = { organizationId: args.orgId }
+      }
+    }
+
+    const [total, records] = await Promise.all([
+      prisma.attendanceRecord.count({ where: recordWhere }),
+      prisma.attendanceRecord.findMany({
+        where: recordWhere,
+        orderBy: [{ date: "desc" }, { employee: { name: "asc" } }],
+        skip: args.page * pageSize,
+        take: pageSize,
+        include: {
+          ...BREAK_INCLUDE,
+          employee: { select: { id: true, name: true, email: true } },
+        },
+      }),
+    ])
+
+    return { rows: records.map(attendanceToView), total }
   },
 }

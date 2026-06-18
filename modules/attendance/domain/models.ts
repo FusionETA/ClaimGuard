@@ -33,6 +33,8 @@ export type AttendanceSessionView = {
 export type AttendanceRecordView = {
   id: string
   employeeId: string
+  /** Populated when the query joins the employee row (e.g. org history). Null for per-employee queries. */
+  name: string | null
   date: string
   timeIn: string | null
   timeOut: string | null
