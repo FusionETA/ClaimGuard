@@ -246,16 +246,31 @@ export const payslipRepository = {
    * detail page. Does NOT include line items — fetch those via
    * `getForRunAndOrg` on the detail page.
    */
-  async listForRun(payrollRunId: string): Promise<PayslipRow[]> {
+  async listForRun(
+    payrollRunId: string,
+    options?: { policyIdScope?: string[] | null },
+  ): Promise<PayslipRow[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+
+    const policyIdScope = options?.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
 
     // Eager-load line items so the run detail table can render the
     // earnings breakdown inline under each employee name. Payroll
     // runs are typically 10-100 employees with 3-8 line items each,
     // so this stays well under any practical query budget.
     const rows = await prisma.payslip.findMany({
-      where: { payrollRunId },
+      where: {
+        payrollRunId,
+        ...(policyIdScope && policyIdScope.length > 0
+          ? {
+              employeeProfile: {
+                policyId: { in: policyIdScope },
+              },
+            }
+          : {}),
+      },
       orderBy: { snapshotEmployeeId: "asc" },
       include: {
         lineItems: { orderBy: { id: "asc" } },
@@ -315,19 +330,20 @@ export const payslipRepository = {
       }
     }
 
-    const [agg, byCategory] = await Promise.all([
+    const submittedPayslipFilter = {
+      employeeProfileId: input.employeeProfileId,
+      payrollRun: {
+        periodYear: input.year,
+        status: "SUBMITTED" as const,
+        ...(input.excludeRunId ? { id: { not: input.excludeRunId } } : {}),
+      },
+    }
+
+    const [agg, pcbAllowanceAgg, byCategory] = await Promise.all([
       prisma.payslip.aggregate({
-        where: {
-          employeeProfileId: input.employeeProfileId,
-          payrollRun: {
-            periodYear: input.year,
-            status: "SUBMITTED",
-            ...(input.excludeRunId ? { id: { not: input.excludeRunId } } : {}),
-          },
-        },
+        where: submittedPayslipFilter,
         _sum: {
           proratedPay: true,
-          totalAllowances: true,
           otPay: true,
           epfEmployee: true,
           socsoEmployee: true,
@@ -336,21 +352,27 @@ export const payslipRepository = {
           zakat: true,
         },
       }),
+      // PCB-taxable allowances only — sum ALLOWANCE-kind line items
+      // whose `subjectToPcb` flag was true at write time. This is what
+      // feeds next month's `Y` on the LHDN PCB form, so PCB-exempt
+      // allowances (parking, meal, official-duty travel, etc.) must
+      // be excluded. Earlier this summed `Payslip.totalAllowances`,
+      // which is the FULL cash allowance total — including PCB-exempt
+      // rows — and falsely inflated Y for restricted-admin runs.
+      prisma.payslipLineItem.aggregate({
+        where: {
+          kind: "ALLOWANCE",
+          subjectToPcb: true,
+          payslip: submittedPayslipFilter,
+        },
+        _sum: { amount: true },
+      }),
       prisma.payslipLineItem.groupBy({
         by: ["category"],
         where: {
           kind: "ALLOWANCE",
           category: { not: null },
-          payslip: {
-            employeeProfileId: input.employeeProfileId,
-            payrollRun: {
-              periodYear: input.year,
-              status: "SUBMITTED",
-              ...(input.excludeRunId
-                ? { id: { not: input.excludeRunId } }
-                : {}),
-            },
-          },
+          payslip: submittedPayslipFilter,
         },
         _sum: { amount: true },
       }),
@@ -365,7 +387,7 @@ export const payslipRepository = {
     return {
       ytdTaxable:
         toNumber(agg._sum.proratedPay, 0) +
-        toNumber(agg._sum.totalAllowances, 0) +
+        toNumber(pcbAllowanceAgg._sum.amount, 0) +
         toNumber(agg._sum.otPay, 0),
       ytdEpf: toNumber(agg._sum.epfEmployee, 0),
       ytdPcb: toNumber(agg._sum.pcb, 0),
