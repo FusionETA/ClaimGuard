@@ -19,19 +19,44 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
  * token's organization is the target. No scopes required for now.
  *
  * Body:
- *   { email: string, name: string }
+ *   {
+ *     email: string,
+ *     name: string,
+ *     modules?: string[] | null,    // optional access scope; see below
+ *     policyIds?: string[] | null,
+ *   }
+ *
+ * Access scope (optional, both default to `null` = full access):
+ *   - `modules`: array of module keys this admin can see in the sidebar.
+ *     Known keys: claims_personal, claims_company, payroll, leave,
+ *     attendance, hierarchy, company_structure, audit_log, settings.
+ *     Pass `null` for full access (legacy). Pass `[]` to lock the admin
+ *     out of every module (rare; the Executive Overview still renders).
+ *   - `policyIds`: array of EmployeePolicy ids this admin can see
+ *     employees for. `null` = all policies. `[]` = no employees visible.
+ *     Pass the ids from GET /api/v1/policies.
+ *
+ *   For existing admins (already linked to this org), the access scope
+ *   is REPLACED if you pass `modules` or `policyIds`. Omit both to
+ *   leave the current scope untouched.
  *
  * Behaviour:
  *   - Brand-new email                 → create User { role: ADMIN } and
- *                                       link via AdminOrganization.
+ *                                       link via AdminOrganization with
+ *                                       the scope (or full access).
  *                                       Returns 201 { created: true,
  *                                       linked: true }.
  *   - Existing ADMIN/OWNER (other org) → link to this org via
- *                                       AdminOrganization (no role
- *                                       change). Returns 200
- *                                       { created: false, linked: true }.
- *   - Existing ADMIN already on this org → no-op. Returns 200
- *                                       { created: false, linked: false }.
+ *                                       AdminOrganization with the
+ *                                       scope (no role change). Returns
+ *                                       200 { created: false,
+ *                                       linked: true }.
+ *   - Existing ADMIN already on this org → if `modules` or `policyIds`
+ *                                       was provided, the scope is
+ *                                       REPLACED and we return 200
+ *                                       { created: false, linked: false,
+ *                                       updated: true }. Otherwise it's
+ *                                       a no-op.
  *   - Existing user with role EMPLOYEE / SUPERVISOR → 409 conflict (we
  *                                       refuse to silently promote a
  *                                       non-admin account; the partner
@@ -42,6 +67,11 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
  * /api/v1/admin/sso-ticket), never with a password — we mint an
  * unusable random password just to satisfy the schema.
  */
+
+const accessFieldSchema = z
+  .array(z.string().trim().min(1))
+  .nullable()
+  .optional()
 
 const createAdminSchema = z.object({
   email: z
@@ -55,6 +85,8 @@ const createAdminSchema = z.object({
     .trim()
     .min(1, "Name is required.")
     .max(120, "Name is too long."),
+  modules: accessFieldSchema,
+  policyIds: accessFieldSchema,
 })
 
 export const POST = handleApiRequest([], async (request, { integration }) => {
@@ -82,8 +114,18 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
     )
   }
 
-  const { email, name } = parsed.data
+  const { email, name, modules, policyIds } = parsed.data
   const organizationId = integration.organizationId
+  // Did the caller actually try to set scope? Distinguishes "leave the
+  // existing scope alone" (omit both fields) from "make it full access"
+  // (explicit null). Used below when the admin is already linked.
+  const scopeProvided = modules !== undefined || policyIds !== undefined
+  const access = scopeProvided
+    ? {
+        modules: modules ?? null,
+        policyIds: policyIds ?? null,
+      }
+    : undefined
 
   const existing = await organizationRepository.findUserByEmail(email)
 
@@ -119,6 +161,26 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
       organizationId,
     )
     if (alreadyHere) {
+      // Idempotent on identity; scope is REPLACED when the caller
+      // passes modules / policyIds. Omit both → leave it untouched.
+      if (access) {
+        await organizationRepository.updateAdminAccess({
+          adminId: existing.id,
+          organizationId,
+          modules: access.modules,
+          policyIds: access.policyIds,
+        })
+        void writeAudit({
+          organizationId,
+          actor: { kind: "PARTNER_API", integrationName: integration.name },
+          action: "admin.access.update",
+          status: "SUCCESS",
+          summary: `Updated access scope for ${existing.name} (${existing.email}) via partner API`,
+          targetType: "user",
+          targetId: existing.id,
+          metadata: { modules: access.modules, policyIds: access.policyIds },
+        })
+      }
       return NextResponse.json(
         {
           admin: {
@@ -129,6 +191,7 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
           },
           created: false,
           linked: false,
+          updated: Boolean(access),
         },
         { status: 200 },
       )
@@ -139,6 +202,7 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
     await organizationRepository.linkAdminToOrganization(
       existing.id,
       organizationId,
+      access,
     )
     void writeAudit({
       organizationId,
@@ -148,7 +212,13 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
       summary: `Added ${existing.name} (${existing.email}) as admin via partner API`,
       targetType: "user",
       targetId: existing.id,
-      metadata: { existingUser: true, role: existing.role },
+      metadata: {
+        existingUser: true,
+        role: existing.role,
+        ...(access
+          ? { modules: access.modules, policyIds: access.policyIds }
+          : {}),
+      },
     })
     return NextResponse.json(
       {
@@ -177,6 +247,7 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
       email,
       name,
       password,
+      access,
     })
     void writeAudit({
       organizationId,
@@ -186,7 +257,12 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
       summary: `Created new admin ${created.name} (${created.email}) via partner API`,
       targetType: "user",
       targetId: created.id,
-      metadata: { newUser: true },
+      metadata: {
+        newUser: true,
+        ...(access
+          ? { modules: access.modules, policyIds: access.policyIds }
+          : {}),
+      },
     })
     return NextResponse.json(
       {

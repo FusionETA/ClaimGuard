@@ -6,6 +6,57 @@ import { writeAudit } from "@/modules/audit/application/services/audit-log.servi
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
+ * PATCH /api/v1/admin/admins/[email]
+ *
+ * Partner endpoint: update the module + policy access scope for an
+ * admin who's already linked to this org. The same shape can be set at
+ * add-time via POST /api/v1/admin/admins; this endpoint exists for
+ * post-hoc scope edits without re-sending the email/name pair.
+ *
+ * Auth: per-org `wp_live_*` token (Authorization: Bearer …). The
+ * token's organization is implicit; the URL email picks the admin.
+ *
+ * Body (both fields optional — omit one to leave it as-is):
+ *   {
+ *     modules?: string[] | null,    // null = full module access
+ *     policyIds?: string[] | null,  // null = all policies
+ *   }
+ *
+ * Empty arrays are honoured ("no access" — the admin still sees the
+ * Executive Overview but every module-gated page redirects to /admin).
+ *
+ * Behaviour:
+ *   - Email not in the system            → 404.
+ *   - Email is not an admin of THIS org   → 404 (same shape so a
+ *                                            caller can't probe).
+ *   - Email is the OWNER of this org      → 409 (owners always have
+ *                                            full access — the scope
+ *                                            picker doesn't apply).
+ *   - Body has neither field              → 400 (nothing to update;
+ *                                            send `modules: null` or
+ *                                            `policyIds: null` to
+ *                                            explicitly clear).
+ *   - Otherwise                           → upsert AdminOrganization
+ *                                            row and return the new
+ *                                            stored scope.
+ */
+
+const accessFieldSchema = z
+  .array(z.string().trim().min(1))
+  .nullable()
+  .optional()
+
+const updateAccessSchema = z
+  .object({
+    modules: accessFieldSchema,
+    policyIds: accessFieldSchema,
+  })
+  .refine((v) => v.modules !== undefined || v.policyIds !== undefined, {
+    message:
+      "At least one of `modules` or `policyIds` must be provided (use `null` to clear).",
+  })
+
+/**
  * DELETE /api/v1/admin/admins/[email]
  *
  * Partner endpoint: remove an ADMIN from the organization this per-org
@@ -144,6 +195,150 @@ export const DELETE = handleApiRequest<{ email: string }>(
           name: user.name,
         },
         removed: true,
+      },
+      { status: 200 },
+    )
+  },
+)
+
+export const PATCH = handleApiRequest<{ email: string }>(
+  [],
+  async (request, { integration, params }) => {
+    const parsed = paramsSchema.safeParse({ email: params.email })
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: {
+            status: 400,
+            message: "Invalid email in path.",
+            details: parsed.error.flatten(),
+          },
+        },
+        { status: 400 },
+      )
+    }
+
+    let rawBody: unknown
+    try {
+      rawBody = await request.json()
+    } catch {
+      return NextResponse.json(
+        { error: { status: 400, message: "Invalid JSON body." } },
+        { status: 400 },
+      )
+    }
+
+    const parsedBody = updateAccessSchema.safeParse(rawBody)
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        {
+          error: {
+            status: 400,
+            message: "Validation failed.",
+            details: parsedBody.error.flatten(),
+          },
+        },
+        { status: 400 },
+      )
+    }
+
+    const email = parsed.data.email
+    const organizationId = integration.organizationId
+
+    const user = await organizationRepository.findUserByEmail(email)
+    if (!user) {
+      return NextResponse.json(
+        { error: { status: 404, message: "No admin with that email." } },
+        { status: 404 },
+      )
+    }
+
+    // Owners always have full access — scope storage on their
+    // AdminOrganization row is unused. Return 409 so partners can't
+    // accidentally store data that the app ignores.
+    if (user.role === "OWNER") {
+      return NextResponse.json(
+        {
+          error: {
+            status: 409,
+            message:
+              "Owners always have full access; their scope can't be updated.",
+          },
+        },
+        { status: 409 },
+      )
+    }
+
+    const isLinked = await organizationRepository.isAdminOfOrganization(
+      user.id,
+      organizationId,
+    )
+    if (!isLinked) {
+      return NextResponse.json(
+        {
+          error: {
+            status: 404,
+            message: "That email is not an admin of this organization.",
+          },
+        },
+        { status: 404 },
+      )
+    }
+
+    // Resolve the merge: the caller may have set only one of the two
+    // fields. Read the current state for whichever field they omitted
+    // so the upsert doesn't accidentally clobber it.
+    const [currentModules, currentPolicyIds] = await Promise.all([
+      organizationRepository.getAdminModulesForOrg({
+        adminId: user.id,
+        organizationId,
+        userRole: user.role,
+      }),
+      organizationRepository.getAdminPolicyIdsForOrg({
+        adminId: user.id,
+        organizationId,
+        userRole: user.role,
+      }),
+    ])
+    const modules =
+      parsedBody.data.modules !== undefined
+        ? parsedBody.data.modules
+        : currentModules
+    const policyIds =
+      parsedBody.data.policyIds !== undefined
+        ? parsedBody.data.policyIds
+        : currentPolicyIds
+
+    await organizationRepository.updateAdminAccess({
+      adminId: user.id,
+      organizationId,
+      modules,
+      policyIds,
+    })
+
+    void writeAudit({
+      organizationId,
+      actor: { kind: "PARTNER_API", integrationName: integration.name },
+      action: "admin.access.update",
+      status: "SUCCESS",
+      summary: `Updated access scope for ${user.name} (${user.email}) via partner API`,
+      targetType: "user",
+      targetId: user.id,
+      metadata: { modules, policyIds },
+    })
+
+    return NextResponse.json(
+      {
+        admin: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        },
+        access: {
+          modules,
+          policyIds,
+        },
       },
       { status: 200 },
     )
