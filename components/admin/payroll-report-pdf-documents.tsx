@@ -816,56 +816,123 @@ function fmt(n: number): string {
 
 // ─── 3. Bulk Payslips ───────────────────────────────────────────────────
 
+/// One payslip row enriched with the extras the dense PDF needs on
+/// top of `PayslipRow`: per-employee identity for the header block
+/// and calendar-year YTD totals for the per-statutory matrix.
+export type BulkPayslipPdfRow = PayslipRow & {
+  identity: {
+    idNumber: string | null
+    joinDate: Date | null
+    paymentMethod: string
+    bankName: string | null
+    bankAccountNumber: string | null
+    epfNumber: string | null
+    socsoNumber: string | null
+    incomeTaxNumber: string | null
+  } | null
+  ytd: {
+    gross: number
+    net: number
+    epfEmployee: number
+    epfEmployer: number
+    socsoEmployee: number
+    socsoEmployer: number
+    eisEmployee: number
+    eisEmployer: number
+    pcb: number
+    hrdf: number
+  }
+}
+
 export type BulkPayslipsPdfDocumentProps = {
   organizationName: string
   period: string
   /// Issue date printed on the payslip header — typically the last
   /// calendar day of the period month.
   issueDate: Date
-  payslips: PayslipRow[]
+  payslips: BulkPayslipPdfRow[]
   generatedAt: Date
 }
 
+// AltomateHR brand purple — used as the single accent across the
+// payslip PDF (org-name underline, section labels, YTD column headers).
+// Matches `--primary` in the app's Tailwind palette.
+const PAYSLIP_BRAND = "#5b21b6"
+
 const payslipStyles = StyleSheet.create({
   page: {
-    paddingTop: 32,
+    paddingTop: 30,
     paddingBottom: 36,
-    paddingHorizontal: 40,
-    fontSize: 10,
+    paddingHorizontal: 36,
+    fontSize: 9.5,
     color: COLOURS.ink,
     fontFamily: "Helvetica",
   },
-  titleRow: {
+  // ─── Header ───────────────────────────────────────────────────────
+  headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "flex-start",
     marginBottom: 4,
   },
-  bigTitle: { fontSize: 18, fontFamily: "Helvetica-Bold" },
-  meta: { fontSize: 9.5, color: COLOURS.muted },
-  hr: {
-    height: 1,
-    backgroundColor: COLOURS.rule,
-    marginTop: 8,
+  orgName: {
+    fontSize: 14,
+    fontFamily: "Helvetica-Bold",
+    color: COLOURS.ink,
+  },
+  periodTag: {
+    fontSize: 9,
+    color: COLOURS.muted,
+    textAlign: "right",
+  },
+  brandRule: {
+    height: 2,
+    backgroundColor: PAYSLIP_BRAND,
+    marginTop: 4,
+    marginBottom: 10,
+  },
+  // ─── Identity grid ────────────────────────────────────────────────
+  identityGrid: {
+    flexDirection: "row",
+    gap: 18,
     marginBottom: 12,
   },
-  twoCol: {
-    flexDirection: "row",
-    gap: 24,
+  identityCol: { flex: 1 },
+  identityRow: { flexDirection: "row", paddingVertical: 1.5 },
+  identityLabel: {
+    width: 80,
+    color: COLOURS.muted,
+    fontSize: 9,
   },
-  colHalf: { flex: 1 },
-  colTitle: {
+  identityValue: {
+    flex: 1,
+    fontSize: 9.5,
+  },
+  // ─── Section headers ──────────────────────────────────────────────
+  sectionLabel: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 10,
+    fontSize: 9,
+    color: PAYSLIP_BRAND,
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
     marginBottom: 4,
   },
-  payRow: { flexDirection: "row", paddingVertical: 1.5 },
+  // ─── Earnings / Deductions two-column block ───────────────────────
+  earningsDeductionsRow: {
+    flexDirection: "row",
+    gap: 20,
+  },
+  edCol: { flex: 1 },
+  payRow: {
+    flexDirection: "row",
+    paddingVertical: 1.8,
+  },
   payLabel: { flex: 3 },
   payAmount: { flex: 1, textAlign: "right" },
-  subTotal: {
+  subTotalRow: {
     flexDirection: "row",
     paddingTop: 4,
-    marginTop: 2,
+    marginTop: 4,
     borderTopWidth: 0.5,
     borderTopColor: COLOURS.divider,
   },
@@ -875,19 +942,66 @@ const payslipStyles = StyleSheet.create({
     textAlign: "right",
     fontFamily: "Helvetica-Bold",
   },
-  netBlock: {
+  // ─── Net pay banner ───────────────────────────────────────────────
+  netRow: {
     marginTop: 12,
-    padding: 10,
-    backgroundColor: "#ecfdf5", // emerald-50
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: COLOURS.panelBg,
     borderLeftWidth: 3,
-    borderLeftColor: COLOURS.positive,
+    borderLeftColor: PAYSLIP_BRAND,
   },
-  netLabel: { fontFamily: "Helvetica-Bold", fontSize: 11 },
-  netAmount: {
-    marginTop: 2,
-    fontSize: 16,
+  netLabel: {
     fontFamily: "Helvetica-Bold",
-    color: COLOURS.positive,
+    fontSize: 11,
+    color: COLOURS.ink,
+  },
+  netAmount: {
+    fontSize: 14,
+    fontFamily: "Helvetica-Bold",
+    color: PAYSLIP_BRAND,
+  },
+  // ─── YTD matrix ───────────────────────────────────────────────────
+  ytdSummary: { flexDirection: "row", paddingVertical: 1.5 },
+  ytdSummaryLabel: { flex: 1, color: COLOURS.muted },
+  ytdSummaryValue: { textAlign: "right" },
+  matrixHeaderRow: {
+    flexDirection: "row",
+    marginTop: 6,
+    paddingBottom: 3,
+    borderBottomWidth: 0.5,
+    borderBottomColor: COLOURS.rule,
+  },
+  matrixLabelCell: { flex: 1.4, fontFamily: "Helvetica-Bold", fontSize: 9 },
+  matrixNumCell: {
+    flex: 1,
+    textAlign: "right",
+    fontFamily: "Helvetica-Bold",
+    fontSize: 9,
+    color: COLOURS.muted,
+  },
+  matrixRow: {
+    flexDirection: "row",
+    paddingVertical: 2,
+  },
+  matrixRowLabel: { flex: 1.4 },
+  matrixNum: { flex: 1, textAlign: "right" },
+  // ─── Footer ───────────────────────────────────────────────────────
+  payslipFooter: {
+    position: "absolute",
+    left: 36,
+    right: 36,
+    bottom: 18,
+    paddingTop: 6,
+    borderTopWidth: 0.5,
+    borderTopColor: COLOURS.divider,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    fontSize: 8,
+    color: COLOURS.muted,
   },
 })
 
@@ -899,126 +1013,206 @@ export function BulkPayslipsPdfDocument(props: BulkPayslipsPdfDocumentProps) {
     >
       {props.payslips.map((p) => (
         <Page key={p.id} size="A4" style={payslipStyles.page}>
-          <View style={payslipStyles.titleRow}>
-            <View>
-              <Text style={payslipStyles.bigTitle}>Payslip</Text>
-              <Text style={payslipStyles.meta}>
-                Salary {props.period} · Issued {fmtDate(props.issueDate)}
-              </Text>
-            </View>
-            <Text style={payslipStyles.meta}>{props.organizationName}</Text>
+          {/* ── Header: org name + period ─────────────────────────── */}
+          <View style={payslipStyles.headerRow}>
+            <Text style={payslipStyles.orgName}>{props.organizationName}</Text>
+            <Text style={payslipStyles.periodTag}>
+              Payslip for {props.period}
+              {"\n"}Issued {fmtDate(props.issueDate)}
+            </Text>
           </View>
-          <View style={payslipStyles.hr} />
+          <View style={payslipStyles.brandRule} />
 
-          <View style={payslipStyles.twoCol}>
-            <View style={payslipStyles.colHalf}>
-              <Text style={payslipStyles.colTitle}>Employee</Text>
-              <Text>{p.snapshotName}</Text>
-              <Text style={payslipStyles.meta}>
-                {p.snapshotEmployeeId}
-                {p.snapshotPosition ? ` · ${p.snapshotPosition}` : ""}
-              </Text>
+          {/* ── Identity grid: 2 columns × 4 rows of labelled facts ── */}
+          <View style={payslipStyles.identityGrid}>
+            <View style={payslipStyles.identityCol}>
+              <IdentityField label="Employee" value={p.snapshotName} />
+              <IdentityField
+                label="IC / Passport"
+                value={p.identity?.idNumber ?? "—"}
+              />
+              <IdentityField
+                label="Join date"
+                value={
+                  p.identity?.joinDate ? fmtDate(p.identity.joinDate) : "—"
+                }
+              />
+              <IdentityField label="Employee ID" value={p.snapshotEmployeeId} />
             </View>
-            <View style={payslipStyles.colHalf}>
-              <Text style={payslipStyles.colTitle}>Pay Period</Text>
-              <Text>{props.period}</Text>
-              <Text style={payslipStyles.meta}>
-                {p.snapshotIsResident ? "Resident" : "Non-resident"}
-                {p.snapshotNationality ? ` · ${p.snapshotNationality}` : ""}
-              </Text>
-            </View>
-          </View>
-
-          <View style={{ marginTop: 16 }}>
-            <Text style={payslipStyles.colTitle}>Earnings</Text>
-            <PayRow label="Basic pay" amount={p.proratedPay} />
-            {p.otPay !== 0 ? (
-              <PayRow label="Overtime" amount={p.otPay} />
-            ) : null}
-            {p.totalAllowances !== 0 ? (
-              <PayRow label="Allowances" amount={p.totalAllowances} />
-            ) : null}
-            {p.totalReimbursements !== 0 ? (
-              <PayRow label="Reimbursements" amount={p.totalReimbursements} />
-            ) : null}
-            <View style={payslipStyles.subTotal}>
-              <Text style={payslipStyles.subTotalLabel}>Total earnings</Text>
-              {/* grossPay already includes proratedPay + otPay +
-                  totalAllowances + totalReimbursements (per calc.ts
-                  L1019). Don't add reimbursements again or we
-                  double-count. */}
-              <Text style={payslipStyles.subTotalAmount}>
-                {fmtMyr(p.grossPay)}
-              </Text>
-            </View>
-          </View>
-
-          <View style={{ marginTop: 14 }}>
-            <Text style={payslipStyles.colTitle}>Deductions</Text>
-            <PayRow label="Employee EPF" amount={p.epfEmployee} />
-            {/* PCB shown here is post-zakat-offset (calc.ts already
-                subtracted zakat). Zakat is also rolled into
-                `totalDeductions`, so when we display zakat separately
-                we have to subtract it from "Other deductions" to
-                avoid double-counting. */}
-            <PayRow label="PCB / MTD" amount={p.pcb} />
-            <PayRow label="Employee SOCSO" amount={p.socsoEmployee} />
-            <PayRow label="Employee EIS" amount={p.eisEmployee} />
-            {p.zakat > 0 ? (
-              <PayRow label="Zakat" amount={p.zakat} />
-            ) : null}
-            {(() => {
-              const otherDeductions = Math.max(
-                0,
-                p.totalDeductions - p.zakat,
-              )
-              return otherDeductions > 0 ? (
-                <PayRow label="Other deductions" amount={otherDeductions} />
-              ) : null
-            })()}
-            <View style={payslipStyles.subTotal}>
-              <Text style={payslipStyles.subTotalLabel}>Total deductions</Text>
-              {/* Match the calc engine's netPay formula:
-                    netPay = grossPay - epf - socso - eis - pcb
-                            - totalDeductions
-                  Zakat is inside totalDeductions, so we don't add it
-                  again here. */}
-              <Text style={payslipStyles.subTotalAmount}>
-                {fmtMyr(
-                  p.epfEmployee +
-                    p.pcb +
-                    p.socsoEmployee +
-                    p.eisEmployee +
-                    p.totalDeductions,
+            <View style={payslipStyles.identityCol}>
+              <IdentityField
+                label="Designation"
+                value={p.snapshotPosition ?? "—"}
+              />
+              <IdentityField
+                label="Payment mode"
+                value={paymentModeLabel(p.identity?.paymentMethod)}
+              />
+              <IdentityField
+                label="EPF ref"
+                value={p.identity?.epfNumber ?? "—"}
+              />
+              <IdentityField
+                label="SOCSO ref"
+                value={p.identity?.socsoNumber ?? "—"}
+              />
+              <IdentityField
+                label="Tax ref"
+                value={p.identity?.incomeTaxNumber ?? "—"}
+              />
+              <IdentityField
+                label="Bank account"
+                value={maskedBankAccount(
+                  p.identity?.bankName,
+                  p.identity?.bankAccountNumber,
                 )}
-              </Text>
+              />
             </View>
           </View>
 
-          <View style={payslipStyles.netBlock}>
-            <Text style={payslipStyles.netLabel}>Net pay</Text>
-            <Text style={payslipStyles.netAmount}>RM {fmtMyr(p.netPay)}</Text>
+          {/* ── Earnings | Deductions (two equal columns) ─────────── */}
+          <View style={payslipStyles.earningsDeductionsRow}>
+            <View style={payslipStyles.edCol}>
+              <Text style={payslipStyles.sectionLabel}>Earnings</Text>
+              <PayRow label="Basic pay" amount={p.proratedPay} />
+              {p.otPay !== 0 ? (
+                <PayRow label="Overtime" amount={p.otPay} />
+              ) : null}
+              {p.totalAllowances !== 0 ? (
+                <PayRow label="Allowances" amount={p.totalAllowances} />
+              ) : null}
+              {p.totalReimbursements !== 0 ? (
+                <PayRow
+                  label="Reimbursements"
+                  amount={p.totalReimbursements}
+                />
+              ) : null}
+              <View style={payslipStyles.subTotalRow}>
+                <Text style={payslipStyles.subTotalLabel}>Total earnings</Text>
+                {/* grossPay = proratedPay + otPay + totalAllowances +
+                    totalReimbursements per calc.ts; don't re-add. */}
+                <Text style={payslipStyles.subTotalAmount}>
+                  {fmtMyr(p.grossPay)}
+                </Text>
+              </View>
+            </View>
+            <View style={payslipStyles.edCol}>
+              <Text style={payslipStyles.sectionLabel}>Deductions</Text>
+              <PayRow label="Employee EPF" amount={p.epfEmployee} />
+              {/* PCB shown here is post-zakat-offset (calc.ts already
+                  subtracted zakat). Zakat is in `totalDeductions`,
+                  subtract once when surfacing the catch-all bucket. */}
+              <PayRow label="PCB / MTD" amount={p.pcb} />
+              <PayRow label="Employee SOCSO" amount={p.socsoEmployee} />
+              <PayRow label="Employee EIS" amount={p.eisEmployee} />
+              {p.zakat > 0 ? (
+                <PayRow label="Zakat" amount={p.zakat} />
+              ) : null}
+              {(() => {
+                const other = Math.max(0, p.totalDeductions - p.zakat)
+                return other > 0 ? (
+                  <PayRow label="Other deductions" amount={other} />
+                ) : null
+              })()}
+              <View style={payslipStyles.subTotalRow}>
+                <Text style={payslipStyles.subTotalLabel}>
+                  Total deductions
+                </Text>
+                <Text style={payslipStyles.subTotalAmount}>
+                  {fmtMyr(
+                    p.epfEmployee +
+                      p.pcb +
+                      p.socsoEmployee +
+                      p.eisEmployee +
+                      p.totalDeductions,
+                  )}
+                </Text>
+              </View>
+            </View>
           </View>
 
-          <View style={{ marginTop: 16 }}>
-            <Text style={payslipStyles.colTitle}>Employer Contributions</Text>
-            <PayRow label="EPF" amount={p.epfEmployer} />
-            <PayRow label="SOCSO" amount={p.socsoEmployer} />
-            <PayRow label="EIS" amount={p.eisEmployer} />
-            <PayRow label="HRDF" amount={p.hrdf} />
+          {/* ── Net pay banner ───────────────────────────────────── */}
+          <View style={payslipStyles.netRow}>
+            <Text style={payslipStyles.netLabel}>Net pay</Text>
+            <Text style={payslipStyles.netAmount}>
+              MYR {fmtMyr(p.netPay)}
+            </Text>
+          </View>
+
+          {/* ── Employer contributions ───────────────────────────── */}
+          <View style={{ marginTop: 14 }}>
+            <Text style={payslipStyles.sectionLabel}>
+              Employer contributions
+            </Text>
+            <View style={payslipStyles.earningsDeductionsRow}>
+              <View style={payslipStyles.edCol}>
+                <PayRow label="Employer EPF" amount={p.epfEmployer} />
+                <PayRow label="Employer SOCSO" amount={p.socsoEmployer} />
+              </View>
+              <View style={payslipStyles.edCol}>
+                <PayRow label="Employer EIS" amount={p.eisEmployer} />
+                <PayRow label="HRDF" amount={p.hrdf} />
+              </View>
+            </View>
           </View>
 
           {p.totalBenefitsInKind > 0 ? (
             <View style={{ marginTop: 12 }}>
-              <Text style={payslipStyles.colTitle}>
+              <Text style={payslipStyles.sectionLabel}>
                 Benefits-in-kind (BIK, non-cash)
               </Text>
               <PayRow label="Total BIK" amount={p.totalBenefitsInKind} />
             </View>
           ) : null}
 
-          <View style={baseStyles.footer} fixed>
-            <Text>Generated {fmtDate(props.generatedAt)}</Text>
+          {/* ── Year-to-date ─────────────────────────────────────── */}
+          <View style={{ marginTop: 14 }}>
+            <Text style={payslipStyles.sectionLabel}>
+              Year to date (through {props.period})
+            </Text>
+            <View style={payslipStyles.ytdSummary}>
+              <Text style={payslipStyles.ytdSummaryLabel}>Gross pay</Text>
+              <Text style={payslipStyles.ytdSummaryValue}>
+                MYR {fmtMyr(p.ytd.gross)}
+              </Text>
+            </View>
+            <View style={payslipStyles.ytdSummary}>
+              <Text style={payslipStyles.ytdSummaryLabel}>Net pay</Text>
+              <Text style={payslipStyles.ytdSummaryValue}>
+                MYR {fmtMyr(p.ytd.net)}
+              </Text>
+            </View>
+
+            <View style={payslipStyles.matrixHeaderRow}>
+              <Text style={payslipStyles.matrixLabelCell}> </Text>
+              <Text style={payslipStyles.matrixNumCell}>Employee</Text>
+              <Text style={payslipStyles.matrixNumCell}>Employer</Text>
+              <Text style={payslipStyles.matrixNumCell}>Total</Text>
+            </View>
+            <MatrixRow
+              label="EPF"
+              employee={p.ytd.epfEmployee}
+              employer={p.ytd.epfEmployer}
+            />
+            <MatrixRow
+              label="SOCSO"
+              employee={p.ytd.socsoEmployee}
+              employer={p.ytd.socsoEmployer}
+            />
+            <MatrixRow
+              label="EIS"
+              employee={p.ytd.eisEmployee}
+              employer={p.ytd.eisEmployer}
+            />
+            <MatrixRow label="PCB" employee={p.ytd.pcb} employer={0} />
+            <MatrixRow label="HRDF" employee={0} employer={p.ytd.hrdf} />
+          </View>
+
+          {/* ── Footer (fixed at page bottom) ───────────────────── */}
+          <View style={payslipStyles.payslipFooter} fixed>
+            <Text>
+              Computer-generated payslip — no signature required.
+            </Text>
             <Text
               render={({ pageNumber, totalPages }) =>
                 `${pageNumber} / ${totalPages}`
@@ -1038,4 +1232,61 @@ function PayRow(props: { label: string; amount: number }) {
       <Text style={payslipStyles.payAmount}>{fmtMyr(props.amount)}</Text>
     </View>
   )
+}
+
+function IdentityField(props: { label: string; value: string }) {
+  return (
+    <View style={payslipStyles.identityRow}>
+      <Text style={payslipStyles.identityLabel}>{props.label}</Text>
+      <Text style={payslipStyles.identityValue}>{props.value}</Text>
+    </View>
+  )
+}
+
+function MatrixRow(props: {
+  label: string
+  employee: number
+  employer: number
+}) {
+  const total = props.employee + props.employer
+  return (
+    <View style={payslipStyles.matrixRow}>
+      <Text style={payslipStyles.matrixRowLabel}>{props.label}</Text>
+      <Text style={payslipStyles.matrixNum}>{fmtMyr(props.employee)}</Text>
+      <Text style={payslipStyles.matrixNum}>{fmtMyr(props.employer)}</Text>
+      <Text style={payslipStyles.matrixNum}>{fmtMyr(total)}</Text>
+    </View>
+  )
+}
+
+/// Human label for `PayrollProfile.paymentMethod` enum. Lives here so
+/// PDF-side rendering doesn't need to import the app's `PAYMENT_METHOD_LABELS`
+/// (a client-side const). Kept short to fit the identity column.
+function paymentModeLabel(method: string | undefined): string {
+  switch (method) {
+    case "BANK_TRANSFER":
+      return "Bank transfer"
+    case "CHEQUE":
+      return "Cheque"
+    case "CASH":
+      return "Cash"
+    case "GIRO":
+      return "GIRO"
+    default:
+      return method ?? "—"
+  }
+}
+
+/// Mask the bank account number to last-4 to keep the printed payslip
+/// safe to forward by email — full account no. is still on the
+/// employee's profile in-app. Format: "Maybank ····6789".
+function maskedBankAccount(
+  bankName: string | null | undefined,
+  accountNumber: string | null | undefined,
+): string {
+  if (!accountNumber) return bankName ?? "—"
+  const trimmed = accountNumber.trim()
+  const last4 = trimmed.length > 4 ? trimmed.slice(-4) : trimmed
+  const masked = trimmed.length > 4 ? `····${last4}` : last4
+  return bankName ? `${bankName} ${masked}` : masked
 }

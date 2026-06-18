@@ -400,6 +400,133 @@ export const payslipRepository = {
   },
 
   /**
+   * Per-employee YTD totals for the payslip PDF's "Year to Date" block.
+   * Pulls every SUBMITTED payslip for the employee in the given calendar
+   * year up to AND INCLUDING the period (year, month) of the payslip
+   * being rendered — so a Feb payslip shows Jan+Feb cumulative, etc.
+   * Different shape from `getYtdForEmployee` (which excludes the current
+   * month to feed PCB inputs); this one is purely for display.
+   *
+   * Returns gross + net + employee/employer split for the four
+   * statutory items + HRDF. Zero everywhere when the employee has no
+   * submitted history yet.
+   */
+  async getYtdSummaryThroughPeriod(input: {
+    employeeProfileId: string
+    year: number
+    month: number
+  }): Promise<{
+    gross: number
+    net: number
+    epfEmployee: number
+    epfEmployer: number
+    socsoEmployee: number
+    socsoEmployer: number
+    eisEmployee: number
+    eisEmployer: number
+    pcb: number
+    hrdf: number
+  }> {
+    const empty = {
+      gross: 0,
+      net: 0,
+      epfEmployee: 0,
+      epfEmployer: 0,
+      socsoEmployee: 0,
+      socsoEmployer: 0,
+      eisEmployee: 0,
+      eisEmployer: 0,
+      pcb: 0,
+      hrdf: 0,
+    }
+    const prisma = getPrismaClient()
+    if (!prisma) return empty
+    const agg = await prisma.payslip.aggregate({
+      where: {
+        employeeProfileId: input.employeeProfileId,
+        payrollRun: {
+          status: "SUBMITTED",
+          periodYear: input.year,
+          // Calendar-year YTD through and including the rendered
+          // payslip's period — Jan→Jan, Feb→Jan+Feb, etc.
+          periodMonth: { lte: input.month },
+        },
+      },
+      _sum: {
+        grossPay: true,
+        netPay: true,
+        epfEmployee: true,
+        epfEmployer: true,
+        socsoEmployee: true,
+        socsoEmployer: true,
+        eisEmployee: true,
+        eisEmployer: true,
+        pcb: true,
+        hrdf: true,
+      },
+    })
+    return {
+      gross: toNumber(agg._sum.grossPay, 0),
+      net: toNumber(agg._sum.netPay, 0),
+      epfEmployee: toNumber(agg._sum.epfEmployee, 0),
+      epfEmployer: toNumber(agg._sum.epfEmployer, 0),
+      socsoEmployee: toNumber(agg._sum.socsoEmployee, 0),
+      socsoEmployer: toNumber(agg._sum.socsoEmployer, 0),
+      eisEmployee: toNumber(agg._sum.eisEmployee, 0),
+      eisEmployer: toNumber(agg._sum.eisEmployer, 0),
+      pcb: toNumber(agg._sum.pcb, 0),
+      hrdf: toNumber(agg._sum.hrdf, 0),
+    }
+  },
+
+  /**
+   * Lightweight per-employee identity bag used by the bulk payslip PDF
+   * header (IC / passport, join date, statutory reference numbers,
+   * bank info). Read live from `PayrollProfile`, not snapshotted onto
+   * the payslip — the snapshot's source of truth is the totals + line
+   * items; identity is allowed to drift with profile edits.
+   */
+  async getPayslipHeaderIdentity(input: {
+    employeeProfileId: string
+  }): Promise<{
+    idNumber: string | null
+    joinDate: Date | null
+    paymentMethod: string
+    bankName: string | null
+    bankAccountNumber: string | null
+    epfNumber: string | null
+    socsoNumber: string | null
+    incomeTaxNumber: string | null
+  } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.payrollProfile.findUnique({
+      where: { employeeProfileId: input.employeeProfileId },
+      select: {
+        idNumber: true,
+        joinDate: true,
+        paymentMethod: true,
+        bankName: true,
+        bankAccountNumber: true,
+        epfNumber: true,
+        socsoNumber: true,
+        incomeTaxNumber: true,
+      },
+    })
+    if (!row) return null
+    return {
+      idNumber: row.idNumber,
+      joinDate: row.joinDate,
+      paymentMethod: row.paymentMethod,
+      bankName: row.bankName,
+      bankAccountNumber: row.bankAccountNumber,
+      epfNumber: row.epfNumber,
+      socsoNumber: row.socsoNumber,
+      incomeTaxNumber: row.incomeTaxNumber,
+    }
+  },
+
+  /**
    * Employee-facing: list every payslip belonging to one employee
    * profile, but ONLY from SUBMITTED runs. Drafts are admin-only.
    * Includes period info from the parent run so the list page can
