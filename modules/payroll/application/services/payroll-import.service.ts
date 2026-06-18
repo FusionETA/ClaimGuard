@@ -208,14 +208,18 @@ const rowSchema = z
     // Malaysian NRIC = 12 digits; pad if Excel stripped the leading zeros.
     idNumber: paddedDigitString(12),
     alternateEmail: nullableString,
-    // Mandatory: backs the forgot-password WhatsApp delivery. Same
-    // validation as the Add-employee dialog — at least 7 digits after
-    // stripping non-digit characters.
-    phone: requiredString.pipe(
+    // Optional: backs the forgot-password WhatsApp delivery when set.
+    // Same validation as the Add-employee dialog — when a value IS
+    // provided it must have at least 7 digits after stripping non-digit
+    // characters; blank cells become null on PayrollProfile.phone and
+    // the admin shares the temporary password manually.
+    phone: nullableString.pipe(
       z
         .string()
-        .refine((v) => v.replace(/\D/g, "").length >= 7, {
-          message: "Phone number must contain at least 7 digits",
+        .nullable()
+        .refine((v) => v === null || v.replace(/\D/g, "").length >= 7, {
+          message:
+            "Phone number must contain at least 7 digits when provided",
         }),
     ),
     addressLine1: nullableString,
