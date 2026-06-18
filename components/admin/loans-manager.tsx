@@ -267,7 +267,7 @@ function CreateLoanCard(props: { employees: LoanEmployeeOption[] }) {
               <p className="text-xs font-medium text-muted-foreground">
                 Amount per month
               </p>
-              <div className="nice-scrollbar max-h-[40vh] space-y-1.5 overflow-y-auto pr-1">
+              <div className="nice-scrollbar max-h-[40vh] space-y-1.5 overflow-y-auto px-1">
                 {customRows.map((amt, i) => {
                   const raw = sm - 1 + i
                   const year = sy + Math.floor(raw / 12)

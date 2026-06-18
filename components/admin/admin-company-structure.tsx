@@ -937,7 +937,7 @@ function TeamMembersTable(props: {
                 </Select>
               </div>
             </div>
-            <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
+            <div className="max-h-48 space-y-1 overflow-y-auto px-1">
               {candidates.length === 0 ? (
                 <p className="px-1 py-2 text-xs text-muted-foreground">
                   No eligible employees.

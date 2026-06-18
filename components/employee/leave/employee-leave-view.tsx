@@ -144,7 +144,7 @@ export function EmployeeLeaveView(props: {
             </DialogDescription>
           </DialogHeader>
           <div
-            className="flex-1 overflow-y-auto pr-1"
+            className="flex-1 overflow-y-auto px-1"
             style={{ scrollbarGutter: "stable both-edges" }}
           >
             <ApplyForm

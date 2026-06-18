@@ -149,7 +149,7 @@ export function ApprovePayrollRunButton(props: {
         </DialogHeader>
 
         {props.hasXeroConnection ? (
-          <div className="max-h-[55vh] overflow-y-auto pr-1">
+          <div className="max-h-[55vh] overflow-y-auto px-1">
             <SyncPreviewPanel preview={preview} />
           </div>
         ) : null}
