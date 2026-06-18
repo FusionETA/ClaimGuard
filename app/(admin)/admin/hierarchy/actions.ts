@@ -69,6 +69,10 @@ const createMemberSchema = z.object({
     .string()
     .optional()
     .transform((v) => (v && v.trim() ? v.trim() : "")),
+  dob: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date of birth.")
+    .optional(),
 })
 
 /// Pull the per-project routing config out of FormData. Each project section
@@ -281,6 +285,7 @@ export async function createHierarchyMemberAction(
     phone: String(formData.get("phone") ?? "").trim(),
     xeroConnectionId: xeroConnectionId ?? "",
     joinDate: String(formData.get("joinDate") ?? "").trim(),
+    dob: String(formData.get("dob") ?? "").trim(),
   }
   const session = await getCurrentSession()
 
@@ -318,6 +323,7 @@ export async function createHierarchyMemberAction(
     // Trim to undefined so the Zod schema's `.optional()` path accepts
     // it and the downstream parse-to-Date treats it as "skip".
     joinDate: values.joinDate || undefined,
+    dob: values.dob || undefined,
   })
 
   if (!parsed.success) {
@@ -400,6 +406,7 @@ export async function createHierarchyMemberAction(
       joinDate,
       projectAssignments,
       leaveSeed,
+      dob: parsed.data.dob,
     })
   } catch (error) {
     return {

@@ -2071,6 +2071,9 @@ export const organizationRepository = {
     /// and admin can fix by setting joinDate on the edit page later
     /// (triggers `recomputeProRatedAccrualForEmployee`).
     joinDate?: Date | null
+    /// Optional date of birth (YYYY-MM-DD string). Saved to
+    /// PayrollProfile.dateOfBirth so the Personal tab is pre-filled.
+    dob?: string
     /// One entry per project the employee belongs to. Each entry pins the
     /// employee to a team in that project at a specific layer, plus an
     /// explicit per-layer chain (one approver per layer above the
@@ -2291,6 +2294,7 @@ export const organizationRepository = {
                 // `leaveRepository.getEmployeeJoinDate` and compute the
                 // initial accrual against the actual hire date.
                 joinDate: data.joinDate ?? null,
+                dateOfBirth: data.dob ? new Date(data.dob) : null,
                 payrollDocuments: [],
               },
             },
