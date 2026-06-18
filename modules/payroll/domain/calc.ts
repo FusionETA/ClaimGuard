@@ -233,21 +233,6 @@ export function calcEpf(input: CalcEpfInput): {
   // tier. Defaults to `wage` for backwards-compatible call sites.
   const rateWage = input.rateDeterminingWage ?? input.wage
 
-  // Employee EPF — keep the gazetted KWSP Third Schedule band-table
-  // lookup applied to the COMBINED wage (regular + AR). The cliff for
-  // the band STEP (RM 20 vs RM 100) is driven by the combined wage so
-  // that, for Kay Ben at combined 5,318, the wage rounds up to the
-  // RM 100 band 5,400 and we read 594 = ceil(11% × 5,400) — matching
-  // Payroll Panda. The cliff that picks the EMPLOYER rate happens
-  // separately below (driven by `rateWage`, regular only).
-  const employeeBand = lookupEpfBand({
-    wage: totalWage,
-    employerRateLow,
-    employerRateHigh,
-    employeeRate,
-  })
-  const employeeMandatory = employeeBand.employee
-
   // Employer EPF — single ceil of (mandatory + voluntary) × combined
   // wage. Avoids the double-ceil drift between mandatory and voluntary
   // that previously left us RM 1 above Panda on bonus months. Cliff
@@ -264,15 +249,50 @@ export function calcEpf(input: CalcEpfInput): {
       ? Math.ceil(totalWage * employerTotalRate / 100)
       : 0
 
-  // Employee voluntary stays as a separate single-ceil — the gazetted
-  // Third Schedule has no concept of "employee voluntary", so KWSP's
-  // general off-table rule (exact %, ceil to next ringgit) applies.
-  const employeeExtra =
-    input.employeeVoluntary > 0
-      ? Math.ceil(totalWage * input.employeeVoluntary / 100)
+  // Employee EPF — two paths depending on which side of the gazetted
+  // Schedule we're on:
+  //
+  //   1. Band-table branches (Parts A and C, hasCliff === true) with
+  //      wage ≤ RM 20,000 → KWSP mandates the gazetted table for the
+  //      mandatory side. We take it via `lookupEpfBand`, then add the
+  //      voluntary as a separate ceil (the Schedule has no concept of
+  //      voluntary, so off-table rules apply to it).
+  //
+  //   2. Off-table cases — flat-rate branches (Parts E and F,
+  //      hasCliff === false) OR any branch with wage > RM 20,000.
+  //      KWSP's off-table rule says "exact percentage, each side
+  //      rounded UP to next ringgit". `Each side` here = employee /
+  //      employer (one ceil per side), NOT each component (mandatory
+  //      separate from voluntary). So combine the rates and single-
+  //      ceil the total — matches Payroll Panda. Pre-fix, Asim (Part
+  //      F: 2% mandatory + 9% voluntary at wage 14,645) was producing
+  //      ceil(293) + ceil(1,319) = 1,612 instead of ceil(1,611) = 1,611.
+  const hasCliff = employerRateLow !== employerRateHigh
+  const usesBandTable = hasCliff && totalWage <= 20000
+  let employee: number
+  if (usesBandTable) {
+    const employeeBand = lookupEpfBand({
+      wage: totalWage,
+      employerRateLow,
+      employerRateHigh,
+      employeeRate,
+    })
+    const employeeExtra =
+      input.employeeVoluntary > 0
+        ? Math.ceil(totalWage * input.employeeVoluntary / 100)
+        : 0
+    employee = employeeBand.employee + employeeExtra
+  } else {
+    const employeeTotalRate =
+      employeeRate +
+      (input.employeeVoluntary > 0 ? input.employeeVoluntary : 0)
+    employee = totalWage > 0
+      ? Math.ceil(totalWage * employeeTotalRate / 100)
       : 0
+  }
+
   return {
-    employee: round2(employeeMandatory + employeeExtra),
+    employee: round2(employee),
     employer: round2(employerTotal),
     branch,
   }
