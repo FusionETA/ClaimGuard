@@ -148,7 +148,14 @@ export function applyResidentTaxBands(
   }
   // Individual rebate (LHDN cat 1/3 = RM 400; cat 2 = RM 800).
   // Applied only when annual chargeable income ≤ RM 35,000.
-  if (chargeableIncome <= REBATE_THRESHOLD) {
+  //
+  // The threshold check uses `Math.floor(chargeableIncome)` so that
+  // sub-ringgit drift from the LHDN K decomposition (K1 + trunc2(K2)×n
+  // loses ~0.07 of EPF-cap utilisation) doesn't push a boundary case
+  // (e.g. RM 4,000/mo single → strict chargeable = 35,000.07) over
+  // the line and silently strip the rebate. The actual tax math
+  // below still uses the raw decimal chargeable.
+  if (Math.floor(chargeableIncome) <= REBATE_THRESHOLD) {
     const rebate =
       REBATE_INDIVIDUAL + (spouseClaimable ? REBATE_SPOUSE : 0)
     tax -= rebate
@@ -436,37 +443,51 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   const annualTaxable =
     input.ytdTaxable + normalTaxable + normalTaxable * futureMonths
 
-  // Annualised normal EPF, capped at RM 4,000. Uses the simple
-  // (ytdEpf + thisMonthEpf × (1 + futureMonths)) formula — this
-  // saturates the RM 4K cap EXACTLY when applicable, which is what
-  // LHDN MTD expects for the boundary test cases (e.g. RM 4,000/mo
-  // single → chargeable = 35,000 exactly, lands in the rebate band).
+  // Annualised normal EPF, using the LHDN K1 + trunc2(K2)×n
+  // decomposition (matches the PCB walkthrough PDF + Payroll Panda).
   //
-  // We DELIBERATELY do NOT use the K + K1 + trunc2(K2)×n decomposition
-  // that `calcPcbBreakdown` uses for its display. That decomposition
-  // with truncated K2 loses sub-cent of cap utilization (e.g.
-  // 3,999.93 instead of 4,000.00) which can push borderline cases
-  // across a tax-bracket boundary and produce wildly wrong PCB
-  // (e.g. RM 50 instead of RM 16.70 for RM 4,000/mo single). The
-  // breakdown is for human-auditor reconciliation of the LHDN form
-  // (where Payroll Panda / LHDN display K2 truncated to 2dp); this
-  // path is for the actually-deducted amount and uses the exact cap.
-  const annualEpfNormal = Math.min(
-    EPF_RELIEF_CAP,
-    input.ytdEpf + input.thisMonthEpf + input.thisMonthEpf * futureMonths,
-  )
-
-  // Annualised EPF when AR is included — AR EPF is a one-shot
-  // contribution this month, not projected forward, and still bounded
-  // by the same RM 4,000 cap.
+  //   K  = min(4K, ytdEpf)
+  //   K1 = min(ceil(thisMonthEpf), remaining_cap)        — whole RM, LHDN convention
+  //   K2 = trunc2(min(thisMonthEpf, remaining_cap / n))  — 2dp per LHDN spec
+  //   annualEpfNormal = K + K1 + K2 × n
+  //
+  // Previously this used the simpler `ytdEpf + thisMonthEpf × (1 + n)`
+  // capped at RM 4,000. That saturated the cap EXACTLY (e.g. 4,000.00)
+  // while the LHDN form's decomposition lands at 3,999.93 — a 0.07
+  // gap that compounded through chargeable income → tax bracket → PCB,
+  // making the engine's `payslip.pcb` disagree with its own
+  // `pcbCalculation` JSON by up to 10 sen (admins reported Sharizan
+  // Jan-2026: app row 2,247.50 vs PDF 2,247.40).
+  //
+  // Now both paths share the same EPF figures and produce the same
+  // final total. The known boundary case (RM 4,000/mo Cat 1 single
+  // employee — chargeable lands at 35,000 exactly under the simple
+  // formula vs 35,000.07 under decomposition, missing the RM 400
+  // rebate by sub-cent) is handled by `rebateBoundaryNudge` below.
   const arEpf = Math.max(0, input.thisMonthEpfFromAR ?? 0)
-  const annualEpfWithAr = Math.min(
-    EPF_RELIEF_CAP,
-    input.ytdEpf +
-      input.thisMonthEpf +
-      input.thisMonthEpf * futureMonths +
-      arEpf,
+  const K_relief = Math.min(EPF_RELIEF_CAP, Math.max(0, input.ytdEpf))
+  const cap_after_K_relief = Math.max(0, EPF_RELIEF_CAP - K_relief)
+  const K1_relief = Math.min(
+    Math.ceil(Math.max(0, input.thisMonthEpf)),
+    cap_after_K_relief,
   )
+  const cap_after_K1_relief = Math.max(0, cap_after_K_relief - K1_relief)
+  const K2_relief =
+    futureMonths > 0
+      ? trunc2(
+          Math.min(
+            Math.max(0, input.thisMonthEpf),
+            cap_after_K1_relief / futureMonths,
+          ),
+        )
+      : 0
+  const cap_after_K1_K2_relief = Math.max(
+    0,
+    cap_after_K1_relief - K2_relief * futureMonths,
+  )
+  const Kt_relief = Math.min(arEpf, cap_after_K1_K2_relief)
+  const annualEpfNormal = K_relief + K1_relief + K2_relief * futureMonths
+  const annualEpfWithAr = annualEpfNormal + Kt_relief
 
   const reliefs = calcResidentReliefs(input.profile)
   const ytdZakat = Math.max(0, input.ytdZakat ?? 0)
