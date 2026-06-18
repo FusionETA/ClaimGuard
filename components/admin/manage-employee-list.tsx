@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useActionState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, UserPlus } from "lucide-react"
+import { Check, Copy, Loader2, RefreshCw, UserPlus } from "lucide-react"
 
 import { createHierarchyMemberAction } from "@/app/(admin)/admin/hierarchy/actions"
 import { createInitialAddHierarchyMemberFormState } from "@/app/(admin)/admin/hierarchy/form-state"
@@ -113,6 +113,35 @@ function AddEmployeeDialog({
     if (!policyId && defaultPolicyId) setPolicyId(defaultPolicyId)
   }, [defaultPolicyId, policyId])
 
+  // Default password generation: email + MMDD from DOB.
+  const [emailDraft, setEmailDraft] = useState(state.values.email ?? "")
+  const [dobDraft, setDobDraft] = useState("")
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  function generatePassword() {
+    const email = emailDraft.trim()
+    const dob = dobDraft // YYYY-MM-DD
+    if (!email || !dob) return
+    const [, mm, dd] = dob.split("-")
+    setGeneratedPassword(email + mm + dd)
+    setCopied(false)
+  }
+
+  function copyPassword() {
+    if (!generatedPassword) return
+    navigator.clipboard.writeText(generatedPassword).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  // Clear generated password if email or DOB changes after generation.
+  useEffect(() => {
+    setGeneratedPassword(null)
+    setCopied(false)
+  }, [emailDraft, dobDraft])
+
   // Leave Method state. DEFAULT = let the server seed entitlements
   // from the policy/type chain. CUSTOM = render one row per active
   // leave type with admin-editable days + accrual method.
@@ -207,7 +236,8 @@ function AddEmployeeDialog({
             <Input
               name="email"
               type="email"
-              defaultValue={state.values.email}
+              value={emailDraft}
+              onChange={(e) => setEmailDraft(e.target.value)}
               disabled={pending}
               required
             />
@@ -226,28 +256,68 @@ function AddEmployeeDialog({
               share the temporary password with them directly.
             </p>
           </Labelled>
-          <Labelled label="Join date">
-            <Input
-              name="joinDate"
-              type="date"
-              defaultValue={
-                state.values.joinDate ?? new Date().toISOString().slice(0, 10)
-              }
-              disabled={pending}
-            />
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Used to pro-rate this year&apos;s annual leave for new hires.
-            </p>
-          </Labelled>
-          <Labelled label="Temporary password">
-            <Input
-              name="password"
-              type="text"
-              defaultValue={state.values.password}
-              disabled={pending}
-              placeholder="At least 8 characters"
-              required
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <Labelled label="Date of birth">
+              <Input
+                name="dob"
+                type="date"
+                value={dobDraft}
+                onChange={(e) => setDobDraft(e.target.value)}
+                disabled={pending}
+                required
+              />
+            </Labelled>
+            <Labelled label="Join date">
+              <Input
+                name="joinDate"
+                type="date"
+                defaultValue={
+                  state.values.joinDate ?? new Date().toISOString().slice(0, 10)
+                }
+                disabled={pending}
+              />
+            </Labelled>
+          </div>
+          <Labelled label="Default password">
+            <input type="hidden" name="password" value={generatedPassword ?? ""} />
+            <div className="space-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!emailDraft.trim() || !dobDraft || pending}
+                onClick={generatePassword}
+                className="w-full gap-2"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Generate default password
+              </Button>
+              {generatedPassword ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="text"
+                    value={generatedPassword}
+                    readOnly
+                    className="flex-1 font-mono text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={copyPassword}
+                    className="shrink-0 rounded-lg border border-border/60 p-2 text-muted-foreground hover:text-foreground transition-colors"
+                    title="Copy password"
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4 text-success" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              ) : null}
+              <p className="text-[11px] text-muted-foreground">
+                Password is email + date of birth (MMDD). Employee should change it after first login.
+              </p>
+            </div>
           </Labelled>
           <Labelled label="Employee policy">
             <NativeSelect
