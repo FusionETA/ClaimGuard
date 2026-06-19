@@ -56,7 +56,6 @@ type LogFields = Record<string, unknown>
 type CriticalNotifyHook = (event: string, fields?: LogFields) => void
 
 declare global {
-  // eslint-disable-next-line no-var
   var __criticalNotify: CriticalNotifyHook | undefined
 }
 

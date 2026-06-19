@@ -74,6 +74,11 @@ const config = [
       "prisma/**/*.ts",
       "lib/api-auth.ts",
       "lib/auth/authenticate.ts",
+      // Sibling of authenticate.ts — does the "is this email available
+      // for a new active user" check against the users table directly.
+      // Could be folded into a userRepository later; same cross-cutting
+      // auth helper as authenticate.ts, same exception.
+      "lib/auth/email-uniqueness.ts",
       "lib/master-api-auth.ts",
       "lib/web-push.ts",
     ],
