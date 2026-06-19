@@ -1,17 +1,17 @@
 "use client"
 
-import * as Sentry from "@sentry/nextjs"
 import { useEffect } from "react"
 
 /**
  * Error boundary for the admin route group. Caught by Next when any
- * server component / action / page throws beneath `/admin`. The user
- * sees a calm fallback; the exception is captured to Sentry so we hear
- * about it.
+ * server component / action / page throws beneath `/admin`.
  *
- * When `NEXT_PUBLIC_SENTRY_DSN` is unset (dev / fresh clones), the
- * Sentry SDK silently no-ops — the `console.error` still fires so
- * devtools surface the stack.
+ * Client-side reporting goes to the devtools console only — the
+ * critical-notifier (WhatsApp via Wazzup24) is Level-2 scoped to
+ * server-side errors. Unhandled server exceptions still page on-call
+ * via `instrumentation.ts onRequestError`, which is what actually
+ * matters; browser-only crashes (extension noise, hydration drift,
+ * etc.) stay local to the user's session.
  */
 export default function AdminError({
   error,
@@ -21,9 +21,6 @@ export default function AdminError({
   reset: () => void
 }) {
   useEffect(() => {
-    Sentry.captureException(error, {
-      tags: { route_group: "admin", digest: error.digest },
-    })
     console.error("[admin] route error", error)
   }, [error])
 

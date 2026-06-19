@@ -1,12 +1,13 @@
 "use client"
 
-import * as Sentry from "@sentry/nextjs"
 import { useEffect } from "react"
 
 /**
  * Error boundary for the employee route group. Mirrors the admin
  * boundary — keeps a broken screen from leaking the framework error
- * page to end users, captures the exception to Sentry.
+ * page to end users. Logs to devtools; the critical-notifier
+ * (WhatsApp via Wazzup24) is Level-2 scoped to server-side errors, so
+ * client-only crashes here don't page on-call.
  */
 export default function EmployeeError({
   error,
@@ -16,9 +17,6 @@ export default function EmployeeError({
   reset: () => void
 }) {
   useEffect(() => {
-    Sentry.captureException(error, {
-      tags: { route_group: "employee", digest: error.digest },
-    })
     console.error("[employee] route error", error)
   }, [error])
 

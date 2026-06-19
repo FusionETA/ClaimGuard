@@ -15,37 +15,38 @@
  * Usage:
  *   import { log } from "@/lib/log"
  *   log.info("ocr.analyze.start", { userId, orgId })
- *   log.error("ocr.analyze.failed", { userId, err })
+ *   log.error("ocr.analyze.failed", { userId, err })   // stdout only
+ *   log.critical("payroll.calc.crashed", { runId, err }) // → WhatsApp
+ *
+ * `log.critical` is the must-alert tier — server-side critical events
+ * route to a WhatsApp notifier (production only). `log.error` stays
+ * stdout-only. See `lib/error-notify.ts` for the dispatch hook.
  *
  * Pure / browser-safe — no node-only APIs. Anything in `lib/` must work
  * on both sides per lib/CLAUDE.md.
  */
 
-type Level = "debug" | "info" | "warn" | "error"
+type Level = "debug" | "info" | "warn" | "error" | "critical"
 
 type LogFields = Record<string, unknown>
 
 /**
- * Forward `error`-level events to Sentry as captured exceptions. We
- * import lazily so the Sentry SDK doesn't get pulled into the bundle
- * of every file that imports `log` — only files that actually call
- * `log.error` pay for it. Failing-to-load is non-fatal: the JSON line
- * still hits stdout.
+ * The critical-event notifier is registered server-side at boot
+ * (`instrumentation.ts` → `registerCriticalNotifier()`). On the client
+ * this global stays undefined and the forward is a silent no-op, which
+ * matches our Level-2 design: only server-side criticals page.
  */
-async function forwardToSentry(event: string, fields?: LogFields) {
+type CriticalNotifyHook = (event: string, fields?: LogFields) => void
+declare global {
+  // eslint-disable-next-line no-var
+  var __criticalNotify: CriticalNotifyHook | undefined
+}
+
+function forwardToCriticalNotifier(event: string, fields?: LogFields) {
   try {
-    const Sentry = await import("@sentry/nextjs")
-    const err = fields?.err
-    if (err instanceof Error) {
-      Sentry.captureException(err, { tags: { event }, extra: fields })
-    } else {
-      Sentry.captureMessage(event, {
-        level: "error",
-        extra: fields,
-      })
-    }
+    globalThis.__criticalNotify?.(event, fields)
   } catch {
-    /* Sentry isn't installed or failed to load — stdout has the JSON line */
+    /* notifier must not break the calling request */
   }
 }
 
@@ -69,15 +70,18 @@ function emit(level: Level, event: string, fields?: LogFields) {
     }
 
     const line = JSON.stringify(payload)
-    if (level === "error" || level === "warn") {
+    if (level === "error" || level === "warn" || level === "critical") {
       console.error(line)
     } else {
       console.log(line)
     }
 
-    // Mirror error events to Sentry (no-op when SENTRY_DSN is unset).
-    if (level === "error") {
-      void forwardToSentry(event, fields)
+    // Critical events also fan out to WhatsApp via the server-side
+    // notifier. `log.error` is stdout-only by design (Level-3 scope):
+    // engineers explicitly opt in to phone alerts by calling
+    // `log.critical(...)` for the must-alert subset.
+    if (level === "critical") {
+      forwardToCriticalNotifier(event, fields)
     }
   } catch {
     // Last-ditch fallback — never let logging break the request.
@@ -90,4 +94,6 @@ export const log = {
   info: (event: string, fields?: LogFields) => emit("info", event, fields),
   warn: (event: string, fields?: LogFields) => emit("warn", event, fields),
   error: (event: string, fields?: LogFields) => emit("error", event, fields),
+  critical: (event: string, fields?: LogFields) =>
+    emit("critical", event, fields),
 }
