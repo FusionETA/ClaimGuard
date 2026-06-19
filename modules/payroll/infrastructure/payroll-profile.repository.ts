@@ -219,6 +219,64 @@ export const payrollProfileRepository = {
   },
 
   /**
+   * Minimal identity projection for the YTD import template — name +
+   * id-type + id-number per employee in the org, ordered alphabetically.
+   * Includes employees regardless of payroll-profile completeness;
+   * admins migrating mid-year may have a partially-onboarded roster
+   * and we still want their identity rows pre-filled in the XLSX.
+   * Excludes ADMIN-role users since they don't take payroll.
+   */
+  async listIdentityForImport(organizationId: string): Promise<
+    Array<{
+      name: string
+      idType: "NRIC" | "PASSPORT" | "OTHER" | null
+      idNumber: string | null
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const users = await prisma.user.findMany({
+      where: {
+        organizationId,
+        role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        employeeProfile: { isNot: null },
+      },
+      select: {
+        name: true,
+        employeeProfile: {
+          select: {
+            payrollProfile: { select: { idType: true, idNumber: true } },
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    })
+
+    return users.map((u) => {
+      const pp = u.employeeProfile?.payrollProfile
+      // Prisma's generated enum type doesn't widen — narrow to the
+      // strings our template renderer expects. Unknown values fall
+      // back to "OTHER" so the prefix on the template reads "Other:".
+      const rawIdType =
+        typeof pp?.idType === "string"
+          ? (pp.idType as string).toUpperCase()
+          : null
+      const idType: "NRIC" | "PASSPORT" | "OTHER" | null =
+        rawIdType === "NRIC" || rawIdType === "PASSPORT"
+          ? rawIdType
+          : rawIdType
+            ? "OTHER"
+            : null
+      return {
+        name: u.name,
+        idType,
+        idNumber: pp?.idNumber ?? null,
+      }
+    })
+  },
+
+  /**
    * Fetch every employee in the org with a COMPLETE and non-archived
    * payroll profile. Used by the payroll-run generator: these are the
    * employees who will get a payslip on the next run.
