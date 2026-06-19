@@ -23,6 +23,14 @@ export const PAYROLL_RUN_STATUS_LABELS: Record<PayrollRunStatus, string> = {
   SUBMITTED: "Submitted",
 }
 
+export const payrollRunSources = ["COMPUTED", "IMPORTED"] as const
+export type PayrollRunSource = (typeof payrollRunSources)[number]
+
+export const PAYROLL_RUN_SOURCE_LABELS: Record<PayrollRunSource, string> = {
+  COMPUTED: "Computed",
+  IMPORTED: "Imported",
+}
+
 // ─── PayrollRun ──────────────────────────────────────────────────────────
 
 /**
@@ -38,6 +46,10 @@ export type PayrollRunData = {
   /// 1..12
   periodMonth: number
   status: PayrollRunStatus
+  /// Where the run originated. COMPUTED = engine; IMPORTED = seeded
+  /// from a YTD migration upload. Drives audit grouping on the runs
+  /// list page.
+  source: PayrollRunSource
 
   // Cached totals (null while DRAFT).
   totalGross: number | null

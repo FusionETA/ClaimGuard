@@ -4413,6 +4413,7 @@ export const PayrollRunScalarFieldEnum = {
   periodYear: 'periodYear',
   periodMonth: 'periodMonth',
   status: 'status',
+  source: 'source',
   totalGross: 'totalGross',
   totalNet: 'totalNet',
   totalEmployeeEpf: 'totalEmployeeEpf',
@@ -5661,6 +5662,13 @@ export type EnumPortalKindFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'PayrollRunStatus'
  */
 export type EnumPayrollRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollRunStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PayrollRunSource'
+ */
+export type EnumPayrollRunSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollRunSource'>
     
 
 

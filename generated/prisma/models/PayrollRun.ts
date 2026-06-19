@@ -74,6 +74,7 @@ export type PayrollRunMinAggregateOutputType = {
   periodYear: number | null
   periodMonth: number | null
   status: $Enums.PayrollRunStatus | null
+  source: $Enums.PayrollRunSource | null
   totalGross: runtime.Decimal | null
   totalNet: runtime.Decimal | null
   totalEmployeeEpf: runtime.Decimal | null
@@ -110,6 +111,7 @@ export type PayrollRunMaxAggregateOutputType = {
   periodYear: number | null
   periodMonth: number | null
   status: $Enums.PayrollRunStatus | null
+  source: $Enums.PayrollRunSource | null
   totalGross: runtime.Decimal | null
   totalNet: runtime.Decimal | null
   totalEmployeeEpf: runtime.Decimal | null
@@ -146,6 +148,7 @@ export type PayrollRunCountAggregateOutputType = {
   periodYear: number
   periodMonth: number
   status: number
+  source: number
   totalGross: number
   totalNet: number
   totalEmployeeEpf: number
@@ -225,6 +228,7 @@ export type PayrollRunMinAggregateInputType = {
   periodYear?: true
   periodMonth?: true
   status?: true
+  source?: true
   totalGross?: true
   totalNet?: true
   totalEmployeeEpf?: true
@@ -261,6 +265,7 @@ export type PayrollRunMaxAggregateInputType = {
   periodYear?: true
   periodMonth?: true
   status?: true
+  source?: true
   totalGross?: true
   totalNet?: true
   totalEmployeeEpf?: true
@@ -297,6 +302,7 @@ export type PayrollRunCountAggregateInputType = {
   periodYear?: true
   periodMonth?: true
   status?: true
+  source?: true
   totalGross?: true
   totalNet?: true
   totalEmployeeEpf?: true
@@ -421,6 +427,7 @@ export type PayrollRunGroupByOutputType = {
   periodYear: number
   periodMonth: number
   status: $Enums.PayrollRunStatus
+  source: $Enums.PayrollRunSource
   totalGross: runtime.Decimal | null
   totalNet: runtime.Decimal | null
   totalEmployeeEpf: runtime.Decimal | null
@@ -481,6 +488,7 @@ export type PayrollRunWhereInput = {
   periodYear?: Prisma.IntFilter<"PayrollRun"> | number
   periodMonth?: Prisma.IntFilter<"PayrollRun"> | number
   status?: Prisma.EnumPayrollRunStatusFilter<"PayrollRun"> | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
   totalGross?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -525,6 +533,7 @@ export type PayrollRunOrderByWithRelationInput = {
   periodYear?: Prisma.SortOrder
   periodMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   totalGross?: Prisma.SortOrderInput | Prisma.SortOrder
   totalNet?: Prisma.SortOrderInput | Prisma.SortOrder
   totalEmployeeEpf?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -575,6 +584,7 @@ export type PayrollRunWhereUniqueInput = Prisma.AtLeast<{
   periodYear?: Prisma.IntFilter<"PayrollRun"> | number
   periodMonth?: Prisma.IntFilter<"PayrollRun"> | number
   status?: Prisma.EnumPayrollRunStatusFilter<"PayrollRun"> | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
   totalGross?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -618,6 +628,7 @@ export type PayrollRunOrderByWithAggregationInput = {
   periodYear?: Prisma.SortOrder
   periodMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   totalGross?: Prisma.SortOrderInput | Prisma.SortOrder
   totalNet?: Prisma.SortOrderInput | Prisma.SortOrder
   totalEmployeeEpf?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -663,6 +674,7 @@ export type PayrollRunScalarWhereWithAggregatesInput = {
   periodYear?: Prisma.IntWithAggregatesFilter<"PayrollRun"> | number
   periodMonth?: Prisma.IntWithAggregatesFilter<"PayrollRun"> | number
   status?: Prisma.EnumPayrollRunStatusWithAggregatesFilter<"PayrollRun"> | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceWithAggregatesFilter<"PayrollRun"> | $Enums.PayrollRunSource
   totalGross?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -699,6 +711,7 @@ export type PayrollRunCreateInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -741,6 +754,7 @@ export type PayrollRunUncheckedCreateInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -781,6 +795,7 @@ export type PayrollRunUpdateInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -823,6 +838,7 @@ export type PayrollRunUncheckedUpdateInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -864,6 +880,7 @@ export type PayrollRunCreateManyInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -900,6 +917,7 @@ export type PayrollRunUpdateManyMutationInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -935,6 +953,7 @@ export type PayrollRunUncheckedUpdateManyInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -994,6 +1013,7 @@ export type PayrollRunCountOrderByAggregateInput = {
   periodYear?: Prisma.SortOrder
   periodMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   totalGross?: Prisma.SortOrder
   totalNet?: Prisma.SortOrder
   totalEmployeeEpf?: Prisma.SortOrder
@@ -1051,6 +1071,7 @@ export type PayrollRunMaxOrderByAggregateInput = {
   periodYear?: Prisma.SortOrder
   periodMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   totalGross?: Prisma.SortOrder
   totalNet?: Prisma.SortOrder
   totalEmployeeEpf?: Prisma.SortOrder
@@ -1087,6 +1108,7 @@ export type PayrollRunMinOrderByAggregateInput = {
   periodYear?: Prisma.SortOrder
   periodMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   totalGross?: Prisma.SortOrder
   totalNet?: Prisma.SortOrder
   totalEmployeeEpf?: Prisma.SortOrder
@@ -1272,6 +1294,10 @@ export type EnumPayrollRunStatusFieldUpdateOperationsInput = {
   set?: $Enums.PayrollRunStatus
 }
 
+export type EnumPayrollRunSourceFieldUpdateOperationsInput = {
+  set?: $Enums.PayrollRunSource
+}
+
 export type PayrollRunCreateNestedOneWithoutReportsInput = {
   create?: Prisma.XOR<Prisma.PayrollRunCreateWithoutReportsInput, Prisma.PayrollRunUncheckedCreateWithoutReportsInput>
   connectOrCreate?: Prisma.PayrollRunCreateOrConnectWithoutReportsInput
@@ -1333,6 +1359,7 @@ export type PayrollRunCreateWithoutSubmittedByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1374,6 +1401,7 @@ export type PayrollRunUncheckedCreateWithoutSubmittedByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1423,6 +1451,7 @@ export type PayrollRunCreateWithoutSubmittedForApprovalByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1464,6 +1493,7 @@ export type PayrollRunUncheckedCreateWithoutSubmittedForApprovalByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1533,6 +1563,7 @@ export type PayrollRunScalarWhereInput = {
   periodYear?: Prisma.IntFilter<"PayrollRun"> | number
   periodMonth?: Prisma.IntFilter<"PayrollRun"> | number
   status?: Prisma.EnumPayrollRunStatusFilter<"PayrollRun"> | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
   totalGross?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1585,6 +1616,7 @@ export type PayrollRunCreateWithoutOrganizationInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1625,6 +1657,7 @@ export type PayrollRunUncheckedCreateWithoutOrganizationInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1691,6 +1724,7 @@ export type PayrollRunCreateWithoutReportsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1732,6 +1766,7 @@ export type PayrollRunUncheckedCreateWithoutReportsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1787,6 +1822,7 @@ export type PayrollRunUpdateWithoutReportsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1828,6 +1864,7 @@ export type PayrollRunUncheckedUpdateWithoutReportsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1867,6 +1904,7 @@ export type PayrollRunCreateWithoutClaimAttachmentsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1908,6 +1946,7 @@ export type PayrollRunUncheckedCreateWithoutClaimAttachmentsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1963,6 +2002,7 @@ export type PayrollRunUpdateWithoutClaimAttachmentsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2004,6 +2044,7 @@ export type PayrollRunUncheckedUpdateWithoutClaimAttachmentsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2043,6 +2084,7 @@ export type PayrollRunCreateWithoutAdjustmentsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2084,6 +2126,7 @@ export type PayrollRunUncheckedCreateWithoutAdjustmentsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2139,6 +2182,7 @@ export type PayrollRunUpdateWithoutAdjustmentsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2180,6 +2224,7 @@ export type PayrollRunUncheckedUpdateWithoutAdjustmentsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2219,6 +2264,7 @@ export type PayrollRunCreateWithoutPayslipsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2260,6 +2306,7 @@ export type PayrollRunUncheckedCreateWithoutPayslipsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2315,6 +2362,7 @@ export type PayrollRunUpdateWithoutPayslipsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2356,6 +2404,7 @@ export type PayrollRunUncheckedUpdateWithoutPayslipsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2396,6 +2445,7 @@ export type PayrollRunCreateManySubmittedByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2432,6 +2482,7 @@ export type PayrollRunCreateManySubmittedForApprovalByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2467,6 +2518,7 @@ export type PayrollRunUpdateWithoutSubmittedByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2508,6 +2560,7 @@ export type PayrollRunUncheckedUpdateWithoutSubmittedByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2548,6 +2601,7 @@ export type PayrollRunUncheckedUpdateManyWithoutSubmittedByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2583,6 +2637,7 @@ export type PayrollRunUpdateWithoutSubmittedForApprovalByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2624,6 +2679,7 @@ export type PayrollRunUncheckedUpdateWithoutSubmittedForApprovalByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2664,6 +2720,7 @@ export type PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2699,6 +2756,7 @@ export type PayrollRunCreateManyOrganizationInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
+  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2735,6 +2793,7 @@ export type PayrollRunUpdateWithoutOrganizationInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2775,6 +2834,7 @@ export type PayrollRunUncheckedUpdateWithoutOrganizationInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2815,6 +2875,7 @@ export type PayrollRunUncheckedUpdateManyWithoutOrganizationInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2910,6 +2971,7 @@ export type PayrollRunSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   periodYear?: boolean
   periodMonth?: boolean
   status?: boolean
+  source?: boolean
   totalGross?: boolean
   totalNet?: boolean
   totalEmployeeEpf?: boolean
@@ -2957,6 +3019,7 @@ export type PayrollRunSelectScalar = {
   periodYear?: boolean
   periodMonth?: boolean
   status?: boolean
+  source?: boolean
   totalGross?: boolean
   totalNet?: boolean
   totalEmployeeEpf?: boolean
@@ -2988,7 +3051,7 @@ export type PayrollRunSelectScalar = {
   xeroSyncedAt?: boolean
 }
 
-export type PayrollRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "periodYear" | "periodMonth" | "status" | "totalGross" | "totalNet" | "totalEmployeeEpf" | "totalEmployerEpf" | "totalEmployeeSocso" | "totalEmployerSocso" | "totalEmployeeEis" | "totalEmployerEis" | "totalPcb" | "totalHrdf" | "totalZakat" | "employeeCount" | "employeesSubjectToHrdf" | "totalWagesSubjectToHrdf" | "totalCostToEmployer" | "submittedAt" | "submittedById" | "createdAt" | "updatedAt" | "lastMutatedAt" | "approvalRejectionReason" | "submittedForApprovalAt" | "submittedForApprovalById" | "policyIds" | "xeroJournalNumber" | "xeroManualJournalId" | "xeroSyncError" | "xeroSyncStatus" | "xeroSyncedAt", ExtArgs["result"]["payrollRun"]>
+export type PayrollRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "periodYear" | "periodMonth" | "status" | "source" | "totalGross" | "totalNet" | "totalEmployeeEpf" | "totalEmployerEpf" | "totalEmployeeSocso" | "totalEmployerSocso" | "totalEmployeeEis" | "totalEmployerEis" | "totalPcb" | "totalHrdf" | "totalZakat" | "employeeCount" | "employeesSubjectToHrdf" | "totalWagesSubjectToHrdf" | "totalCostToEmployer" | "submittedAt" | "submittedById" | "createdAt" | "updatedAt" | "lastMutatedAt" | "approvalRejectionReason" | "submittedForApprovalAt" | "submittedForApprovalById" | "policyIds" | "xeroJournalNumber" | "xeroManualJournalId" | "xeroSyncError" | "xeroSyncStatus" | "xeroSyncedAt", ExtArgs["result"]["payrollRun"]>
 export type PayrollRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   submittedBy?: boolean | Prisma.PayrollRun$submittedByArgs<ExtArgs>
@@ -3020,6 +3083,14 @@ export type $PayrollRunPayload<ExtArgs extends runtime.Types.Extensions.Internal
      */
     periodMonth: number
     status: $Enums.PayrollRunStatus
+    /**
+     * COMPUTED = produced by calc engine (the normal path). IMPORTED =
+     * seeded from a YTD migration upload — the payslip numbers are
+     * taken as-typed by the admin, not recomputed. Imported runs are
+     * surfaced in their own card on /admin/payroll/runs so it's
+     * obvious which history is engine-computed vs migrated.
+     */
+    source: $Enums.PayrollRunSource
     totalGross: runtime.Decimal | null
     totalNet: runtime.Decimal | null
     totalEmployeeEpf: runtime.Decimal | null
@@ -3497,6 +3568,7 @@ export interface PayrollRunFieldRefs {
   readonly periodYear: Prisma.FieldRef<"PayrollRun", 'Int'>
   readonly periodMonth: Prisma.FieldRef<"PayrollRun", 'Int'>
   readonly status: Prisma.FieldRef<"PayrollRun", 'PayrollRunStatus'>
+  readonly source: Prisma.FieldRef<"PayrollRun", 'PayrollRunSource'>
   readonly totalGross: Prisma.FieldRef<"PayrollRun", 'Decimal'>
   readonly totalNet: Prisma.FieldRef<"PayrollRun", 'Decimal'>
   readonly totalEmployeeEpf: Prisma.FieldRef<"PayrollRun", 'Decimal'>

@@ -949,6 +949,13 @@ export type EnumPayrollRunStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumPayrollRunStatusFilter<$PrismaModel> | $Enums.PayrollRunStatus
 }
 
+export type EnumPayrollRunSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.PayrollRunSource | Prisma.EnumPayrollRunSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.PayrollRunSource[]
+  notIn?: $Enums.PayrollRunSource[]
+  not?: Prisma.NestedEnumPayrollRunSourceFilter<$PrismaModel> | $Enums.PayrollRunSource
+}
+
 export type EnumPayrollRunStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.PayrollRunStatus | Prisma.EnumPayrollRunStatusFieldRefInput<$PrismaModel>
   in?: $Enums.PayrollRunStatus[]
@@ -957,6 +964,16 @@ export type EnumPayrollRunStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPayrollRunStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPayrollRunStatusFilter<$PrismaModel>
+}
+
+export type EnumPayrollRunSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PayrollRunSource | Prisma.EnumPayrollRunSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.PayrollRunSource[]
+  notIn?: $Enums.PayrollRunSource[]
+  not?: Prisma.NestedEnumPayrollRunSourceWithAggregatesFilter<$PrismaModel> | $Enums.PayrollRunSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPayrollRunSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPayrollRunSourceFilter<$PrismaModel>
 }
 
 export type EnumPayrollReportKindFilter<$PrismaModel = never> = {
@@ -2026,6 +2043,13 @@ export type NestedEnumPayrollRunStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumPayrollRunStatusFilter<$PrismaModel> | $Enums.PayrollRunStatus
 }
 
+export type NestedEnumPayrollRunSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.PayrollRunSource | Prisma.EnumPayrollRunSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.PayrollRunSource[]
+  notIn?: $Enums.PayrollRunSource[]
+  not?: Prisma.NestedEnumPayrollRunSourceFilter<$PrismaModel> | $Enums.PayrollRunSource
+}
+
 export type NestedEnumPayrollRunStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.PayrollRunStatus | Prisma.EnumPayrollRunStatusFieldRefInput<$PrismaModel>
   in?: $Enums.PayrollRunStatus[]
@@ -2034,6 +2058,16 @@ export type NestedEnumPayrollRunStatusWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPayrollRunStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPayrollRunStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumPayrollRunSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PayrollRunSource | Prisma.EnumPayrollRunSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.PayrollRunSource[]
+  notIn?: $Enums.PayrollRunSource[]
+  not?: Prisma.NestedEnumPayrollRunSourceWithAggregatesFilter<$PrismaModel> | $Enums.PayrollRunSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPayrollRunSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPayrollRunSourceFilter<$PrismaModel>
 }
 
 export type NestedEnumPayrollReportKindFilter<$PrismaModel = never> = {

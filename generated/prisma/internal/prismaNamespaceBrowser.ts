@@ -872,6 +872,7 @@ export const PayrollRunScalarFieldEnum = {
   periodYear: 'periodYear',
   periodMonth: 'periodMonth',
   status: 'status',
+  source: 'source',
   totalGross: 'totalGross',
   totalNet: 'totalNet',
   totalEmployeeEpf: 'totalEmployeeEpf',

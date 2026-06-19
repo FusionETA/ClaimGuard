@@ -1391,6 +1391,12 @@ model PayrollRun {
   /// 1..12
   periodMonth              Int
   status                   PayrollRunStatus       @default(DRAFT)
+  /// COMPUTED = produced by calc engine (the normal path). IMPORTED =
+  /// seeded from a YTD migration upload — the payslip numbers are
+  /// taken as-typed by the admin, not recomputed. Imported runs are
+  /// surfaced in their own card on /admin/payroll/runs so it's
+  /// obvious which history is engine-computed vs migrated.
+  source                   PayrollRunSource       @default(COMPUTED)
   totalGross               Decimal?               @db.Decimal(14, 2)
   totalNet                 Decimal?               @db.Decimal(14, 2)
   totalEmployeeEpf         Decimal?               @db.Decimal(14, 2)
@@ -2211,6 +2217,22 @@ enum PayrollRunStatus {
   /// themselves.
   PENDING_APPROVAL
   SUBMITTED
+}
+
+/// Where the run originated. Drives audit grouping on
+/// /admin/payroll/runs (computed vs imported show in separate cards)
+/// and lets downstream consumers know whether the payslip numbers
+/// came from the calc engine or were typed in by the admin during
+/// migration.
+enum PayrollRunSource {
+  /// Produced by the calc engine — the normal path. Default for any
+  /// run created via "Start a new run".
+  COMPUTED
+  /// Seeded from a YTD import. Payslip numbers are taken from the
+  /// uploaded XLSX as-is and never recomputed; the run is created
+  /// with status = SUBMITTED + the imported `submittedAt` set to the
+  /// last day of the period.
+  IMPORTED
 }
 
 /// Statutory portals the admin can save credentials for. New portals

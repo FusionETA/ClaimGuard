@@ -552,6 +552,10 @@ function mapPayrollRun(row: any): PayrollRunData {
     periodYear: row.periodYear,
     periodMonth: row.periodMonth,
     status: row.status,
+    // `source` was added later — old rows without the column read as
+    // undefined. Default to COMPUTED so the existing audit-card split
+    // doesn't misclassify legacy runs as imports.
+    source: row.source ?? "COMPUTED",
     totalGross: row.totalGross == null ? null : toNumber(row.totalGross, 0),
     totalNet: row.totalNet == null ? null : toNumber(row.totalNet, 0),
     totalEmployeeEpf:
