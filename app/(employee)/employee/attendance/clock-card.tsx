@@ -366,6 +366,13 @@ export function ClockCard({
     // Policy opt-out: skip GPS entirely when neither geofence nor
     // location capture is on for ANY event. Saves the permission
     // prompt + watcher cost for orgs that don't use either.
+    //
+    // The setGpsState calls here are intentional — the effect kicks
+    // off an async permission/location flow whose final state has to
+    // be reflected somewhere. Refactoring to derived state would
+    // require a Suspense-shaped wrapper around the geolocation API,
+    // which doesn't exist as a React resource.
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (!captureAny) {
       setGpsState("ok")
       return
@@ -375,6 +382,7 @@ export function ClockCard({
       return
     }
     setGpsState("locating")
+    /* eslint-enable react-hooks/set-state-in-effect */
     // Fast first read — accept any cached fix the OS already has so the
     // button feels ready almost immediately. Falls through silently if
     // the cache is empty; the watcher below will catch the fresh fix.
@@ -890,6 +898,11 @@ function SelfieCaptureModal({
   // overflow / transformed by ancestor styles, causing the bottom of the
   // dialog to be hidden behind the card below.
   const [mounted, setMounted] = useState(false)
+  // Canonical "did this client component hydrate yet" pattern — the
+  // setState-in-effect rule flags it but the only React-blessed
+  // alternative (`useSyncExternalStore` with a server snapshot)
+  // adds machinery that doesn't pull weight for a one-shot mount flag.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), [])
 
   useEffect(() => {
