@@ -119,10 +119,6 @@ export default async function AdminAttendancePage({
   ] = await Promise.all([
     adminAttendanceService.getOrgOverview(orgId, null),
     adminAttendanceService.getAggregateStats(
-      // 30-day window — server component, runs once per request; the
-      // react-hooks/purity rule doesn't distinguish server from client
-      // components, so disable explicitly for this one line.
-      // eslint-disable-next-line react-hooks/purity
       new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
       new Date(),
       orgId,
