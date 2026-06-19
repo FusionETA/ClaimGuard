@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { NewPayrollRunForm } from "@/components/admin/new-payroll-run-form"
+import { PayrollYtdImportDialog } from "@/components/admin/payroll-ytd-import-dialog"
 import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 import { getPayrollRunsPageData } from "@/modules/payroll/application/services/payroll-run.service"
 import {
@@ -57,16 +58,17 @@ export default async function AdminPayrollRunsPage() {
         <CardHeader>
           <CardTitle className="text-base">Start a new run</CardTitle>
           <CardDescription>
-            Pick the period (month + year) and which employee policies
-            this run covers. One draft per period.
+            Pick the period for a new draft, or import historical
+            payroll runs from a previous system (mid-year migrations).
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-wrap items-center gap-2">
           <NewPayrollRunForm
             defaultYear={defaultPeriod.year}
             defaultMonth={defaultPeriod.month}
             availablePolicies={data.availablePolicies}
           />
+          <PayrollYtdImportDialog defaultYear={defaultPeriod.year} />
         </CardContent>
       </Card>
 
