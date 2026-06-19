@@ -6,6 +6,21 @@ import { getPrismaClient } from "@/lib/prisma"
 import { toNumber } from "@/lib/decimal"
 import type { PayrollRunData, PayrollRunRow } from "@/modules/payroll/domain/runs"
 
+/**
+ * Thrown by `findOrCreateImportedRun` when the requested period is
+ * already occupied by a COMPUTED run (DRAFT / PENDING / SUBMITTED).
+ * Caller (the YTD importer) treats this as a per-month skip and
+ * surfaces it on the upload summary rather than aborting the whole
+ * batch. Subclassing Error keeps it `instanceof Error` for catch
+ * sites that handle it generically.
+ */
+export class ImportedRunConflictError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "ImportedRunConflictError"
+  }
+}
+
 /// Coerce the stored `PayrollRun.policyIds` Json column back into a
 /// `string[] | null` for the domain shape. `null` (legacy or org-wide)
 /// stays null; everything else is filtered to string entries.
@@ -76,6 +91,63 @@ export const payrollRunRepository = {
       },
     })
     return mapPayrollRun(row)
+  },
+
+  /**
+   * Get-or-create the IMPORTED PayrollRun for (org, year, month).
+   * Idempotent: re-uploading is safe — the same period is reused so
+   * subsequent rows attach as new payslips on the same run.
+   *
+   * Behavior:
+   *   - If no run exists yet → creates one with source = IMPORTED,
+   *     status = SUBMITTED, submittedAt = last day of the period.
+   *   - If a run exists with source = IMPORTED → returns it (admin is
+   *     adding more employees to an in-progress migration).
+   *   - If a run exists with source = COMPUTED (DRAFT, PENDING, or
+   *     SUBMITTED) → throws. Imports must never coexist with engine
+   *     output for the same period; the importer treats this as a
+   *     skip condition and surfaces it on the summary.
+   */
+  async findOrCreateImportedRun(input: {
+    organizationId: string
+    periodYear: number
+    periodMonth: number
+    submittedById: string | null
+  }): Promise<{ run: PayrollRunData; created: boolean }> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    const existing = await prisma.payrollRun.findFirst({
+      where: {
+        organizationId: input.organizationId,
+        periodYear: input.periodYear,
+        periodMonth: input.periodMonth,
+      },
+    })
+    if (existing) {
+      if (existing.source !== "IMPORTED") {
+        throw new ImportedRunConflictError(
+          `An existing ${existing.status} run already covers ${input.periodYear}-${String(input.periodMonth).padStart(2, "0")}.`,
+        )
+      }
+      return { run: mapPayrollRun(existing), created: false }
+    }
+    // Last day of the period — Date.UTC keeps timezone drift out.
+    const submittedAt = new Date(
+      Date.UTC(input.periodYear, input.periodMonth, 0, 23, 59, 59, 999),
+    )
+    const row = await prisma.payrollRun.create({
+      data: {
+        organizationId: input.organizationId,
+        periodYear: input.periodYear,
+        periodMonth: input.periodMonth,
+        status: "SUBMITTED",
+        source: "IMPORTED",
+        submittedAt,
+        submittedById: input.submittedById ?? undefined,
+        policyIds: Prisma.JsonNull,
+      },
+    })
+    return { run: mapPayrollRun(row), created: true }
   },
 
   /**

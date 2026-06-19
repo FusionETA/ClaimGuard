@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { Prisma } from "@/generated/prisma/client"
+import { Prisma } from "@/generated/prisma/client"
 import { getPrismaClient } from "@/lib/prisma"
 import { toNumber } from "@/lib/decimal"
 import type {
@@ -97,6 +97,84 @@ export const payslipRepository = {
    *
    * Prisma cascades PayslipLineItem deletes via the relation.
    */
+  /**
+   * Add ONE payslip to a run without touching the others. Used by the
+   * YTD import service: the run is shared across all employees for a
+   * given period, so we append payslips as we walk rows.
+   *
+   * Idempotent on (run, employee) — the @@unique([payrollRunId,
+   * employeeProfileId]) constraint guarantees at most one payslip per
+   * employee per run. We catch the dup-key error and return
+   * `{ created: false }` so the caller can surface it as a skip in
+   * the import summary instead of treating it as a hard error.
+   */
+  async addImportedPayslip(input: {
+    payrollRunId: string
+    payslip: CreatePayslipInput
+  }): Promise<{ created: boolean }> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    const p = input.payslip
+    try {
+      await prisma.payslip.create({
+        data: {
+          payrollRunId: input.payrollRunId,
+          employeeProfileId: p.employeeProfileId,
+          payrollProfileId: p.payrollProfileId,
+          snapshotName: p.snapshotName,
+          snapshotEmployeeId: p.snapshotEmployeeId,
+          snapshotPosition: p.snapshotPosition,
+          snapshotSalaryType: p.snapshotSalaryType,
+          snapshotMonthlySalary: p.snapshotMonthlySalary,
+          snapshotHourlyRate: p.snapshotHourlyRate,
+          snapshotNationality: p.snapshotNationality,
+          snapshotIsResident: p.snapshotIsResident,
+          snapshotEpfRates: p.snapshotEpfRates as object,
+          basicPay: p.basicPay,
+          proratedPay: p.proratedPay,
+          workedHours: p.workedHours,
+          expectedHours: p.expectedHours,
+          unpaidLeaveDays: p.unpaidLeaveDays,
+          proratedFactor: p.proratedFactor,
+          proratedDays: p.proratedDays,
+          totalWorkingDays: p.totalWorkingDays,
+          otNormalHours: p.otNormalHours,
+          otRestHours: p.otRestHours,
+          otPublicHours: p.otPublicHours,
+          otPay: p.otPay,
+          totalAllowances: p.totalAllowances,
+          totalBenefitsInKind: p.totalBenefitsInKind,
+          totalReimbursements: p.totalReimbursements,
+          totalDeductions: p.totalDeductions,
+          epfEmployee: p.epfEmployee,
+          epfEmployer: p.epfEmployer,
+          socsoEmployee: p.socsoEmployee,
+          socsoEmployer: p.socsoEmployer,
+          eisEmployee: p.eisEmployee,
+          eisEmployer: p.eisEmployer,
+          pcb: p.pcb,
+          pcbCalculation: (p.pcbCalculation ?? null) as Prisma.InputJsonValue,
+          hrdf: p.hrdf,
+          hrdfWage: p.hrdfWage,
+          zakat: p.zakat,
+          grossPay: p.grossPay,
+          netPay: p.netPay,
+          totalCostToEmployer: p.totalCostToEmployer,
+        },
+      })
+      return { created: true }
+    } catch (err) {
+      // Prisma surfaces unique-constraint violations as P2002.
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2002"
+      ) {
+        return { created: false }
+      }
+      throw err
+    }
+  },
+
   async replacePayslipsForRun(input: {
     payrollRunId: string
     payslips: CreatePayslipInput[]

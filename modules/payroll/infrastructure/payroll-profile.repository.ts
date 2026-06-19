@@ -219,6 +219,99 @@ export const payrollProfileRepository = {
   },
 
   /**
+   * Fuller projection for YTD import row matching — every employee in
+   * the org with the FK identifiers + identity fields needed to write
+   * a Payslip snapshot. Used after parsing the upload to look up each
+   * row's (idType, idNumber) → (employeeProfileId, payrollProfileId,
+   * snapshot defaults).
+   *
+   * Returns employees regardless of payroll-profile completeness; the
+   * importer trusts the uploaded numbers, so an incomplete profile is
+   * still importable (the engine-computed path would skip them, but
+   * imports don't go through the engine).
+   */
+  async listEmployeesForImportMatch(organizationId: string): Promise<
+    Array<{
+      employeeProfileId: string
+      payrollProfileId: string | null
+      employeeId: string
+      name: string
+      idType: "NRIC" | "PASSPORT" | "OTHER" | null
+      idNumber: string | null
+      nationality: string | null
+      isResident: boolean
+      salaryType: "MONTHLY" | "HOURLY"
+      monthlySalary: number | null
+      jobTitle: string | null
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const users = await prisma.user.findMany({
+      where: {
+        organizationId,
+        role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        employeeProfile: { isNot: null },
+      },
+      select: {
+        name: true,
+        employeeProfile: {
+          select: {
+            id: true,
+            employeeId: true,
+            jobTitle: true,
+            payrollProfile: true,
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    })
+    const out: Array<{
+      employeeProfileId: string
+      payrollProfileId: string | null
+      employeeId: string
+      name: string
+      idType: "NRIC" | "PASSPORT" | "OTHER" | null
+      idNumber: string | null
+      nationality: string | null
+      isResident: boolean
+      salaryType: "MONTHLY" | "HOURLY"
+      monthlySalary: number | null
+      jobTitle: string | null
+    }> = []
+    for (const u of users) {
+      const ep = u.employeeProfile
+      if (!ep) continue
+      const pp = ep.payrollProfile
+      const projected = pp ? mapPayrollProfile(pp) : null
+      const rawIdType =
+        typeof projected?.idType === "string"
+          ? (projected.idType as string).toUpperCase()
+          : null
+      const idType: "NRIC" | "PASSPORT" | "OTHER" | null =
+        rawIdType === "NRIC" || rawIdType === "PASSPORT"
+          ? rawIdType
+          : rawIdType
+            ? "OTHER"
+            : null
+      out.push({
+        employeeProfileId: ep.id,
+        payrollProfileId: pp?.id ?? null,
+        employeeId: ep.employeeId,
+        name: u.name,
+        idType,
+        idNumber: projected?.idNumber ?? null,
+        nationality: projected?.nationality ?? null,
+        isResident: projected?.isResident ?? true,
+        salaryType: projected?.salaryType ?? "MONTHLY",
+        monthlySalary: projected?.monthlySalary ?? null,
+        jobTitle: ep.jobTitle ?? null,
+      })
+    }
+    return out
+  },
+
+  /**
    * Minimal identity projection for the YTD import template — name +
    * id-type + id-number per employee in the org, ordered alphabetically.
    * Includes employees regardless of payroll-profile completeness;
