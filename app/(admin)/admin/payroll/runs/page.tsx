@@ -37,7 +37,15 @@ export default async function AdminPayrollRunsPage() {
   const pendingApproval = data.runs.filter(
     (r) => r.status === "PENDING_APPROVAL",
   )
-  const submitted = data.runs.filter((r) => r.status === "SUBMITTED")
+  // Split SUBMITTED runs by origin so imported migration history sits
+  // in its own card — engine-computed payroll history shouldn't be
+  // visually mixed with manually-typed YTD entries.
+  const submitted = data.runs.filter(
+    (r) => r.status === "SUBMITTED" && r.source !== "IMPORTED",
+  )
+  const imported = data.runs.filter(
+    (r) => r.status === "SUBMITTED" && r.source === "IMPORTED",
+  )
   const defaultPeriod = currentPeriod()
 
   return (
@@ -120,6 +128,29 @@ export default async function AdminPayrollRunsPage() {
           </CardHeader>
           <CardContent className="space-y-1.5">
             {submitted.map((run) => (
+              <RunRow key={run.id} run={run} />
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Migration-imported history sits in its own card so the audit
+          trail clearly separates engine-produced runs from numbers an
+          admin typed in during a mid-year cutover. */}
+      {imported.length > 0 && (
+        <Card className="border-violet-300/60 bg-violet-50/30 dark:border-violet-700/40 dark:bg-violet-950/20">
+          <CardHeader>
+            <CardTitle className="text-base text-violet-900 dark:text-violet-200">
+              Imported runs
+            </CardTitle>
+            <CardDescription className="text-violet-900/80 dark:text-violet-200/80">
+              Seeded from a YTD migration upload. Payslip numbers come
+              from the uploaded XLSX as-typed by the admin, not the calc
+              engine.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {imported.map((run) => (
               <RunRow key={run.id} run={run} />
             ))}
           </CardContent>

@@ -6,6 +6,8 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 
 import type { BaseFormState } from "@/lib/form-state"
+import type { YtdImportActionResult } from "@/app/(admin)/admin/payroll/runs/form-state"
+import { importYtdPayrollHistory } from "@/modules/payroll/application/services/payroll-ytd-import.service"
 import {
   buildPayrollSyncPreview,
   type PayrollSyncPreviewResult,
@@ -479,6 +481,72 @@ export async function getPayrollSyncPreviewAction(input: {
     return {
       status: "error",
       message: safeErrorMessage(err, "Could not load sync preview."),
+    }
+  }
+}
+
+// ─── YTD payroll-history import ──────────────────────────────────────────
+
+const importYtdSchema = z.object({
+  year: z.coerce.number().int().min(2000).max(2099),
+})
+
+/**
+ * Server action invoked by the Import Payroll History dialog. Reads
+ * the uploaded XLSX into a Buffer, hands it to the service, returns
+ * the structured summary so the dialog can render counts + skipped
+ * lists. Plain async function (not useActionState-shaped) since the
+ * dialog handles its own loading state — keeps the result shape
+ * structured rather than getting flattened into a single message
+ * string.
+ */
+export async function importYtdPayrollHistoryAction(
+  formData: FormData,
+): Promise<YtdImportActionResult> {
+  const parsedMeta = importYtdSchema.safeParse({
+    year: formData.get("year"),
+  })
+  if (!parsedMeta.success) {
+    return {
+      ok: false,
+      message:
+        parsedMeta.error.issues[0]?.message ?? "Pick a valid year.",
+    }
+  }
+  const fileEntry = formData.get("file")
+  if (!(fileEntry instanceof File) || fileEntry.size === 0) {
+    return { ok: false, message: "Pick the filled-in XLSX file first." }
+  }
+  // Cap at 10 MB to keep a runaway upload from OOM'ing the server.
+  // Real templates are usually under 200 KB even with hundreds of
+  // employees; 10 MB is a comfortable ceiling.
+  if (fileEntry.size > 10 * 1024 * 1024) {
+    return {
+      ok: false,
+      message: "File is over 10 MB — split it into smaller batches.",
+    }
+  }
+  const arrayBuffer = await fileEntry.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+
+  try {
+    const summary = await importYtdPayrollHistory({
+      file: buffer,
+      year: parsedMeta.data.year,
+    })
+    revalidatePath("/admin/payroll/runs")
+    revalidatePath("/admin/payroll")
+    return { ok: true, summary }
+  } catch (err) {
+    console.error("[importYtdPayrollHistoryAction] failed", {
+      year: parsedMeta.data.year,
+      fileName: fileEntry.name,
+      fileSize: fileEntry.size,
+      err,
+    })
+    return {
+      ok: false,
+      message: safeErrorMessage(err, "Couldn't process the uploaded file."),
     }
   }
 }

@@ -2,12 +2,19 @@
 
 import { useState } from "react"
 import {
+  AlertTriangle,
+  CheckCircle2,
   Download,
   FileSpreadsheet,
   Loader2,
   Upload,
 } from "lucide-react"
 
+import { importYtdPayrollHistoryAction } from "@/app/(admin)/admin/payroll/runs/actions"
+import type {
+  YtdImportActionResult,
+  YtdImportSummaryShape,
+} from "@/app/(admin)/admin/payroll/runs/form-state"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -22,6 +29,22 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/toaster"
+import { cn } from "@/lib/utils"
+
+const MONTH_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const
 
 /**
  * Import payroll history — two-step modal:
@@ -31,10 +54,9 @@ import { useToast } from "@/components/ui/toaster"
  *      and writes historical runs marked source=IMPORTED (status
  *      SUBMITTED, immutable).
  *
- * Step 2 is intentionally wired but disabled in this commit — the
- * parser + commit logic ships next. The disabled state keeps the
- * full flow visible so admins know what to expect, instead of
- * surfacing a one-shot Download button that hides the upload half.
+ * The dialog handles its own progress state (no useActionState) so
+ * the structured summary survives back to the UI instead of being
+ * flattened into a single toast message.
  */
 export function PayrollYtdImportDialog({
   defaultYear,
@@ -45,11 +67,23 @@ export function PayrollYtdImportDialog({
   const [year, setYear] = useState<string>(String(defaultYear))
   const [downloading, setDownloading] = useState(false)
   const [file, setFile] = useState<File | null>(null)
+  const [importing, setImporting] = useState(false)
+  const [result, setResult] = useState<YtdImportActionResult | null>(null)
   const { toast } = useToast()
 
   const yearNum = Number(year)
   const yearValid =
     Number.isInteger(yearNum) && yearNum >= 2000 && yearNum <= 2100
+
+  function reset() {
+    setFile(null)
+    setResult(null)
+  }
+
+  function handleOpenChange(next: boolean) {
+    setOpen(next)
+    if (!next) reset()
+  }
 
   async function handleDownload() {
     if (!yearValid || downloading) return
@@ -111,20 +145,43 @@ export function PayrollYtdImportDialog({
       return
     }
     setFile(next)
+    setResult(null)
   }
 
-  function handleImportClick() {
-    // Stub — the parser + commit pipeline ships in the next update.
-    // We surface a tracking toast so the admin knows the modal is the
-    // right place to come back to.
-    toast({
-      title: "Upload coming with the next update.",
-      variant: "success",
-    })
+  async function handleImport() {
+    if (!file || !yearValid || importing) return
+    setImporting(true)
+    setResult(null)
+    try {
+      const formData = new FormData()
+      formData.append("year", String(yearNum))
+      formData.append("file", file)
+      const r = await importYtdPayrollHistoryAction(formData)
+      setResult(r)
+      if (r.ok) {
+        toast({
+          title: `Imported ${r.summary.importedPayslips} payslip${
+            r.summary.importedPayslips === 1 ? "" : "s"
+          } across ${r.summary.importedRunsCreated} run${
+            r.summary.importedRunsCreated === 1 ? "" : "s"
+          }.`,
+          variant: "success",
+        })
+      } else {
+        toast({ title: r.message, variant: "error" })
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Upload failed."
+      setResult({ ok: false, message })
+      toast({ title: message, variant: "error" })
+    } finally {
+      setImporting(false)
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button type="button" variant="outline" className="gap-2">
           <Upload className="h-4 w-4" />
@@ -142,9 +199,8 @@ export function PayrollYtdImportDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
-          {/* Year picker — drives both the template filename and
-              which calendar year the imported runs land under. */}
+        <div className="nice-scrollbar -mr-2 max-h-[65vh] space-y-5 overflow-y-auto py-2 pr-2">
+          {/* Year picker — drives both steps. */}
           <div className="space-y-1.5">
             <Label htmlFor="ytd-year">Year of payroll history</Label>
             <Input
@@ -204,7 +260,7 @@ export function PayrollYtdImportDialog({
             <p className="text-xs text-muted-foreground">
               Matches each row to an existing employee by NRIC / Passport.
               Unknown IDs are skipped (we&apos;ll list them). Months that
-              already have a submitted run are skipped too — historical
+              already have a computed run are skipped too — historical
               data is never overwritten.
             </p>
             <div className="flex flex-wrap items-center gap-2">
@@ -213,16 +269,21 @@ export function PayrollYtdImportDialog({
                 accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 onChange={handleFileChange}
                 className="max-w-xs"
+                disabled={importing}
               />
               <Button
                 type="button"
                 variant="default"
                 className="gap-2"
-                onClick={handleImportClick}
-                disabled={!file || !yearValid}
+                onClick={handleImport}
+                disabled={!file || !yearValid || importing}
               >
-                <FileSpreadsheet className="h-4 w-4" />
-                Import
+                {importing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="h-4 w-4" />
+                )}
+                {importing ? "Importing…" : "Import"}
               </Button>
             </div>
             {file && (
@@ -231,12 +292,10 @@ export function PayrollYtdImportDialog({
                 {Math.round(file.size / 1024)} KB)
               </p>
             )}
-            <p className="rounded-md bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-              Upload is wired up — the parser + commit pipeline ships
-              with the next update. Until then, downloading + filling
-              the template is safe to do.
-            </p>
           </section>
+
+          {/* Result summary — only after a real attempt. */}
+          {result && <ResultPanel result={result} />}
         </div>
 
         <DialogFooter>
@@ -246,5 +305,134 @@ export function PayrollYtdImportDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+// ─── Result panel ──────────────────────────────────────────────────
+
+function ResultPanel({ result }: { result: YtdImportActionResult }) {
+  if (!result.ok) {
+    return (
+      <section className="space-y-2 rounded-lg border border-destructive/40 bg-destructive/5 p-4">
+        <header className="flex items-center gap-2 text-sm font-semibold text-destructive">
+          <AlertTriangle className="h-4 w-4" />
+          Import failed
+        </header>
+        <p className="text-xs text-destructive/90">{result.message}</p>
+      </section>
+    )
+  }
+  return <SummaryPanel summary={result.summary} />
+}
+
+function SummaryPanel({ summary }: { summary: YtdImportSummaryShape }) {
+  const hasIssues =
+    summary.parserErrors.length > 0 ||
+    summary.parserWarnings.length > 0 ||
+    summary.skippedUnknownEmployees.length > 0 ||
+    summary.skippedExistingPayslips.length > 0 ||
+    summary.skippedConflictingPeriods.length > 0
+
+  const accent = hasIssues
+    ? "border-amber-300/60 bg-amber-50/60 dark:border-amber-700/40 dark:bg-amber-950/20"
+    : "border-emerald-300/60 bg-emerald-50/60 dark:border-emerald-700/40 dark:bg-emerald-950/20"
+
+  return (
+    <section className={cn("space-y-3 rounded-lg border p-4", accent)}>
+      <header className="flex items-center gap-2 text-sm font-semibold">
+        <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+        Import summary
+      </header>
+      <ul className="space-y-1 text-xs">
+        <li>
+          <span className="font-semibold">{summary.importedPayslips}</span> payslip
+          {summary.importedPayslips === 1 ? "" : "s"} imported across{" "}
+          <span className="font-semibold">{summary.importedRunsCreated}</span>{" "}
+          new run{summary.importedRunsCreated === 1 ? "" : "s"}.
+        </li>
+        {summary.skippedUnknownEmployees.length > 0 && (
+          <li className="text-amber-800 dark:text-amber-300">
+            Skipped{" "}
+            <span className="font-semibold">
+              {summary.skippedUnknownEmployees.length}
+            </span>{" "}
+            unknown employee
+            {summary.skippedUnknownEmployees.length === 1 ? "" : "s"} (no
+            matching NRIC / Passport).
+          </li>
+        )}
+        {summary.skippedExistingPayslips.length > 0 && (
+          <li className="text-amber-800 dark:text-amber-300">
+            Skipped{" "}
+            <span className="font-semibold">
+              {summary.skippedExistingPayslips.length}
+            </span>{" "}
+            already-imported payslip
+            {summary.skippedExistingPayslips.length === 1 ? "" : "s"}.
+          </li>
+        )}
+        {summary.skippedConflictingPeriods.length > 0 && (
+          <li className="text-amber-800 dark:text-amber-300">
+            Skipped{" "}
+            <span className="font-semibold">
+              {summary.skippedConflictingPeriods.length}
+            </span>{" "}
+            month
+            {summary.skippedConflictingPeriods.length === 1 ? "" : "s"} that
+            already have a computed run.
+          </li>
+        )}
+      </ul>
+
+      {summary.skippedUnknownEmployees.length > 0 && (
+        <DetailList
+          title="Unknown employees"
+          items={summary.skippedUnknownEmployees.map(
+            (e) => `${e.name} — ${e.idNumber}`,
+          )}
+        />
+      )}
+      {summary.skippedConflictingPeriods.length > 0 && (
+        <DetailList
+          title="Months with conflicting runs"
+          items={summary.skippedConflictingPeriods.map(
+            (p) => `${MONTH_LABELS[p.monthIdx]} ${p.year} — ${p.reason}`,
+          )}
+        />
+      )}
+      {summary.parserWarnings.length > 0 && (
+        <DetailList title="Parser warnings" items={summary.parserWarnings} />
+      )}
+      {summary.parserErrors.length > 0 && (
+        <DetailList title="Parser errors" items={summary.parserErrors} />
+      )}
+    </section>
+  )
+}
+
+function DetailList({
+  title,
+  items,
+}: {
+  title: string
+  items: string[]
+}) {
+  if (items.length === 0) return null
+  return (
+    <details className="rounded-md border border-border/60 bg-background/60 p-2 text-[11px]">
+      <summary className="cursor-pointer font-semibold text-muted-foreground">
+        {title} ({items.length})
+      </summary>
+      <ul className="mt-1.5 space-y-0.5 pl-3 text-muted-foreground">
+        {items.slice(0, 50).map((line, i) => (
+          <li key={i} className="font-mono">
+            {line}
+          </li>
+        ))}
+        {items.length > 50 && (
+          <li className="italic">…and {items.length - 50} more.</li>
+        )}
+      </ul>
+    </details>
   )
 }
