@@ -414,6 +414,12 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: true,
     subjectToPcb: true,
     subjectToHrdf: false,
+    // OT is non-fixed by nature — strictly per the LHDN MTD spec it's
+    // Additional Remuneration, so PCB on the OT portion runs through
+    // the AR formula (PCB(C)) instead of folding into PCB(B). Admin
+    // can tick "Treat as recurring" on a specific OT line if they
+    // want a particular month routed through the regular bucket.
+    isAdditionalRemuneration: true,
   },
   wages_service_charge: {
     code: "wages_service_charge",
@@ -425,6 +431,11 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: true,
     subjectToPcb: true,
     subjectToHrdf: false,
+    // Service charge is pool-based and varies month-to-month — strictly
+    // Additional Remuneration per the LHDN MTD spec, so PCB on it runs
+    // through the AR formula (PCB(C)). `treatAsRecurring` per line
+    // overrides if a particular month should fold into PCB(B).
+    isAdditionalRemuneration: true,
   },
   wages_leave_pay: {
     code: "wages_leave_pay",

@@ -1020,7 +1020,13 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   totalBenefitsInKind = round2(totalBenefitsInKind)
   totalRecurringDeductions = round2(totalRecurringDeductions)
   totalRecurringReimbursements = round2(totalRecurringReimbursements)
-  pcbAdditionalRemuneration = round2(pcbAdditionalRemuneration)
+  // Computed OT pay (from OT hours × OT rate × multiplier) is treated
+  // as Additional Remuneration, matching the `isAdditionalRemuneration`
+  // flag on the `wages_overtime` category meta. Strict LHDN MTD reading:
+  // OT is non-fixed, so PCB on the OT portion runs through the AR
+  // formula (PCB(C)) instead of being folded into PCB(B). SOCSO and
+  // EIS bases still include OT — only PCB routing changes.
+  pcbAdditionalRemuneration = round2(pcbAdditionalRemuneration + otPay)
   hrdfAdjustmentBase = round2(hrdfAdjustmentBase)
 
   // Self-paid zakat (Borang TP1 §D1(a)) is now just a `deduct_zakat_tp1`
@@ -1070,14 +1076,18 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   totalDeductions = round2(totalDeductions)
 
   // 7. Statutory wages. Different agencies use different wage bases:
-  // EPF excludes OT, while SOCSO/EIS/PCB include OT. Category metadata
-  // controls whether each fixed adjustment participates in each base.
+  // EPF excludes OT entirely. SOCSO and EIS include OT in the regular
+  // wage. PCB treats OT as Additional Remuneration (already added to
+  // `pcbAdditionalRemuneration` above), so PCB's *regular* wage
+  // excludes OT — the OT-derived tax lands in PCB(C) via the AR
+  // formula, not in PCB(B). Category metadata controls whether each
+  // fixed adjustment participates in each base.
   const epfWage = round2(Math.max(0, proratedPay + epfAdjustmentBase))
   const socsoWage = round2(
     Math.max(0, proratedPay + otPay + socsoAdjustmentBase),
   )
   const eisWage = round2(Math.max(0, proratedPay + otPay + eisAdjustmentBase))
-  const pcbWage = round2(Math.max(0, proratedPay + otPay + pcbAdjustmentBase))
+  const pcbWage = round2(Math.max(0, proratedPay + pcbAdjustmentBase))
 
   // 8. EPF / SOCSO / EIS.
   // Citizenship detection — accept multiple spellings/variants
