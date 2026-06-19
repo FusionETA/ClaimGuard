@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-import { Cp38ConverterModal } from "@/components/admin/cp38-converter-modal"
+import { Cp8dConverterModal } from "@/components/admin/cp8d-converter-modal"
 import { PayrollAnnualDownloadsCard } from "@/components/admin/payroll-annual-downloads-card"
 import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 import { getPayrollAnnualReportsPageData } from "@/modules/payroll/application/services/payroll-annual-reports.service"
@@ -54,24 +54,25 @@ export default async function AdminAnnualPayrollFormsPage({
         employerNoConfigured={data.employerNoConfigured}
       />
 
-      {/* CP38 converter — sits below the annual downloads card. Manual
-          row-by-row entry → fixed-width TXT for LHDN's e-CP39 portal.
-          Useful for one-off court-order CP38 filings or for testing the
-          upload workflow without needing a full Jan-Dec payroll cycle. */}
+      {/* CP8D converter — sits below the annual downloads card. Manual
+          row-by-row entry → ZIP of the M (employer master) and P
+          (employee particulars) TXT files for LHDN's e-CP8D portal.
+          Useful for mid-year cutovers, one-off corrections, or testing
+          the upload without needing a full Jan-Dec payroll cycle. */}
       <section className="rounded-xl border border-dashed border-border/60 bg-card/40 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-0.5">
             <h2 className="text-sm font-semibold text-foreground">
-              CP38 converter
+              CP8D converter
             </h2>
             <p className="text-xs text-muted-foreground">
-              Hand-enter CP38 (court-order tax) rows and download a
-              LHDN-formatted TXT — no payroll run required.
+              Hand-enter CP8D (annual per-employee particulars) rows and
+              download the M+P TXT pair as a ZIP — no payroll run required.
             </p>
           </div>
-          <Cp38ConverterModal
-            defaultYear={data.selectedYear}
-            defaultMonth={new Date().getMonth() + 1}
+          <Cp8dConverterModal
+            defaultEmployerName={data.organizationName}
+            defaultYear={data.selectedYear ?? undefined}
           />
         </div>
       </section>
