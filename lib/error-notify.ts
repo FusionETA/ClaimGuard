@@ -7,6 +7,14 @@ import { normalisePhone, sendWhatsApp } from "@/lib/whatsapp"
  * blows up in production. Replaces the old Sentry forwarder.
  *
  * Coverage scope (Level 2 + 3 + 5 from the design conversation):
+ *
+ * Dedupe: identical (event + err.message + first stack frame) firing
+ * within `DEDUPE_WINDOW_MS` (10 min) is suppressed. Stops a single
+ * broken route from spamming the on-call phone with one WhatsApp per
+ * user hit. Per-process in-memory state — across Vercel function
+ * instances we may double-send, which is the correct trade vs.
+ * dropping events.
+ *
  *   - **Server-side only** — client error boundaries don't reach this.
  *     We avoid exposing an /api/error-notify endpoint that browser
  *     extensions could spam.
@@ -56,7 +64,7 @@ declare global {
 // has its own memory), so the worst case is duplicate sends across
 // instances — which is fine when the alternative is dropping nothing.
 const recentlySeen = new Map<string, number>()
-const DEDUPE_WINDOW_MS = 5 * 60 * 1000
+const DEDUPE_WINDOW_MS = 10 * 60 * 1000
 const MAX_TRACKED = 200
 
 function getRecipients(): string[] {
