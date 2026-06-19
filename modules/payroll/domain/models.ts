@@ -675,6 +675,14 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     reducesBase: true,
+    // Treat salary adjustment as lost earnings (same shape as unpaid
+    // leave): the displayed Gross line drops by the adjustment so the
+    // payslip reads consistently — what the admin sees as "earnings
+    // minus the negative line" equals the actual Gross. Net is the
+    // same either way (the deduction just moves from
+    // totalRecurringDeductions to totalGrossReducingDeductions);
+    // statutory bases already drop via reducesBase.
+    reducesGross: true,
   },
   deduct_advance: {
     code: "deduct_advance",
