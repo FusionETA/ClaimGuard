@@ -35,6 +35,16 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url)
 
   if (event.request.mode === "navigate") {
+    // API routes that stream file downloads (XLSX, PDF, TXT) come in
+    // as `mode: "navigate"` when clicked via <a href>. Forcing them
+    // through the app-shell navigation handler causes a 4s race vs a
+    // multi-MB XLSX, often losing — the user ends up on the cached
+    // "/" splash instead of getting the download. Let the network
+    // handle these directly; the response's Content-Disposition
+    // header makes the browser download without changing the page.
+    if (url.pathname.startsWith("/api/")) {
+      return
+    }
     event.respondWith(handleNavigationRequest(event))
     return
   }
