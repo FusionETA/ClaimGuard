@@ -46,36 +46,19 @@ async function main() {
 
   const prisma = new PrismaClient({ adapter })
 
-  // Upsert admin — no organization assigned yet
-  await prisma.user.upsert({
-    where: { email: ADMIN.email },
-    update: {
-      name: ADMIN.name,
-      role: "ADMIN",
-      passwordHash: hashPassword(ADMIN.password),
-    },
-    create: {
-      email: ADMIN.email,
-      name: ADMIN.name,
-      role: "ADMIN",
-      passwordHash: hashPassword(ADMIN.password),
-    },
+  // Seed admin + owner — manual find-or-create because email is no
+  // longer DB-unique (Prisma's upsert requires a unique where-key).
+  await seedUserByEmail(prisma, {
+    email: ADMIN.email,
+    name: ADMIN.name,
+    role: "ADMIN",
+    passwordHash: hashPassword(ADMIN.password),
   })
-
-  // Upsert the owner — full admin powers PLUS admin management.
-  await prisma.user.upsert({
-    where: { email: OWNER.email },
-    update: {
-      name: OWNER.name,
-      role: "OWNER",
-      passwordHash: hashPassword(OWNER.password),
-    },
-    create: {
-      email: OWNER.email,
-      name: OWNER.name,
-      role: "OWNER",
-      passwordHash: hashPassword(OWNER.password),
-    },
+  await seedUserByEmail(prisma, {
+    email: OWNER.email,
+    name: OWNER.name,
+    role: "OWNER",
+    passwordHash: hashPassword(OWNER.password),
   })
 
   await prisma.$disconnect()
@@ -86,3 +69,36 @@ main().catch((error) => {
   console.error(error)
   process.exit(1)
 })
+
+/**
+ * Manual find-or-create for seeding. Prisma's `upsert` requires a
+ * unique where-key, and `email` is no longer @unique on User. We
+ * still want idempotent seeding (re-run shouldn't duplicate rows),
+ * so look up by email + update-or-create explicitly.
+ */
+async function seedUserByEmail(
+  prisma: PrismaClient,
+  data: {
+    email: string
+    name: string
+    role: "OWNER" | "ADMIN" | "EMPLOYEE" | "SUPERVISOR"
+    passwordHash: string
+  },
+) {
+  const existing = await prisma.user.findFirst({
+    where: { email: data.email },
+    select: { id: true },
+  })
+  if (existing) {
+    await prisma.user.update({
+      where: { id: existing.id },
+      data: {
+        name: data.name,
+        role: data.role,
+        passwordHash: data.passwordHash,
+      },
+    })
+  } else {
+    await prisma.user.create({ data })
+  }
+}

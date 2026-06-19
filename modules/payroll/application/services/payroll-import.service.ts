@@ -5,6 +5,7 @@ import { z } from "zod"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { hashPassword } from "@/lib/auth/password"
+import { assertEmailAvailableForNewUser } from "@/lib/auth/email-uniqueness"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { safeErrorMessage } from "@/lib/errors"
 import type { Prisma } from "@/generated/prisma/client"
@@ -1205,6 +1206,9 @@ export async function bulkImportPayrollEmployees(input: {
         userId = existing.id
         outcome = "updated"
       } else {
+        // New row — validate the email isn't claimed by an active
+        // user globally, or by an archived one in THIS org.
+        await assertEmailAvailableForNewUser({ email: row.email, orgId })
         const u = await tx.user.create({
           data: {
             email: row.email,
@@ -2188,6 +2192,9 @@ export async function importMappedCsv(input: {
         userId = existing.id
         outcome = "updated"
       } else {
+        // New row — validate the email isn't claimed by an active
+        // user globally, or by an archived one in THIS org.
+        await assertEmailAvailableForNewUser({ email: row.email, orgId })
         const u = await tx.user.create({
           data: {
             email: row.email,

@@ -9,7 +9,14 @@ datasource db {
 
 model User {
   id                              String                 @id @default(cuid())
-  email                           String                 @unique
+  /// Email is NO LONGER unique at the DB level — an archived employee
+  /// can come back later under the same address (in a different org,
+  /// or as a fresh row after their old PayrollProfile was archived).
+  /// The "at most one ACTIVE user per email" rule is enforced in the
+  /// service layer (`lib/auth/email-uniqueness.ts`) on every create /
+  /// update path. The index here keeps email lookups fast for login
+  /// and the validator's existence check.
+  email                           String
   name                            String
   role                            UserRole
   organizationId                  String?
@@ -43,6 +50,7 @@ model User {
   managedProjects                 XeroProject[]          @relation("ProjectManager")
 
   @@index([organizationId])
+  @@index([email])
 }
 
 model Organization {

@@ -236,7 +236,11 @@ async function main() {
     }
 
     // --- Admin user ----------------------------------------------------
-    let admin = await prisma.user.findUnique({
+    // findFirst — email is no longer @unique on User (archived
+    // employees can come back under the same address). The script
+    // is idempotent: re-running with the same email reuses the
+    // existing row.
+    let admin = await prisma.user.findFirst({
       where: { email: args.email },
       select: { id: true, email: true, organizationId: true },
     })

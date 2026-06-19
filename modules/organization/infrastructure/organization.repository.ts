@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto"
 
 import { Prisma } from "@/generated/prisma/client"
 import { hashPassword } from "@/lib/auth/password"
+import { assertEmailAvailableForNewUser } from "@/lib/auth/email-uniqueness"
 import { parseAllowedCurrencies } from "@/lib/currencies"
 import { toNumber } from "@/lib/decimal"
 import { getPrismaClient } from "@/lib/prisma"
@@ -928,8 +929,19 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return null
 
-    const user = await prisma.user.findUnique({
-      where: { email: email.trim().toLowerCase() },
+    // Email is no longer DB-unique — return the active row only so a
+    // stale archived account doesn't shadow a fresh one with the same
+    // address. Active = no PayrollProfile OR PayrollProfile.isArchived
+    // is false.
+    const user = await prisma.user.findFirst({
+      where: {
+        email: email.trim().toLowerCase(),
+        OR: [
+          { employeeProfile: null },
+          { employeeProfile: { payrollProfile: null } },
+          { employeeProfile: { payrollProfile: { isArchived: false } } },
+        ],
+      },
       select: { id: true, name: true, email: true, role: true },
     })
     return user
@@ -959,8 +971,18 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return null
 
-    const user = await prisma.user.findUnique({
-      where: { email: email.trim().toLowerCase() },
+    // Active row only — see the sibling lookup above for rationale.
+    // Returning the archived user here would let the password-reset
+    // flow deliver a code to an off-boarded employee's WhatsApp.
+    const user = await prisma.user.findFirst({
+      where: {
+        email: email.trim().toLowerCase(),
+        OR: [
+          { employeeProfile: null },
+          { employeeProfile: { payrollProfile: null } },
+          { employeeProfile: { payrollProfile: { isArchived: false } } },
+        ],
+      },
       select: {
         id: true,
         name: true,
@@ -1107,17 +1129,13 @@ export const organizationRepository = {
     const email = input.email.trim().toLowerCase()
     const name = input.name.trim()
 
-    const existing = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true, role: true },
+    // New "at most one active user per email globally" rule replaces
+    // the old DB-level @unique that used to guard this create. Throws
+    // EmailNotAvailableError; callers should surface the message.
+    await assertEmailAvailableForNewUser({
+      email,
+      orgId: input.organizationId,
     })
-    if (existing) {
-      throw new Error(
-        existing.role === "ADMIN"
-          ? "An admin with that email already exists."
-          : "A user with that email already exists.",
-      )
-    }
 
     const modules = input.access?.modules ?? null
     const policyIds = input.access?.policyIds ?? null
@@ -1167,7 +1185,11 @@ export const organizationRepository = {
     const email = input.email.trim().toLowerCase()
     const name = input.name.trim()
 
-    const existing = await prisma.user.findUnique({
+    // Owner provisioning is idempotent — if a user with this email
+    // already exists (active OR archived in any org), link them as
+    // owner of the new org rather than creating a parallel record.
+    // findFirst because email is no longer DB-unique.
+    const existing = await prisma.user.findFirst({
       where: { email },
       select: { id: true, name: true },
     })
@@ -2096,14 +2118,11 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: data.email },
-      select: { id: true },
-    })
-
-    if (existingUser) {
-      throw new Error("That email is already being used by another account.")
-    }
+    // Email-uniqueness now enforced by the validator (active row +
+    // same-org archive rules). Pre-empts the user.create below; same
+    // behaviour as the old findUnique block, just with the global
+    // "one active per email" guarantee instead of strict DB uniqueness.
+    // Will throw further down via assertEmailAvailableForNewUser.
 
     const existingEmployeeProfile = await prisma.employeeProfile.findFirst({
       where: {
@@ -2116,6 +2135,14 @@ export const organizationRepository = {
     if (existingEmployeeProfile) {
       throw new Error("That employee ID is already assigned to another user.")
     }
+
+    // Email-uniqueness gate — replaces the dropped @unique on User.email.
+    // Throws EmailNotAvailableError with a code; the action layer
+    // surfaces the message to the admin's add-employee dialog.
+    await assertEmailAvailableForNewUser({
+      email: data.email,
+      orgId: data.organizationId,
+    })
 
     const assignedProjects = data.projectIds.length
       ? await prisma.xeroProject.findMany({

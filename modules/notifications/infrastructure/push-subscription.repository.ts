@@ -17,8 +17,17 @@ export const pushSubscriptionRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return { ok: false, reason: "no-db" }
 
-    const user = await prisma.user.findUnique({
-      where: { email: data.email },
+    // Email is no longer DB-unique — pick the active row. Archived
+    // accounts shouldn't be receiving new push subscriptions.
+    const user = await prisma.user.findFirst({
+      where: {
+        email: data.email,
+        OR: [
+          { employeeProfile: null },
+          { employeeProfile: { payrollProfile: null } },
+          { employeeProfile: { payrollProfile: { isArchived: false } } },
+        ],
+      },
       select: { id: true },
     })
     if (!user) return { ok: false, reason: "user-not-found" }

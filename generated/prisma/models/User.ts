@@ -286,10 +286,10 @@ export type UserOrderByWithRelationInput = {
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  email?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
+  email?: Prisma.StringFilter<"User"> | string
   name?: Prisma.StringFilter<"User"> | string
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   organizationId?: Prisma.StringNullableFilter<"User"> | string | null
@@ -321,7 +321,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   managedProjects?: Prisma.XeroProjectListRelationFilter
-}, "id" | "email">
+}, "id">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -4850,6 +4850,15 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    /**
+     * Email is NO LONGER unique at the DB level — an archived employee
+     * can come back later under the same address (in a different org,
+     * or as a fresh row after their old PayrollProfile was archived).
+     * The "at most one ACTIVE user per email" rule is enforced in the
+     * service layer (`lib/auth/email-uniqueness.ts`) on every create /
+     * update path. The index here keeps email lookups fast for login
+     * and the validator's existence check.
+     */
     email: string
     name: string
     role: $Enums.UserRole

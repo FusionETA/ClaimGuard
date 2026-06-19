@@ -44,8 +44,19 @@ export async function authenticateUser({
     }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: normalizedEmail },
+  // Email is no longer DB-unique — pick the ACTIVE row for this email
+  // (non-archived PayrollProfile, or no PayrollProfile at all for
+  // admins). Archived rows reject login at this gate; their password
+  // hash on a stale row should never grant access.
+  const user = await prisma.user.findFirst({
+    where: {
+      email: normalizedEmail,
+      OR: [
+        { employeeProfile: null },
+        { employeeProfile: { payrollProfile: null } },
+        { employeeProfile: { payrollProfile: { isArchived: false } } },
+      ],
+    },
     include: { employeeProfile: true, organization: true },
   })
 
@@ -121,8 +132,18 @@ export async function buildSessionUserForEmail(
   const prisma = getPrismaClient()
   if (!prisma) return { ok: false, reason: "no-db" }
 
-  const user = await prisma.user.findUnique({
-    where: { email: normalizedEmail },
+  // Admin SSO entry — pick the ACTIVE row only. Same active-user
+  // filter as the password login path above; archived rows aren't
+  // valid landing accounts.
+  const user = await prisma.user.findFirst({
+    where: {
+      email: normalizedEmail,
+      OR: [
+        { employeeProfile: null },
+        { employeeProfile: { payrollProfile: null } },
+        { employeeProfile: { payrollProfile: { isArchived: false } } },
+      ],
+    },
     include: { employeeProfile: true, organization: true },
   })
   if (!user) return { ok: false, reason: "not-found" }
