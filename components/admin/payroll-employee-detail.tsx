@@ -2794,7 +2794,11 @@ function ArchiveCard(props: {
             </Button>
           </form>
         ) : (
-          <form action={archiveAction} className="space-y-3">
+          <form
+            id="archive-payroll-profile-form"
+            action={archiveAction}
+            className="space-y-3"
+          >
             <input type="hidden" name="userId" value={props.userId} hidden />
             <div className="flex flex-wrap items-end gap-3">
               <Field label="Last working day" className="min-w-[180px]">
@@ -2817,14 +2821,23 @@ function ArchiveCard(props: {
                   placeholder="Left company / contract ended"
                 />
               </Field>
-              <Button
-                type="submit"
-                variant="ghost"
-                className="text-destructive"
-                disabled={archivePending}
-              >
-                {archivePending ? "Archiving…" : "Archive from payroll"}
-              </Button>
+              {/* Archive is a one-click action with downstream effects
+                  (employee disappears from future payroll runs, CP22A
+                  filing window opens, etc.) — wrap the submit in a
+                  confirm dialog so an accidental click doesn't ship. */}
+              <ConfirmSubmitButton
+                formId="archive-payroll-profile-form"
+                title="Archive this employee from payroll?"
+                description="They'll be excluded from future payroll runs starting the day after the last working day you set above. Historical payslips stay accessible, and you can restore them anytime."
+                confirmLabel="Yes, archive"
+                cancelLabel="Cancel"
+                triggerLabel="Archive from payroll"
+                pendingLabel="Archiving…"
+                triggerVariant="ghost"
+                triggerClassName="text-destructive"
+                confirmVariant="destructive"
+                pending={archivePending}
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               The final pay run is prorated to the last working day —
