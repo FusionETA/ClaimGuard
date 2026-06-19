@@ -35,6 +35,18 @@ Reusable React components. Subfolders:
   primitives already have `aria-invalid` styling — red border + ring).
 - Status filter dropdowns for claims: use `visibleStatusOptions` from
   `modules/claims/domain/models.ts`, NOT a local `claimStatuses.filter(...)`.
+- **Dialog/modal scroll areas: always add `pl-1` (or `px-1`) on the
+  overflow container.** Inputs, buttons, and focus rings inside a
+  `DialogContent`'s scrolling div extend a few pixels past their
+  element box; without left padding the ring gets visually clipped
+  against the modal's flush-left edge — the bug shows up most
+  obviously as a missing/cut purple ring on the first input. The
+  canonical class string for a scrolling dialog body is:
+    `nice-scrollbar -mr-2 max-h-[65vh] space-y-5 overflow-y-auto py-2 pl-1 pr-2`
+  The `-mr-2 pr-2` pair aligns the scrollbar with the modal edge
+  while keeping content where it was; `pl-1` is the focus-ring
+  breathing room. If you find yourself writing `pr-2` without a
+  matching `pl-*`, you've reintroduced this bug — add `pl-1`.
 
 ## Big files
 

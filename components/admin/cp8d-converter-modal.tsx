@@ -223,7 +223,7 @@ export function Cp8dConverterModal(props: {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="nice-scrollbar -mr-2 max-h-[65vh] space-y-5 overflow-y-auto py-2 pr-2">
+        <div className="nice-scrollbar -mr-2 max-h-[65vh] space-y-5 overflow-y-auto py-2 pl-1 pr-2">
           {/* Header fields. */}
           <section className="space-y-2">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

@@ -199,7 +199,10 @@ export function PayrollYtdImportDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="nice-scrollbar -mr-2 max-h-[65vh] space-y-5 overflow-y-auto py-2 pr-2">
+        {/* `px-1` gives focus rings on inputs/buttons inside the
+            scroll area room to render without clipping against the
+            container's left edge — see components/CLAUDE.md. */}
+        <div className="nice-scrollbar -mr-2 max-h-[65vh] space-y-5 overflow-y-auto py-2 pl-1 pr-2">
           {/* Year picker — drives both steps. */}
           <div className="space-y-1.5">
             <Label htmlFor="ytd-year">Year of payroll history</Label>
@@ -268,7 +271,11 @@ export function PayrollYtdImportDialog({
                 type="file"
                 accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 onChange={handleFileChange}
-                className="max-w-xs"
+                // `cursor-pointer` covers the input's text area;
+                // `file:cursor-pointer` targets the browser-rendered
+                // "Choose file" button inside the input (it's a
+                // pseudo-element and needs its own modifier).
+                className="max-w-xs cursor-pointer file:cursor-pointer"
                 disabled={importing}
               />
               <Button
