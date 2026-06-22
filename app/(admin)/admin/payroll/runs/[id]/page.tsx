@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ClipboardList,
   FileDown,
+  FileText,
   Receipt,
 } from "lucide-react"
 
@@ -631,34 +632,60 @@ export default async function AdminPayrollRunDetailPage({
 
       {isSubmitted && (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">
-              Submitted
-              {data.run.submittedAt
-                ? ` on ${new Date(data.run.submittedAt).toLocaleString()}`
-                : ""}
-              . Payslips are visible to employees.
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              {reportsModalData ? (
-                <PayrollDownloadsModal
-                  runId={reportsModalData.runId}
-                  organizationName={reportsModalData.organizationName}
-                  periodLabel={periodLabel(
-                    data.run.periodYear,
-                    data.run.periodMonth,
-                  )}
-                  canGenerate={reportsModalData.canGenerate}
-                  rows={reportsModalData.rows}
-                  showBankCsv
-                />
-              ) : null}
-              <RevertPayrollRunButton
-                runId={data.run.id}
-                laterMonths={revertCascadeMonths}
-              />
+          {data.run.source === "IMPORTED" ? (
+            // Imported runs are view-only — Download files / Revert
+            // to draft are deliberately hidden. The "one year, one
+            // upload" rule means the only way to change an imported
+            // run's data is to re-upload the year's XLSX from the
+            // Payroll Runs page (which atomically replaces every
+            // imported run for that year).
+            <div className="flex items-start gap-2 rounded-md border border-violet-300/60 bg-violet-50/40 p-3 text-xs text-violet-900 dark:border-violet-700/40 dark:bg-violet-950/20 dark:text-violet-200">
+              <FileText className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <strong>This run was imported from a YTD upload.</strong>{" "}
+                Payslip values come from the uploaded XLSX as-typed, not
+                from the calc engine. To change any value, re-import the
+                whole year from{" "}
+                <Link
+                  href="/admin/payroll/runs"
+                  className="underline underline-offset-2 hover:text-violet-700 dark:hover:text-violet-300"
+                >
+                  Payroll Runs
+                </Link>{" "}
+                — the new upload replaces every imported run for the
+                year.
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Submitted
+                {data.run.submittedAt
+                  ? ` on ${new Date(data.run.submittedAt).toLocaleString()}`
+                  : ""}
+                . Payslips are visible to employees.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                {reportsModalData ? (
+                  <PayrollDownloadsModal
+                    runId={reportsModalData.runId}
+                    organizationName={reportsModalData.organizationName}
+                    periodLabel={periodLabel(
+                      data.run.periodYear,
+                      data.run.periodMonth,
+                    )}
+                    canGenerate={reportsModalData.canGenerate}
+                    rows={reportsModalData.rows}
+                    showBankCsv
+                  />
+                ) : null}
+                <RevertPayrollRunButton
+                  runId={data.run.id}
+                  laterMonths={revertCascadeMonths}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Xero sync status. Renders three states:
                 • SYNCED → green pill with journal number + sync time
