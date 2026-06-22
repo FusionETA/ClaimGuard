@@ -20,6 +20,7 @@ import {
   socsoSchemes,
 } from "@/modules/payroll/domain/models"
 import { recommendSocsoScheme } from "@/modules/payroll/domain/statutory-tables"
+import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
 import {
   countActiveLeaveTypesForOrg,
   type LeaveSeedInput,
@@ -464,8 +465,13 @@ function resolveSocsoSchemeForImport(
   row: RowWithChildren,
 ): "EMPLOYMENT_INJURY_INVALIDITY" | "EMPLOYMENT_INJURY_ONLY" | null {
   if (row.socsoScheme !== null) return row.socsoScheme
+  // Pass nationality so foreign workers age 55–59 get Scheme 1
+  // automatically (no first-time-registrant ambiguity) per the
+  // post-2025 PERKESO expansion. Malaysians 55–59 still return null
+  // so the admin picks manually.
   return recommendSocsoScheme({
     dateOfBirth: row.dateOfBirth ? new Date(row.dateOfBirth) : null,
+    isMalaysianCitizen: isMalaysianNationality(row.nationality),
   })
 }
 
@@ -649,7 +655,15 @@ function buildPayrollProfileUpdate(row: RowWithChildren) {
       ? { bankAccountNumber: row.bankAccountNumber }
       : {}),
     ...(row.paymentMethod ? { paymentMethod: row.paymentMethod } : {}),
-    ...(row.childRelief != null ? { childRelief: row.childRelief } : {}),
+    // ALWAYS write childRelief on update (don't skip when null). The
+    // bulk-upload template always has the childN.* columns; blank
+    // cells parse to `null` here, which we treat as "admin cleared
+    // the kids" → wipe with []. Skipping the field would silently
+    // preserve stale child rows from the previous upload, which is
+    // exactly the bug the admin reported: first upload had wrong
+    // kids, second upload left them blank, kids should have gone
+    // away but stayed.
+    childRelief: row.childRelief ?? [],
   }
 }
 
