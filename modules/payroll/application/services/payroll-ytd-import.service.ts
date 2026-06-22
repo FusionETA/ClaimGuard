@@ -73,30 +73,57 @@ export async function generateYtdImportTemplate(input: {
 }
 
 /**
- * Process an uploaded YTD XLSX: parse → match employees by NRIC /
- * Passport → find-or-create one IMPORTED PayrollRun per period →
- * append one Payslip per (employee, period). Skips unknown employees
- * and periods that already have a COMPUTED run (engine output is
- * never overwritten by imports). Returns a structured summary the
- * dialog renders back to the admin.
+ * Process an uploaded YTD XLSX following the one-year-one-upload rule:
+ *
+ *   1. Parse the file.
+ *   2. Pre-flight: if any month in the upload overlaps a COMPUTED run
+ *      (DRAFT / PENDING / SUBMITTED), REJECT the entire upload with
+ *      the list of conflicting months. Engine output is never
+ *      overwritten or coexisted-with.
+ *   3. Atomic replace: delete every IMPORTED run for (org, year),
+ *      then write the new file's rows. The latest upload is the
+ *      single source of truth for that year — months that were in
+ *      the previous import but absent from the new one disappear.
+ *   4. Unknown employees (no NRIC / Passport match in the org) are
+ *      skipped and reported back; the import still succeeds for the
+ *      rest.
  */
 export type YtdImportSummary = {
+  /// Number of IMPORTED runs created in the new write (one per month
+  /// that had at least one matched employee row).
   importedRunsCreated: number
+  /// Number of payslips written across all created runs.
   importedPayslips: number
+  /// Imported runs that existed for this year BEFORE the upload and
+  /// were wiped by the atomic replace. 0 on a first upload for the
+  /// year. Surfaced so the admin sees the destructive scope.
+  replacedRuns: number
+  /// Per-employee skips — uploaded ID didn't match any existing
+  /// employee in the org. Non-fatal; the rest of the upload still
+  /// commits.
   skippedUnknownEmployees: Array<{ name: string; idNumber: string }>
-  skippedExistingPayslips: Array<{
-    name: string
-    year: number
-    monthIdx: number
-    reason: string
-  }>
-  skippedConflictingPeriods: Array<{
-    year: number
-    monthIdx: number
-    reason: string
-  }>
   parserWarnings: string[]
   parserErrors: string[]
+}
+
+/**
+ * Thrown when the upload overlaps a COMPUTED run. Caller renders the
+ * conflicting months as a hard failure — admin must either remove the
+ * matching months from the upload OR delete / unlock the COMPUTED runs
+ * first.
+ */
+export class YtdImportConflictError extends Error {
+  constructor(
+    public readonly conflictingMonths: number[],
+    public readonly year: number,
+  ) {
+    super(
+      `Upload conflicts with ${conflictingMonths.length} computed payroll run${
+        conflictingMonths.length === 1 ? "" : "s"
+      } in ${year}. Imports cannot overwrite engine-produced runs.`,
+    )
+    this.name = "YtdImportConflictError"
+  }
 }
 
 export async function importYtdPayrollHistory(input: {
@@ -120,9 +147,8 @@ export async function importYtdPayrollHistory(input: {
   const summary: YtdImportSummary = {
     importedRunsCreated: 0,
     importedPayslips: 0,
+    replacedRuns: 0,
     skippedUnknownEmployees: [],
-    skippedExistingPayslips: [],
-    skippedConflictingPeriods: [],
     parserWarnings: [],
     parserErrors: [],
   }
@@ -136,7 +162,36 @@ export async function importYtdPayrollHistory(input: {
     return summary
   }
 
-  // 2. Build the employee match map: normalised idNumber → match row.
+  // 2. Group parsed rows by month so we know which periods this upload
+  //    touches (used by the conflict check below + the write loop).
+  const byMonth = new Map<number, ParsedYtdRow[]>()
+  for (const r of parsed.rows) {
+    const list = byMonth.get(r.monthIdx) ?? []
+    list.push(r)
+    byMonth.set(r.monthIdx, list)
+  }
+  const monthsInUpload = Array.from(byMonth.keys())
+    .map((m) => m + 1)
+    .sort((a, b) => a - b)
+
+  // 3. Pre-flight conflict check — fail the entire upload if ANY month
+  //    in the file overlaps a COMPUTED run for this org/year. The
+  //    "one year, one upload" rule + "imports never coexist with engine
+  //    output" rule mean a partial commit would be confusing AND wrong:
+  //    the admin must either remove those months from the file or
+  //    delete/unlock the computed runs first.
+  const yearContext = await payrollRunRepository.listMonthsByYear({
+    organizationId: orgId,
+    year: input.year,
+  })
+  const conflictingMonths = monthsInUpload.filter((m) =>
+    yearContext.computedMonths.includes(m),
+  )
+  if (conflictingMonths.length > 0) {
+    throw new YtdImportConflictError(conflictingMonths, input.year)
+  }
+
+  // 4. Build the employee match map: normalised idNumber → match row.
   const matchRows =
     await payrollProfileRepository.listEmployeesForImportMatch(orgId)
   const matchByNormalisedId = new Map<
@@ -149,21 +204,29 @@ export async function importYtdPayrollHistory(input: {
     matchByNormalisedId.set(norm, row)
   }
 
-  // 3. Group parsed rows by month — one IMPORTED run per (org, year,
-  //    month). Within each month, walk the employee rows.
-  const byMonth = new Map<number, ParsedYtdRow[]>()
-  for (const r of parsed.rows) {
-    const list = byMonth.get(r.monthIdx) ?? []
-    list.push(r)
-    byMonth.set(r.monthIdx, list)
-  }
+  // 5. Atomic replace — wipe every IMPORTED run for this year before
+  //    writing the new file. The cascade on PayrollRun.payslips clears
+  //    out the old payslips along with their runs. After this point
+  //    the year is empty of imported data; whatever we write next IS
+  //    the year's full imported record.
+  const { runsDeleted } =
+    await payrollRunRepository.deleteImportedRunsForYear({
+      organizationId: orgId,
+      year: input.year,
+    })
+  summary.replacedRuns = runsDeleted
 
+  // 6. Write the new rows.
   const unknownReported = new Set<string>() // dedupe per-employee skips
-
   for (const [monthIdx, rows] of byMonth) {
     const periodMonth = monthIdx + 1
 
-    // Find-or-create the run for this period.
+    // findOrCreateImportedRun can no longer hit the COMPUTED conflict
+    // branch (we filtered those upstream) and can no longer find an
+    // existing IMPORTED row (we just deleted them all), so this is
+    // effectively a plain create — kept via the existing repo method
+    // so the run's defaults (status, submittedAt, source) stay in one
+    // place.
     let runId: string
     try {
       const { run, created } = await payrollRunRepository.findOrCreateImportedRun({
@@ -176,17 +239,14 @@ export async function importYtdPayrollHistory(input: {
       if (created) summary.importedRunsCreated += 1
     } catch (err) {
       if (err instanceof ImportedRunConflictError) {
-        summary.skippedConflictingPeriods.push({
-          year: input.year,
-          monthIdx,
-          reason: err.message,
-        })
-        continue
+        // Shouldn't happen post-pre-flight; if a COMPUTED run was
+        // created in the millisecond gap between the check and now,
+        // bail with the conflict so the admin sees the latest state.
+        throw new YtdImportConflictError([periodMonth], input.year)
       }
       throw err
     }
 
-    // Append payslips.
     for (const row of rows) {
       const match = matchByNormalisedId.get(row.idNumberNormalised)
       if (!match) {
@@ -200,25 +260,16 @@ export async function importYtdPayrollHistory(input: {
         continue
       }
 
-      const payslipInput = buildImportedPayslipInput({
-        match,
-        row,
-      })
-
+      const payslipInput = buildImportedPayslipInput({ match, row })
       const { created } = await payslipRepository.addImportedPayslip({
         payrollRunId: runId,
         payslip: payslipInput,
       })
-      if (created) {
-        summary.importedPayslips += 1
-      } else {
-        summary.skippedExistingPayslips.push({
-          name: row.employeeName,
-          year: input.year,
-          monthIdx,
-          reason: "Payslip already exists on this imported run.",
-        })
-      }
+      // Dup-key (P2002) here would only happen if the same employee
+      // appears twice in the same month block of the upload — a
+      // genuine data error in the file. Silently ignore the second
+      // occurrence; the first one stuck.
+      if (created) summary.importedPayslips += 1
     }
 
     // Recompute the run's cached totals so the runs list shows the
@@ -360,6 +411,43 @@ function normaliseProfileIdNumber(
       }
       return idNumber.replace(/\s/g, "").toUpperCase()
   }
+}
+
+/**
+ * Lightweight year-context lookup for the import dialog. Returns which
+ * months of the calendar year already have data, split by source.
+ *
+ * The dialog uses this for two UX cues BEFORE the admin even picks a
+ * file:
+ *   - importedMonths.length > 0 → show "Re-uploading will replace N
+ *     existing imported months" warning.
+ *   - computedMonths.length > 0 → show "These months cannot be
+ *     imported into" hint (the upload will fail if it touches them).
+ *
+ * Auth-gated like the other YTD service functions; returns empty
+ * arrays when the session has no org context (defensive — the dialog
+ * never reaches this path without a session).
+ */
+export async function getYtdImportYearContext(input: {
+  year: number
+}): Promise<{ importedMonths: number[]; computedMonths: number[] }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    throw new Error("Session expired. Please log in again.")
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return { importedMonths: [], computedMonths: [] }
+  if (
+    !Number.isInteger(input.year) ||
+    input.year < 2000 ||
+    input.year > 2100
+  ) {
+    return { importedMonths: [], computedMonths: [] }
+  }
+  return payrollRunRepository.listMonthsByYear({
+    organizationId: orgId,
+    year: input.year,
+  })
 }
 
 function formatPersonalIdLabel(

@@ -7,7 +7,7 @@
 
 export type YtdImportActionResult =
   | { ok: true; summary: YtdImportSummaryShape }
-  | { ok: false; message: string }
+  | { ok: false; message: string; conflictingMonths?: number[] }
 
 /**
  * Mirror of `YtdImportSummary` in payroll-ytd-import.service.ts.
@@ -18,18 +18,21 @@ export type YtdImportActionResult =
 export type YtdImportSummaryShape = {
   importedRunsCreated: number
   importedPayslips: number
+  /// Count of IMPORTED runs that existed for this year BEFORE the
+  /// upload and were wiped as part of the atomic replace. 0 on a
+  /// first upload for the year.
+  replacedRuns: number
   skippedUnknownEmployees: Array<{ name: string; idNumber: string }>
-  skippedExistingPayslips: Array<{
-    name: string
-    year: number
-    monthIdx: number
-    reason: string
-  }>
-  skippedConflictingPeriods: Array<{
-    year: number
-    monthIdx: number
-    reason: string
-  }>
   parserWarnings: string[]
   parserErrors: string[]
+}
+
+/**
+ * Server-action response for the year-context lookup the dialog calls
+ * when the admin picks a year. Drives the inline warning banner +
+ * fail-fast hint about months that would conflict with COMPUTED runs.
+ */
+export type YtdImportYearContext = {
+  importedMonths: number[]
+  computedMonths: number[]
 }

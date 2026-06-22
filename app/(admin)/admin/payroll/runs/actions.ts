@@ -6,8 +6,15 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 
 import type { BaseFormState } from "@/lib/form-state"
-import type { YtdImportActionResult } from "@/app/(admin)/admin/payroll/runs/form-state"
-import { importYtdPayrollHistory } from "@/modules/payroll/application/services/payroll-ytd-import.service"
+import type {
+  YtdImportActionResult,
+  YtdImportYearContext,
+} from "@/app/(admin)/admin/payroll/runs/form-state"
+import {
+  getYtdImportYearContext,
+  importYtdPayrollHistory,
+  YtdImportConflictError,
+} from "@/modules/payroll/application/services/payroll-ytd-import.service"
 import {
   buildPayrollSyncPreview,
   type PayrollSyncPreviewResult,
@@ -538,6 +545,17 @@ export async function importYtdPayrollHistoryAction(
     revalidatePath("/admin/payroll")
     return { ok: true, summary }
   } catch (err) {
+    // Pull the structured COMPUTED-conflict error apart so the dialog
+    // can render the conflicting month list inline (not just shove the
+    // message into a toast). Falls through to the generic error
+    // handler below for any other failure.
+    if (err instanceof YtdImportConflictError) {
+      return {
+        ok: false,
+        message: err.message,
+        conflictingMonths: err.conflictingMonths,
+      }
+    }
     console.error("[importYtdPayrollHistoryAction] failed", {
       year: parsedMeta.data.year,
       fileName: fileEntry.name,
@@ -547,6 +565,28 @@ export async function importYtdPayrollHistoryAction(
     return {
       ok: false,
       message: safeErrorMessage(err, "Couldn't process the uploaded file."),
+    }
+  }
+}
+
+// ─── YTD year-context lookup (drives the dialog warning) ────────────
+
+/**
+ * Fetch the "what's already in this year" snapshot so the dialog can
+ * (a) warn the admin that re-importing will replace N existing months
+ * and (b) preview which months would conflict with COMPUTED runs
+ * BEFORE they pick a file. Cheap — no payslip rows loaded.
+ */
+export async function getYtdImportYearContextAction(input: {
+  year: number
+}): Promise<{ ok: true; context: YtdImportYearContext } | { ok: false; message: string }> {
+  try {
+    const context = await getYtdImportYearContext({ year: input.year })
+    return { ok: true, context }
+  } catch (err) {
+    return {
+      ok: false,
+      message: safeErrorMessage(err, "Couldn't load year context."),
     }
   }
 }

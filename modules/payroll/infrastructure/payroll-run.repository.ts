@@ -613,6 +613,77 @@ export const payrollRunRepository = {
 
     await prisma.payrollRun.delete({ where: { id: run.id } })
   },
+
+  /**
+   * Per-year context for the YTD import dialog. Returns which months
+   * in the calendar year already have a run on file, split by source.
+   *
+   *   - importedMonths: months with source=IMPORTED. Re-uploading
+   *     this year wipes these and replaces with the new file.
+   *   - computedMonths: months with source=COMPUTED (DRAFT / PENDING
+   *     / SUBMITTED). A new upload that touches any of these gets
+   *     rejected entirely (engine output is never overwritten by an
+   *     import). The dialog uses this to warn admin upfront.
+   *
+   * Cheap — projects a tiny slice (status + month) per row, no
+   * payslips loaded. Safe to call on every year-picker change.
+   */
+  async listMonthsByYear(input: {
+    organizationId: string
+    year: number
+  }): Promise<{
+    importedMonths: number[]
+    computedMonths: number[]
+  }> {
+    const prisma = getPrismaClient()
+    if (!prisma) return { importedMonths: [], computedMonths: [] }
+    const rows = await prisma.payrollRun.findMany({
+      where: {
+        organizationId: input.organizationId,
+        periodYear: input.year,
+      },
+      select: { periodMonth: true, source: true },
+      orderBy: { periodMonth: "asc" },
+    })
+    const importedMonths: number[] = []
+    const computedMonths: number[] = []
+    for (const r of rows) {
+      if (r.source === "IMPORTED") importedMonths.push(r.periodMonth)
+      else computedMonths.push(r.periodMonth)
+    }
+    return { importedMonths, computedMonths }
+  },
+
+  /**
+   * Atomically wipe every IMPORTED run for an org-year. Used by the YTD
+   * importer right before it writes the new upload — the "one year, one
+   * upload" rule means the latest upload is the single source of truth,
+   * so any prior IMPORTED rows for that year get deleted in the same
+   * transaction that creates the new ones.
+   *
+   * Cascade: PayrollRun has `payslips Payslip[]` with `onDelete: Cascade`,
+   * so deleting the runs cascades through to their payslips. Returns
+   * the count for the summary panel.
+   *
+   * NEVER touches COMPUTED runs — the conflict-check in the import
+   * service must have already failed any upload that overlaps a
+   * COMPUTED period.
+   */
+  async deleteImportedRunsForYear(input: {
+    organizationId: string
+    year: number
+  }): Promise<{ runsDeleted: number }> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    const result = await prisma.payrollRun.deleteMany({
+      where: {
+        organizationId: input.organizationId,
+        periodYear: input.year,
+        source: "IMPORTED",
+      },
+    })
+    return { runsDeleted: result.count }
+  },
 }
 
 // ─── Projection helpers ──────────────────────────────────────────────────
