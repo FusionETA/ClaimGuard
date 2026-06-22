@@ -57,15 +57,13 @@ export type BulkImportPolicyDefault = {
   accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
 }
 
-/// Per-row entry in the wizard's `leaveSeedByRow` state. Only present
-/// for rows the admin actively switched to Custom — every other row
-/// uses `{ method: "DEFAULT" }` implicitly at commit time. Matches
-/// the shape of `LeaveSeedInput` minus the redundant outer tag (we
-/// know it's CUSTOM if the row has an entry).
-type PerRowLeaveSeed = {
-  days: Record<string, number>
-  methods: Record<string, "LUMP_SUM" | "PRO_RATED">
-}
+/// Per-row entry in the wizard's `leaveSeedByRow` state.
+/// - No entry → ORG_DEFAULT (seed from leave-type defaults, skip policy layer)
+/// - `method: "DEFAULT"` → per-policy (seed from policy/type chain)
+/// - `method: "CUSTOM"` (or absent) + days/methods → custom values
+type PerRowLeaveSeed =
+  | { method: "DEFAULT" }
+  | { method?: "CUSTOM"; days: Record<string, number>; methods: Record<string, "LUMP_SUM" | "PRO_RATED"> }
 
 /// Seed a fresh PerRowLeaveSeed using each leave type's own
 /// defaultDays + accrualMethod. Bulk imports don't have a single
@@ -79,13 +77,13 @@ function blankLeaveSeed(leaveTypes: AddEmployeeLeaveType[]): PerRowLeaveSeed {
     days[t.id] = t.defaultDays
     methods[t.id] = t.accrualMethod
   }
-  return { days, methods }
+  return { method: "CUSTOM", days, methods }
 }
 
-/// Count how many overrides in a PerRowLeaveSeed differ from the
+/// Count how many overrides in a CUSTOM PerRowLeaveSeed differ from the
 /// type defaults. Used to label the row badge "Custom (N)".
 function customOverrideCount(
-  seed: PerRowLeaveSeed,
+  seed: Extract<PerRowLeaveSeed, { days: Record<string, number> }>,
   leaveTypes: AddEmployeeLeaveType[],
 ): number {
   let count = 0
@@ -857,7 +855,8 @@ export function ImportPayrollEmployeesButton({
               leaveTypes={leaveTypes}
               leaveSeedByRow={leaveSeedByRow}
               onRowLeaveMethodChange={(rowIndex, method) => {
-                if (method === "DEFAULT") {
+                if (method === "ORG_DEFAULT") {
+                  // No entry = ORG_DEFAULT (server default).
                   setLeaveSeedByRow((prev) => {
                     const next = { ...prev }
                     delete next[rowIndex]
@@ -865,12 +864,20 @@ export function ImportPayrollEmployeesButton({
                   })
                   return
                 }
-                // CUSTOM: seed with type defaults and open the dialog.
-                setLeaveSeedByRow((prev) =>
-                  prev[rowIndex]
-                    ? prev
-                    : { ...prev, [rowIndex]: blankLeaveSeed(leaveTypes) },
-                )
+                if (method === "DEFAULT") {
+                  // Per-policy: store a method marker; no custom days needed.
+                  setLeaveSeedByRow((prev) => ({
+                    ...prev,
+                    [rowIndex]: { method: "DEFAULT" },
+                  }))
+                  return
+                }
+                // CUSTOM: init blank if not already custom, then open the dialog.
+                setLeaveSeedByRow((prev) => {
+                  const existing = prev[rowIndex]
+                  if (existing && existing.method !== "DEFAULT") return prev
+                  return { ...prev, [rowIndex]: blankLeaveSeed(leaveTypes) }
+                })
                 setLeaveDialogRow(rowIndex)
               }}
               onEditRowLeave={(rowIndex) => setLeaveDialogRow(rowIndex)}
@@ -949,11 +956,12 @@ export function ImportPayrollEmployeesButton({
             : null
         }
         leaveTypes={leaveTypes}
-        seed={
-          leaveDialogRow !== null
-            ? leaveSeedByRow[leaveDialogRow] ?? null
-            : null
-        }
+        seed={(() => {
+          if (leaveDialogRow === null) return null
+          const s = leaveSeedByRow[leaveDialogRow]
+          if (!s || s.method === "DEFAULT") return null
+          return s
+        })()}
         onSave={(rowIndex, nextSeed) => {
           setLeaveSeedByRow((prev) => ({ ...prev, [rowIndex]: nextSeed }))
           setLeaveDialogRow(null)
@@ -2027,10 +2035,10 @@ function PreviewStep({
   /// Per-row Leave Method overrides. Rows without an entry default to
   /// `{ method: "DEFAULT" }` at commit time.
   leaveSeedByRow: Record<number, PerRowLeaveSeed>
-  /// Called when the admin flips a row's Default/Custom selector. On
+  /// Called when the admin flips a row's leave method selector. On
   /// switching to Custom the parent also opens the PerRowLeaveDialog
   /// for that row.
-  onRowLeaveMethodChange: (rowIndex: number, method: "DEFAULT" | "CUSTOM") => void
+  onRowLeaveMethodChange: (rowIndex: number, method: "ORG_DEFAULT" | "DEFAULT" | "CUSTOM") => void
   /// Called when the admin clicks the "Custom (N)" badge to re-open
   /// the dialog for an already-customised row.
   onEditRowLeave: (rowIndex: number) => void
@@ -2131,9 +2139,14 @@ function PreviewStep({
             <tbody>
               {preview.preview.map((row, rowIndex) => {
                 const rowSeed = leaveSeedByRow[rowIndex] ?? null
-                const customCount = rowSeed
-                  ? customOverrideCount(rowSeed, leaveTypes)
-                  : 0
+                const leaveMethodForRow: "ORG_DEFAULT" | "DEFAULT" | "CUSTOM" =
+                  !rowSeed ? "ORG_DEFAULT"
+                  : rowSeed.method === "DEFAULT" ? "DEFAULT"
+                  : "CUSTOM"
+                const customCount =
+                  rowSeed && rowSeed.method !== "DEFAULT" && "days" in rowSeed
+                    ? customOverrideCount(rowSeed, leaveTypes)
+                    : 0
                 return (
                   <PreviewRow
                     key={rowIndex}
@@ -2145,7 +2158,7 @@ function PreviewStep({
                     override={rowOverrides[rowIndex] ?? {}}
                     onOverrideChange={onOverrideChange}
                     onRefreshPickers={onRefreshPickers}
-                    leaveMethodForRow={rowSeed ? "CUSTOM" : "DEFAULT"}
+                    leaveMethodForRow={leaveMethodForRow}
                     leaveCustomCount={customCount}
                     onRowLeaveMethodChange={onRowLeaveMethodChange}
                     onEditRowLeave={onEditRowLeave}
@@ -2253,13 +2266,12 @@ function PreviewRow({
     patch: Partial<RowOverrides[number]>,
   ) => void
   onRefreshPickers: () => void
-  /// Per-row Leave Method: DEFAULT means no entry in
-  /// `leaveSeedByRow`; CUSTOM means there's an entry the dialog can
-  /// edit. The cell renders a Default/Custom selector + a
-  /// "Custom (N)" badge when CUSTOM.
-  leaveMethodForRow: "DEFAULT" | "CUSTOM"
+  /// Per-row Leave Method: ORG_DEFAULT = no entry; DEFAULT = per-policy
+  /// entry; CUSTOM = custom days/methods entry. The cell renders a
+  /// 3-option selector and a "Custom (N)" badge when CUSTOM.
+  leaveMethodForRow: "ORG_DEFAULT" | "DEFAULT" | "CUSTOM"
   leaveCustomCount: number
-  onRowLeaveMethodChange: (rowIndex: number, method: "DEFAULT" | "CUSTOM") => void
+  onRowLeaveMethodChange: (rowIndex: number, method: "ORG_DEFAULT" | "DEFAULT" | "CUSTOM") => void
   onEditRowLeave: (rowIndex: number) => void
 }) {
   // Auto-resolve from the CSV value when the admin hasn't overridden
@@ -2488,23 +2500,24 @@ function PreviewRow({
           </SelectContent>
         </Select>
       </td>
-      {/* Per-row Leave Method cell. Default is the no-op; flipping to
-          Custom triggers the parent to open `PerRowLeaveDialog` for
-          this row. When CUSTOM, render a clickable badge showing how
-          many type-level overrides the admin has set. */}
+      {/* Per-row Leave Method cell. Three options:
+          - Org default: seed from leave-type defaults (skip policy layer)
+          - Per policy: seed from policy/type chain
+          - Custom…: open dialog for per-type overrides */}
       <td className="px-2 py-1.5 align-middle border-l border-border/60">
-        {leaveMethodForRow === "DEFAULT" ? (
+        {leaveMethodForRow !== "CUSTOM" ? (
           <Select
-            value="DEFAULT"
+            value={leaveMethodForRow}
             onValueChange={(v) =>
-              onRowLeaveMethodChange(rowIndex, v as "DEFAULT" | "CUSTOM")
+              onRowLeaveMethodChange(rowIndex, v as "ORG_DEFAULT" | "DEFAULT" | "CUSTOM")
             }
           >
-            <SelectTrigger className="h-8 w-28 rounded-md border-border/70 bg-background px-2 text-xs shadow-none">
+            <SelectTrigger className="h-8 w-32 rounded-md border-border/70 bg-background px-2 text-xs shadow-none">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="DEFAULT">Default</SelectItem>
+              <SelectItem value="ORG_DEFAULT">Org default</SelectItem>
+              <SelectItem value="DEFAULT">Per policy</SelectItem>
               <SelectItem value="CUSTOM">Custom…</SelectItem>
             </SelectContent>
           </Select>
@@ -2520,9 +2533,9 @@ function PreviewRow({
             </button>
             <button
               type="button"
-              onClick={() => onRowLeaveMethodChange(rowIndex, "DEFAULT")}
+              onClick={() => onRowLeaveMethodChange(rowIndex, "ORG_DEFAULT")}
               className="text-[10px] text-muted-foreground underline hover:text-foreground"
-              title="Reset this row back to default seeding"
+              title="Reset this row back to org default seeding"
             >
               clear
             </button>
@@ -2863,16 +2876,17 @@ function PerRowLeaveDialog({
   rowIndex: number | null
   previewRow: Record<string, string | null> | null
   leaveTypes: AddEmployeeLeaveType[]
-  seed: PerRowLeaveSeed | null
-  onSave: (rowIndex: number, next: PerRowLeaveSeed) => void
+  seed: Extract<PerRowLeaveSeed, { days: Record<string, number> }> | null
+  onSave: (rowIndex: number, next: Extract<PerRowLeaveSeed, { days: Record<string, number> }>) => void
   onCancel: () => void
 }) {
   // Local staging copy. Initialised from the wizard's current seed
   // when the dialog opens for a new row. We re-init on every
   // open via the key on Dialog below, so reopening for a different
   // row doesn't leak state.
-  const [local, setLocal] = useState<PerRowLeaveSeed>(
-    () => seed ?? blankLeaveSeed(leaveTypes),
+  type CustomSeed = Extract<PerRowLeaveSeed, { days: Record<string, number> }>
+  const [local, setLocal] = useState<CustomSeed>(
+    () => (seed ?? blankLeaveSeed(leaveTypes)) as CustomSeed,
   )
 
   // Friendly title — best-effort name/email from the parsed row.
@@ -2895,7 +2909,7 @@ function PerRowLeaveDialog({
           // Re-seed local state every time the dialog opens for a
           // new row, so editing row A → opening row B starts from
           // B's stored seed (or blank), not A's last typed values.
-          setLocal(seed ?? blankLeaveSeed(leaveTypes))
+          setLocal((seed ?? blankLeaveSeed(leaveTypes)) as CustomSeed)
           // Don't steal focus aggressively — first input would be
           // OK but the days inputs are usually what admins want.
           e.preventDefault()

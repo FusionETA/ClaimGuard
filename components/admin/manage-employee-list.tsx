@@ -142,10 +142,11 @@ function AddEmployeeDialog({
     setCopied(false)
   }, [emailDraft, dobDraft])
 
-  // Leave Method state. DEFAULT = let the server seed entitlements
-  // from the policy/type chain. CUSTOM = render one row per active
-  // leave type with admin-editable days + accrual method.
-  const [leaveMethod, setLeaveMethod] = useState<"DEFAULT" | "CUSTOM">("DEFAULT")
+  // Leave Method state.
+  // ORG_DEFAULT = seed from leave-type defaults (skip policy layer).
+  // DEFAULT = seed from policy/type chain.
+  // CUSTOM = render one row per active leave type with admin-editable values.
+  const [leaveMethod, setLeaveMethod] = useState<"ORG_DEFAULT" | "DEFAULT" | "CUSTOM">("ORG_DEFAULT")
 
   // Pre-fill inputs in CUSTOM mode with the *resolved* default for
   // the currently-selected policy (policy override → type default).
@@ -356,14 +357,15 @@ function AddEmployeeDialog({
                 <NativeSelect
                   value={leaveMethod}
                   onChange={(e) =>
-                    setLeaveMethod(e.target.value as "DEFAULT" | "CUSTOM")
+                    setLeaveMethod(e.target.value as "ORG_DEFAULT" | "DEFAULT" | "CUSTOM")
                   }
                   disabled={pending}
                 >
-                  <option value="DEFAULT">
-                    Default (use policy / leave-type defaults)
+                  <option value="ORG_DEFAULT">
+                    Org default (leave-type defaults)
                   </option>
-                  <option value="CUSTOM">Custom (override per leave type)</option>
+                  <option value="DEFAULT">Per policy (policy overrides apply)</option>
+                  <option value="CUSTOM">Custom (set per leave type)</option>
                 </NativeSelect>
               </Labelled>
 

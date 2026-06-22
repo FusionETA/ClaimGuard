@@ -45,10 +45,11 @@ const createMemberSchema = z.object({
   projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
   policyId: z.string().min(1, "Employee policy is required."),
-  /// DEFAULT seeds entitlements from the policy/type chain; CUSTOM
-  /// uses admin-supplied per-type values (parsed from FormData entries
-  /// `leaveDays.<typeId>` and `leaveMethod.<typeId>` below).
-  leaveMethod: z.enum(["DEFAULT", "CUSTOM"]).default("DEFAULT"),
+  /// ORG_DEFAULT seeds from the leave-type defaults (skips policy layer);
+  /// DEFAULT walks the policy/type chain; CUSTOM uses admin-supplied
+  /// per-type values (parsed from FormData entries `leaveDays.<typeId>`
+  /// and `leaveMethod.<typeId>` below).
+  leaveMethod: z.enum(["ORG_DEFAULT", "DEFAULT", "CUSTOM"]).default("ORG_DEFAULT"),
   /// Optional. When provided, used by the forgot-password flow as the
   /// WhatsApp delivery target (stored on `PayrollProfile.phone`). When
   /// blank the employee just can't self-serve a password reset — the
@@ -311,10 +312,11 @@ export async function createHierarchyMemberAction(
   const projectAssignments = parseProjectAssignments(formData, projectIds)
 
   const policyId = String(formData.get("policyId") ?? "").trim() || undefined
+  const rawLeaveMethod = String(formData.get("leaveMethod") ?? "ORG_DEFAULT").toUpperCase()
   const leaveMethod =
-    String(formData.get("leaveMethod") ?? "DEFAULT").toUpperCase() === "CUSTOM"
-      ? "CUSTOM"
-      : "DEFAULT"
+    rawLeaveMethod === "CUSTOM" ? "CUSTOM"
+    : rawLeaveMethod === "DEFAULT" ? "DEFAULT"
+    : "ORG_DEFAULT"
   const parsed = createMemberSchema.safeParse({
     ...values,
     projectIds,
@@ -352,7 +354,10 @@ export async function createHierarchyMemberAction(
   // emitted by the dialog as `leaveDays.<typeId>` /
   // `leaveMethod.<typeId>` so the server doesn't need to know the
   // active type list up front.
-  let leaveSeed: LeaveSeedInput = { method: "DEFAULT" }
+  let leaveSeed: LeaveSeedInput =
+    parsed.data.leaveMethod === "DEFAULT"
+      ? { method: "DEFAULT" }
+      : { method: "ORG_DEFAULT" }
   if (parsed.data.leaveMethod === "CUSTOM") {
     const days: Record<string, number> = {}
     const methods: Record<string, LeaveAccrualMethod> = {}

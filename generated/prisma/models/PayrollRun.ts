@@ -74,7 +74,6 @@ export type PayrollRunMinAggregateOutputType = {
   periodYear: number | null
   periodMonth: number | null
   status: $Enums.PayrollRunStatus | null
-  source: $Enums.PayrollRunSource | null
   totalGross: runtime.Decimal | null
   totalNet: runtime.Decimal | null
   totalEmployeeEpf: runtime.Decimal | null
@@ -103,6 +102,7 @@ export type PayrollRunMinAggregateOutputType = {
   xeroSyncError: string | null
   xeroSyncStatus: $Enums.XeroSyncStatus | null
   xeroSyncedAt: Date | null
+  source: $Enums.PayrollRunSource | null
 }
 
 export type PayrollRunMaxAggregateOutputType = {
@@ -111,7 +111,6 @@ export type PayrollRunMaxAggregateOutputType = {
   periodYear: number | null
   periodMonth: number | null
   status: $Enums.PayrollRunStatus | null
-  source: $Enums.PayrollRunSource | null
   totalGross: runtime.Decimal | null
   totalNet: runtime.Decimal | null
   totalEmployeeEpf: runtime.Decimal | null
@@ -140,6 +139,7 @@ export type PayrollRunMaxAggregateOutputType = {
   xeroSyncError: string | null
   xeroSyncStatus: $Enums.XeroSyncStatus | null
   xeroSyncedAt: Date | null
+  source: $Enums.PayrollRunSource | null
 }
 
 export type PayrollRunCountAggregateOutputType = {
@@ -148,7 +148,6 @@ export type PayrollRunCountAggregateOutputType = {
   periodYear: number
   periodMonth: number
   status: number
-  source: number
   totalGross: number
   totalNet: number
   totalEmployeeEpf: number
@@ -172,12 +171,13 @@ export type PayrollRunCountAggregateOutputType = {
   approvalRejectionReason: number
   submittedForApprovalAt: number
   submittedForApprovalById: number
-  policyIds: number
   xeroJournalNumber: number
   xeroManualJournalId: number
   xeroSyncError: number
   xeroSyncStatus: number
   xeroSyncedAt: number
+  policyIds: number
+  source: number
   _all: number
 }
 
@@ -228,7 +228,6 @@ export type PayrollRunMinAggregateInputType = {
   periodYear?: true
   periodMonth?: true
   status?: true
-  source?: true
   totalGross?: true
   totalNet?: true
   totalEmployeeEpf?: true
@@ -257,6 +256,7 @@ export type PayrollRunMinAggregateInputType = {
   xeroSyncError?: true
   xeroSyncStatus?: true
   xeroSyncedAt?: true
+  source?: true
 }
 
 export type PayrollRunMaxAggregateInputType = {
@@ -265,7 +265,6 @@ export type PayrollRunMaxAggregateInputType = {
   periodYear?: true
   periodMonth?: true
   status?: true
-  source?: true
   totalGross?: true
   totalNet?: true
   totalEmployeeEpf?: true
@@ -294,6 +293,7 @@ export type PayrollRunMaxAggregateInputType = {
   xeroSyncError?: true
   xeroSyncStatus?: true
   xeroSyncedAt?: true
+  source?: true
 }
 
 export type PayrollRunCountAggregateInputType = {
@@ -302,7 +302,6 @@ export type PayrollRunCountAggregateInputType = {
   periodYear?: true
   periodMonth?: true
   status?: true
-  source?: true
   totalGross?: true
   totalNet?: true
   totalEmployeeEpf?: true
@@ -326,12 +325,13 @@ export type PayrollRunCountAggregateInputType = {
   approvalRejectionReason?: true
   submittedForApprovalAt?: true
   submittedForApprovalById?: true
-  policyIds?: true
   xeroJournalNumber?: true
   xeroManualJournalId?: true
   xeroSyncError?: true
   xeroSyncStatus?: true
   xeroSyncedAt?: true
+  policyIds?: true
+  source?: true
   _all?: true
 }
 
@@ -427,7 +427,6 @@ export type PayrollRunGroupByOutputType = {
   periodYear: number
   periodMonth: number
   status: $Enums.PayrollRunStatus
-  source: $Enums.PayrollRunSource
   totalGross: runtime.Decimal | null
   totalNet: runtime.Decimal | null
   totalEmployeeEpf: runtime.Decimal | null
@@ -451,12 +450,13 @@ export type PayrollRunGroupByOutputType = {
   approvalRejectionReason: string | null
   submittedForApprovalAt: Date | null
   submittedForApprovalById: string | null
-  policyIds: runtime.JsonValue | null
   xeroJournalNumber: string | null
   xeroManualJournalId: string | null
   xeroSyncError: string | null
   xeroSyncStatus: $Enums.XeroSyncStatus
   xeroSyncedAt: Date | null
+  policyIds: runtime.JsonValue | null
+  source: $Enums.PayrollRunSource
   _count: PayrollRunCountAggregateOutputType | null
   _avg: PayrollRunAvgAggregateOutputType | null
   _sum: PayrollRunSumAggregateOutputType | null
@@ -488,7 +488,6 @@ export type PayrollRunWhereInput = {
   periodYear?: Prisma.IntFilter<"PayrollRun"> | number
   periodMonth?: Prisma.IntFilter<"PayrollRun"> | number
   status?: Prisma.EnumPayrollRunStatusFilter<"PayrollRun"> | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
   totalGross?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -512,12 +511,13 @@ export type PayrollRunWhereInput = {
   approvalRejectionReason?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   submittedForApprovalAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
   submittedForApprovalById?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
-  policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
   xeroJournalNumber?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroManualJournalId?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroSyncError?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"PayrollRun"> | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
+  policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
+  source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   submittedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   submittedForApprovalBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -533,7 +533,6 @@ export type PayrollRunOrderByWithRelationInput = {
   periodYear?: Prisma.SortOrder
   periodMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  source?: Prisma.SortOrder
   totalGross?: Prisma.SortOrderInput | Prisma.SortOrder
   totalNet?: Prisma.SortOrderInput | Prisma.SortOrder
   totalEmployeeEpf?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -557,12 +556,13 @@ export type PayrollRunOrderByWithRelationInput = {
   approvalRejectionReason?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedForApprovalAt?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedForApprovalById?: Prisma.SortOrderInput | Prisma.SortOrder
-  policyIds?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroJournalNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroManualJournalId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  policyIds?: Prisma.SortOrderInput | Prisma.SortOrder
+  source?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   submittedBy?: Prisma.UserOrderByWithRelationInput
   submittedForApprovalBy?: Prisma.UserOrderByWithRelationInput
@@ -584,7 +584,6 @@ export type PayrollRunWhereUniqueInput = Prisma.AtLeast<{
   periodYear?: Prisma.IntFilter<"PayrollRun"> | number
   periodMonth?: Prisma.IntFilter<"PayrollRun"> | number
   status?: Prisma.EnumPayrollRunStatusFilter<"PayrollRun"> | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
   totalGross?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -608,11 +607,12 @@ export type PayrollRunWhereUniqueInput = Prisma.AtLeast<{
   approvalRejectionReason?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   submittedForApprovalAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
   submittedForApprovalById?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
-  policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
   xeroJournalNumber?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroSyncError?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"PayrollRun"> | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
+  policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
+  source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   submittedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   submittedForApprovalBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -628,7 +628,6 @@ export type PayrollRunOrderByWithAggregationInput = {
   periodYear?: Prisma.SortOrder
   periodMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  source?: Prisma.SortOrder
   totalGross?: Prisma.SortOrderInput | Prisma.SortOrder
   totalNet?: Prisma.SortOrderInput | Prisma.SortOrder
   totalEmployeeEpf?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -652,12 +651,13 @@ export type PayrollRunOrderByWithAggregationInput = {
   approvalRejectionReason?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedForApprovalAt?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedForApprovalById?: Prisma.SortOrderInput | Prisma.SortOrder
-  policyIds?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroJournalNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroManualJournalId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  policyIds?: Prisma.SortOrderInput | Prisma.SortOrder
+  source?: Prisma.SortOrder
   _count?: Prisma.PayrollRunCountOrderByAggregateInput
   _avg?: Prisma.PayrollRunAvgOrderByAggregateInput
   _max?: Prisma.PayrollRunMaxOrderByAggregateInput
@@ -674,7 +674,6 @@ export type PayrollRunScalarWhereWithAggregatesInput = {
   periodYear?: Prisma.IntWithAggregatesFilter<"PayrollRun"> | number
   periodMonth?: Prisma.IntWithAggregatesFilter<"PayrollRun"> | number
   status?: Prisma.EnumPayrollRunStatusWithAggregatesFilter<"PayrollRun"> | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceWithAggregatesFilter<"PayrollRun"> | $Enums.PayrollRunSource
   totalGross?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -698,12 +697,13 @@ export type PayrollRunScalarWhereWithAggregatesInput = {
   approvalRejectionReason?: Prisma.StringNullableWithAggregatesFilter<"PayrollRun"> | string | null
   submittedForApprovalAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PayrollRun"> | Date | string | null
   submittedForApprovalById?: Prisma.StringNullableWithAggregatesFilter<"PayrollRun"> | string | null
-  policyIds?: Prisma.JsonNullableWithAggregatesFilter<"PayrollRun">
   xeroJournalNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollRun"> | string | null
   xeroManualJournalId?: Prisma.StringNullableWithAggregatesFilter<"PayrollRun"> | string | null
   xeroSyncError?: Prisma.StringNullableWithAggregatesFilter<"PayrollRun"> | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusWithAggregatesFilter<"PayrollRun"> | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PayrollRun"> | Date | string | null
+  policyIds?: Prisma.JsonNullableWithAggregatesFilter<"PayrollRun">
+  source?: Prisma.EnumPayrollRunSourceWithAggregatesFilter<"PayrollRun"> | $Enums.PayrollRunSource
 }
 
 export type PayrollRunCreateInput = {
@@ -711,7 +711,6 @@ export type PayrollRunCreateInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -733,12 +732,13 @@ export type PayrollRunCreateInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
   submittedForApprovalBy?: Prisma.UserCreateNestedOneWithoutSubmittedForApprovalPayrollRunsInput
@@ -754,7 +754,6 @@ export type PayrollRunUncheckedCreateInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -778,12 +777,13 @@ export type PayrollRunUncheckedCreateInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
   reports?: Prisma.PayrollRunReportUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -795,7 +795,6 @@ export type PayrollRunUpdateInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -817,12 +816,13 @@ export type PayrollRunUpdateInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
   submittedForApprovalBy?: Prisma.UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput
@@ -838,7 +838,6 @@ export type PayrollRunUncheckedUpdateInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -862,12 +861,13 @@ export type PayrollRunUncheckedUpdateInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
   reports?: Prisma.PayrollRunReportUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -880,7 +880,6 @@ export type PayrollRunCreateManyInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -904,12 +903,13 @@ export type PayrollRunCreateManyInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
 }
 
 export type PayrollRunUpdateManyMutationInput = {
@@ -917,7 +917,6 @@ export type PayrollRunUpdateManyMutationInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -939,12 +938,13 @@ export type PayrollRunUpdateManyMutationInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
 }
 
 export type PayrollRunUncheckedUpdateManyInput = {
@@ -953,7 +953,6 @@ export type PayrollRunUncheckedUpdateManyInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -977,12 +976,13 @@ export type PayrollRunUncheckedUpdateManyInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
 }
 
 export type PayrollRunListRelationFilter = {
@@ -1013,7 +1013,6 @@ export type PayrollRunCountOrderByAggregateInput = {
   periodYear?: Prisma.SortOrder
   periodMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  source?: Prisma.SortOrder
   totalGross?: Prisma.SortOrder
   totalNet?: Prisma.SortOrder
   totalEmployeeEpf?: Prisma.SortOrder
@@ -1037,12 +1036,13 @@ export type PayrollRunCountOrderByAggregateInput = {
   approvalRejectionReason?: Prisma.SortOrder
   submittedForApprovalAt?: Prisma.SortOrder
   submittedForApprovalById?: Prisma.SortOrder
-  policyIds?: Prisma.SortOrder
   xeroJournalNumber?: Prisma.SortOrder
   xeroManualJournalId?: Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrder
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrder
+  policyIds?: Prisma.SortOrder
+  source?: Prisma.SortOrder
 }
 
 export type PayrollRunAvgOrderByAggregateInput = {
@@ -1071,7 +1071,6 @@ export type PayrollRunMaxOrderByAggregateInput = {
   periodYear?: Prisma.SortOrder
   periodMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  source?: Prisma.SortOrder
   totalGross?: Prisma.SortOrder
   totalNet?: Prisma.SortOrder
   totalEmployeeEpf?: Prisma.SortOrder
@@ -1100,6 +1099,7 @@ export type PayrollRunMaxOrderByAggregateInput = {
   xeroSyncError?: Prisma.SortOrder
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrder
+  source?: Prisma.SortOrder
 }
 
 export type PayrollRunMinOrderByAggregateInput = {
@@ -1108,7 +1108,6 @@ export type PayrollRunMinOrderByAggregateInput = {
   periodYear?: Prisma.SortOrder
   periodMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  source?: Prisma.SortOrder
   totalGross?: Prisma.SortOrder
   totalNet?: Prisma.SortOrder
   totalEmployeeEpf?: Prisma.SortOrder
@@ -1137,6 +1136,7 @@ export type PayrollRunMinOrderByAggregateInput = {
   xeroSyncError?: Prisma.SortOrder
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrder
+  source?: Prisma.SortOrder
 }
 
 export type PayrollRunSumOrderByAggregateInput = {
@@ -1359,7 +1359,6 @@ export type PayrollRunCreateWithoutSubmittedByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1381,12 +1380,13 @@ export type PayrollRunCreateWithoutSubmittedByInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedForApprovalBy?: Prisma.UserCreateNestedOneWithoutSubmittedForApprovalPayrollRunsInput
   adjustments?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutPayrollRunInput
@@ -1401,7 +1401,6 @@ export type PayrollRunUncheckedCreateWithoutSubmittedByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1424,12 +1423,13 @@ export type PayrollRunUncheckedCreateWithoutSubmittedByInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
   reports?: Prisma.PayrollRunReportUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -1451,7 +1451,6 @@ export type PayrollRunCreateWithoutSubmittedForApprovalByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1473,12 +1472,13 @@ export type PayrollRunCreateWithoutSubmittedForApprovalByInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
   adjustments?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutPayrollRunInput
@@ -1493,7 +1493,6 @@ export type PayrollRunUncheckedCreateWithoutSubmittedForApprovalByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1516,12 +1515,13 @@ export type PayrollRunUncheckedCreateWithoutSubmittedForApprovalByInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
   reports?: Prisma.PayrollRunReportUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -1563,7 +1563,6 @@ export type PayrollRunScalarWhereInput = {
   periodYear?: Prisma.IntFilter<"PayrollRun"> | number
   periodMonth?: Prisma.IntFilter<"PayrollRun"> | number
   status?: Prisma.EnumPayrollRunStatusFilter<"PayrollRun"> | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
   totalGross?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.DecimalNullableFilter<"PayrollRun"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1587,12 +1586,13 @@ export type PayrollRunScalarWhereInput = {
   approvalRejectionReason?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   submittedForApprovalAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
   submittedForApprovalById?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
-  policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
   xeroJournalNumber?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroManualJournalId?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroSyncError?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"PayrollRun"> | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
+  policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
+  source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
 }
 
 export type PayrollRunUpsertWithWhereUniqueWithoutSubmittedForApprovalByInput = {
@@ -1616,7 +1616,6 @@ export type PayrollRunCreateWithoutOrganizationInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1638,12 +1637,13 @@ export type PayrollRunCreateWithoutOrganizationInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
   submittedForApprovalBy?: Prisma.UserCreateNestedOneWithoutSubmittedForApprovalPayrollRunsInput
   adjustments?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutPayrollRunInput
@@ -1657,7 +1657,6 @@ export type PayrollRunUncheckedCreateWithoutOrganizationInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1681,12 +1680,13 @@ export type PayrollRunUncheckedCreateWithoutOrganizationInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
   reports?: Prisma.PayrollRunReportUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -1724,7 +1724,6 @@ export type PayrollRunCreateWithoutReportsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1746,12 +1745,13 @@ export type PayrollRunCreateWithoutReportsInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
   submittedForApprovalBy?: Prisma.UserCreateNestedOneWithoutSubmittedForApprovalPayrollRunsInput
@@ -1766,7 +1766,6 @@ export type PayrollRunUncheckedCreateWithoutReportsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1790,12 +1789,13 @@ export type PayrollRunUncheckedCreateWithoutReportsInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -1822,7 +1822,6 @@ export type PayrollRunUpdateWithoutReportsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1844,12 +1843,13 @@ export type PayrollRunUpdateWithoutReportsInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
   submittedForApprovalBy?: Prisma.UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput
@@ -1864,7 +1864,6 @@ export type PayrollRunUncheckedUpdateWithoutReportsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1888,12 +1887,13 @@ export type PayrollRunUncheckedUpdateWithoutReportsInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -1904,7 +1904,6 @@ export type PayrollRunCreateWithoutClaimAttachmentsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1926,12 +1925,13 @@ export type PayrollRunCreateWithoutClaimAttachmentsInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
   submittedForApprovalBy?: Prisma.UserCreateNestedOneWithoutSubmittedForApprovalPayrollRunsInput
@@ -1946,7 +1946,6 @@ export type PayrollRunUncheckedCreateWithoutClaimAttachmentsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1970,12 +1969,13 @@ export type PayrollRunUncheckedCreateWithoutClaimAttachmentsInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   reports?: Prisma.PayrollRunReportUncheckedCreateNestedManyWithoutPayrollRunInput
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -2002,7 +2002,6 @@ export type PayrollRunUpdateWithoutClaimAttachmentsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2024,12 +2023,13 @@ export type PayrollRunUpdateWithoutClaimAttachmentsInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
   submittedForApprovalBy?: Prisma.UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput
@@ -2044,7 +2044,6 @@ export type PayrollRunUncheckedUpdateWithoutClaimAttachmentsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2068,12 +2067,13 @@ export type PayrollRunUncheckedUpdateWithoutClaimAttachmentsInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   reports?: Prisma.PayrollRunReportUncheckedUpdateManyWithoutPayrollRunNestedInput
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2084,7 +2084,6 @@ export type PayrollRunCreateWithoutAdjustmentsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2106,12 +2105,13 @@ export type PayrollRunCreateWithoutAdjustmentsInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
   submittedForApprovalBy?: Prisma.UserCreateNestedOneWithoutSubmittedForApprovalPayrollRunsInput
@@ -2126,7 +2126,6 @@ export type PayrollRunUncheckedCreateWithoutAdjustmentsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2150,12 +2149,13 @@ export type PayrollRunUncheckedCreateWithoutAdjustmentsInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
   reports?: Prisma.PayrollRunReportUncheckedCreateNestedManyWithoutPayrollRunInput
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -2182,7 +2182,6 @@ export type PayrollRunUpdateWithoutAdjustmentsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2204,12 +2203,13 @@ export type PayrollRunUpdateWithoutAdjustmentsInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
   submittedForApprovalBy?: Prisma.UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput
@@ -2224,7 +2224,6 @@ export type PayrollRunUncheckedUpdateWithoutAdjustmentsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2248,12 +2247,13 @@ export type PayrollRunUncheckedUpdateWithoutAdjustmentsInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
   reports?: Prisma.PayrollRunReportUncheckedUpdateManyWithoutPayrollRunNestedInput
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2264,7 +2264,6 @@ export type PayrollRunCreateWithoutPayslipsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2286,12 +2285,13 @@ export type PayrollRunCreateWithoutPayslipsInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
   submittedForApprovalBy?: Prisma.UserCreateNestedOneWithoutSubmittedForApprovalPayrollRunsInput
@@ -2306,7 +2306,6 @@ export type PayrollRunUncheckedCreateWithoutPayslipsInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2330,12 +2329,13 @@ export type PayrollRunUncheckedCreateWithoutPayslipsInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
   reports?: Prisma.PayrollRunReportUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -2362,7 +2362,6 @@ export type PayrollRunUpdateWithoutPayslipsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2384,12 +2383,13 @@ export type PayrollRunUpdateWithoutPayslipsInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
   submittedForApprovalBy?: Prisma.UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput
@@ -2404,7 +2404,6 @@ export type PayrollRunUncheckedUpdateWithoutPayslipsInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2428,12 +2427,13 @@ export type PayrollRunUncheckedUpdateWithoutPayslipsInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
   reports?: Prisma.PayrollRunReportUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2445,7 +2445,6 @@ export type PayrollRunCreateManySubmittedByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2468,12 +2467,13 @@ export type PayrollRunCreateManySubmittedByInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
 }
 
 export type PayrollRunCreateManySubmittedForApprovalByInput = {
@@ -2482,7 +2482,6 @@ export type PayrollRunCreateManySubmittedForApprovalByInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2505,12 +2504,13 @@ export type PayrollRunCreateManySubmittedForApprovalByInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
 }
 
 export type PayrollRunUpdateWithoutSubmittedByInput = {
@@ -2518,7 +2518,6 @@ export type PayrollRunUpdateWithoutSubmittedByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2540,12 +2539,13 @@ export type PayrollRunUpdateWithoutSubmittedByInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedForApprovalBy?: Prisma.UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput
   adjustments?: Prisma.PayrollRunAdjustmentUpdateManyWithoutPayrollRunNestedInput
@@ -2560,7 +2560,6 @@ export type PayrollRunUncheckedUpdateWithoutSubmittedByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2583,12 +2582,13 @@ export type PayrollRunUncheckedUpdateWithoutSubmittedByInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
   reports?: Prisma.PayrollRunReportUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2601,7 +2601,6 @@ export type PayrollRunUncheckedUpdateManyWithoutSubmittedByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2624,12 +2623,13 @@ export type PayrollRunUncheckedUpdateManyWithoutSubmittedByInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
 }
 
 export type PayrollRunUpdateWithoutSubmittedForApprovalByInput = {
@@ -2637,7 +2637,6 @@ export type PayrollRunUpdateWithoutSubmittedForApprovalByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2659,12 +2658,13 @@ export type PayrollRunUpdateWithoutSubmittedForApprovalByInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
   adjustments?: Prisma.PayrollRunAdjustmentUpdateManyWithoutPayrollRunNestedInput
@@ -2679,7 +2679,6 @@ export type PayrollRunUncheckedUpdateWithoutSubmittedForApprovalByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2702,12 +2701,13 @@ export type PayrollRunUncheckedUpdateWithoutSubmittedForApprovalByInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
   reports?: Prisma.PayrollRunReportUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2720,7 +2720,6 @@ export type PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2743,12 +2742,13 @@ export type PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
 }
 
 export type PayrollRunCreateManyOrganizationInput = {
@@ -2756,7 +2756,6 @@ export type PayrollRunCreateManyOrganizationInput = {
   periodYear: number
   periodMonth: number
   status?: $Enums.PayrollRunStatus
-  source?: $Enums.PayrollRunSource
   totalGross?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2780,12 +2779,13 @@ export type PayrollRunCreateManyOrganizationInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: $Enums.PayrollRunSource
 }
 
 export type PayrollRunUpdateWithoutOrganizationInput = {
@@ -2793,7 +2793,6 @@ export type PayrollRunUpdateWithoutOrganizationInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2815,12 +2814,13 @@ export type PayrollRunUpdateWithoutOrganizationInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
   submittedForApprovalBy?: Prisma.UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput
   adjustments?: Prisma.PayrollRunAdjustmentUpdateManyWithoutPayrollRunNestedInput
@@ -2834,7 +2834,6 @@ export type PayrollRunUncheckedUpdateWithoutOrganizationInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2858,12 +2857,13 @@ export type PayrollRunUncheckedUpdateWithoutOrganizationInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
   reports?: Prisma.PayrollRunReportUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2875,7 +2875,6 @@ export type PayrollRunUncheckedUpdateManyWithoutOrganizationInput = {
   periodYear?: Prisma.IntFieldUpdateOperationsInput | number
   periodMonth?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumPayrollRunStatusFieldUpdateOperationsInput | $Enums.PayrollRunStatus
-  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   totalGross?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalNet?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   totalEmployeeEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2899,12 +2898,13 @@ export type PayrollRunUncheckedUpdateManyWithoutOrganizationInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
 }
 
 
@@ -2971,7 +2971,6 @@ export type PayrollRunSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   periodYear?: boolean
   periodMonth?: boolean
   status?: boolean
-  source?: boolean
   totalGross?: boolean
   totalNet?: boolean
   totalEmployeeEpf?: boolean
@@ -2995,12 +2994,13 @@ export type PayrollRunSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   approvalRejectionReason?: boolean
   submittedForApprovalAt?: boolean
   submittedForApprovalById?: boolean
-  policyIds?: boolean
   xeroJournalNumber?: boolean
   xeroManualJournalId?: boolean
   xeroSyncError?: boolean
   xeroSyncStatus?: boolean
   xeroSyncedAt?: boolean
+  policyIds?: boolean
+  source?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   submittedBy?: boolean | Prisma.PayrollRun$submittedByArgs<ExtArgs>
   submittedForApprovalBy?: boolean | Prisma.PayrollRun$submittedForApprovalByArgs<ExtArgs>
@@ -3019,7 +3019,6 @@ export type PayrollRunSelectScalar = {
   periodYear?: boolean
   periodMonth?: boolean
   status?: boolean
-  source?: boolean
   totalGross?: boolean
   totalNet?: boolean
   totalEmployeeEpf?: boolean
@@ -3043,15 +3042,16 @@ export type PayrollRunSelectScalar = {
   approvalRejectionReason?: boolean
   submittedForApprovalAt?: boolean
   submittedForApprovalById?: boolean
-  policyIds?: boolean
   xeroJournalNumber?: boolean
   xeroManualJournalId?: boolean
   xeroSyncError?: boolean
   xeroSyncStatus?: boolean
   xeroSyncedAt?: boolean
+  policyIds?: boolean
+  source?: boolean
 }
 
-export type PayrollRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "periodYear" | "periodMonth" | "status" | "source" | "totalGross" | "totalNet" | "totalEmployeeEpf" | "totalEmployerEpf" | "totalEmployeeSocso" | "totalEmployerSocso" | "totalEmployeeEis" | "totalEmployerEis" | "totalPcb" | "totalHrdf" | "totalZakat" | "employeeCount" | "employeesSubjectToHrdf" | "totalWagesSubjectToHrdf" | "totalCostToEmployer" | "submittedAt" | "submittedById" | "createdAt" | "updatedAt" | "lastMutatedAt" | "approvalRejectionReason" | "submittedForApprovalAt" | "submittedForApprovalById" | "policyIds" | "xeroJournalNumber" | "xeroManualJournalId" | "xeroSyncError" | "xeroSyncStatus" | "xeroSyncedAt", ExtArgs["result"]["payrollRun"]>
+export type PayrollRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "periodYear" | "periodMonth" | "status" | "totalGross" | "totalNet" | "totalEmployeeEpf" | "totalEmployerEpf" | "totalEmployeeSocso" | "totalEmployerSocso" | "totalEmployeeEis" | "totalEmployerEis" | "totalPcb" | "totalHrdf" | "totalZakat" | "employeeCount" | "employeesSubjectToHrdf" | "totalWagesSubjectToHrdf" | "totalCostToEmployer" | "submittedAt" | "submittedById" | "createdAt" | "updatedAt" | "lastMutatedAt" | "approvalRejectionReason" | "submittedForApprovalAt" | "submittedForApprovalById" | "xeroJournalNumber" | "xeroManualJournalId" | "xeroSyncError" | "xeroSyncStatus" | "xeroSyncedAt" | "policyIds" | "source", ExtArgs["result"]["payrollRun"]>
 export type PayrollRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   submittedBy?: boolean | Prisma.PayrollRun$submittedByArgs<ExtArgs>
@@ -3083,14 +3083,6 @@ export type $PayrollRunPayload<ExtArgs extends runtime.Types.Extensions.Internal
      */
     periodMonth: number
     status: $Enums.PayrollRunStatus
-    /**
-     * COMPUTED = produced by calc engine (the normal path). IMPORTED =
-     * seeded from a YTD migration upload — the payslip numbers are
-     * taken as-typed by the admin, not recomputed. Imported runs are
-     * surfaced in their own card on /admin/payroll/runs so it's
-     * obvious which history is engine-computed vs migrated.
-     */
-    source: $Enums.PayrollRunSource
     totalGross: runtime.Decimal | null
     totalNet: runtime.Decimal | null
     totalEmployeeEpf: runtime.Decimal | null
@@ -3155,17 +3147,6 @@ export type $PayrollRunPayload<ExtArgs extends runtime.Types.Extensions.Internal
     submittedForApprovalAt: Date | null
     submittedForApprovalById: string | null
     /**
-     * JSON array of EmployeePolicy ids whose employees this run covers.
-     * `null` = no scope = every employee in the org (legacy / org-wide
-     * behaviour). When non-null, payslip generation only pulls employees
-     * whose `EmployeeProfile.policyId` is in this list. The unique
-     * `(orgId, periodYear, periodMonth)` constraint stays — there's
-     * still only one run per month per org; this scope just narrows
-     * WHO gets paid in that run. Empty array would be valid but
-     * useless (no employees), so the picker enforces ≥ 1 entry.
-     */
-    policyIds: runtime.JsonValue | null
-    /**
      * Human-readable journal number / narration (echoed back from
      * Xero). Surfaced on the run page so admins can find the entry
      * in Xero quickly.
@@ -3187,6 +3168,25 @@ export type $PayrollRunPayload<ExtArgs extends runtime.Types.Extensions.Internal
      */
     xeroSyncStatus: $Enums.XeroSyncStatus
     xeroSyncedAt: Date | null
+    /**
+     * JSON array of EmployeePolicy ids whose employees this run covers.
+     * `null` = no scope = every employee in the org (legacy / org-wide
+     * behaviour). When non-null, payslip generation only pulls employees
+     * whose `EmployeeProfile.policyId` is in this list. The unique
+     * `(orgId, periodYear, periodMonth)` constraint stays — there's
+     * still only one run per month per org; this scope just narrows
+     * WHO gets paid in that run. Empty array would be valid but
+     * useless (no employees), so the picker enforces ≥ 1 entry.
+     */
+    policyIds: runtime.JsonValue | null
+    /**
+     * COMPUTED = produced by calc engine (the normal path). IMPORTED =
+     * seeded from a YTD migration upload — the payslip numbers are
+     * taken as-typed by the admin, not recomputed. Imported runs are
+     * surfaced in their own card on /admin/payroll/runs so it's
+     * obvious which history is engine-computed vs migrated.
+     */
+    source: $Enums.PayrollRunSource
   }, ExtArgs["result"]["payrollRun"]>
   composites: {}
 }
@@ -3568,7 +3568,6 @@ export interface PayrollRunFieldRefs {
   readonly periodYear: Prisma.FieldRef<"PayrollRun", 'Int'>
   readonly periodMonth: Prisma.FieldRef<"PayrollRun", 'Int'>
   readonly status: Prisma.FieldRef<"PayrollRun", 'PayrollRunStatus'>
-  readonly source: Prisma.FieldRef<"PayrollRun", 'PayrollRunSource'>
   readonly totalGross: Prisma.FieldRef<"PayrollRun", 'Decimal'>
   readonly totalNet: Prisma.FieldRef<"PayrollRun", 'Decimal'>
   readonly totalEmployeeEpf: Prisma.FieldRef<"PayrollRun", 'Decimal'>
@@ -3592,12 +3591,13 @@ export interface PayrollRunFieldRefs {
   readonly approvalRejectionReason: Prisma.FieldRef<"PayrollRun", 'String'>
   readonly submittedForApprovalAt: Prisma.FieldRef<"PayrollRun", 'DateTime'>
   readonly submittedForApprovalById: Prisma.FieldRef<"PayrollRun", 'String'>
-  readonly policyIds: Prisma.FieldRef<"PayrollRun", 'Json'>
   readonly xeroJournalNumber: Prisma.FieldRef<"PayrollRun", 'String'>
   readonly xeroManualJournalId: Prisma.FieldRef<"PayrollRun", 'String'>
   readonly xeroSyncError: Prisma.FieldRef<"PayrollRun", 'String'>
   readonly xeroSyncStatus: Prisma.FieldRef<"PayrollRun", 'XeroSyncStatus'>
   readonly xeroSyncedAt: Prisma.FieldRef<"PayrollRun", 'DateTime'>
+  readonly policyIds: Prisma.FieldRef<"PayrollRun", 'Json'>
+  readonly source: Prisma.FieldRef<"PayrollRun", 'PayrollRunSource'>
 }
     
 

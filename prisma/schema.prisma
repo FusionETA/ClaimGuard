@@ -54,18 +54,18 @@ model User {
 }
 
 model Organization {
-  id                        String                 @id @default(cuid())
-  name                      String                 @unique
-  claimCutoffDay            Int                    @default(25)
-  createdAt                 DateTime               @default(now())
-  updatedAt                 DateTime               @updatedAt
-  workingHoursEnd           String                 @default("18:00")
-  workingHoursStart         String                 @default("09:00")
-  geofenceRadiusMeters      Int                    @default(200)
-  defaultMileageRate        Decimal?               @db.Decimal(10, 4)
-  mileageUnit               MileageUnit            @default(KM)
-  otEnabled                 Boolean                @default(true)
-  timezone                  String                 @default("Asia/Kuala_Lumpur")
+  id                        String                    @id @default(cuid())
+  name                      String                    @unique
+  claimCutoffDay            Int                       @default(25)
+  createdAt                 DateTime                  @default(now())
+  updatedAt                 DateTime                  @updatedAt
+  workingHoursEnd           String                    @default("18:00")
+  workingHoursStart         String                    @default("09:00")
+  geofenceRadiusMeters      Int                       @default(200)
+  defaultMileageRate        Decimal?                  @db.Decimal(10, 4)
+  mileageUnit               MileageUnit               @default(KM)
+  otEnabled                 Boolean                   @default(true)
+  timezone                  String                    @default("Asia/Kuala_Lumpur")
   /// JSON array of ISO 4217 currency codes the admin has enabled for
   /// expense claims (e.g. ["MYR","USD","SGD"]). Empty/null falls back to
   /// just defaultCurrency. The employee claim form picker shows only
@@ -79,10 +79,10 @@ model Organization {
   /// When true, the admin attendance Trends tab renders the supervisor
   /// performance card listing supervisors with slow approvals (any
   /// decision exceeding `supervisorSlaMinutes`) and any rejections.
-  supervisorReportEnabled   Boolean                @default(true)
+  supervisorReportEnabled   Boolean                   @default(true)
   /// SLA threshold (in minutes) used to flag a supervisor approval as
   /// "slow" in the supervisor performance card. Defaults to 60.
-  supervisorSlaMinutes      Int                    @default(60)
+  supervisorSlaMinutes      Int                       @default(60)
   /// When true, employees can apply for leave that hasn't yet accrued
   /// — provided it WILL have accrued by the leave's start date (e.g.
   /// in January book 6 days for June against a PRO_RATED entitlement
@@ -90,7 +90,7 @@ model Organization {
   /// strict rule applies: requested days must fit within today's
   /// balance. Only affects PRO_RATED leave types; LUMP_SUM is fully
   /// credited at the start of the year so forecasting is a no-op.
-  allowForecastedLeaveApply Boolean                @default(false)
+  allowForecastedLeaveApply Boolean                   @default(false)
   adminMembers              AdminOrganization[]
   apiIntegrations           ApiIntegration[]
   chartAccounts             ChartOfAccount[]
@@ -119,75 +119,75 @@ model Organization {
 /// Two policies are seeded per org during the migration so existing
 /// behavior is preserved at cutover.
 model EmployeePolicy {
-  id                         String                   @id @default(cuid())
-  organizationId             String
-  name                       String
-  description                String?
+  id                          String                   @id @default(cuid())
+  organizationId              String
+  name                        String
+  description                 String?
   /// Exactly one policy per org should be the default (used when creating
   /// a new employee through the admin UI / API without specifying one).
-  isDefault                  Boolean                  @default(false)
+  isDefault                   Boolean                  @default(false)
   /// Soft-archive. Archived policies are hidden from new assignments but
   /// kept around so historical employee snapshots stay readable.
-  archivedAt                 DateTime?
-  canAccessAttendance        Boolean                  @default(true)
-  canAccessClaims            Boolean                  @default(true)
-  canAccessLeave             Boolean                  @default(true)
-  salaryType                 PayoutMethod             @default(HOURLY)
-  otMethod                   OtPayoutMethod           @default(CASH)
-  createdAt                  DateTime                 @default(now())
-  updatedAt                  DateTime                 @updatedAt
+  archivedAt                  DateTime?
+  canAccessAttendance         Boolean                  @default(true)
+  canAccessClaims             Boolean                  @default(true)
+  canAccessLeave              Boolean                  @default(true)
+  salaryType                  PayoutMethod             @default(HOURLY)
+  otMethod                    OtPayoutMethod           @default(CASH)
+  createdAt                   DateTime                 @default(now())
+  updatedAt                   DateTime                 @updatedAt
   /// When false, employees on this policy cannot file OT at all — the
   /// OT method below is ignored and OT-related UI is hidden.
-  otEnabled                  Boolean                  @default(true)
+  otEnabled                   Boolean                  @default(true)
   /// When true, employees on this policy must be inside the project
   /// geofence (radius set on Organization, lat/lng on Project) to clock
   /// in. When false, geofence checks are skipped for these employees.
-  requireGeofence            Boolean                  @default(true)
+  requireGeofence             Boolean                  @default(true)
+  /// When true, the clock-in flow gates on a selfie capture. Replaces
+  /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
+  /// selfie on for any policy regardless of pay type.
+  requireSelfie               Boolean                  @default(false)
+  /// Daily working minutes after which extra time becomes OT-eligible.
+  /// Stored as minutes for precision; the admin UI presents this as
+  /// hours (minutes ÷ 60).
+  otDailyThresholdMinutes     Int                      @default(480)
+  /// OT multipliers (× HRP) — applied only when otMethod === CASH.
+  /// Ignored for TIME_BANK (banks 1:1) and when otEnabled = false.
+  /// Values are kept in the row when OT mode is non-CASH so toggling
+  /// back to CASH restores the admin's chosen rates.
+  otRateNormalDay             Decimal                  @default(1.50) @db.Decimal(4, 2)
+  otRatePublicHoliday         Decimal                  @default(3.00) @db.Decimal(4, 2)
+  otRatePublicHolidayInShift  Decimal                  @default(2.00) @db.Decimal(4, 2)
+  otRateRestDay               Decimal                  @default(2.00) @db.Decimal(4, 2)
+  /// In-shift premiums (× ORP) for hours worked within the regular
+  /// shift on rest days / public holidays.
+  otRateRestDayInShift        Decimal                  @default(1.00) @db.Decimal(4, 2)
+  /// Optional monthly-salary cap above which OT requires extra approval.
+  /// Null means no cap. Mirrors the legacy org-wide
+  /// `Organization.otSalaryThreshold` but is now opt-in per policy.
+  otSalaryThreshold           Decimal?                 @db.Decimal(10, 2)
+  /// When true, employees on this policy are temporary (e.g. probation,
+  /// fixed-term). The admin sets a `temporaryReviewDate` on each such
+  /// employee's payroll profile; a cron reminds admins to revisit the
+  /// employee's classification when that date arrives.
+  temporary                   Boolean                  @default(false)
+  captureLocationOnBreakEnd   Boolean                  @default(true)
+  captureLocationOnBreakStart Boolean                  @default(true)
+  /// Per-event capture flags. Only consulted when geolocationEnabled
+  /// is true. Default true so newly-created policies record location
+  /// for every event out of the box.
+  captureLocationOnClockIn    Boolean                  @default(true)
+  captureLocationOnClockOut   Boolean                  @default(true)
   /// Master switch for capturing the employee's GPS coordinates on
   /// clock events. When false, the client never asks for GPS and the
   /// per-event capture flags below are ignored. When true, the four
   /// per-event flags decide which events get their coords persisted.
   /// Auto-flipped to true on the server when `requireGeofence` is
   /// turned on (geofence enforcement needs GPS to work).
-  geolocationEnabled            Boolean               @default(true)
-  /// Per-event capture flags. Only consulted when geolocationEnabled
-  /// is true. Default true so newly-created policies record location
-  /// for every event out of the box.
-  captureLocationOnClockIn      Boolean               @default(true)
-  captureLocationOnClockOut     Boolean               @default(true)
-  captureLocationOnBreakStart   Boolean               @default(true)
-  captureLocationOnBreakEnd     Boolean               @default(true)
-  /// When true, the clock-in flow gates on a selfie capture. Replaces
-  /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
-  /// selfie on for any policy regardless of pay type.
-  requireSelfie              Boolean                  @default(false)
-  /// Daily working minutes after which extra time becomes OT-eligible.
-  /// Stored as minutes for precision; the admin UI presents this as
-  /// hours (minutes ÷ 60).
-  otDailyThresholdMinutes    Int                      @default(480)
-  /// OT multipliers (× HRP) — applied only when otMethod === CASH.
-  /// Ignored for TIME_BANK (banks 1:1) and when otEnabled = false.
-  /// Values are kept in the row when OT mode is non-CASH so toggling
-  /// back to CASH restores the admin's chosen rates.
-  otRateNormalDay            Decimal                  @default(1.50) @db.Decimal(4, 2)
-  otRatePublicHoliday        Decimal                  @default(3.00) @db.Decimal(4, 2)
-  otRatePublicHolidayInShift Decimal                  @default(2.00) @db.Decimal(4, 2)
-  otRateRestDay              Decimal                  @default(2.00) @db.Decimal(4, 2)
-  /// In-shift premiums (× ORP) for hours worked within the regular
-  /// shift on rest days / public holidays.
-  otRateRestDayInShift       Decimal                  @default(1.00) @db.Decimal(4, 2)
-  /// Optional monthly-salary cap above which OT requires extra approval.
-  /// Null means no cap. Mirrors the legacy org-wide
-  /// `Organization.otSalaryThreshold` but is now opt-in per policy.
-  otSalaryThreshold          Decimal?                 @db.Decimal(10, 2)
-  /// When true, employees on this policy are temporary (e.g. probation,
-  /// fixed-term). The admin sets a `temporaryReviewDate` on each such
-  /// employee's payroll profile; a cron reminds admins to revisit the
-  /// employee's classification when that date arrives.
-  temporary                  Boolean                  @default(false)
-  organization               Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  employees                  EmployeeProfile[]
-  leaveDefaults              PolicyLeaveEntitlement[]
+  geolocationEnabled          Boolean                  @default(true)
+  organization                Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employees                   EmployeeProfile[]
+  leaveDefaults               PolicyLeaveEntitlement[]
 
   @@unique([organizationId, name])
   @@index([organizationId, isDefault])
@@ -309,6 +309,7 @@ model AdminOrganization {
   id             String       @id @default(cuid())
   adminId        String
   organizationId String
+  createdAt      DateTime     @default(now())
   /// JSON array of admin module keys the admin can access in this org
   /// (e.g. ["claims_personal","payroll","leave"]). `null` = full access
   /// (legacy behaviour for admins added before this column shipped — they
@@ -322,11 +323,6 @@ model AdminOrganization {
   /// leave / attendance / payroll preview to filter the employees this
   /// admin can see.
   policyIds      Json?
-  createdAt      DateTime     @default(now())
-  // `@default(now())` backfills existing rows when this column was
-  // added; `@updatedAt` makes Prisma stamp it on every write going
-  // forward. Without the default, db push would refuse to add the
-  // column to a table that already has rows.
   updatedAt      DateTime     @default(now()) @updatedAt
   admin          User         @relation("AdminOrganizations", fields: [adminId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -828,9 +824,9 @@ model AttendanceRecord {
   editLogs               AttendanceEditLog[]
   employee               User                  @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
   projectRef             XeroProject?          @relation("AttendanceRecordProject", fields: [projectId], references: [id])
+  sessions               AttendanceSession[]
   breaks                 BreakSession[]
   breakEditLogs          BreakSessionEditLog[]
-  sessions               AttendanceSession[]
 
   @@unique([employeeId, date])
   @@index([employeeId, date])
@@ -872,30 +868,30 @@ model AttendanceEditLog {
 }
 
 model BreakSession {
-  id                       String                @id @default(cuid())
-  attendanceRecordId       String
-  /// FK to the specific session this break belongs to. Null on legacy
-  /// rows created before multi-session was introduced; a backfill script
-  /// populates this for existing records.
-  attendanceSessionId      String?
-  startedAt                DateTime
-  endedAt                  DateTime?
-  createdAt                DateTime              @default(now())
+  id                      String                @id @default(cuid())
+  attendanceRecordId      String
+  startedAt               DateTime
+  endedAt                 DateTime?
+  createdAt               DateTime              @default(now())
+  endedAtDistanceMeters   Float?
+  /// Same shape, captured at break-end.
+  endedAtLat              Float?
+  endedAtLng              Float?
+  startedAtDistanceMeters Float?
   /// GPS coords captured at break-start, when the employee's policy
   /// allows location capture. Null when GPS wasn't available or the
   /// policy has it disabled. `distanceMeters` is the haversine distance
   /// from the project geofence center at capture time (display only;
   /// no enforcement on breaks).
-  startedAtLat             Float?
-  startedAtLng             Float?
-  startedAtDistanceMeters  Float?
-  /// Same shape, captured at break-end.
-  endedAtLat               Float?
-  endedAtLng               Float?
-  endedAtDistanceMeters    Float?
-  attendanceRecord         AttendanceRecord      @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
-  attendanceSession        AttendanceSession?    @relation(fields: [attendanceSessionId], references: [id], onDelete: SetNull)
-  editLogs                 BreakSessionEditLog[]
+  startedAtLat            Float?
+  startedAtLng            Float?
+  /// FK to the specific session this break belongs to. Null on legacy
+  /// rows created before multi-session was introduced; a backfill script
+  /// populates this for existing records.
+  attendanceSessionId     String?
+  attendanceRecord        AttendanceRecord      @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  attendanceSession       AttendanceSession?    @relation(fields: [attendanceSessionId], references: [id])
+  editLogs                BreakSessionEditLog[]
 
   @@index([attendanceRecordId])
   @@index([attendanceRecordId, endedAt])
@@ -1360,30 +1356,30 @@ model PayrollCompanyInfo {
 /// the login or fish it out of a password manager every time the LHDN /
 /// SOCSO / EPF deadlines roll around. One row per (org, portal).
 model PayrollPortalCredential {
-  id             String       @id @default(cuid())
-  organizationId String
-  portal         PortalKind
+  id               String       @id @default(cuid())
+  organizationId   String
+  portal           PortalKind
   /// Plain-text login ID.
-  userId         String?
+  userId           String?
   /// AES-256-GCM ciphertext. Layout: iv(12) || authTag(16) || ciphertext,
   /// base64-encoded. Decrypt with `decryptSecret()` from `lib/crypto.ts`.
   /// Null when the admin hasn't saved a password yet.
-  passwordEnc    String?
+  passwordEnc      String?
   /// KWSP-only: the image the admin chose at registration (e.g.
   /// "elephant"). Plain text.
-  image          String?
+  image            String?
   /// KWSP-only: secret code shown at login. Plain text.
-  secretCode     String?
+  secretCode       String?
   /// PERKESO-only: security phrase. Plain text.
-  securityPhrase String?
+  securityPhrase   String?
   /// PERKESO-only: password reminder hint. Plain text.
   passwordReminder String?
   /// Free-form notes the admin wants to remember (e.g. "old PIC was
   /// Sarah, rotated 2026-03"). Plain text.
-  notes          String?     @db.Text
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  notes            String?      @db.Text
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, portal])
   @@index([organizationId])
@@ -1399,12 +1395,6 @@ model PayrollRun {
   /// 1..12
   periodMonth              Int
   status                   PayrollRunStatus       @default(DRAFT)
-  /// COMPUTED = produced by calc engine (the normal path). IMPORTED =
-  /// seeded from a YTD migration upload — the payslip numbers are
-  /// taken as-typed by the admin, not recomputed. Imported runs are
-  /// surfaced in their own card on /admin/payroll/runs so it's
-  /// obvious which history is engine-computed vs migrated.
-  source                   PayrollRunSource       @default(COMPUTED)
   totalGross               Decimal?               @db.Decimal(14, 2)
   totalNet                 Decimal?               @db.Decimal(14, 2)
   totalEmployeeEpf         Decimal?               @db.Decimal(14, 2)
@@ -1454,15 +1444,6 @@ model PayrollRun {
   /// when the FINAL approver pushed the run live.
   submittedForApprovalAt   DateTime?
   submittedForApprovalById String?
-  /// JSON array of EmployeePolicy ids whose employees this run covers.
-  /// `null` = no scope = every employee in the org (legacy / org-wide
-  /// behaviour). When non-null, payslip generation only pulls employees
-  /// whose `EmployeeProfile.policyId` is in this list. The unique
-  /// `(orgId, periodYear, periodMonth)` constraint stays — there's
-  /// still only one run per month per org; this scope just narrows
-  /// WHO gets paid in that run. Empty array would be valid but
-  /// useless (no employees), so the picker enforces ≥ 1 entry.
-  policyIds                Json?
   /// Human-readable journal number / narration (echoed back from
   /// Xero). Surfaced on the run page so admins can find the entry
   /// in Xero quickly.
@@ -1477,6 +1458,21 @@ model PayrollRun {
   /// SYNCED on success or FAILED if Xero returned an error.
   xeroSyncStatus           XeroSyncStatus         @default(NOT_SYNCED)
   xeroSyncedAt             DateTime?
+  /// JSON array of EmployeePolicy ids whose employees this run covers.
+  /// `null` = no scope = every employee in the org (legacy / org-wide
+  /// behaviour). When non-null, payslip generation only pulls employees
+  /// whose `EmployeeProfile.policyId` is in this list. The unique
+  /// `(orgId, periodYear, periodMonth)` constraint stays — there's
+  /// still only one run per month per org; this scope just narrows
+  /// WHO gets paid in that run. Empty array would be valid but
+  /// useless (no employees), so the picker enforces ≥ 1 entry.
+  policyIds                Json?
+  /// COMPUTED = produced by calc engine (the normal path). IMPORTED =
+  /// seeded from a YTD migration upload — the payslip numbers are
+  /// taken as-typed by the admin, not recomputed. Imported runs are
+  /// surfaced in their own card on /admin/payroll/runs so it's
+  /// obvious which history is engine-computed vs migrated.
+  source                   PayrollRunSource       @default(COMPUTED)
   organization             Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   submittedBy              User?                  @relation("PayrollRunSubmittedBy", fields: [submittedById], references: [id])
   submittedForApprovalBy   User?                  @relation("PayrollRunSubmittedForApprovalBy", fields: [submittedForApprovalById], references: [id])

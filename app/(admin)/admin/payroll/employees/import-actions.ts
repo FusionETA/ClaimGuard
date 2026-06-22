@@ -275,10 +275,8 @@ export async function importMappedCsvAction(input: {
    */
   leaveSeedByRow?: Record<
     number,
-    {
-      days: Record<string, number>
-      methods: Record<string, "LUMP_SUM" | "PRO_RATED">
-    }
+    | { method: "DEFAULT" }
+    | { method?: "CUSTOM"; days: Record<string, number>; methods: Record<string, "LUMP_SUM" | "PRO_RATED"> }
   >
 }): Promise<MappedImportActionResult> {
   try {

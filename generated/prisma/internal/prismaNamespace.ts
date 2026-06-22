@@ -3713,11 +3713,6 @@ export const EmployeePolicyScalarFieldEnum = {
   updatedAt: 'updatedAt',
   otEnabled: 'otEnabled',
   requireGeofence: 'requireGeofence',
-  geolocationEnabled: 'geolocationEnabled',
-  captureLocationOnClockIn: 'captureLocationOnClockIn',
-  captureLocationOnClockOut: 'captureLocationOnClockOut',
-  captureLocationOnBreakStart: 'captureLocationOnBreakStart',
-  captureLocationOnBreakEnd: 'captureLocationOnBreakEnd',
   requireSelfie: 'requireSelfie',
   otDailyThresholdMinutes: 'otDailyThresholdMinutes',
   otRateNormalDay: 'otRateNormalDay',
@@ -3726,7 +3721,12 @@ export const EmployeePolicyScalarFieldEnum = {
   otRateRestDay: 'otRateRestDay',
   otRateRestDayInShift: 'otRateRestDayInShift',
   otSalaryThreshold: 'otSalaryThreshold',
-  temporary: 'temporary'
+  temporary: 'temporary',
+  captureLocationOnBreakEnd: 'captureLocationOnBreakEnd',
+  captureLocationOnBreakStart: 'captureLocationOnBreakStart',
+  captureLocationOnClockIn: 'captureLocationOnClockIn',
+  captureLocationOnClockOut: 'captureLocationOnClockOut',
+  geolocationEnabled: 'geolocationEnabled'
 } as const
 
 export type EmployeePolicyScalarFieldEnum = (typeof EmployeePolicyScalarFieldEnum)[keyof typeof EmployeePolicyScalarFieldEnum]
@@ -3795,9 +3795,9 @@ export const AdminOrganizationScalarFieldEnum = {
   id: 'id',
   adminId: 'adminId',
   organizationId: 'organizationId',
+  createdAt: 'createdAt',
   modules: 'modules',
   policyIds: 'policyIds',
-  createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
@@ -4099,16 +4099,16 @@ export type AttendanceEditLogScalarFieldEnum = (typeof AttendanceEditLogScalarFi
 export const BreakSessionScalarFieldEnum = {
   id: 'id',
   attendanceRecordId: 'attendanceRecordId',
-  attendanceSessionId: 'attendanceSessionId',
   startedAt: 'startedAt',
   endedAt: 'endedAt',
   createdAt: 'createdAt',
-  startedAtLat: 'startedAtLat',
-  startedAtLng: 'startedAtLng',
-  startedAtDistanceMeters: 'startedAtDistanceMeters',
+  endedAtDistanceMeters: 'endedAtDistanceMeters',
   endedAtLat: 'endedAtLat',
   endedAtLng: 'endedAtLng',
-  endedAtDistanceMeters: 'endedAtDistanceMeters'
+  startedAtDistanceMeters: 'startedAtDistanceMeters',
+  startedAtLat: 'startedAtLat',
+  startedAtLng: 'startedAtLng',
+  attendanceSessionId: 'attendanceSessionId'
 } as const
 
 export type BreakSessionScalarFieldEnum = (typeof BreakSessionScalarFieldEnum)[keyof typeof BreakSessionScalarFieldEnum]
@@ -4413,7 +4413,6 @@ export const PayrollRunScalarFieldEnum = {
   periodYear: 'periodYear',
   periodMonth: 'periodMonth',
   status: 'status',
-  source: 'source',
   totalGross: 'totalGross',
   totalNet: 'totalNet',
   totalEmployeeEpf: 'totalEmployeeEpf',
@@ -4437,12 +4436,13 @@ export const PayrollRunScalarFieldEnum = {
   approvalRejectionReason: 'approvalRejectionReason',
   submittedForApprovalAt: 'submittedForApprovalAt',
   submittedForApprovalById: 'submittedForApprovalById',
-  policyIds: 'policyIds',
   xeroJournalNumber: 'xeroJournalNumber',
   xeroManualJournalId: 'xeroManualJournalId',
   xeroSyncError: 'xeroSyncError',
   xeroSyncStatus: 'xeroSyncStatus',
-  xeroSyncedAt: 'xeroSyncedAt'
+  xeroSyncedAt: 'xeroSyncedAt',
+  policyIds: 'policyIds',
+  source: 'source'
 } as const
 
 export type PayrollRunScalarFieldEnum = (typeof PayrollRunScalarFieldEnum)[keyof typeof PayrollRunScalarFieldEnum]

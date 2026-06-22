@@ -469,9 +469,13 @@ export async function seedEmployeeLeaveEntitlements(args: {
     args.leaveSeed.method === "CUSTOM" ? args.leaveSeed.overrides : null
 
   for (const t of types) {
-    // Days: explicit override if provided, else resolved default.
+    // Days: for ORG_DEFAULT use the type's own default (skip the policy
+    // layer entirely); for CUSTOM use the admin-supplied override if
+    // present; for DEFAULT walk the policy → type chain.
     let entitledDays: number
-    if (overrides && overrides.days[t.id] !== undefined) {
+    if (args.leaveSeed.method === "ORG_DEFAULT") {
+      entitledDays = Math.max(0, t.defaultDays ?? 0)
+    } else if (overrides && overrides.days[t.id] !== undefined) {
       entitledDays = Math.max(0, overrides.days[t.id])
     } else {
       entitledDays = await resolveDefaultEntitledDays(
@@ -486,11 +490,14 @@ export async function seedEmployeeLeaveEntitlements(args: {
     const explicitMethod =
       overrides?.methods[t.id] !== undefined ? overrides.methods[t.id] : null
 
-    // Effective method for the accrued-days seed: explicit choice wins,
-    // else walk the policy → type chain.
+    // Effective method for the accrued-days seed: for ORG_DEFAULT use
+    // the type's accrual method directly (skip policy layer); for
+    // CUSTOM/DEFAULT the explicit choice wins, then walk the chain.
     const effectiveMethod =
-      explicitMethod ??
-      (await resolveAccrualMethod(args.employeeProfileId, t.id, year))
+      args.leaveSeed.method === "ORG_DEFAULT"
+        ? (t.accrualMethod ?? "LUMP_SUM")
+        : (explicitMethod ??
+          (await resolveAccrualMethod(args.employeeProfileId, t.id, year)))
 
     // For PRO_RATED, seed accruedDays with join-date-aware backfill.
     // For LUMP_SUM, accrued mirrors entitled — except when the leave
@@ -671,6 +678,7 @@ export async function recomputeProRatedAccrualForEmployee(
 /// branching, and so future callers (bulk import, partner API) can
 /// reuse the same surface.
 export type LeaveSeedInput =
+  | { method: "ORG_DEFAULT" }
   | { method: "DEFAULT" }
   | {
       method: "CUSTOM"

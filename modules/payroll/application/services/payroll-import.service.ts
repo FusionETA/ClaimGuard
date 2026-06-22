@@ -1075,8 +1075,8 @@ export async function bulkImportPayrollEmployees(input: {
     )
   }
   // The legacy path doesn't carry a per-batch Leave Method from a
-  // wizard, so it always uses DEFAULT seeding.
-  const leaveSeed: LeaveSeedInput = { method: "DEFAULT" }
+  // wizard, so it always uses ORG_DEFAULT seeding.
+  const leaveSeed: LeaveSeedInput = { method: "ORG_DEFAULT" }
 
   // 1. Parse CSV → 2D array of strings.
   const rows = parseCsv(input.csv)
@@ -2089,10 +2089,8 @@ export async function importMappedCsv(input: {
    */
   leaveSeedByRow?: Record<
     number,
-    {
-      days: Record<string, number>
-      methods: Record<string, "LUMP_SUM" | "PRO_RATED">
-    }
+    | { method: "DEFAULT" }
+    | { method?: "CUSTOM"; days: Record<string, number>; methods: Record<string, "LUMP_SUM" | "PRO_RATED"> }
   >
 }): Promise<MappedImportResult> {
   const session = await getCurrentSession()
@@ -2116,8 +2114,8 @@ export async function importMappedCsv(input: {
     )
   }
   // Per-row Leave Method map (keyed by preview row index). Rows
-  // without an entry default to `{ method: "DEFAULT" }` at the seed
-  // call below.
+  // without an entry default to `{ method: "ORG_DEFAULT" }` at the
+  // seed call below.
   const leaveSeedByRow = input.leaveSeedByRow ?? {}
 
   const { parsedRows, skipped, errors, total } = reshapeAndNormalize({
@@ -2353,11 +2351,14 @@ export async function importMappedCsv(input: {
         //
         // Per-row Leave Method: pick this row's entry from
         // `leaveSeedByRow` if the admin customised it via the popup,
-        // otherwise fall back to DEFAULT seeding.
+        // otherwise fall back to ORG_DEFAULT seeding.
         const perRow = leaveSeedByRow[rowIndex]
-        const leaveSeed: LeaveSeedInput = perRow
-          ? { method: "CUSTOM", overrides: perRow }
-          : { method: "DEFAULT" }
+        const leaveSeed: LeaveSeedInput =
+          !perRow
+            ? { method: "ORG_DEFAULT" }
+            : perRow.method === "DEFAULT"
+              ? { method: "DEFAULT" }
+              : { method: "CUSTOM", overrides: { days: perRow.days ?? {}, methods: perRow.methods ?? {} } }
         try {
           await seedEmployeeLeaveEntitlements({
             employeeProfileId: outcome.employeeProfileId,
