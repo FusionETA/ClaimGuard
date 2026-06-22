@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useRef, useState, useTransition } from "react"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Pencil } from "lucide-react"
 
 import {
   archiveLeaveTypeAction,
@@ -98,7 +98,7 @@ export function LeaveSettingsView(props: {
   /// leave that hasn't accrued yet but WILL by the leave start date.
   allowForecastedLeaveApply: boolean
 }) {
-  const [tab, setTab] = useState<Tab>("types")
+  const [tab, setTab] = useState<Tab>("employees")
   const [editingType, setEditingType] = useState<LeaveTypeRow | "new" | null>(null)
 
   const activeTypes = props.leaveTypes.filter((t) => !t.archivedAt)
@@ -120,14 +120,14 @@ export function LeaveSettingsView(props: {
 
       <nav className="-mx-6 overflow-x-auto px-6 nice-scrollbar">
         <div className="flex gap-2 pb-0.5">
-          <PillTab active={tab === "types"} onClick={() => setTab("types")}>
-            Leave types
+          <PillTab active={tab === "employees"} onClick={() => setTab("employees")}>
+            Employees
           </PillTab>
           <PillTab active={tab === "policies"} onClick={() => setTab("policies")}>
-            Per-policy
+            Policies
           </PillTab>
-          <PillTab active={tab === "employees"} onClick={() => setTab("employees")}>
-            Per-employee
+          <PillTab active={tab === "types"} onClick={() => setTab("types")}>
+            Leave types
           </PillTab>
         </div>
       </nav>
@@ -136,6 +136,7 @@ export function LeaveSettingsView(props: {
         <>
           <LeaveTypesCard
             leaveTypes={props.leaveTypes}
+            policyDefaults={props.policyDefaults}
             onEdit={(t) => setEditingType(t)}
           />
           {annualType && (
@@ -163,6 +164,7 @@ export function LeaveSettingsView(props: {
           employees={props.employees}
           entitlements={props.employeeEntitlements}
           policyDefaults={props.policyDefaults}
+          policies={props.policies}
         />
       )}
 
@@ -177,12 +179,12 @@ export function LeaveSettingsView(props: {
 
 function tabBlurb(tab: Tab, year: number): string {
   switch (tab) {
+    case "employees":
+      return `Review and adjust every employee's leave entitlements for ${year}. Click the edit button on any row to override values; reset to inherit from their policy.`
+    case "policies":
+      return "Override the leave-type defaults per employee policy. The org default column shows what each policy inherits if left blank."
     case "types":
       return "Define the leave types available in this organisation — what they're called, whether they're paid, the default day count, and how they accrue."
-    case "policies":
-      return "Override the type defaults per employee policy. Each policy can have its own day count and accrual method per leave type."
-    case "employees":
-      return `Override the policy/type defaults for a specific employee for ${year}. Reset to inherit from the policy.`
   }
 }
 
@@ -217,9 +219,21 @@ function PillTab({
 
 function LeaveTypesCard(props: {
   leaveTypes: LeaveTypeRow[]
+  policyDefaults: PolicyDefault[]
   onEdit: (t: LeaveTypeRow) => void
 }) {
   const [pending, startTransition] = useTransition()
+
+  const policyCountByType = useMemo(() => {
+    const counts = new Map<string, Set<string>>()
+    for (const d of props.policyDefaults) {
+      const s = counts.get(d.leaveTypeId) ?? new Set<string>()
+      s.add(d.policyId)
+      counts.set(d.leaveTypeId, s)
+    }
+    return counts
+  }, [props.policyDefaults])
+
   return (
     <Card>
       <CardHeader>
@@ -231,70 +245,87 @@ function LeaveTypesCard(props: {
             No leave types yet. Create one to get started.
           </p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Paid</TableHead>
-                <TableHead>Accrual</TableHead>
-                <TableHead>Default</TableHead>
-                <TableHead>Carry FWD</TableHead>
-                <TableHead className="text-right"> </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {props.leaveTypes.map((t) => {
-                const isProtected = t.code.toUpperCase() === "UNPAID"
-                return (
-                  <TableRow key={t.id} className={t.archivedAt ? "opacity-60" : ""}>
-                    <TableCell className="font-mono text-xs font-bold">{t.code}</TableCell>
-                    <TableCell>{t.name}</TableCell>
-                    <TableCell>
-                      <Badge variant={t.paid ? "paid" : "outline"}>
-                        {t.paid ? "Paid" : "Unpaid"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {t.accrualMethod === "PRO_RATED" ? "Pro-rated" : "Lump sum"}
-                    </TableCell>
-                    <TableCell>{t.paid ? t.defaultDays : "—"}</TableCell>
-                    <TableCell>{t.carryForward ? "Yes" : "No"}</TableCell>
-                    <TableCell className="text-right">
-                      {isProtected ? (
-                        <span className="text-xs text-muted-foreground">System default</span>
-                      ) : (
-                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" onClick={() => props.onEdit(t)}>
-                            Edit
-                          </Button>
-                          {t.archivedAt ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={pending}
-                              onClick={() => startTransition(() => unarchiveLeaveTypeAction(t.id))}
-                            >
-                              Restore
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Paid</TableHead>
+                  <TableHead>Accrual</TableHead>
+                  <TableHead>Default</TableHead>
+                  <TableHead>Carry FWD</TableHead>
+                  <TableHead>Policy overrides</TableHead>
+                  <TableHead className="text-right"> </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {props.leaveTypes.map((t) => {
+                  const isProtected = t.code.toUpperCase() === "UNPAID"
+                  const policyCount = policyCountByType.get(t.id)?.size ?? 0
+                  return (
+                    <TableRow key={t.id} className={t.archivedAt ? "opacity-60" : ""}>
+                      <TableCell className="font-mono text-xs font-bold">{t.code}</TableCell>
+                      <TableCell>{t.name}</TableCell>
+                      <TableCell>
+                        <Badge variant={t.paid ? "paid" : "outline"}>
+                          {t.paid ? "Paid" : "Unpaid"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {t.accrualMethod === "PRO_RATED" ? "Pro-rated" : "Lump sum"}
+                      </TableCell>
+                      <TableCell>{t.paid ? t.defaultDays : "—"}</TableCell>
+                      <TableCell>{t.carryForward ? "Yes" : "No"}</TableCell>
+                      <TableCell>
+                        {policyCount > 0 ? (
+                          <span className="inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium border-sky-300 bg-sky-50 text-sky-700">
+                            {policyCount} {policyCount === 1 ? "policy" : "policies"}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {isProtected ? (
+                          <span className="text-xs text-muted-foreground">System default</span>
+                        ) : (
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" onClick={() => props.onEdit(t)}>
+                              Edit
                             </Button>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={pending}
-                              onClick={() => startTransition(() => archiveLeaveTypeAction(t.id))}
-                            >
-                              Archive
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+                            {t.archivedAt ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={pending}
+                                onClick={() => startTransition(() => unarchiveLeaveTypeAction(t.id))}
+                              >
+                                Restore
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={pending}
+                                onClick={() => startTransition(() => archiveLeaveTypeAction(t.id))}
+                              >
+                                Archive
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+            <p className="px-6 py-3 text-xs text-muted-foreground border-t">
+              Changing a default here doesn&apos;t retroactively update employees who already have
+              entitlement rows — only new employees created after the change are affected.
+            </p>
+          </>
         )}
       </CardContent>
     </Card>
@@ -864,7 +895,8 @@ function PolicyCollapsibleCard({
             <TableHeader>
               <TableRow>
                 <TableHead>Leave type</TableHead>
-                <TableHead className="w-36">Default days</TableHead>
+                <TableHead className="w-28">Org default</TableHead>
+                <TableHead className="w-36">This policy</TableHead>
                 <TableHead className="w-48">Accrual method</TableHead>
               </TableRow>
             </TableHeader>
@@ -909,6 +941,9 @@ function PolicyOverrideRow(props: {
       <TableCell>
         <span className="font-mono text-xs font-bold mr-2">{props.leaveType.code}</span>
         {props.leaveType.name}
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {props.leaveType.defaultDays} days
       </TableCell>
       <TableCell>
         <Input
@@ -1010,13 +1045,10 @@ function EmployeeEntitlementsTab(props: {
   leaveTypes: LeaveTypeRow[]
   employees: EmployeeRow[]
   entitlements: EmployeeEntitlement[]
-  /// Per-policy method overrides — used to label the "Policy default"
-  /// option on the per-employee method selector with what the
-  /// employee's policy actually resolves to (so the admin can see what
-  /// they're inheriting).
   policyDefaults: PolicyDefault[]
+  policies: PolicyRow[]
 }) {
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [filter, setFilter] = useState("")
 
   const lookup = useMemo(() => {
@@ -1033,30 +1065,14 @@ function EmployeeEntitlementsTab(props: {
     return map
   }, [props.entitlements])
 
-  // (policyId × leaveTypeId) → policy-layer overrides (both days and
-  // method, if any). Used to compute the inherited values per row
-  // when the selected employee has a policy. Combined into one map so
-  // we don't pay two lookups per row.
-  // Per-employee LeaveEntitlement rows, indexed by employee id, so
-  // the picker can show an at-a-glance "Default / Policy / Custom"
-  // pill next to each name. Built once per render and consumed by
-  // both the picker (left pane) and the parent SelectedHeader.
   const entitlementsByEmployee = useMemo(() => {
     const map = new Map<
       string,
-      Array<{
-        leaveTypeId: string
-        entitledDays: number
-        accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
-      }>
+      Array<{ leaveTypeId: string; entitledDays: number; accrualMethod: "LUMP_SUM" | "PRO_RATED" | null }>
     >()
     for (const e of props.entitlements) {
       const list = map.get(e.employeeId) ?? []
-      list.push({
-        leaveTypeId: e.leaveTypeId,
-        entitledDays: e.entitledDays,
-        accrualMethod: e.accrualMethod,
-      })
+      list.push({ leaveTypeId: e.leaveTypeId, entitledDays: e.entitledDays, accrualMethod: e.accrualMethod })
       map.set(e.employeeId, list)
     }
     return map
@@ -1076,6 +1092,11 @@ function EmployeeEntitlementsTab(props: {
     return map
   }, [props.policyDefaults])
 
+  const policyById = useMemo(
+    () => new Map(props.policies.map((p) => [p.id, p])),
+    [props.policies],
+  )
+
   const filteredEmployees = useMemo(() => {
     const needle = filter.trim().toLowerCase()
     if (!needle) return props.employees
@@ -1085,10 +1106,6 @@ function EmployeeEntitlementsTab(props: {
         e.email.toLowerCase().includes(needle),
     )
   }, [props.employees, filter])
-
-  const selected = selectedEmployeeId
-    ? props.employees.find((e) => e.id === selectedEmployeeId) ?? null
-    : null
 
   if (props.employees.length === 0) {
     return (
@@ -1101,117 +1118,115 @@ function EmployeeEntitlementsTab(props: {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <Card className="lg:col-span-1">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">
-            Employees{" "}
-            <span className="ml-1 text-xs font-normal text-muted-foreground">
-              ({props.employees.length})
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
-            placeholder="Search by name or email"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="mb-3"
-          />
-          <div className="max-h-[500px] overflow-y-auto divide-y rounded-xl border">
+    <div className="space-y-3">
+      <Input
+        placeholder="Search by name or email"
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        className="max-w-xs"
+      />
+      <div className="rounded-xl border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Employee</TableHead>
+              <TableHead>Policy</TableHead>
+              <TableHead>Leave source</TableHead>
+              <TableHead className="w-10"> </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {filteredEmployees.length === 0 ? (
-              <div className="p-3 text-sm text-muted-foreground">No matches.</div>
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-6 text-sm text-muted-foreground">
+                  No matches.
+                </TableCell>
+              </TableRow>
             ) : (
-              filteredEmployees.map((e) => {
+              filteredEmployees.flatMap((emp) => {
+                const isExpanded = expandedId === emp.id
                 const source = resolveEmployeeLeaveSource({
-                  employeePolicyId: e.policyId,
+                  employeePolicyId: emp.policyId,
                   leaveTypes: props.leaveTypes,
                   policyDefaults: props.policyDefaults,
-                  employeeEntitlements: entitlementsByEmployee.get(e.id) ?? [],
+                  employeeEntitlements: entitlementsByEmployee.get(emp.id) ?? [],
                 })
-                return (
-                  <button
-                    key={e.id}
-                    type="button"
-                    onClick={() => setSelectedEmployeeId(e.id)}
-                    className={
-                      "w-full text-left px-3 py-2 text-sm transition-colors hover:bg-muted " +
-                      (selectedEmployeeId === e.id ? "bg-muted font-medium" : "")
-                    }
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span className="truncate">{e.name}</span>
+                const rows: React.ReactNode[] = [
+                  <TableRow key={emp.id} className={isExpanded ? "bg-muted/30" : ""}>
+                    <TableCell>
+                      <div className="font-medium text-sm">{emp.name}</div>
+                      <div className="text-xs text-muted-foreground">{emp.email}</div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {policyById.get(emp.policyId ?? "")?.name ?? "—"}
+                    </TableCell>
+                    <TableCell>
                       <LeaveSourceBadge source={source} />
-                    </div>
-                    <div className="text-xs text-muted-foreground">{e.email}</div>
-                  </button>
-                )
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setExpandedId(isExpanded ? null : emp.id)}
+                        title="Edit leave entitlements"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>,
+                ]
+                if (isExpanded) {
+                  rows.push(
+                    <TableRow key={emp.id + "-editor"}>
+                      <TableCell colSpan={4} className="bg-muted/20 p-0">
+                        <div className="px-4 py-3 border-t">
+                          <p className="text-xs font-medium text-muted-foreground mb-2">
+                            {emp.name} — overrides for {props.year}
+                          </p>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Leave type</TableHead>
+                                <TableHead className="w-32">Days</TableHead>
+                                <TableHead className="w-48">Accrual method</TableHead>
+                                <TableHead className="w-12 text-right"> </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {props.leaveTypes.map((t) => {
+                                const cell = lookup.get(`${emp.id}:${t.id}`) ?? null
+                                const policyOverride = emp.policyId
+                                  ? (policyOverrideLookup.get(`${emp.policyId}:${t.id}`) ?? null)
+                                  : null
+                                const inheritedMethod = policyOverride?.method ?? t.accrualMethod
+                                const inheritedFrom: "policy" | "type" =
+                                  policyOverride?.method != null ? "policy" : "type"
+                                return (
+                                  <EmployeeEntitlementRow
+                                    key={t.id}
+                                    employeeId={emp.id}
+                                    leaveType={t}
+                                    year={props.year}
+                                    currentDays={cell?.days ?? null}
+                                    currentMethod={cell?.method ?? null}
+                                    inheritedMethod={inheritedMethod}
+                                    inheritedFrom={inheritedFrom}
+                                  />
+                                )
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </TableCell>
+                    </TableRow>,
+                  )
+                }
+                return rows
               })
             )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="lg:col-span-2">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">
-            {selected ? selected.name : "Select an employee"}
-          </CardTitle>
-          {selected && (
-            <p className="text-xs text-muted-foreground">
-              {selected.email} · Overrides for {props.year}
-            </p>
-          )}
-        </CardHeader>
-        <CardContent className={selected ? "p-0" : ""}>
-          {!selected ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              Pick an employee on the left to edit their leave entitlements.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Leave type</TableHead>
-                  <TableHead className="w-32">Days</TableHead>
-                  <TableHead className="w-48">Accrual method</TableHead>
-                  <TableHead className="w-12 text-right"> </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {props.leaveTypes.map((t) => {
-                  const cell = lookup.get(`${selected.id}:${t.id}`) ?? null
-                  const policyOverride = selected.policyId
-                    ? (policyOverrideLookup.get(
-                        `${selected.policyId}:${t.id}`,
-                      ) ?? null)
-                    : null
-                  const inheritedMethod =
-                    policyOverride?.method ?? t.accrualMethod
-                  // Whether the inherited method came from a policy
-                  // override (vs. directly from the type). Drives the
-                  // label so the admin knows which layer they're
-                  // falling back to.
-                  const inheritedFrom: "policy" | "type" =
-                    policyOverride?.method != null ? "policy" : "type"
-                  return (
-                    <EmployeeEntitlementRow
-                      key={t.id}
-                      employeeId={selected.id}
-                      leaveType={t}
-                      year={props.year}
-                      currentDays={cell?.days ?? null}
-                      currentMethod={cell?.method ?? null}
-                      inheritedMethod={inheritedMethod}
-                      inheritedFrom={inheritedFrom}
-                    />
-                  )
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }
