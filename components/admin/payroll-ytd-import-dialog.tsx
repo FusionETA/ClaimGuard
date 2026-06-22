@@ -1,19 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   AlertTriangle,
   CheckCircle2,
   Download,
   FileSpreadsheet,
+  Info,
   Loader2,
   Upload,
 } from "lucide-react"
 
-import { importYtdPayrollHistoryAction } from "@/app/(admin)/admin/payroll/runs/actions"
+import {
+  getYtdImportYearContextAction,
+  importYtdPayrollHistoryAction,
+} from "@/app/(admin)/admin/payroll/runs/actions"
 import type {
   YtdImportActionResult,
   YtdImportSummaryShape,
+  YtdImportYearContext,
 } from "@/app/(admin)/admin/payroll/runs/form-state"
 import { Button } from "@/components/ui/button"
 import {
@@ -47,16 +52,20 @@ const MONTH_LABELS = [
 ] as const
 
 /**
- * Import payroll history — two-step modal:
+ * Import payroll history — two-step modal.
  *
  *   1. Download the YTD template pre-filled with the org's employees.
- *   2. Upload the filled XLSX; the importer matches by NRIC / passport
- *      and writes historical runs marked source=IMPORTED (status
- *      SUBMITTED, immutable).
+ *   2. Upload the filled XLSX. The importer follows the "one year,
+ *      one upload" rule:
+ *        - The latest upload is the single source of truth for the
+ *          year — re-uploading replaces every IMPORTED row for that
+ *          year, atomically.
+ *        - Any month in the upload that overlaps a COMPUTED run
+ *          (DRAFT / PENDING / SUBMITTED) rejects the entire upload —
+ *          imports never overwrite or coexist with engine output.
  *
- * The dialog handles its own progress state (no useActionState) so
- * the structured summary survives back to the UI instead of being
- * flattened into a single toast message.
+ * The dialog fetches a year-context snapshot when the year changes so
+ * we can surface BOTH conditions inline before the admin commits.
  */
 export function PayrollYtdImportDialog({
   defaultYear,
@@ -69,6 +78,10 @@ export function PayrollYtdImportDialog({
   const [file, setFile] = useState<File | null>(null)
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<YtdImportActionResult | null>(null)
+  const [yearContext, setYearContext] = useState<YtdImportYearContext | null>(
+    null,
+  )
+  const [yearContextLoading, setYearContextLoading] = useState(false)
   const { toast } = useToast()
 
   const yearNum = Number(year)
@@ -84,6 +97,40 @@ export function PayrollYtdImportDialog({
     setOpen(next)
     if (!next) reset()
   }
+
+  // Fetch the year-context snapshot whenever the dialog opens or the
+  // year changes. Debounced via a 300ms delay so typing "2026" doesn't
+  // fire four times back-to-back.
+  const fetchYearContext = useCallback(
+    async (signal: AbortSignal) => {
+      if (!yearValid) {
+        setYearContext(null)
+        return
+      }
+      setYearContextLoading(true)
+      try {
+        const r = await getYtdImportYearContextAction({ year: yearNum })
+        if (signal.aborted) return
+        if (r.ok) setYearContext(r.context)
+        else setYearContext(null)
+      } catch {
+        if (!signal.aborted) setYearContext(null)
+      } finally {
+        if (!signal.aborted) setYearContextLoading(false)
+      }
+    },
+    [yearNum, yearValid],
+  )
+
+  useEffect(() => {
+    if (!open) return
+    const ctrl = new AbortController()
+    const t = setTimeout(() => fetchYearContext(ctrl.signal), 300)
+    return () => {
+      clearTimeout(t)
+      ctrl.abort()
+    }
+  }, [open, fetchYearContext])
 
   async function handleDownload() {
     if (!yearValid || downloading) return
@@ -159,12 +206,23 @@ export function PayrollYtdImportDialog({
       const r = await importYtdPayrollHistoryAction(formData)
       setResult(r)
       if (r.ok) {
+        // Refresh the year context — after a successful import this
+        // year now has imported months (relevant if admin re-imports).
+        const ctrl = new AbortController()
+        void fetchYearContext(ctrl.signal)
         toast({
-          title: `Imported ${r.summary.importedPayslips} payslip${
-            r.summary.importedPayslips === 1 ? "" : "s"
-          } across ${r.summary.importedRunsCreated} run${
-            r.summary.importedRunsCreated === 1 ? "" : "s"
-          }.`,
+          title:
+            r.summary.replacedRuns > 0
+              ? `Replaced ${r.summary.replacedRuns} imported run${
+                  r.summary.replacedRuns === 1 ? "" : "s"
+                } with ${r.summary.importedPayslips} new payslip${
+                  r.summary.importedPayslips === 1 ? "" : "s"
+                }.`
+              : `Imported ${r.summary.importedPayslips} payslip${
+                  r.summary.importedPayslips === 1 ? "" : "s"
+                } across ${r.summary.importedRunsCreated} run${
+                  r.summary.importedRunsCreated === 1 ? "" : "s"
+                }.`,
           variant: "success",
         })
       } else {
@@ -180,6 +238,15 @@ export function PayrollYtdImportDialog({
     }
   }
 
+  const importedMonths = yearContext?.importedMonths ?? []
+  const computedMonths = yearContext?.computedMonths ?? []
+  const willReplaceCount = importedMonths.length
+  const importButtonLabel = importing
+    ? "Importing…"
+    : willReplaceCount > 0
+      ? `Replace ${willReplaceCount} import${willReplaceCount === 1 ? "" : "s"}`
+      : "Import"
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -194,8 +261,8 @@ export function PayrollYtdImportDialog({
           <DialogDescription>
             Bring in past months from your previous payroll system so
             PCB has the right cumulative YTD when the next run is
-            calculated. Two steps — download the template, fill it in,
-            then upload it back.
+            calculated. One upload per year — the latest file is the
+            single source of truth.
           </DialogDescription>
         </DialogHeader>
 
@@ -203,7 +270,7 @@ export function PayrollYtdImportDialog({
             scroll area room to render without clipping against the
             container's left edge — see components/CLAUDE.md. */}
         <div className="nice-scrollbar -mr-2 max-h-[65vh] space-y-5 overflow-y-auto py-2 pl-1 pr-2">
-          {/* Year picker — drives both steps. */}
+          {/* Year picker — drives both steps + the context warnings. */}
           <div className="space-y-1.5">
             <Label htmlFor="ytd-year">Year of payroll history</Label>
             <Input
@@ -220,6 +287,16 @@ export function PayrollYtdImportDialog({
               </p>
             )}
           </div>
+
+          {/* Year context warnings — only when the year is valid and
+              we've got data back. */}
+          {yearValid && yearContext && !yearContextLoading && (
+            <YearContextWarnings
+              year={yearNum}
+              importedMonths={importedMonths}
+              computedMonths={computedMonths}
+            />
+          )}
 
           {/* Step 1 — Download template */}
           <section className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-4">
@@ -261,10 +338,11 @@ export function PayrollYtdImportDialog({
               <h3 className="text-sm font-semibold">Upload filled template</h3>
             </header>
             <p className="text-xs text-muted-foreground">
-              Matches each row to an existing employee by NRIC / Passport.
-              Unknown IDs are skipped (we&apos;ll list them). Months that
-              already have a computed run are skipped too — historical
-              data is never overwritten.
+              Matches each row to an existing employee by NRIC /
+              Passport. Unknown IDs are skipped (we&apos;ll list them).
+              If any month in the file collides with an existing
+              computed run, the whole upload fails — fix the file and
+              re-upload.
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <Input
@@ -280,7 +358,7 @@ export function PayrollYtdImportDialog({
               />
               <Button
                 type="button"
-                variant="default"
+                variant={willReplaceCount > 0 ? "destructive" : "default"}
                 className="gap-2"
                 onClick={handleImport}
                 disabled={!file || !yearValid || importing}
@@ -290,7 +368,7 @@ export function PayrollYtdImportDialog({
                 ) : (
                   <FileSpreadsheet className="h-4 w-4" />
                 )}
-                {importing ? "Importing…" : "Import"}
+                {importButtonLabel}
               </Button>
             </div>
             {file && (
@@ -315,6 +393,53 @@ export function PayrollYtdImportDialog({
   )
 }
 
+// ─── Year context warnings ─────────────────────────────────────────
+
+function YearContextWarnings({
+  year,
+  importedMonths,
+  computedMonths,
+}: {
+  year: number
+  importedMonths: number[]
+  computedMonths: number[]
+}) {
+  if (importedMonths.length === 0 && computedMonths.length === 0) {
+    return null
+  }
+  return (
+    <div className="space-y-2">
+      {importedMonths.length > 0 && (
+        <div className="flex items-start gap-2 rounded-md border border-amber-300/60 bg-amber-50/60 p-3 text-xs text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-200">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <strong>{importedMonths.length}</strong> imported month
+            {importedMonths.length === 1 ? "" : "s"} already on file for{" "}
+            {year} ({importedMonths.map((m) => MONTH_LABELS[m - 1]).join(", ")}).
+            Re-uploading will{" "}
+            <strong>delete and replace</strong> them — the new file
+            becomes the single source of truth.
+          </div>
+        </div>
+      )}
+      {computedMonths.length > 0 && (
+        <div className="flex items-start gap-2 rounded-md border border-rose-300/60 bg-rose-50/60 p-3 text-xs text-rose-900 dark:border-rose-700/40 dark:bg-rose-950/20 dark:text-rose-200">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <strong>
+              {computedMonths.map((m) => MONTH_LABELS[m - 1]).join(", ")}
+            </strong>{" "}
+            already {computedMonths.length === 1 ? "has" : "have"} a
+            computed payroll run in {year}. The upload <strong>will fail</strong>{" "}
+            if your file includes any of these months — engine-produced
+            runs can&apos;t be overwritten by an import.
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Result panel ──────────────────────────────────────────────────
 
 function ResultPanel({ result }: { result: YtdImportActionResult }) {
@@ -326,6 +451,18 @@ function ResultPanel({ result }: { result: YtdImportActionResult }) {
           Import failed
         </header>
         <p className="text-xs text-destructive/90">{result.message}</p>
+        {result.conflictingMonths && result.conflictingMonths.length > 0 && (
+          <p className="text-xs text-destructive/90">
+            Conflicting months:{" "}
+            <strong>
+              {result.conflictingMonths
+                .map((m) => MONTH_LABELS[m - 1])
+                .join(", ")}
+            </strong>
+            . Remove these rows from the file (or delete the existing
+            computed runs first), then upload again.
+          </p>
+        )}
       </section>
     )
   }
@@ -336,9 +473,7 @@ function SummaryPanel({ summary }: { summary: YtdImportSummaryShape }) {
   const hasIssues =
     summary.parserErrors.length > 0 ||
     summary.parserWarnings.length > 0 ||
-    summary.skippedUnknownEmployees.length > 0 ||
-    summary.skippedExistingPayslips.length > 0 ||
-    summary.skippedConflictingPeriods.length > 0
+    summary.skippedUnknownEmployees.length > 0
 
   const accent = hasIssues
     ? "border-amber-300/60 bg-amber-50/60 dark:border-amber-700/40 dark:bg-amber-950/20"
@@ -357,6 +492,14 @@ function SummaryPanel({ summary }: { summary: YtdImportSummaryShape }) {
           <span className="font-semibold">{summary.importedRunsCreated}</span>{" "}
           new run{summary.importedRunsCreated === 1 ? "" : "s"}.
         </li>
+        {summary.replacedRuns > 0 && (
+          <li className="text-amber-800 dark:text-amber-300">
+            Replaced{" "}
+            <span className="font-semibold">{summary.replacedRuns}</span>{" "}
+            previously-imported run
+            {summary.replacedRuns === 1 ? "" : "s"} for this year.
+          </li>
+        )}
         {summary.skippedUnknownEmployees.length > 0 && (
           <li className="text-amber-800 dark:text-amber-300">
             Skipped{" "}
@@ -368,27 +511,6 @@ function SummaryPanel({ summary }: { summary: YtdImportSummaryShape }) {
             matching NRIC / Passport).
           </li>
         )}
-        {summary.skippedExistingPayslips.length > 0 && (
-          <li className="text-amber-800 dark:text-amber-300">
-            Skipped{" "}
-            <span className="font-semibold">
-              {summary.skippedExistingPayslips.length}
-            </span>{" "}
-            already-imported payslip
-            {summary.skippedExistingPayslips.length === 1 ? "" : "s"}.
-          </li>
-        )}
-        {summary.skippedConflictingPeriods.length > 0 && (
-          <li className="text-amber-800 dark:text-amber-300">
-            Skipped{" "}
-            <span className="font-semibold">
-              {summary.skippedConflictingPeriods.length}
-            </span>{" "}
-            month
-            {summary.skippedConflictingPeriods.length === 1 ? "" : "s"} that
-            already have a computed run.
-          </li>
-        )}
       </ul>
 
       {summary.skippedUnknownEmployees.length > 0 && (
@@ -396,14 +518,6 @@ function SummaryPanel({ summary }: { summary: YtdImportSummaryShape }) {
           title="Unknown employees"
           items={summary.skippedUnknownEmployees.map(
             (e) => `${e.name} — ${e.idNumber}`,
-          )}
-        />
-      )}
-      {summary.skippedConflictingPeriods.length > 0 && (
-        <DetailList
-          title="Months with conflicting runs"
-          items={summary.skippedConflictingPeriods.map(
-            (p) => `${MONTH_LABELS[p.monthIdx]} ${p.year} — ${p.reason}`,
           )}
         />
       )}
