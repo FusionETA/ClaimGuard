@@ -6,6 +6,8 @@ import {
   lookupEis,
   lookupEpfBand,
   lookupSocso,
+  recommendSocsoScheme,
+  socsoSchemeNeedsManualChoice,
 } from "../statutory-tables"
 
 /**
@@ -207,5 +209,128 @@ describe("EPF Third Schedule rule (lookupEpfBand)", () => {
         employeeRate: 2,
       }),
     ).toEqual({ employer: 160, employee: 160 })
+  })
+})
+
+// ─── recommendSocsoScheme + socsoSchemeNeedsManualChoice ────────────────
+//
+// Citizenship branches matter post Oct-2025 PERKESO expansion: foreign
+// workers now fall under SOCSO coverage in the same way Malaysians do,
+// but the 55–59 first-time-registrant ambiguity only applies to legacy
+// citizen members — foreign workers entering MY employment under the
+// new rules are always new registrants, so the dropdown can auto-fill
+// cleanly right through to age 60.
+
+describe("recommendSocsoScheme — citizenship branches", () => {
+  // Fixed reference date so calculateAge is deterministic against the
+  // DOBs below. All test DOBs sit at age N when asOf is 2026-06-22.
+  const asOf = new Date("2026-06-22T00:00:00Z")
+  const dobAge40 = new Date("1986-01-01T00:00:00Z")
+  const dobAge57 = new Date("1969-01-01T00:00:00Z")
+  const dobAge65 = new Date("1961-01-01T00:00:00Z")
+
+  it("Malaysian < 55 → Scheme 1", () => {
+    expect(
+      recommendSocsoScheme({ dateOfBirth: dobAge40, isMalaysianCitizen: true, asOf }),
+    ).toBe("EMPLOYMENT_INJURY_INVALIDITY")
+  })
+
+  it("Malaysian 55–59 → null (ambiguous, manual pick required)", () => {
+    expect(
+      recommendSocsoScheme({ dateOfBirth: dobAge57, isMalaysianCitizen: true, asOf }),
+    ).toBeNull()
+  })
+
+  it("Malaysian ≥ 60 → Scheme 2", () => {
+    expect(
+      recommendSocsoScheme({ dateOfBirth: dobAge65, isMalaysianCitizen: true, asOf }),
+    ).toBe("EMPLOYMENT_INJURY_ONLY")
+  })
+
+  it("Non-Malaysian < 55 → Scheme 1", () => {
+    expect(
+      recommendSocsoScheme({ dateOfBirth: dobAge40, isMalaysianCitizen: false, asOf }),
+    ).toBe("EMPLOYMENT_INJURY_INVALIDITY")
+  })
+
+  it("Non-Malaysian 55–59 → Scheme 1 (no first-time-registrant ambiguity)", () => {
+    expect(
+      recommendSocsoScheme({ dateOfBirth: dobAge57, isMalaysianCitizen: false, asOf }),
+    ).toBe("EMPLOYMENT_INJURY_INVALIDITY")
+  })
+
+  it("Non-Malaysian ≥ 60 → Scheme 2 (age dominates)", () => {
+    expect(
+      recommendSocsoScheme({ dateOfBirth: dobAge65, isMalaysianCitizen: false, asOf }),
+    ).toBe("EMPLOYMENT_INJURY_ONLY")
+  })
+
+  it("Unknown nationality 55–59 → null (defaults to Malaysian rule)", () => {
+    expect(
+      recommendSocsoScheme({ dateOfBirth: dobAge57, isMalaysianCitizen: null, asOf }),
+    ).toBeNull()
+  })
+
+  it("Missing DOB → null regardless of nationality", () => {
+    expect(
+      recommendSocsoScheme({ dateOfBirth: null, isMalaysianCitizen: false, asOf }),
+    ).toBeNull()
+  })
+})
+
+describe("socsoSchemeNeedsManualChoice — citizenship branches", () => {
+  const asOf = new Date("2026-06-22T00:00:00Z")
+  const dobAge57 = new Date("1969-01-01T00:00:00Z")
+  const dobAge40 = new Date("1986-01-01T00:00:00Z")
+  const dobAge65 = new Date("1961-01-01T00:00:00Z")
+
+  it("Malaysian 55–59 → manual choice needed", () => {
+    expect(
+      socsoSchemeNeedsManualChoice({
+        dateOfBirth: dobAge57,
+        isMalaysianCitizen: true,
+        asOf,
+      }),
+    ).toBe(true)
+  })
+
+  it("Non-Malaysian 55–59 → no manual choice (auto-fills Scheme 1)", () => {
+    expect(
+      socsoSchemeNeedsManualChoice({
+        dateOfBirth: dobAge57,
+        isMalaysianCitizen: false,
+        asOf,
+      }),
+    ).toBe(false)
+  })
+
+  it("Malaysian < 55 → no manual choice", () => {
+    expect(
+      socsoSchemeNeedsManualChoice({
+        dateOfBirth: dobAge40,
+        isMalaysianCitizen: true,
+        asOf,
+      }),
+    ).toBe(false)
+  })
+
+  it("Malaysian ≥ 60 → no manual choice (auto-fills Scheme 2)", () => {
+    expect(
+      socsoSchemeNeedsManualChoice({
+        dateOfBirth: dobAge65,
+        isMalaysianCitizen: true,
+        asOf,
+      }),
+    ).toBe(false)
+  })
+
+  it("Unknown nationality 55–59 → manual choice (conservative default)", () => {
+    expect(
+      socsoSchemeNeedsManualChoice({
+        dateOfBirth: dobAge57,
+        isMalaysianCitizen: null,
+        asOf,
+      }),
+    ).toBe(true)
   })
 })

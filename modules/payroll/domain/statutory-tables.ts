@@ -311,7 +311,7 @@ export function calculateAge(dob: Date, asOf: Date = new Date()): number {
 /**
  * Recommend a SOCSO scheme based on PERKESO's classification rules.
  *
- * Rules (per the FusionETA accountant):
+ * Malaysian citizens:
  *
  *   1. Age < 55                    → Scheme 1 (Injury + Invalidity)
  *   2. Age ≥ 60                    → Scheme 2 (Employment Injury only)
@@ -320,40 +320,63 @@ export function calculateAge(dob: Date, asOf: Date = new Date()): number {
  *                                          SOCSO registrant, which the
  *                                          system cannot reliably detect)
  *
- * We deliberately do NOT try to guess the 55–59 case from a blank
- * `socsoNumber` field — an admin who forgot to key it in would be
- * silently misclassified, and the misclassification only surfaces
- * when PERKESO rejects the contribution. Better to leave the
- * dropdown unset and prompt the admin to pick manually.
+ * Non-Malaysian citizens (post Oct 2025 PERKESO expansion — foreign
+ * workers now fall under SOCSO coverage in the same way Malaysians do,
+ * with one simplification):
  *
- * Use `socsoSchemeNeedsManualChoice(dateOfBirth)` to detect the 55–59
+ *   1. Age < 60                    → Scheme 1 (Injury + Invalidity)
+ *   2. Age ≥ 60                    → Scheme 2 (Employment Injury only)
+ *
+ *   The Malaysian 55–59 ambiguity comes from the first-time-registrant
+ *   rule for legacy citizen members. Foreign workers entering MY
+ *   employment under the post-2025 expansion are always new
+ *   registrants, so the ambiguity doesn't apply — auto-fill Scheme 1
+ *   right through to age 60.
+ *
+ * When `isMalaysianCitizen` is null (unknown) we fall back to the
+ * conservative Malaysian rule — better to surface a manual-choice
+ * hint than to silently land on Scheme 1 for a 57-year-old whose
+ * nationality wasn't yet populated.
+ *
+ * Use `socsoSchemeNeedsManualChoice` to detect the same ambiguous
  * window in the UI so you can render an appropriate hint.
  *
- * Returns null when we can't recommend (missing DOB, or ambiguous age).
+ * Returns null when we can't recommend (missing DOB, or ambiguous age
+ * for a Malaysian / unknown-nationality 55-59 employee).
  */
 export function recommendSocsoScheme(input: {
   dateOfBirth: Date | null
+  isMalaysianCitizen?: boolean | null
   asOf?: Date
 }): "EMPLOYMENT_INJURY_INVALIDITY" | "EMPLOYMENT_INJURY_ONLY" | null {
   if (input.dateOfBirth == null) return null
   const age = calculateAge(input.dateOfBirth, input.asOf ?? new Date())
 
   if (age >= 60) return "EMPLOYMENT_INJURY_ONLY"
-  if (age >= 55) return null // 55–59: admin must pick manually
+  // 55–59: ambiguous for Malaysians (first-time registrant rule);
+  // unambiguous Scheme 1 for foreign workers (always new registrants).
+  // When citizenship isn't supplied, fall back to the conservative
+  // Malaysian rule so we don't silently misclassify.
+  if (age >= 55 && input.isMalaysianCitizen !== false) return null
   return "EMPLOYMENT_INJURY_INVALIDITY"
 }
 
 /**
- * True when the employee falls in the age 55–59 window where the SOCSO
- * scheme depends on whether they're a first-time PERKESO registrant.
- * The UI should surface a hint asking the admin to pick manually rather
- * than auto-filling the dropdown.
+ * True when the employee falls in the age 55–59 window AND
+ * `recommendSocsoScheme` returns null for them — i.e. a Malaysian (or
+ * unknown nationality) where the first-time-registrant ambiguity
+ * applies. Foreign workers age 55–59 auto-fill cleanly so the manual
+ * prompt is skipped for them.
+ *
+ * The UI surfaces a "please pick manually" hint when this is true.
  */
 export function socsoSchemeNeedsManualChoice(input: {
   dateOfBirth: Date | null
+  isMalaysianCitizen?: boolean | null
   asOf?: Date
 }): boolean {
   if (input.dateOfBirth == null) return false
   const age = calculateAge(input.dateOfBirth, input.asOf ?? new Date())
-  return age >= 55 && age < 60
+  if (age < 55 || age >= 60) return false
+  return input.isMalaysianCitizen !== false
 }

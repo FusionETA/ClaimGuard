@@ -1889,11 +1889,19 @@ function StatutoryTab(props: {
   const dobForSocso = props.profile?.dateOfBirth
     ? new Date(props.profile.dateOfBirth)
     : null
+  // Pass nationality so the recommended scheme + manual-choice hint
+  // honour the foreign-worker rule (no 55-59 ambiguity for non-MY,
+  // always Scheme 1 below 60).
+  const isMalaysianCitizenForSocso = isMalaysianNationality(
+    props.profile?.nationality ?? null,
+  )
   const recommendedScheme = recommendSocsoScheme({
     dateOfBirth: dobForSocso,
+    isMalaysianCitizen: isMalaysianCitizenForSocso,
   })
   const needsManualSocsoChoice = socsoSchemeNeedsManualChoice({
     dateOfBirth: dobForSocso,
+    isMalaysianCitizen: isMalaysianCitizenForSocso,
   })
   const [socsoScheme, setSocsoScheme] = useState<string>(
     props.profile?.socsoScheme ?? recommendedScheme ?? "",
