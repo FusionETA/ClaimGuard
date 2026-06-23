@@ -36,6 +36,7 @@ import {
   idTypes,
   type PayrollAdjustmentCategory,
 } from "@/modules/payroll/domain/models"
+import { SKBBK_PHASE_SCHEDULE } from "@/modules/payroll/domain/statutory-tables"
 import {
   CP8D_FURNISH_TYPE_OPTIONS,
   DEFAULT_PAYROLL_XERO_MAPPING,
@@ -422,6 +423,12 @@ function GeneralTab(props: {
           />
         </CardContent>
       </Card>
+
+      {/* SKBBK / Skim LINDUNG 24 Jam — read-only display.
+          Rates are statutory (PERKESO publishes the gazette table per
+          rollout phase); admin can't edit. Source of truth lives in
+          SKBBK_PHASE_SCHEDULE in domain/statutory-tables.ts. */}
+      <SkbbkInfoCard />
 
       <Card>
         <CardHeader>
@@ -1314,6 +1321,82 @@ function HrdfCard(props: {
         />
         <input type="hidden" name="hrdfEnabled" value="false" />
         <input type="hidden" name="hrdfRate" value="0" />
+      </CardContent>
+    </Card>
+  )
+}
+
+/**
+ * Read-only card showing the org's current SKBBK (Skim LINDUNG 24 Jam)
+ * subscription. Rates aren't admin-editable — PERKESO sets them and
+ * the gazette table lives in domain/statutory-tables.ts. The card
+ * exists so admins can SEE which phase is active without grepping
+ * source code, and so the next phase ("TBD") is visible when PERKESO
+ * eventually announces phase 2 / 3 dates.
+ */
+function SkbbkInfoCard() {
+  // SKBBK_PHASE_SCHEDULE is ordered chronologically (oldest first) so
+  // the LAST entry is the most recent / currently active phase. When
+  // future phases land, they get prepended in the source array and
+  // this card auto-picks up the new top entry.
+  const phases = [...SKBBK_PHASE_SCHEDULE]
+  const current = phases[phases.length - 1] ?? null
+  const next = null // No phase 2 / 3 dates known yet
+
+  const monthLabels = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ] as const
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">
+          SKBBK — Skim LINDUNG 24 Jam
+        </CardTitle>
+        <CardDescription>
+          PERKESO&apos;s Non-Employment Injury Security Scheme. Employee-
+          only contribution, capped at RM 6,000/month wage. Rate is set
+          by PERKESO and rolls out in phases — admin can&apos;t change
+          it here. Calc engine picks the right phase automatically based
+          on each payroll run&apos;s period.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4 md:grid-cols-2">
+        {current ? (
+          <>
+            <LockedDisplay
+              label="Current phase"
+              value={`${current.employeeRatePct}% (employee share)`}
+              note={`Effective ${monthLabels[current.startMonth - 1]} ${current.startYear} onwards.`}
+            />
+            <LockedDisplay
+              label="Salary cap"
+              value="RM 6,000 / month"
+              note="Same ceiling as the existing SOCSO Act 4 cap."
+            />
+            <LockedDisplay
+              label="Employer share"
+              value="0% (none)"
+              note="SKBBK is fully borne by the employee — distinct from SOCSO + EIS where both sides contribute."
+            />
+            <LockedDisplay
+              label="Next phase"
+              value={
+                next
+                  ? `${(next as { employeeRatePct: number }).employeeRatePct}% from ${monthLabels[(next as { startMonth: number }).startMonth - 1]} ${(next as { startYear: number }).startYear}`
+                  : "TBD"
+              }
+              note="PERKESO will announce the date and rate for phase 2 (1.0%) and phase 3 (1.25%). Calc engine picks them up automatically once the gazette tables ship."
+            />
+          </>
+        ) : (
+          <LockedDisplay
+            label="Status"
+            value="Not yet active"
+            note="No SKBBK phase recorded for this period. Pre-Jun-2026 runs compute SKBBK as 0."
+          />
+        )}
       </CardContent>
     </Card>
   )
