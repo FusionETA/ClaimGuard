@@ -29,6 +29,7 @@ export const payrollReportKinds = [
   "BULK_PAYSLIPS_PDF",
   "EPF_CSV",
   "SOCSO_EIS_TXT",
+  "SOCSO_EIS_SKBBK_TXT",
   "PCB_TXT",
   "BANK_PB_ECP_XLSX",
 ] as const
@@ -107,10 +108,20 @@ export const PAYROLL_REPORT_META: Record<PayrollReportKind, PayrollReportMeta> =
   SOCSO_EIS_TXT: {
     kind: "SOCSO_EIS_TXT",
     group: "STATUTORY",
-    title: "SOCSO + EIS Contribution TXT",
+    title: "SOCSO + EIS Contribution TXT (v1)",
     description:
-      "Combined SOCSO + EIS upload (278-char fixed-width per PERKESO spec v1.0).",
+      "Combined SOCSO + EIS upload (278-char fixed-width per PERKESO spec v1.0). Use this for periods before Jun 2026, or during the v1/v2 grace window (Jun-Sep 2026).",
     portal: "PERKESO ASSIST Portal",
+    extension: "txt",
+    mimeType: "text/plain",
+  },
+  SOCSO_EIS_SKBBK_TXT: {
+    kind: "SOCSO_EIS_SKBBK_TXT",
+    group: "STATUTORY",
+    title: "SOCSO + EIS + SKBBK Contribution TXT (ASSIST 2.0)",
+    description:
+      "Combined SOCSO + EIS + SKBBK (LINDUNG 24 Jam) upload (278-char fixed-width per PERKESO ASSIST 2.0 spec). Mandatory from Jun 2026 onward; until then PERKESO accepts either format.",
+    portal: "PERKESO ASSIST 2.0 Portal",
     extension: "txt",
     mimeType: "text/plain",
   },
@@ -210,6 +221,8 @@ export function buildReportFileName(input: {
     }
     case "SOCSO_EIS_TXT":
       return `SOCSO_EIS_${mmyyyy}.${meta.extension}`
+    case "SOCSO_EIS_SKBBK_TXT":
+      return `SOCSO_EIS_SKBBK_${mmyyyy}.${meta.extension}`
     case "PCB_TXT":
       return `PCB_${mmyyyy}.${meta.extension}`
     case "BANK_PB_ECP_XLSX":

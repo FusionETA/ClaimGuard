@@ -2063,6 +2063,14 @@ enum PayrollReportKind {
   BULK_PAYSLIPS_PDF
   EPF_CSV
   SOCSO_EIS_TXT
+  /// PERKESO ASSIST 2.0 combined contribution file — SOCSO + EIS +
+  /// SKBBK (Skim LINDUNG 24 Jam) in one 278-char fixed-width text
+  /// file. Effective Jun 2026. Differs from SOCSO_EIS_TXT only in
+  /// that SKBBK employee amount populates positions 239-244 (was
+  /// blank filler in v1). Grace period through Sep 2026 — admins can
+  /// still upload the v1 file plus a separate SKBBK file during the
+  /// transition.
+  SOCSO_EIS_SKBBK_TXT
   PCB_TXT
   /// Public Bank ECP Payroll Excel — bulk salary disbursement file.
   /// Uploaded to PB enterprise > Bulk Payroll. Filename follows

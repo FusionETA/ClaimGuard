@@ -8,10 +8,11 @@ import { renderPayrollSummaryPdf } from "@/modules/payroll/application/services/
 import { renderPbEcpXlsx } from "@/modules/payroll/application/services/report-renderers/pb-ecp-xlsx"
 import { renderPcbLhdnFormPdf } from "@/modules/payroll/application/services/report-renderers/pcb-lhdn-form-pdf"
 import { renderPcbTxt } from "@/modules/payroll/application/services/report-renderers/pcb-txt"
+import { renderSocsoEisSkbbkTxt } from "@/modules/payroll/application/services/report-renderers/socso-eis-skbbk-txt"
 import { renderSocsoEisTxt } from "@/modules/payroll/application/services/report-renderers/socso-eis-txt"
 
 /**
- * Dispatcher for the 7 payroll report renderers. Each renderer is a
+ * Dispatcher for the 8 payroll report renderers. Each renderer is a
  * thin async function that accepts a `runId` and returns the raw file
  * bytes ready to be written to disk.
  */
@@ -34,6 +35,8 @@ export async function renderPayrollReport(input: {
       return renderEpfCsv({ runId: input.runId })
     case "SOCSO_EIS_TXT":
       return renderSocsoEisTxt({ runId: input.runId })
+    case "SOCSO_EIS_SKBBK_TXT":
+      return renderSocsoEisSkbbkTxt({ runId: input.runId })
     case "PCB_TXT":
       return renderPcbTxt({ runId: input.runId })
     case "BANK_PB_ECP_XLSX":
