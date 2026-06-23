@@ -6,6 +6,12 @@ import { API_SCOPE_CATALOG } from "@/lib/api-scopes"
 import { handleMasterApiRequest } from "@/lib/master-api-auth"
 import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import {
+  ORG_ADDONS,
+  ORG_PLANS,
+  ORG_PLAN_TIERS,
+  deriveOrgEnabledModules,
+} from "@/modules/organization/domain/plan"
 
 /**
  * POST /api/v1/admin/organizations
@@ -34,35 +40,62 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
  * or a future MasterApiKeyPlan join).
  */
 
-const createOrgSchema = z.object({
-  // AltomateHR `Organization.name` is unique. 2..120 chars matches the
-  // existing admin "create org" form's bounds.
-  name: z.string().trim().min(2, "Name must be at least 2 characters.").max(120),
-  // Optional human-readable label for the auto-issued token. Lets the
-  // partner attribute the token in the admin UI later
-  // ("Acme HR portal — Customer A").
-  tokenLabel: z.string().trim().max(120).optional(),
-  // Optional OWNER to provision for the new org. When the partner
-  // (Altomate Accounting) sends this, we create the paying customer's
-  // OWNER account so they can SSO straight into the admin dashboard.
-  // No password is accepted — the owner only ever signs in via the
-  // signed SSO hand-off.
-  owner: z
-    .object({
-      email: z
-        .string()
-        .trim()
-        .min(1, "Owner email is required.")
-        .email("Enter a valid owner email.")
-        .toLowerCase(),
-      name: z
-        .string()
-        .trim()
-        .min(1, "Owner name is required.")
-        .max(120, "Owner name is too long."),
-    })
-    .optional(),
-})
+const createOrgSchema = z
+  .object({
+    // AltomateHR `Organization.name` is unique. 2..120 chars matches the
+    // existing admin "create org" form's bounds.
+    name: z.string().trim().min(2, "Name must be at least 2 characters.").max(120),
+    // Optional human-readable label for the auto-issued token. Lets the
+    // partner attribute the token in the admin UI later
+    // ("Acme HR portal — Customer A").
+    tokenLabel: z.string().trim().max(120).optional(),
+    // Optional OWNER to provision for the new org. When the partner
+    // (Altomate Accounting) sends this, we create the paying customer's
+    // OWNER account so they can SSO straight into the admin dashboard.
+    // No password is accepted — the owner only ever signs in via the
+    // signed SSO hand-off.
+    owner: z
+      .object({
+        email: z
+          .string()
+          .trim()
+          .min(1, "Owner email is required.")
+          .email("Enter a valid owner email.")
+          .toLowerCase(),
+        name: z
+          .string()
+          .trim()
+          .min(1, "Owner name is required.")
+          .max(120, "Owner name is too long."),
+      })
+      .optional(),
+    // ── Subscription plan ─────────────────────────────────────────
+    // Drives module access for both admins (nav gating) and employees
+    // (their nav is hidden when the org doesn't have a module).
+    //
+    //   diy + free  → base modules only (no Claims, no Attendance)
+    //   diy + paid  → base + addons ("expense_claim" → Claims, "clock" → Attendance)
+    //   expert      → tier null/omitted, addons-driven (managed by us)
+    //
+    // Default is { diy, free, [] } so an integration that hasn't been
+    // updated for the new fields still works (just lands on the most
+    // restricted plan — safer than full access).
+    plan: z.enum(ORG_PLANS).default("DIY"),
+    tier: z.enum(ORG_PLAN_TIERS).nullable().optional(),
+    addons: z.array(z.enum(ORG_ADDONS)).default([]),
+  })
+  .refine(
+    // diy requires a tier; expert must NOT have a tier
+    (v) =>
+      v.plan === "EXPERT"
+        ? v.tier == null
+        : v.tier === "FREE" || v.tier === "PAID",
+    {
+      message:
+        "DIY plans require tier='free' or 'paid'; Expert plans must have tier=null or omitted.",
+      path: ["tier"],
+    },
+  )
 
 export const POST = handleMasterApiRequest(async (request, ctx) => {
   let body: unknown
@@ -109,6 +142,18 @@ export const POST = handleMasterApiRequest(async (request, ctx) => {
     parsed.data.tokenLabel?.trim() ||
     `${ctx.masterKey.partnerName} (auto-issued)`
 
+  // Derive the module access set from plan / tier / addons. The
+  // result is persisted on the new org's AdminOrganization row for
+  // the owner (so their dashboard nav reflects what's paid for) AND
+  // stored on Organization itself so employee-side nav + future
+  // re-provisioning can read the same source of truth.
+  const planTriple = {
+    plan: parsed.data.plan,
+    tier: parsed.data.tier ?? null,
+    addons: parsed.data.addons,
+  }
+  const enabledModules = deriveOrgEnabledModules(planTriple)
+
   const result = await organizationRepository.createOrganizationWithApiIntegration({
     organizationName: name,
     integration: {
@@ -118,6 +163,7 @@ export const POST = handleMasterApiRequest(async (request, ctx) => {
       scopes: API_SCOPE_CATALOG,
       issuedByMasterKeyId: ctx.masterKey.id,
     },
+    plan: planTriple,
   })
 
   // Optionally provision the OWNER (paying customer) for this org so they
@@ -130,6 +176,7 @@ export const POST = handleMasterApiRequest(async (request, ctx) => {
       organizationId: result.org.id,
       email: parsed.data.owner.email,
       name: parsed.data.owner.name,
+      modules: enabledModules,
     })
   }
 
@@ -138,6 +185,10 @@ export const POST = handleMasterApiRequest(async (request, ctx) => {
       organization: {
         id: result.org.id,
         name: result.org.name,
+        plan: planTriple.plan,
+        tier: planTriple.tier,
+        addons: planTriple.addons,
+        enabledModules,
       },
       ...(owner
         ? {

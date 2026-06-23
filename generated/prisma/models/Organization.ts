@@ -46,6 +46,8 @@ export type OrganizationMinAggregateOutputType = {
   claimCutoffDay: number | null
   createdAt: Date | null
   updatedAt: Date | null
+  plan: $Enums.OrgPlan | null
+  tier: $Enums.OrgPlanTier | null
   workingHoursEnd: string | null
   workingHoursStart: string | null
   geofenceRadiusMeters: number | null
@@ -65,6 +67,8 @@ export type OrganizationMaxAggregateOutputType = {
   claimCutoffDay: number | null
   createdAt: Date | null
   updatedAt: Date | null
+  plan: $Enums.OrgPlan | null
+  tier: $Enums.OrgPlanTier | null
   workingHoursEnd: string | null
   workingHoursStart: string | null
   geofenceRadiusMeters: number | null
@@ -84,6 +88,9 @@ export type OrganizationCountAggregateOutputType = {
   claimCutoffDay: number
   createdAt: number
   updatedAt: number
+  plan: number
+  tier: number
+  addons: number
   workingHoursEnd: number
   workingHoursStart: number
   geofenceRadiusMeters: number
@@ -120,6 +127,8 @@ export type OrganizationMinAggregateInputType = {
   claimCutoffDay?: true
   createdAt?: true
   updatedAt?: true
+  plan?: true
+  tier?: true
   workingHoursEnd?: true
   workingHoursStart?: true
   geofenceRadiusMeters?: true
@@ -139,6 +148,8 @@ export type OrganizationMaxAggregateInputType = {
   claimCutoffDay?: true
   createdAt?: true
   updatedAt?: true
+  plan?: true
+  tier?: true
   workingHoursEnd?: true
   workingHoursStart?: true
   geofenceRadiusMeters?: true
@@ -158,6 +169,9 @@ export type OrganizationCountAggregateInputType = {
   claimCutoffDay?: true
   createdAt?: true
   updatedAt?: true
+  plan?: true
+  tier?: true
+  addons?: true
   workingHoursEnd?: true
   workingHoursStart?: true
   geofenceRadiusMeters?: true
@@ -265,6 +279,9 @@ export type OrganizationGroupByOutputType = {
   claimCutoffDay: number
   createdAt: Date
   updatedAt: Date
+  plan: $Enums.OrgPlan
+  tier: $Enums.OrgPlanTier | null
+  addons: runtime.JsonValue | null
   workingHoursEnd: string
   workingHoursStart: string
   geofenceRadiusMeters: number
@@ -308,6 +325,9 @@ export type OrganizationWhereInput = {
   claimCutoffDay?: Prisma.IntFilter<"Organization"> | number
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
+  plan?: Prisma.EnumOrgPlanFilter<"Organization"> | $Enums.OrgPlan
+  tier?: Prisma.EnumOrgPlanTierNullableFilter<"Organization"> | $Enums.OrgPlanTier | null
+  addons?: Prisma.JsonNullableFilter<"Organization">
   workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringFilter<"Organization"> | string
   geofenceRadiusMeters?: Prisma.IntFilter<"Organization"> | number
@@ -344,6 +364,9 @@ export type OrganizationOrderByWithRelationInput = {
   claimCutoffDay?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
+  tier?: Prisma.SortOrderInput | Prisma.SortOrder
+  addons?: Prisma.SortOrderInput | Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
@@ -384,6 +407,9 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   claimCutoffDay?: Prisma.IntFilter<"Organization"> | number
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
+  plan?: Prisma.EnumOrgPlanFilter<"Organization"> | $Enums.OrgPlan
+  tier?: Prisma.EnumOrgPlanTierNullableFilter<"Organization"> | $Enums.OrgPlanTier | null
+  addons?: Prisma.JsonNullableFilter<"Organization">
   workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringFilter<"Organization"> | string
   geofenceRadiusMeters?: Prisma.IntFilter<"Organization"> | number
@@ -420,6 +446,9 @@ export type OrganizationOrderByWithAggregationInput = {
   claimCutoffDay?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
+  tier?: Prisma.SortOrderInput | Prisma.SortOrder
+  addons?: Prisma.SortOrderInput | Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
@@ -448,6 +477,9 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   claimCutoffDay?: Prisma.IntWithAggregatesFilter<"Organization"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
+  plan?: Prisma.EnumOrgPlanWithAggregatesFilter<"Organization"> | $Enums.OrgPlan
+  tier?: Prisma.EnumOrgPlanTierNullableWithAggregatesFilter<"Organization"> | $Enums.OrgPlanTier | null
+  addons?: Prisma.JsonNullableWithAggregatesFilter<"Organization">
   workingHoursEnd?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   geofenceRadiusMeters?: Prisma.IntWithAggregatesFilter<"Organization"> | number
@@ -468,6 +500,9 @@ export type OrganizationCreateInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -504,6 +539,9 @@ export type OrganizationUncheckedCreateInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -540,6 +578,9 @@ export type OrganizationUpdateInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -576,6 +617,9 @@ export type OrganizationUncheckedUpdateInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -612,6 +656,9 @@ export type OrganizationCreateManyInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -632,6 +679,9 @@ export type OrganizationUpdateManyMutationInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -652,6 +702,9 @@ export type OrganizationUncheckedUpdateManyInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -683,6 +736,9 @@ export type OrganizationCountOrderByAggregateInput = {
   claimCutoffDay?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
+  addons?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
@@ -710,6 +766,8 @@ export type OrganizationMaxOrderByAggregateInput = {
   claimCutoffDay?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
@@ -729,6 +787,8 @@ export type OrganizationMinOrderByAggregateInput = {
   claimCutoffDay?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
@@ -776,6 +836,14 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type EnumOrgPlanFieldUpdateOperationsInput = {
+  set?: $Enums.OrgPlan
+}
+
+export type NullableEnumOrgPlanTierFieldUpdateOperationsInput = {
+  set?: $Enums.OrgPlanTier | null
 }
 
 export type NullableDecimalFieldUpdateOperationsInput = {
@@ -1012,6 +1080,9 @@ export type OrganizationCreateWithoutUsersInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1047,6 +1118,9 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1098,6 +1172,9 @@ export type OrganizationUpdateWithoutUsersInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1133,6 +1210,9 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1168,6 +1248,9 @@ export type OrganizationCreateWithoutEmployeePoliciesInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1203,6 +1286,9 @@ export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1254,6 +1340,9 @@ export type OrganizationUpdateWithoutEmployeePoliciesInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1289,6 +1378,9 @@ export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1324,6 +1416,9 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1359,6 +1454,9 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1410,6 +1508,9 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1445,6 +1546,9 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1480,6 +1584,9 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1515,6 +1622,9 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1566,6 +1676,9 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1601,6 +1714,9 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1636,6 +1752,9 @@ export type OrganizationCreateWithoutEmployeeImportDraftsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1671,6 +1790,9 @@ export type OrganizationUncheckedCreateWithoutEmployeeImportDraftsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1722,6 +1844,9 @@ export type OrganizationUpdateWithoutEmployeeImportDraftsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1757,6 +1882,9 @@ export type OrganizationUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1792,6 +1920,9 @@ export type OrganizationCreateWithoutClaimsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1827,6 +1958,9 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1878,6 +2012,9 @@ export type OrganizationUpdateWithoutClaimsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1913,6 +2050,9 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1948,6 +2088,9 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -1983,6 +2126,9 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2034,6 +2180,9 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2069,6 +2218,9 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2104,6 +2256,9 @@ export type OrganizationCreateWithoutXeroConnectionInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2139,6 +2294,9 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2190,6 +2348,9 @@ export type OrganizationUpdateWithoutXeroConnectionInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2225,6 +2386,9 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2260,6 +2424,9 @@ export type OrganizationCreateWithoutProjectsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2295,6 +2462,9 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2346,6 +2516,9 @@ export type OrganizationUpdateWithoutProjectsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2381,6 +2554,9 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2416,6 +2592,9 @@ export type OrganizationCreateWithoutPayrollSettingsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2451,6 +2630,9 @@ export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2502,6 +2684,9 @@ export type OrganizationUpdateWithoutPayrollSettingsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2537,6 +2722,9 @@ export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2572,6 +2760,9 @@ export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2607,6 +2798,9 @@ export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2658,6 +2852,9 @@ export type OrganizationUpdateWithoutPayrollCompanyInfoInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2693,6 +2890,9 @@ export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2728,6 +2928,9 @@ export type OrganizationCreateWithoutPayrollPortalCredentialsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2763,6 +2966,9 @@ export type OrganizationUncheckedCreateWithoutPayrollPortalCredentialsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2814,6 +3020,9 @@ export type OrganizationUpdateWithoutPayrollPortalCredentialsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2849,6 +3058,9 @@ export type OrganizationUncheckedUpdateWithoutPayrollPortalCredentialsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2884,6 +3096,9 @@ export type OrganizationCreateWithoutPayrollRunsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2919,6 +3134,9 @@ export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -2970,6 +3188,9 @@ export type OrganizationUpdateWithoutPayrollRunsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3005,6 +3226,9 @@ export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3040,6 +3264,9 @@ export type OrganizationCreateWithoutPayrollAnnualReportsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -3075,6 +3302,9 @@ export type OrganizationUncheckedCreateWithoutPayrollAnnualReportsInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -3126,6 +3356,9 @@ export type OrganizationUpdateWithoutPayrollAnnualReportsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3161,6 +3394,9 @@ export type OrganizationUncheckedUpdateWithoutPayrollAnnualReportsInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3196,6 +3432,9 @@ export type OrganizationCreateWithoutLeaveTypesInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -3231,6 +3470,9 @@ export type OrganizationUncheckedCreateWithoutLeaveTypesInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -3282,6 +3524,9 @@ export type OrganizationUpdateWithoutLeaveTypesInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3317,6 +3562,9 @@ export type OrganizationUncheckedUpdateWithoutLeaveTypesInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3352,6 +3600,9 @@ export type OrganizationCreateWithoutAuditLogInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -3387,6 +3638,9 @@ export type OrganizationUncheckedCreateWithoutAuditLogInput = {
   claimCutoffDay?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: string
   workingHoursStart?: string
   geofenceRadiusMeters?: number
@@ -3438,6 +3692,9 @@ export type OrganizationUpdateWithoutAuditLogInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3473,6 +3730,9 @@ export type OrganizationUncheckedUpdateWithoutAuditLogInput = {
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3647,6 +3907,9 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   claimCutoffDay?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  plan?: boolean
+  tier?: boolean
+  addons?: boolean
   workingHoursEnd?: boolean
   workingHoursStart?: boolean
   geofenceRadiusMeters?: boolean
@@ -3686,6 +3949,9 @@ export type OrganizationSelectScalar = {
   claimCutoffDay?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  plan?: boolean
+  tier?: boolean
+  addons?: boolean
   workingHoursEnd?: boolean
   workingHoursStart?: boolean
   geofenceRadiusMeters?: boolean
@@ -3700,7 +3966,7 @@ export type OrganizationSelectScalar = {
   allowForecastedLeaveApply?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "allowedCurrencies" | "defaultCurrency" | "supervisorReportEnabled" | "supervisorSlaMinutes" | "allowForecastedLeaveApply", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "plan" | "tier" | "addons" | "workingHoursEnd" | "workingHoursStart" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "allowedCurrencies" | "defaultCurrency" | "supervisorReportEnabled" | "supervisorSlaMinutes" | "allowForecastedLeaveApply", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
@@ -3747,6 +4013,23 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     claimCutoffDay: number
     createdAt: Date
     updatedAt: Date
+    /**
+     * Subscription plan provisioned by the partner API.
+     * DIY = self-service customer; EXPERT = we manage their account.
+     * Defaults to DIY for legacy orgs that pre-date plan tracking.
+     */
+    plan: $Enums.OrgPlan
+    /**
+     * FREE | PAID only when plan = DIY. Null for EXPERT (no tier split).
+     */
+    tier: $Enums.OrgPlanTier | null
+    /**
+     * JSON string[] of feature addons. Today: ["expense_claim", "clock"].
+     * Drives org-level navigation gating — admins + employees only see
+     * Claims when "expense_claim" is in this list AND the plan is paid
+     * (or expert). Drives the deriveOrgEnabledModules helper.
+     */
+    addons: runtime.JsonValue | null
     workingHoursEnd: string
     workingHoursStart: string
     geofenceRadiusMeters: number
@@ -4179,6 +4462,9 @@ export interface OrganizationFieldRefs {
   readonly claimCutoffDay: Prisma.FieldRef<"Organization", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Organization", 'DateTime'>
+  readonly plan: Prisma.FieldRef<"Organization", 'OrgPlan'>
+  readonly tier: Prisma.FieldRef<"Organization", 'OrgPlanTier'>
+  readonly addons: Prisma.FieldRef<"Organization", 'Json'>
   readonly workingHoursEnd: Prisma.FieldRef<"Organization", 'String'>
   readonly workingHoursStart: Prisma.FieldRef<"Organization", 'String'>
   readonly geofenceRadiusMeters: Prisma.FieldRef<"Organization", 'Int'>

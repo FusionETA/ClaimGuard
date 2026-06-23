@@ -299,6 +299,22 @@ export const PayrollRunSource = {
 export type PayrollRunSource = (typeof PayrollRunSource)[keyof typeof PayrollRunSource]
 
 
+export const OrgPlan = {
+  DIY: 'DIY',
+  EXPERT: 'EXPERT'
+} as const
+
+export type OrgPlan = (typeof OrgPlan)[keyof typeof OrgPlan]
+
+
+export const OrgPlanTier = {
+  FREE: 'FREE',
+  PAID: 'PAID'
+} as const
+
+export type OrgPlanTier = (typeof OrgPlanTier)[keyof typeof OrgPlanTier]
+
+
 export const PortalKind = {
   KWSP: 'KWSP',
   PERKESO: 'PERKESO'

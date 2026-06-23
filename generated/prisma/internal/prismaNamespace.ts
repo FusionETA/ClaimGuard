@@ -3680,6 +3680,9 @@ export const OrganizationScalarFieldEnum = {
   claimCutoffDay: 'claimCutoffDay',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  plan: 'plan',
+  tier: 'tier',
+  addons: 'addons',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
   geofenceRadiusMeters: 'geofenceRadiusMeters',
@@ -5428,6 +5431,34 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
 
 
 /**
+ * Reference to a field of type 'OrgPlan'
+ */
+export type EnumOrgPlanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrgPlan'>
+    
+
+
+/**
+ * Reference to a field of type 'OrgPlanTier'
+ */
+export type EnumOrgPlanTierFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrgPlanTier'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'Decimal'
  */
 export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
@@ -5445,20 +5476,6 @@ export type EnumMileageUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-/**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 

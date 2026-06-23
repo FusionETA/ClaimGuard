@@ -206,6 +206,29 @@ export const organizationRepository = {
     return mapOrganizationSummary(row) ?? null
   },
 
+  /**
+   * Lightweight projection of an org's subscription plan + addons,
+   * used by the admin / employee layout shells to gate navigation
+   * by what the org actually pays for. Cheap — three columns, no
+   * relations. Returns `null` for legacy orgs that have no plan
+   * recorded yet (caller treats null as "full access" to preserve
+   * existing tenants' nav).
+   */
+  async getOrgPlanModules(organizationId: string): Promise<{
+    plan: string
+    tier: string | null
+    addons: unknown
+  } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { plan: true, tier: true, addons: true },
+    })
+    if (!row) return null
+    return { plan: row.plan, tier: row.tier, addons: row.addons }
+  },
+
   // ---------------------------------------------------------------------------
   // Admin multi-company
   // ---------------------------------------------------------------------------
@@ -1178,12 +1201,23 @@ export const organizationRepository = {
     organizationId: string
     email: string
     name: string
+    /// When the caller knows which admin modules the org's plan grants
+    /// (partner API → derived from plan/tier/addons), pass them here
+    /// so the new AdminOrganization row is seeded with the right
+    /// scope. The owner's dashboard nav then reflects what they're
+    /// paying for from day one. Omit (or pass null) to mean "full
+    /// access" — the legacy behaviour kept for non-API call sites.
+    modules?: readonly string[] | null
   }): Promise<{ id: string; email: string; name: string; created: boolean }> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
     const email = input.email.trim().toLowerCase()
     const name = input.name.trim()
+    const modulesJson =
+      input.modules == null
+        ? Prisma.JsonNull
+        : [...input.modules]
 
     // Owner provisioning is idempotent — if a user with this email
     // already exists (active OR archived in any org), link them as
@@ -1201,7 +1235,14 @@ export const organizationRepository = {
             organizationId: input.organizationId,
           },
         },
-        create: { adminId: existing.id, organizationId: input.organizationId },
+        create: {
+          adminId: existing.id,
+          organizationId: input.organizationId,
+          modules: modulesJson,
+        },
+        // Don't overwrite an existing modules grant on re-provisioning;
+        // the owner may have customised it via the admin UI since the
+        // initial create.
         update: {},
       })
       return { id: existing.id, email, name: existing.name, created: false }
@@ -1218,7 +1259,10 @@ export const organizationRepository = {
         role: "OWNER",
         organizationId: input.organizationId,
         adminOrganizations: {
-          create: { organizationId: input.organizationId },
+          create: {
+            organizationId: input.organizationId,
+            modules: modulesJson,
+          },
         },
       },
       select: { id: true, email: true, name: true },
@@ -1316,6 +1360,15 @@ export const organizationRepository = {
       scopes: readonly string[]
       issuedByMasterKeyId: string
     }
+    /// Subscription plan recorded on the new org. Drives navigation
+    /// gating in admin + employee shells. Defaults to DIY / FREE /
+    /// no addons when omitted — same effective set as legacy orgs
+    /// that pre-date plan tracking.
+    plan?: {
+      plan: "DIY" | "EXPERT"
+      tier: "FREE" | "PAID" | null
+      addons: readonly string[]
+    }
   }): Promise<{
     org: { id: string; name: string }
     integration: { id: string }
@@ -1325,7 +1378,15 @@ export const organizationRepository = {
 
     const result = await prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
-        data: { name: input.organizationName },
+        data: {
+          name: input.organizationName,
+          plan: input.plan?.plan ?? "DIY",
+          tier: input.plan?.tier ?? null,
+          addons:
+            input.plan?.addons && input.plan.addons.length > 0
+              ? [...input.plan.addons]
+              : Prisma.JsonNull,
+        },
         select: { id: true, name: true },
       })
 

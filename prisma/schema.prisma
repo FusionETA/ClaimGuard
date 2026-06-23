@@ -59,6 +59,17 @@ model Organization {
   claimCutoffDay            Int                       @default(25)
   createdAt                 DateTime                  @default(now())
   updatedAt                 DateTime                  @updatedAt
+  /// Subscription plan provisioned by the partner API.
+  /// DIY = self-service customer; EXPERT = we manage their account.
+  /// Defaults to DIY for legacy orgs that pre-date plan tracking.
+  plan                      OrgPlan                   @default(DIY)
+  /// FREE | PAID only when plan = DIY. Null for EXPERT (no tier split).
+  tier                      OrgPlanTier?
+  /// JSON string[] of feature addons. Today: ["expense_claim", "clock"].
+  /// Drives org-level navigation gating — admins + employees only see
+  /// Claims when "expense_claim" is in this list AND the plan is paid
+  /// (or expert). Drives the deriveOrgEnabledModules helper.
+  addons                    Json?
   workingHoursEnd           String                    @default("18:00")
   workingHoursStart         String                    @default("09:00")
   geofenceRadiusMeters      Int                       @default(200)
@@ -2237,6 +2248,27 @@ enum PayrollRunSource {
   /// with status = SUBMITTED + the imported `submittedAt` set to the
   /// last day of the period.
   IMPORTED
+}
+
+/// Subscription plan provisioned by the partner API on
+/// /api/v1/admin/organizations. Drives which feature modules the org
+/// has access to (combined with `tier` + `addons`). See
+/// `deriveOrgEnabledModules` in modules/organization/domain/plan.ts.
+enum OrgPlan {
+  /// Self-service customer — admin manages their own account.
+  DIY
+  /// Managed customer — we (FusionETA) handle their account on their
+  /// behalf. Same module surface as DIY Paid by default.
+  EXPERT
+}
+
+/// Sub-tier within the DIY plan. Null for EXPERT (no tier split).
+enum OrgPlanTier {
+  /// No Claims / Attendance modules. Limited to base HR features
+  /// (Payroll, Leave, Manage Employee, etc.).
+  FREE
+  /// Claims / Attendance enabled via the `addons` array.
+  PAID
 }
 
 /// Statutory portals the admin can save credentials for. New portals
