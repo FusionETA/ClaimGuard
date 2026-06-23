@@ -769,6 +769,10 @@ function mapPayslip(row: any, lineItems: PayslipLineItemData[]): PayslipData {
     socsoEmployer: toNumber(row.socsoEmployer, 0),
     eisEmployee: toNumber(row.eisEmployee, 0),
     eisEmployer: toNumber(row.eisEmployer, 0),
+    // SKBBK columns landed mid-2026; default to 0 on older rows so
+    // historical payslips still map cleanly.
+    skbbkEmployee: toNumber(row.skbbkEmployee, 0),
+    skbbkWage: toNumber(row.skbbkWage, 0),
     pcb: toNumber(row.pcb, 0),
     // LHDN PCB formula breakdown — null on rows generated before the
     // `pcbCalculation` column existed; the PDF renderer falls back to

@@ -1105,6 +1105,15 @@ export function BulkPayslipsPdfDocument(props: BulkPayslipsPdfDocumentProps) {
               <PayRow label="PCB / MTD" amount={p.pcb} />
               <PayRow label="Employee SOCSO" amount={p.socsoEmployee} />
               <PayRow label="Employee EIS" amount={p.eisEmployee} />
+              {/* SKBBK (Skim LINDUNG 24 Jam) — employee-only contribution,
+                  effective Jun 2026 onwards. Hidden when 0 so older
+                  payslips don't show a junk RM 0.00 line. */}
+              {(p.skbbkEmployee ?? 0) > 0 ? (
+                <PayRow
+                  label="SKBBK (LINDUNG 24 Jam)"
+                  amount={p.skbbkEmployee ?? 0}
+                />
+              ) : null}
               {p.zakat > 0 ? (
                 <PayRow label="Zakat" amount={p.zakat} />
               ) : null}
@@ -1124,6 +1133,7 @@ export function BulkPayslipsPdfDocument(props: BulkPayslipsPdfDocumentProps) {
                       p.pcb +
                       p.socsoEmployee +
                       p.eisEmployee +
+                      (p.skbbkEmployee ?? 0) +
                       p.totalDeductions,
                   )}
                 </Text>

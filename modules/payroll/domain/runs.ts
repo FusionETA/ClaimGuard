@@ -233,6 +233,14 @@ export type PayslipData = {
   socsoEmployer: number
   eisEmployee: number
   eisEmployer: number
+  /// SKBBK (Skim LINDUNG 24 Jam) — employee-only contribution
+  /// effective 1 Jun 2026. 0 on historical payslips written before
+  /// the schema migration landed; renderers should coalesce to 0.
+  skbbkEmployee: number
+  /// Wage base used for the SKBBK lookup. Equals socso wage in
+  /// current code; persisted separately so historical payslips
+  /// remain interpretable if PERKESO ever decouples them.
+  skbbkWage: number
   pcb: number
   /// LHDN-style PCB formula breakdown — see `CalcPcbBreakdown` in
   /// `modules/payroll/domain/pcb.ts`. Null on payslips generated before

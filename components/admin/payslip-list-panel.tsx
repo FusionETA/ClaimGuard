@@ -181,6 +181,7 @@ export function PayslipsListPanel({
       epfEmp: 0,
       socsoEmp: 0,
       eisEmp: 0,
+      skbbkEmp: 0,
       net: 0,
       epfEr: 0,
       socsoEr: 0,
@@ -198,6 +199,7 @@ export function PayslipsListPanel({
       init.epfEmp += p.epfEmployee
       init.socsoEmp += p.socsoEmployee
       init.eisEmp += p.eisEmployee
+      init.skbbkEmp += p.skbbkEmployee ?? 0
       init.net += p.netPay
       init.epfEr += p.epfEmployer
       init.socsoEr += p.socsoEmployer
@@ -335,6 +337,7 @@ export function PayslipsListPanel({
                     <TotalHead label="EPF" total={totals.epfEmp} tint="emp" />
                     <TotalHead label="SOCSO" total={totals.socsoEmp} tint="emp" />
                     <TotalHead label="EIS" total={totals.eisEmp} tint="emp" />
+                    <TotalHead label="SKBBK" total={totals.skbbkEmp} tint="emp" />
                     <TotalHead label="NET" total={totals.net} bold />
                     <TotalHead label="EPF" total={totals.epfEr} tint="er" />
                     <TotalHead label="SOCSO" total={totals.socsoEr} tint="er" />
@@ -614,6 +617,7 @@ function PayslipRow({
       <TintedCell tint="emp" value={payslip.epfEmployee} />
       <TintedCell tint="emp" value={payslip.socsoEmployee} />
       <TintedCell tint="emp" value={payslip.eisEmployee} />
+      <TintedCell tint="emp" value={payslip.skbbkEmployee ?? 0} />
       <TableCell className="text-right font-mono font-semibold">
         {fmt(payslip.netPay)}
       </TableCell>
