@@ -26,76 +26,85 @@ export type SocsoTableRow = StatutoryTableRow & {
   /// Cat-2 (Employment Injury Only) employer contribution.
   /// Used when employee is 60+ or is a foreign worker.
   employer2: number
+  /// SKBBK (Skim LINDUNG 24 Jam / Non-Employment Injury Scheme) —
+  /// employee-only contribution effective 1 Jun 2026 onwards.
+  /// Identical value for Cat 1 and Cat 2 (PERKESO publishes one
+  /// column for both categories). Source: gazette
+  /// "NewContributionRateIncludingSKBBK" PDF — phase 1 (0.75%
+  /// employee share, cap RM 6,000). Will need a new table when
+  /// PERKESO publishes phase 2 (1.0%) or phase 3 (1.25%) — see
+  /// SKBBK_PHASE_SCHEDULE below.
+  skbbk: number
 }
 
 // ─── SOCSO Act 4 Third Schedule ────────────────────────────────────────
 
 export const SOCSO_TABLE: readonly SocsoTableRow[] = [
-  { upTo: 30, employer: 0.4, employee: 0.1, employer2: 0.3 }, // row 1: Wages up to RM30
-  { upTo: 50, employer: 0.7, employee: 0.2, employer2: 0.5 }, // row 2: When wages exceed RM30 but not exceed RM50
-  { upTo: 70, employer: 1.1, employee: 0.3, employer2: 0.8 }, // row 3: When wages exceed RM50 but not exceed RM70
-  { upTo: 100, employer: 1.5, employee: 0.4, employer2: 1.1 }, // row 4: When wages exceed RM70 but not exceed RM100
-  { upTo: 140, employer: 2.1, employee: 0.6, employer2: 1.5 }, // row 5: When wages exceed RM100 but not exceed RM140
-  { upTo: 200, employer: 2.95, employee: 0.85, employer2: 2.1 }, // row 6: When wages exceed RM140 but not exceed RM200
-  { upTo: 300, employer: 4.35, employee: 1.25, employer2: 3.1 }, // row 7: When wages exceed RM200 but not exceed RM300
-  { upTo: 400, employer: 6.15, employee: 1.75, employer2: 4.4 }, // row 8: When wages exceed RM300 but not exceed RM400/td>
-  { upTo: 500, employer: 7.85, employee: 2.25, employer2: 5.6 }, // row 9: When wages exceed RM400 but not exceed RM500
-  { upTo: 600, employer: 9.65, employee: 2.75, employer2: 6.9 }, // row 10: When wages exceed RM500 but not exceed RM600
-  { upTo: 700, employer: 11.35, employee: 3.25, employer2: 8.1 }, // row 11: When wages exceed RM600 but not exceed RM700
-  { upTo: 800, employer: 13.15, employee: 3.75, employer2: 9.4 }, // row 12: When wages exceed RM700 but not exceed RM800
-  { upTo: 900, employer: 14.85, employee: 4.25, employer2: 10.6 }, // row 13: When wages exceed RM800 but not exceed RM900
-  { upTo: 1000, employer: 16.65, employee: 4.75, employer2: 11.9 }, // row 14: When wages exceed RM900 but not exceed RM1,000
-  { upTo: 1100, employer: 18.35, employee: 5.25, employer2: 13.1 }, // row 15: When wages exceed RM1,000 but not exceed RM1,100
-  { upTo: 1200, employer: 20.15, employee: 5.75, employer2: 14.4 }, // row 16: When wages exceed RM1,100 but not exceed RM1,200
-  { upTo: 1300, employer: 21.85, employee: 6.25, employer2: 15.6 }, // row 17: When wages exceed RM1,200 but not exceed RM1,300
-  { upTo: 1400, employer: 23.65, employee: 6.75, employer2: 16.9 }, // row 18: When wages exceed RM1,300 but not exceed RM1,400
-  { upTo: 1500, employer: 25.35, employee: 7.25, employer2: 18.1 }, // row 19: When wages exceed RM1,400 but not exceed RM1,500
-  { upTo: 1600, employer: 27.15, employee: 7.75, employer2: 19.4 }, // row 20: When wages exceed RM1,500 but not exceed RM1,600
-  { upTo: 1700, employer: 28.85, employee: 8.25, employer2: 20.6 }, // row 21: When wages exceed RM1,600 but not exceed RM1,700
-  { upTo: 1800, employer: 30.65, employee: 8.75, employer2: 21.9 }, // row 22: When wages exceed RM1,700 but not exceed RM1,800
-  { upTo: 1900, employer: 32.35, employee: 9.25, employer2: 23.1 }, // row 23: When wages exceed RM1,800 but not exceed RM1,900
-  { upTo: 2000, employer: 34.15, employee: 9.75, employer2: 24.4 }, // row 24: When wages exceed RM1,900 but not exceed RM2,000
-  { upTo: 2100, employer: 35.85, employee: 10.25, employer2: 25.6 }, // row 25: When wages exceed RM2,000 but not exceed RM2,100
-  { upTo: 2200, employer: 37.65, employee: 10.75, employer2: 26.9 }, // row 26: When wages exceed RM2,100 but not exceed RM2,200
-  { upTo: 2300, employer: 39.35, employee: 11.25, employer2: 28.1 }, // row 27: When wages exceed RM2,200 but not exceed RM2,300
-  { upTo: 2400, employer: 41.15, employee: 11.75, employer2: 29.4 }, // row 28: When wages exceed RM2,300 but not exceed RM2,400
-  { upTo: 2500, employer: 42.85, employee: 12.25, employer2: 30.6 }, // row 29: When wages exceed RM2,400 but not exceed RM2,500
-  { upTo: 2600, employer: 44.65, employee: 12.75, employer2: 31.9 }, // row 30: When wages exceed RM2,500 but not exceed RM2,600
-  { upTo: 2700, employer: 46.35, employee: 13.25, employer2: 33.1 }, // row 31: When wages exceed RM2,600 but not exceed RM2,700
-  { upTo: 2800, employer: 48.15, employee: 13.75, employer2: 34.4 }, // row 32: When wages exceed RM2,700 but not exceed RM2,800
-  { upTo: 2900, employer: 49.85, employee: 14.25, employer2: 35.6 }, // row 33: When wages exceed RM2,800 but not exceed RM2,900
-  { upTo: 3000, employer: 51.65, employee: 14.75, employer2: 36.9 }, // row 34: When wages exceed RM2,900 but not exceed RM3,000
-  { upTo: 3100, employer: 53.35, employee: 15.25, employer2: 38.1 }, // row 35: When wages exceed RM3,000 but not exceed RM3,100
-  { upTo: 3200, employer: 55.15, employee: 15.75, employer2: 39.4 }, // row 36: When wages exceed RM3,100 but not exceed RM3,200
-  { upTo: 3300, employer: 56.85, employee: 16.25, employer2: 40.6 }, // row 37: When wages exceed RM3,200 but not exceed RM3,300
-  { upTo: 3400, employer: 58.65, employee: 16.75, employer2: 41.9 }, // row 38: When wages exceed RM3,300 but not exceed RM3,400
-  { upTo: 3500, employer: 60.35, employee: 17.25, employer2: 43.1 }, // row 39: When wages exceed RM3,400 but not exceed RM3,500
-  { upTo: 3600, employer: 62.15, employee: 17.75, employer2: 44.4 }, // row 40: When wages exceed RM3,500 but not exceed RM3,600
-  { upTo: 3700, employer: 63.85, employee: 18.25, employer2: 45.6 }, // row 41: When wages exceed RM3,600 but not exceed RM3,700
-  { upTo: 3800, employer: 65.65, employee: 18.75, employer2: 46.9 }, // row 42: When wages exceed RM3,700 but not exceed RM3,800
-  { upTo: 3900, employer: 67.35, employee: 19.25, employer2: 48.1 }, // row 43: When wages exceed RM3,800 but not exceed RM3,900
-  { upTo: 4000, employer: 69.15, employee: 19.75, employer2: 49.4 }, // row 44: When wages exceed RM3,900 but not exceed RM4,000
-  { upTo: 4100, employer: 70.85, employee: 20.25, employer2: 50.6 }, // row 45: When wages exceed RM4,000 but not exceed RM4,100
-  { upTo: 4200, employer: 72.65, employee: 20.75, employer2: 51.9 }, // row 46: When wages exceed RM4,100 but not exceed RM4,200
-  { upTo: 4300, employer: 74.35, employee: 21.25, employer2: 53.1 }, // row 47: When wages exceed RM4,200 but not exceed RM4,300
-  { upTo: 4400, employer: 76.15, employee: 21.75, employer2: 54.4 }, // row 48: When wages exceed RM4,300 but not exceed RM4,400
-  { upTo: 4500, employer: 77.85, employee: 22.25, employer2: 55.6 }, // row 49: When wages exceed RM4,400 but not exceed RM4,500
-  { upTo: 4600, employer: 79.65, employee: 22.75, employer2: 56.9 }, // row 50: When wages exceed RM4,500 but not exceed RM4,600
-  { upTo: 4700, employer: 81.35, employee: 23.25, employer2: 58.1 }, // row 51: When wages exceed RM4,600 but not exceed RM4,700
-  { upTo: 4800, employer: 83.15, employee: 23.75, employer2: 59.4 }, // row 52: When wages exceed RM4,700 but not exceed RM4,800
-  { upTo: 4900, employer: 84.85, employee: 24.25, employer2: 60.6 }, // row 53: When wages exceed RM4,800 but not exceed RM4,900
-  { upTo: 5000, employer: 86.65, employee: 24.75, employer2: 61.9 }, // row 54: When wages exceed RM4,900 but not exceed RM5,000
-  { upTo: 5100, employer: 88.35, employee: 25.25, employer2: 63.1 }, // row 55: When wages exceed RM5,000 but not exceed RM5,100
-  { upTo: 5200, employer: 90.15, employee: 25.75, employer2: 64.4 }, // row 56: When wages exceed RM5,100 but not exceed RM5,200
-  { upTo: 5300, employer: 91.85, employee: 26.25, employer2: 65.6 }, // row 57: When wages exceed RM5,200 but not exceed RM5,300
-  { upTo: 5400, employer: 93.65, employee: 26.75, employer2: 66.9 }, // row 58: When wages exceed RM5,300 but not exceed RM5,400
-  { upTo: 5500, employer: 95.35, employee: 27.25, employer2: 68.1 }, // row 59: When wages exceed RM5,400 but not exceed RM5,500
-  { upTo: 5600, employer: 97.15, employee: 27.75, employer2: 69.4 }, // row 60: When wages exceed RM5,500 but not exceed RM5,600
-  { upTo: 5700, employer: 98.85, employee: 28.25, employer2: 70.6 }, // row 61: When wages exceed RM5,600 but not exceed RM5,700
-  { upTo: 5800, employer: 100.65, employee: 28.75, employer2: 71.9 }, // row 62: When wages exceed RM5,700 but not exceed RM5,800
-  { upTo: 5900, employer: 102.35, employee: 29.25, employer2: 73.1 }, // row 63: When wages exceed RM5,800 but not exceed RM5,900
-  { upTo: 6000, employer: 104.15, employee: 29.75, employer2: 74.4 }, // row 64: When wages exceed RM5,900 but not exceed RM6,000
-  { upTo: Number.POSITIVE_INFINITY, employer: 104.15, employee: 29.75, employer2: 74.4 }, // row 65: When wages exceed RM6,000
+  { upTo: 30, employer: 0.4, employee: 0.1, employer2: 0.3 , skbbk: 0.2}, // row 1: Wages up to RM30
+  { upTo: 50, employer: 0.7, employee: 0.2, employer2: 0.5 , skbbk: 0.3}, // row 2: When wages exceed RM30 but not exceed RM50
+  { upTo: 70, employer: 1.1, employee: 0.3, employer2: 0.8 , skbbk: 0.5}, // row 3: When wages exceed RM50 but not exceed RM70
+  { upTo: 100, employer: 1.5, employee: 0.4, employer2: 1.1 , skbbk: 0.65}, // row 4: When wages exceed RM70 but not exceed RM100
+  { upTo: 140, employer: 2.1, employee: 0.6, employer2: 1.5 , skbbk: 0.9}, // row 5: When wages exceed RM100 but not exceed RM140
+  { upTo: 200, employer: 2.95, employee: 0.85, employer2: 2.1 , skbbk: 1.25}, // row 6: When wages exceed RM140 but not exceed RM200
+  { upTo: 300, employer: 4.35, employee: 1.25, employer2: 3.1 , skbbk: 1.85}, // row 7: When wages exceed RM200 but not exceed RM300
+  { upTo: 400, employer: 6.15, employee: 1.75, employer2: 4.4 , skbbk: 2.65}, // row 8: When wages exceed RM300 but not exceed RM400/td>
+  { upTo: 500, employer: 7.85, employee: 2.25, employer2: 5.6 , skbbk: 3.35}, // row 9: When wages exceed RM400 but not exceed RM500
+  { upTo: 600, employer: 9.65, employee: 2.75, employer2: 6.9 , skbbk: 4.15}, // row 10: When wages exceed RM500 but not exceed RM600
+  { upTo: 700, employer: 11.35, employee: 3.25, employer2: 8.1 , skbbk: 4.85}, // row 11: When wages exceed RM600 but not exceed RM700
+  { upTo: 800, employer: 13.15, employee: 3.75, employer2: 9.4 , skbbk: 5.65}, // row 12: When wages exceed RM700 but not exceed RM800
+  { upTo: 900, employer: 14.85, employee: 4.25, employer2: 10.6 , skbbk: 6.35}, // row 13: When wages exceed RM800 but not exceed RM900
+  { upTo: 1000, employer: 16.65, employee: 4.75, employer2: 11.9 , skbbk: 7.15}, // row 14: When wages exceed RM900 but not exceed RM1,000
+  { upTo: 1100, employer: 18.35, employee: 5.25, employer2: 13.1 , skbbk: 7.85}, // row 15: When wages exceed RM1,000 but not exceed RM1,100
+  { upTo: 1200, employer: 20.15, employee: 5.75, employer2: 14.4 , skbbk: 8.65}, // row 16: When wages exceed RM1,100 but not exceed RM1,200
+  { upTo: 1300, employer: 21.85, employee: 6.25, employer2: 15.6 , skbbk: 9.35}, // row 17: When wages exceed RM1,200 but not exceed RM1,300
+  { upTo: 1400, employer: 23.65, employee: 6.75, employer2: 16.9 , skbbk: 10.15}, // row 18: When wages exceed RM1,300 but not exceed RM1,400
+  { upTo: 1500, employer: 25.35, employee: 7.25, employer2: 18.1 , skbbk: 10.85}, // row 19: When wages exceed RM1,400 but not exceed RM1,500
+  { upTo: 1600, employer: 27.15, employee: 7.75, employer2: 19.4 , skbbk: 11.65}, // row 20: When wages exceed RM1,500 but not exceed RM1,600
+  { upTo: 1700, employer: 28.85, employee: 8.25, employer2: 20.6 , skbbk: 12.35}, // row 21: When wages exceed RM1,600 but not exceed RM1,700
+  { upTo: 1800, employer: 30.65, employee: 8.75, employer2: 21.9 , skbbk: 13.15}, // row 22: When wages exceed RM1,700 but not exceed RM1,800
+  { upTo: 1900, employer: 32.35, employee: 9.25, employer2: 23.1 , skbbk: 13.85}, // row 23: When wages exceed RM1,800 but not exceed RM1,900
+  { upTo: 2000, employer: 34.15, employee: 9.75, employer2: 24.4 , skbbk: 14.65}, // row 24: When wages exceed RM1,900 but not exceed RM2,000
+  { upTo: 2100, employer: 35.85, employee: 10.25, employer2: 25.6 , skbbk: 15.35}, // row 25: When wages exceed RM2,000 but not exceed RM2,100
+  { upTo: 2200, employer: 37.65, employee: 10.75, employer2: 26.9 , skbbk: 16.15}, // row 26: When wages exceed RM2,100 but not exceed RM2,200
+  { upTo: 2300, employer: 39.35, employee: 11.25, employer2: 28.1 , skbbk: 16.85}, // row 27: When wages exceed RM2,200 but not exceed RM2,300
+  { upTo: 2400, employer: 41.15, employee: 11.75, employer2: 29.4 , skbbk: 17.65}, // row 28: When wages exceed RM2,300 but not exceed RM2,400
+  { upTo: 2500, employer: 42.85, employee: 12.25, employer2: 30.6 , skbbk: 18.35}, // row 29: When wages exceed RM2,400 but not exceed RM2,500
+  { upTo: 2600, employer: 44.65, employee: 12.75, employer2: 31.9 , skbbk: 19.15}, // row 30: When wages exceed RM2,500 but not exceed RM2,600
+  { upTo: 2700, employer: 46.35, employee: 13.25, employer2: 33.1 , skbbk: 19.85}, // row 31: When wages exceed RM2,600 but not exceed RM2,700
+  { upTo: 2800, employer: 48.15, employee: 13.75, employer2: 34.4 , skbbk: 20.65}, // row 32: When wages exceed RM2,700 but not exceed RM2,800
+  { upTo: 2900, employer: 49.85, employee: 14.25, employer2: 35.6 , skbbk: 21.35}, // row 33: When wages exceed RM2,800 but not exceed RM2,900
+  { upTo: 3000, employer: 51.65, employee: 14.75, employer2: 36.9 , skbbk: 22.15}, // row 34: When wages exceed RM2,900 but not exceed RM3,000
+  { upTo: 3100, employer: 53.35, employee: 15.25, employer2: 38.1 , skbbk: 22.85}, // row 35: When wages exceed RM3,000 but not exceed RM3,100
+  { upTo: 3200, employer: 55.15, employee: 15.75, employer2: 39.4 , skbbk: 23.65}, // row 36: When wages exceed RM3,100 but not exceed RM3,200
+  { upTo: 3300, employer: 56.85, employee: 16.25, employer2: 40.6 , skbbk: 24.35}, // row 37: When wages exceed RM3,200 but not exceed RM3,300
+  { upTo: 3400, employer: 58.65, employee: 16.75, employer2: 41.9 , skbbk: 25.15}, // row 38: When wages exceed RM3,300 but not exceed RM3,400
+  { upTo: 3500, employer: 60.35, employee: 17.25, employer2: 43.1 , skbbk: 25.85}, // row 39: When wages exceed RM3,400 but not exceed RM3,500
+  { upTo: 3600, employer: 62.15, employee: 17.75, employer2: 44.4 , skbbk: 26.65}, // row 40: When wages exceed RM3,500 but not exceed RM3,600
+  { upTo: 3700, employer: 63.85, employee: 18.25, employer2: 45.6 , skbbk: 27.35}, // row 41: When wages exceed RM3,600 but not exceed RM3,700
+  { upTo: 3800, employer: 65.65, employee: 18.75, employer2: 46.9 , skbbk: 28.15}, // row 42: When wages exceed RM3,700 but not exceed RM3,800
+  { upTo: 3900, employer: 67.35, employee: 19.25, employer2: 48.1 , skbbk: 28.85}, // row 43: When wages exceed RM3,800 but not exceed RM3,900
+  { upTo: 4000, employer: 69.15, employee: 19.75, employer2: 49.4 , skbbk: 29.65}, // row 44: When wages exceed RM3,900 but not exceed RM4,000
+  { upTo: 4100, employer: 70.85, employee: 20.25, employer2: 50.6 , skbbk: 30.35}, // row 45: When wages exceed RM4,000 but not exceed RM4,100
+  { upTo: 4200, employer: 72.65, employee: 20.75, employer2: 51.9 , skbbk: 31.15}, // row 46: When wages exceed RM4,100 but not exceed RM4,200
+  { upTo: 4300, employer: 74.35, employee: 21.25, employer2: 53.1 , skbbk: 31.85}, // row 47: When wages exceed RM4,200 but not exceed RM4,300
+  { upTo: 4400, employer: 76.15, employee: 21.75, employer2: 54.4 , skbbk: 32.65}, // row 48: When wages exceed RM4,300 but not exceed RM4,400
+  { upTo: 4500, employer: 77.85, employee: 22.25, employer2: 55.6 , skbbk: 33.35}, // row 49: When wages exceed RM4,400 but not exceed RM4,500
+  { upTo: 4600, employer: 79.65, employee: 22.75, employer2: 56.9 , skbbk: 34.15}, // row 50: When wages exceed RM4,500 but not exceed RM4,600
+  { upTo: 4700, employer: 81.35, employee: 23.25, employer2: 58.1 , skbbk: 34.85}, // row 51: When wages exceed RM4,600 but not exceed RM4,700
+  { upTo: 4800, employer: 83.15, employee: 23.75, employer2: 59.4 , skbbk: 35.65}, // row 52: When wages exceed RM4,700 but not exceed RM4,800
+  { upTo: 4900, employer: 84.85, employee: 24.25, employer2: 60.6 , skbbk: 36.35}, // row 53: When wages exceed RM4,800 but not exceed RM4,900
+  { upTo: 5000, employer: 86.65, employee: 24.75, employer2: 61.9 , skbbk: 37.15}, // row 54: When wages exceed RM4,900 but not exceed RM5,000
+  { upTo: 5100, employer: 88.35, employee: 25.25, employer2: 63.1 , skbbk: 37.85}, // row 55: When wages exceed RM5,000 but not exceed RM5,100
+  { upTo: 5200, employer: 90.15, employee: 25.75, employer2: 64.4 , skbbk: 38.65}, // row 56: When wages exceed RM5,100 but not exceed RM5,200
+  { upTo: 5300, employer: 91.85, employee: 26.25, employer2: 65.6 , skbbk: 39.35}, // row 57: When wages exceed RM5,200 but not exceed RM5,300
+  { upTo: 5400, employer: 93.65, employee: 26.75, employer2: 66.9 , skbbk: 40.15}, // row 58: When wages exceed RM5,300 but not exceed RM5,400
+  { upTo: 5500, employer: 95.35, employee: 27.25, employer2: 68.1 , skbbk: 40.85}, // row 59: When wages exceed RM5,400 but not exceed RM5,500
+  { upTo: 5600, employer: 97.15, employee: 27.75, employer2: 69.4 , skbbk: 41.65}, // row 60: When wages exceed RM5,500 but not exceed RM5,600
+  { upTo: 5700, employer: 98.85, employee: 28.25, employer2: 70.6 , skbbk: 42.35}, // row 61: When wages exceed RM5,600 but not exceed RM5,700
+  { upTo: 5800, employer: 100.65, employee: 28.75, employer2: 71.9 , skbbk: 43.15}, // row 62: When wages exceed RM5,700 but not exceed RM5,800
+  { upTo: 5900, employer: 102.35, employee: 29.25, employer2: 73.1 , skbbk: 43.85}, // row 63: When wages exceed RM5,800 but not exceed RM5,900
+  { upTo: 6000, employer: 104.15, employee: 29.75, employer2: 74.4 , skbbk: 44.65}, // row 64: When wages exceed RM5,900 but not exceed RM6,000
+  { upTo: Number.POSITIVE_INFINITY, employer: 104.15, employee: 29.75, employer2: 74.4 , skbbk: 44.65}, // row 65: When wages exceed RM6,000
 ] as const
 
 // ─── EIS Act 800 Third Schedule ────────────────────────────────────────
@@ -379,4 +388,115 @@ export function socsoSchemeNeedsManualChoice(input: {
   const age = calculateAge(input.dateOfBirth, input.asOf ?? new Date())
   if (age < 55 || age >= 60) return false
   return input.isMalaysianCitizen !== false
+}
+
+
+// ─── SKBBK / Skim LINDUNG 24 Jam ────────────────────────────────────────
+//
+// PERKESO's Non-Employment Injury Security Scheme. Extends SOCSO with
+// 24-hour coverage for non-work-related accidents. Effective 1 Jun 2026.
+//
+// Key rules (PERKESO Pekeliling Majikan Bil. 02-2026):
+//   - Employee-only contribution (no employer share).
+//   - Phased rollout: 0.75% → 1.0% → 1.25%. Phase 2 + 3 dates TBD;
+//     PERKESO will publish new gazette tables when they announce.
+//   - Salary cap RM 6,000/month (same as existing SOCSO).
+//   - Applies to ALL Akta 4 employees (local + PR + foreign, any age).
+//   - Identical contribution for Cat 1 and Cat 2 employees — PERKESO
+//     publishes ONE SKBBK column that both categories read off.
+//
+// The 65-row table values above (the `skbbk:` field on SOCSO_TABLE)
+// are gazette-verbatim for phase 1. When phase 2 / 3 ship, add a NEW
+// table here keyed by effective date so older payroll periods keep
+// computing with the phase that was active at that time.
+
+/**
+ * Date-keyed SKBBK contribution lookup. Each entry is a phase boundary:
+ * a period falling on or after `startYear`/`startMonth` (and before the
+ * next entry's start) uses that entry's table.
+ *
+ * Today there's only one entry — phase 1, 0.75%, effective 1 Jun 2026.
+ * When PERKESO announces phase 2, add a row like:
+ *
+ *   { startYear: 2027, startMonth: 6, employeeRatePct: 1.0,
+ *     table: SKBBK_PHASE_2_TABLE }
+ *
+ * Order is descending by start date so the "first match" wins. Keep
+ * sorted manually when adding rows.
+ */
+export type SkbbkPhase = {
+  startYear: number
+  /// 1..12
+  startMonth: number
+  /// Employee contribution rate as a percentage of capped wage.
+  /// Display-only — the actual amount comes from the table lookup
+  /// (the gazette uses band-specific rounded values that don't
+  /// exactly match `rate × wage`). Surfaced in the Payroll Settings
+  /// card so admin can see what's active.
+  employeeRatePct: 0.75 | 1.0 | 1.25
+  /// Map from row index → employee SKBBK amount. Indexed off the
+  /// SOCSO_TABLE row that matches the wage. Same length as
+  /// SOCSO_TABLE (65 rows).
+  amounts: readonly number[]
+}
+
+const SKBBK_PHASE_1_AMOUNTS = SOCSO_TABLE.map((r) => r.skbbk)
+
+export const SKBBK_PHASE_SCHEDULE: readonly SkbbkPhase[] = [
+  {
+    startYear: 2026,
+    startMonth: 6,
+    employeeRatePct: 0.75,
+    amounts: SKBBK_PHASE_1_AMOUNTS,
+  },
+] as const
+
+/**
+ * Returns the SKBBK phase active for a given payroll period. Used by
+ * `calcSocso` to pick which phase's amounts to read, and by the
+ * Payroll Settings UI to display "Currently active: Phase 1 (0.75%)".
+ *
+ * Returns null for periods BEFORE 1 Jun 2026 — SKBBK didn't exist
+ * then, so any historical run hitting this lookup should treat SKBBK
+ * as 0. The calc engine already short-circuits to 0 for non-Akta-4
+ * employees via the existing `socsoEligible` gate; this null return
+ * adds a second layer of safety for old periods.
+ */
+export function getSkbbkPhaseForPeriod(
+  periodYear: number,
+  periodMonth: number,
+): SkbbkPhase | null {
+  const periodOrdinal = periodYear * 12 + periodMonth
+  for (const phase of SKBBK_PHASE_SCHEDULE) {
+    const phaseOrdinal = phase.startYear * 12 + phase.startMonth
+    if (periodOrdinal >= phaseOrdinal) return phase
+  }
+  return null
+}
+
+/**
+ * Look up the employee SKBBK contribution for a given wage and
+ * period. Walks the SOCSO_TABLE for the matching row, then reads the
+ * phase's `amounts[]` at the same index — keeps the gazette table
+ * and the SKBBK schedule in lockstep without duplicating wage bounds.
+ *
+ * Returns 0 when:
+ *   - period is before any known phase (pre-Jun 2026), OR
+ *   - wage is below the table's lower bound (effectively zero income).
+ */
+export function lookupSkbbk(input: {
+  wage: number
+  periodYear: number
+  periodMonth: number
+}): number {
+  const phase = getSkbbkPhaseForPeriod(input.periodYear, input.periodMonth)
+  if (!phase) return 0
+  if (!Number.isFinite(input.wage) || input.wage <= 10) return 0
+  for (let i = 0; i < SOCSO_TABLE.length; i++) {
+    if (input.wage <= SOCSO_TABLE[i]!.upTo) {
+      return phase.amounts[i] ?? 0
+    }
+  }
+  // Above the cap row — fall back to the last band (the cap value).
+  return phase.amounts[phase.amounts.length - 1] ?? 0
 }

@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest"
 import {
   EIS_TABLE,
   SOCSO_TABLE,
+  getSkbbkPhaseForPeriod,
   lookupEis,
   lookupEpfBand,
+  lookupSkbbk,
   lookupSocso,
   recommendSocsoScheme,
   socsoSchemeNeedsManualChoice,
@@ -332,5 +334,92 @@ describe("socsoSchemeNeedsManualChoice — citizenship branches", () => {
         asOf,
       }),
     ).toBe(true)
+  })
+})
+
+// ─── SKBBK / Skim LINDUNG 24 Jam ────────────────────────────────────────
+//
+// Phase 1 rates: 0.75% employee, effective 1 Jun 2026. The 65 amounts
+// in SOCSO_TABLE[].skbbk come directly from the PERKESO gazette
+// "NewContributionRateIncludingSKBBK" PDF. Identical for Cat 1 and
+// Cat 2 (PERKESO publishes one column for both).
+
+describe("SKBBK gazette table snapshot", () => {
+  it("Row 1 — wage ≤ 30 → SKBBK RM 0.20", () => {
+    expect(SOCSO_TABLE[0]?.skbbk).toBe(0.20)
+  })
+
+  it("Row 5 — wage 100–140 → SKBBK RM 0.90 (formula 0.75% × 140 = 1.05 would be wrong)", () => {
+    expect(SOCSO_TABLE[4]?.skbbk).toBe(0.90)
+  })
+
+  it("Row 18 — wage 1300–1400 → SKBBK RM 10.15", () => {
+    expect(SOCSO_TABLE[17]?.skbbk).toBe(10.15)
+  })
+
+  it("Row 64 — wage 5900–6000 (last band before cap) → SKBBK RM 44.65", () => {
+    expect(SOCSO_TABLE[63]?.skbbk).toBe(44.65)
+  })
+
+  it("Row 65 — wage > 6000 → SKBBK capped at RM 44.65", () => {
+    expect(SOCSO_TABLE[64]?.skbbk).toBe(44.65)
+  })
+})
+
+describe("lookupSkbbk — period + wage", () => {
+  it("Pre-Jun 2026 → returns 0 regardless of wage", () => {
+    expect(
+      lookupSkbbk({ wage: 3000, periodYear: 2026, periodMonth: 5 }),
+    ).toBe(0)
+    expect(
+      lookupSkbbk({ wage: 3000, periodYear: 2025, periodMonth: 12 }),
+    ).toBe(0)
+  })
+
+  it("1 Jun 2026 → SKBBK active (phase 1 0.75%)", () => {
+    expect(
+      lookupSkbbk({ wage: 3000, periodYear: 2026, periodMonth: 6 }),
+    ).toBe(22.15) // row 34 (upTo 3000)
+  })
+
+  it("Wage 0 / negative / NaN → 0 (defensive)", () => {
+    expect(
+      lookupSkbbk({ wage: 0, periodYear: 2026, periodMonth: 6 }),
+    ).toBe(0)
+    expect(
+      lookupSkbbk({ wage: NaN, periodYear: 2026, periodMonth: 6 }),
+    ).toBe(0)
+  })
+
+  it("Wage above RM 6,000 → cap (RM 44.65)", () => {
+    expect(
+      lookupSkbbk({ wage: 10000, periodYear: 2026, periodMonth: 6 }),
+    ).toBe(44.65)
+  })
+
+  it("Boundary: wage exactly 5000 lands on band-54 (upTo 5000)", () => {
+    expect(
+      lookupSkbbk({ wage: 5000, periodYear: 2026, periodMonth: 6 }),
+    ).toBe(SOCSO_TABLE[53]?.skbbk)
+  })
+})
+
+describe("getSkbbkPhaseForPeriod", () => {
+  it("Returns null before any phase starts", () => {
+    expect(getSkbbkPhaseForPeriod(2026, 5)).toBeNull()
+    expect(getSkbbkPhaseForPeriod(2020, 1)).toBeNull()
+  })
+
+  it("Returns phase 1 starting Jun 2026", () => {
+    const p = getSkbbkPhaseForPeriod(2026, 6)
+    expect(p).not.toBeNull()
+    expect(p?.employeeRatePct).toBe(0.75)
+    expect(p?.startYear).toBe(2026)
+    expect(p?.startMonth).toBe(6)
+  })
+
+  it("Phase 1 stays active for future periods until phase 2 lands", () => {
+    expect(getSkbbkPhaseForPeriod(2027, 1)?.employeeRatePct).toBe(0.75)
+    expect(getSkbbkPhaseForPeriod(2099, 12)?.employeeRatePct).toBe(0.75)
   })
 })
