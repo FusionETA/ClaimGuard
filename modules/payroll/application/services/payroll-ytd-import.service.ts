@@ -376,6 +376,12 @@ function buildImportedPayslipInput(input: {
     socsoEmployer: a.socsoEmployer,
     eisEmployee: a.eisEmployee,
     eisEmployer: a.eisEmployer,
+    // SKBBK didn't exist on the previous payroll system (pre Jun 2026)
+    // so we have no historical data to import. Stays 0 on imported
+    // payslips — when the org's first computed run in Jun 2026 lands,
+    // SKBBK gets deducted there.
+    skbbkEmployee: 0,
+    skbbkWage: 0,
     pcb: a.pcb,
     pcbCalculation: null,
     hrdf: a.hrdf,

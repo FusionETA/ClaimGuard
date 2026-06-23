@@ -62,6 +62,11 @@ export type CreatePayslipInput = {
   socsoEmployer: number
   eisEmployee: number
   eisEmployer: number
+  /// SKBBK (Skim LINDUNG 24 Jam) — employee-only. 0 before Jun 2026.
+  skbbkEmployee: number
+  /// Capped wage used for the SKBBK lookup. Same value as the SOCSO
+  /// wage in current code; persisted separately for forward-compat.
+  skbbkWage: number
   pcb: number
   /// LHDN-style PCB formula breakdown. JSON shape matches
   /// `CalcPcbBreakdown` in `modules/payroll/domain/pcb.ts`. Snapshotted
@@ -152,6 +157,8 @@ export const payslipRepository = {
           socsoEmployer: p.socsoEmployer,
           eisEmployee: p.eisEmployee,
           eisEmployer: p.eisEmployer,
+          skbbkEmployee: p.skbbkEmployee,
+          skbbkWage: p.skbbkWage,
           pcb: p.pcb,
           pcbCalculation: (p.pcbCalculation ?? null) as Prisma.InputJsonValue,
           hrdf: p.hrdf,
@@ -225,6 +232,8 @@ export const payslipRepository = {
             socsoEmployer: p.socsoEmployer,
             eisEmployee: p.eisEmployee,
             eisEmployer: p.eisEmployer,
+            skbbkEmployee: p.skbbkEmployee,
+            skbbkWage: p.skbbkWage,
             pcb: p.pcb,
             // Cast through Prisma's JSON-input shape — `pcbCalculation`
             // is `unknown` at this layer so the calc.ts type doesn't

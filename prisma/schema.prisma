@@ -1680,6 +1680,16 @@ model Payslip {
   socsoEmployer         Decimal           @default(0.00) @db.Decimal(12, 2)
   eisEmployee           Decimal           @default(0.00) @db.Decimal(12, 2)
   eisEmployer           Decimal           @default(0.00) @db.Decimal(12, 2)
+  /// SKBBK (Skim LINDUNG 24 Jam / Non-Employment Injury Scheme) —
+  /// employee-only contribution effective 1 Jun 2026. 0 for payslips
+  /// before that month or for non-Akta-4 employees. Default 0 also
+  /// covers historical rows from before this column existed.
+  skbbkEmployee         Decimal           @default(0.00) @db.Decimal(12, 2)
+  /// Wage base used to look up SKBBK from the gazette table —
+  /// equals socso wage in current code but persisted separately so
+  /// historical payslips remain interpretable if PERKESO ever
+  /// decouples the two wage definitions.
+  skbbkWage             Decimal           @default(0.00) @db.Decimal(12, 2)
   pcb                   Decimal           @default(0.00) @db.Decimal(12, 2)
   hrdf                  Decimal           @default(0.00) @db.Decimal(12, 2)
   zakat                 Decimal           @default(0.00) @db.Decimal(12, 2)
