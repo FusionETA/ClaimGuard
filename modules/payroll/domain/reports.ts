@@ -55,7 +55,7 @@ export type PayrollReportMeta = {
   /// Hint of which portal/system this file uploads to, when applicable.
   portal: string | null
   /// File extension (without the dot).
-  extension: "pdf" | "csv" | "txt" | "xlsx"
+  extension: "pdf" | "csv" | "txt" | "xlsx" | "zip"
   /// MIME type written to disk + sent on the download response.
   mimeType: string
 }
@@ -138,11 +138,12 @@ export const PAYROLL_REPORT_META: Record<PayrollReportKind, PayrollReportMeta> =
   BULK_PAYSLIPS_PDF: {
     kind: "BULK_PAYSLIPS_PDF",
     group: "PAYSLIPS",
-    title: "Bulk Payslips",
-    description: "Every employee's payslip concatenated into one PDF.",
+    title: "Bulk Payslips (ZIP of individual PDFs)",
+    description:
+      "ZIP containing one PDF per employee — so payroll can forward each payslip individually over chat / email without splitting a combined PDF first.",
     portal: null,
-    extension: "pdf",
-    mimeType: "application/pdf",
+    extension: "zip",
+    mimeType: "application/zip",
   },
   BANK_PB_ECP_XLSX: {
     kind: "BANK_PB_ECP_XLSX",
@@ -210,6 +211,8 @@ export function buildReportFileName(input: {
     case "PCB_LHDN_FORM_PDF":
       return `PCB_Calculation_Details_${monthName}_${yy}.${meta.extension}`
     case "BULK_PAYSLIPS_PDF":
+      // Extension is now `.zip`; legacy filename pattern preserved
+      // (`Payslips_YYYY_MM_All.zip`) so admins recognise the bundle.
       return `Payslips_${yy}_${mm}_All.${meta.extension}`
     case "EPF_CSV": {
       const d = input.generatedAt ?? new Date()

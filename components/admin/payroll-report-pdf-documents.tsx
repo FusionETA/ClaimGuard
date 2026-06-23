@@ -11,8 +11,11 @@
  *        variable descriptions). Audit-ready. Superseded the older
  *        compact "Detailed Calculations" PDF in 2026-06.
  *
- *   3. `BulkPayslipsPdfDocument`
- *      — One payslip page per employee, concatenated into a single PDF.
+ *   3. `EmployeePayslipPdfDocument`
+ *      — One employee's payslip rendered as a single-page PDF. The
+ *        bulk-payslips renderer calls this once per employee and zips
+ *        the resulting PDFs so admins distribute individual files
+ *        rather than one concatenated PDF.
  *
  * Styling matches the existing `PayrollSummaryPdfDocument` so the
  * documents feel like a set. Keep visual changes additive — admin
@@ -844,13 +847,13 @@ export type BulkPayslipPdfRow = PayslipRow & {
   }
 }
 
-export type BulkPayslipsPdfDocumentProps = {
+export type EmployeePayslipPdfDocumentProps = {
   organizationName: string
   period: string
   /// Issue date printed on the payslip header — typically the last
   /// calendar day of the period month.
   issueDate: Date
-  payslips: BulkPayslipPdfRow[]
+  payslip: BulkPayslipPdfRow
   generatedAt: Date
 }
 
@@ -1005,14 +1008,24 @@ const payslipStyles = StyleSheet.create({
   },
 })
 
-export function BulkPayslipsPdfDocument(props: BulkPayslipsPdfDocumentProps) {
+/**
+ * Single-employee payslip PDF. The renderer (see
+ * `bulk-payslips-pdf.tsx`) calls this once per employee and zips the
+ * resulting buffers, so each employee gets their own PDF inside the
+ * downloaded ZIP. We deliberately use ONE Document per employee
+ * instead of one Document with N pages so that the resulting PDFs
+ * are individually shareable / printable.
+ */
+export function EmployeePayslipPdfDocument(
+  props: EmployeePayslipPdfDocumentProps,
+) {
+  const p = props.payslip
   return (
     <Document
-      title={`Payslips ${props.period}`}
+      title={`Payslip ${props.period} - ${p.snapshotName}`}
       author={props.organizationName}
     >
-      {props.payslips.map((p) => (
-        <Page key={p.id} size="A4" style={payslipStyles.page}>
+      <Page size="A4" style={payslipStyles.page}>
           {/* ── Header: org name + period ─────────────────────────── */}
           <View style={payslipStyles.headerRow}>
             <Text style={payslipStyles.orgName}>{props.organizationName}</Text>
@@ -1229,8 +1242,7 @@ export function BulkPayslipsPdfDocument(props: BulkPayslipsPdfDocumentProps) {
               }
             />
           </View>
-        </Page>
-      ))}
+      </Page>
     </Document>
   )
 }

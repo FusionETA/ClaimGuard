@@ -198,7 +198,15 @@ export async function generatePayrollReport(input: {
       () => true,
       () => false,
     )
-    if (fileExists) {
+    // ALSO invalidate when the cached file format (mimeType) no
+    // longer matches the current report meta. Bulk payslips
+    // switched from `application/pdf` to `application/zip` in
+    // 2026-06; without this check, runs that generated the bulk
+    // PDF before the change would forever serve the stale .pdf
+    // instead of the new ZIP. Generic mechanism, not bulk-specific.
+    const expectedMime = PAYROLL_REPORT_META[input.kind].mimeType
+    const mimeStillMatches = cached.mimeType === expectedMime
+    if (fileExists && mimeStillMatches) {
       return {
         fileName: cached.fileName,
         fileUrl: cached.fileUrl,
