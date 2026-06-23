@@ -33,6 +33,7 @@ import type { WorkingDaysRule } from "@/modules/payroll/domain/settings"
 import {
   lookupEis,
   lookupEpfBand,
+  lookupSkbbk,
   lookupSocso,
 } from "@/modules/payroll/domain/statutory-tables"
 
@@ -317,10 +318,28 @@ export function calcEpf(input: CalcEpfInput): {
 export function calcSocso(input: {
   wage: number
   scheme: SocsoScheme | null
-}): { employee: number; employer: number } {
-  if (!input.scheme) return { employee: 0, employer: 0 }
+  /// Payroll period — needed because SKBBK only kicks in from
+  /// 1 Jun 2026 onwards and the gazette publishes new tables per
+  /// rollout phase. Pre-Jun-2026 periods get `employeeSkbbk: 0`
+  /// regardless of scheme; see `lookupSkbbk` for the period gate.
+  periodYear: number
+  periodMonth: number
+}): { employee: number; employer: number; employeeSkbbk: number } {
+  if (!input.scheme) {
+    return { employee: 0, employer: 0, employeeSkbbk: 0 }
+  }
   const category2 = input.scheme === "EMPLOYMENT_INJURY_ONLY"
-  return lookupSocso(input.wage, category2)
+  const { employer, employee } = lookupSocso(input.wage, category2)
+  // SKBBK is the same gazette amount for Cat 1 and Cat 2 — PERKESO
+  // publishes one Non-Employment Injury column that both categories
+  // read off. Period gate inside lookupSkbbk returns 0 for periods
+  // before Jun 2026 so historical reruns don't accidentally back-bill.
+  const employeeSkbbk = lookupSkbbk({
+    wage: input.wage,
+    periodYear: input.periodYear,
+    periodMonth: input.periodMonth,
+  })
+  return { employee, employer, employeeSkbbk }
 }
 
 // ─── EIS ─────────────────────────────────────────────────────────────────
@@ -675,6 +694,13 @@ export type CalcPayslipResult = {
   socsoEmployer: number
   eisEmployee: number
   eisEmployer: number
+  /// SKBBK (Skim LINDUNG 24 Jam) — employee-only contribution
+  /// effective 1 Jun 2026. 0 for periods before then.
+  skbbkEmployee: number
+  /// Capped wage used to look up SKBBK from the gazette table.
+  /// Identical to socsoWage in current code; persisted separately so
+  /// historical payslips remain interpretable if the cap ever changes.
+  skbbkWage: number
   pcb: number
   hrdf: number
   hrdfWage: number
@@ -1167,6 +1193,8 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   const socso = calcSocso({
     wage: socsoWage,
     scheme: profile.socsoScheme,
+    periodYear,
+    periodMonth,
   })
 
   // EIS eligibility per PERKESO EIS Act 2017 + the EIS coverage flyer:
@@ -1301,11 +1329,16 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   // items get counted there) — don't subtract it again here. The
   // zakat → PCB offset has already lowered `pcb` to its post-offset
   // value, which is what the employee actually pays.
+  //
+  // SKBBK (Skim LINDUNG 24 Jam) is an employee-only contribution
+  // effective Jun 2026 onwards. The employer side carries no SKBBK,
+  // so totalCostToEmployer below is unaffected — only net-pay drops.
   const netPay = round2(
     grossPay -
       epf.employee -
       socso.employee -
       eis.employee -
+      socso.employeeSkbbk -
       totalDeductions -
       pcb,
   )
@@ -1365,6 +1398,11 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     socsoEmployer: socso.employer,
     eisEmployee: eis.employee,
     eisEmployer: eis.employer,
+    skbbkEmployee: socso.employeeSkbbk,
+    // Wage base used for the SKBBK lookup — equal to the SOCSO base
+    // by definition (same gazette + same Akta 4 wage definition).
+    // Persisted separately so historical payslips remain interpretable.
+    skbbkWage: socsoWage,
     pcb,
     hrdf,
     hrdfWage,
