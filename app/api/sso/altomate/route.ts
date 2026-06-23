@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { buildSessionUserForEmail } from "@/lib/auth/authenticate"
 import { buildSessionCookie } from "@/lib/auth/session"
+import { log } from "@/lib/log"
 import { getRedis, key } from "@/lib/redis"
 import { getRequestOrigin } from "@/lib/request-origin"
 
@@ -47,10 +48,28 @@ type StoredTicket = {
  */
 const GRACE_TTL_SECONDS = 30
 
-function loginError(request: NextRequest, reason: string): NextResponse {
+function loginError(
+  request: NextRequest,
+  reason: string,
+  fields?: Record<string, unknown>,
+): NextResponse {
   // Build the redirect from the PUBLIC origin (forwarded headers) not
   // the internal listener URL — see lib/request-origin.ts.
-  const url = new URL("/login", getRequestOrigin(request))
+  const origin = getRequestOrigin(request)
+
+  // Record every failure so a recurrence is traceable in the logs.
+  // `store-unavailable` means Redis is down — a real outage, so page it
+  // via log.critical (→ WhatsApp in prod). Every other reason (stale /
+  // replayed / expired tickets, unknown accounts, bot probes) is
+  // expected operational noise and stays stdout-only at warn.
+  const payload = { reason, origin, ...fields }
+  if (reason === "store-unavailable") {
+    log.critical("sso.login.failed", payload)
+  } else {
+    log.warn("sso.login.failed", payload)
+  }
+
+  const url = new URL("/login", origin)
   url.searchParams.set("error", "sso")
   url.searchParams.set("reason", reason)
   return NextResponse.redirect(url)
@@ -83,19 +102,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       // Ticket already consumed — fall back to the grace copy.
       raw = await redis.get(usedKey)
     }
-  } catch {
-    return loginError(request, "store-unavailable")
+  } catch (err) {
+    return loginError(request, "store-unavailable", { ticketId, err })
   }
-  if (!raw) return loginError(request, "invalid-ticket")
+  if (!raw) return loginError(request, "invalid-ticket", { ticketId })
 
   let claims: StoredTicket
   try {
     claims = JSON.parse(raw) as StoredTicket
   } catch {
-    return loginError(request, "invalid-ticket")
+    return loginError(request, "invalid-ticket", { ticketId, malformed: true })
   }
   if (typeof claims.email !== "string" || claims.email.length === 0) {
-    return loginError(request, "invalid-ticket")
+    return loginError(request, "invalid-ticket", { ticketId, noEmail: true })
   }
 
   // Identity is proven (we stored the ticket ourselves). Pass the
@@ -107,7 +126,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     targetOrganizationId: claims.organizationId,
   })
   if (!result.ok) {
-    return loginError(request, result.reason)
+    return loginError(request, result.reason, {
+      ticketId,
+      email: claims.email,
+      organizationId: claims.organizationId,
+    })
   }
 
   const cookie = buildSessionCookie(result.user)
