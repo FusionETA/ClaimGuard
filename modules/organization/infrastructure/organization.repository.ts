@@ -4366,7 +4366,7 @@ export const organizationRepository = {
         },
         update: {}, // already there → no-op
       })
-      return tx.employeeTeamMembership.upsert({
+      const membership = await tx.employeeTeamMembership.upsert({
         where: {
           employeeProfileId_teamId: {
             employeeProfileId: profile.id,
@@ -4380,6 +4380,24 @@ export const organizationRepository = {
         },
         update: { layer: data.layer },
       })
+
+      // Keep User.role in sync with the team hierarchy: anyone sitting at layer
+      // 2+ in ANY team is a SUPERVISOR; if they're at layer 1 everywhere, they
+      // fall back to EMPLOYEE. Only ever toggle EMPLOYEE <-> SUPERVISOR — admins
+      // and owners keep their elevated role.
+      if (profile.user.role === "EMPLOYEE" || profile.user.role === "SUPERVISOR") {
+        const memberships = await tx.employeeTeamMembership.findMany({
+          where: { employeeProfileId: profile.id },
+          select: { layer: true },
+        })
+        const desiredRole = memberships.some((m) => m.layer >= 2) ? "SUPERVISOR" : "EMPLOYEE"
+        if (desiredRole !== profile.user.role) {
+          await tx.user.update({ where: { id: profile.user.id }, data: { role: desiredRole } })
+          profile.user.role = desiredRole
+        }
+      }
+
+      return membership
     })
 
     return {
@@ -4419,15 +4437,35 @@ export const organizationRepository = {
     // Wipe the per-(employee, team) chain rows alongside the membership so
     // we don't leave dangling approval chains pointing at a team the
     // employee no longer belongs to.
-    await prisma.$transaction([
-      prisma.approvalChainStep.deleteMany({
+    await prisma.$transaction(async (tx) => {
+      await tx.approvalChainStep.deleteMany({
         where: {
           teamId: membership.teamId,
           employeeId: membership.employeeProfile.user.id,
         },
-      }),
-      prisma.employeeTeamMembership.delete({ where: { id: membership.id } }),
-    ])
+      })
+      await tx.employeeTeamMembership.delete({ where: { id: membership.id } })
+
+      // Leaving a team can mean they're no longer a layer-2+ supervisor
+      // anywhere — re-evaluate role (EMPLOYEE <-> SUPERVISOR only).
+      const user = await tx.user.findUnique({
+        where: { id: membership.employeeProfile.user.id },
+        select: { role: true },
+      })
+      if (user && (user.role === "EMPLOYEE" || user.role === "SUPERVISOR")) {
+        const memberships = await tx.employeeTeamMembership.findMany({
+          where: { employeeProfileId: membership.employeeProfileId },
+          select: { layer: true },
+        })
+        const desiredRole = memberships.some((m) => m.layer >= 2) ? "SUPERVISOR" : "EMPLOYEE"
+        if (desiredRole !== user.role) {
+          await tx.user.update({
+            where: { id: membership.employeeProfile.user.id },
+            data: { role: desiredRole },
+          })
+        }
+      }
+    })
   },
 
   /**

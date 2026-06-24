@@ -298,6 +298,31 @@ export function EmployeeCompanyForm({
     resolveSelectedProjectIds(member.projects, filteredProjects),
   )
 
+  // Default approval chain for a (team, layer): every layer ABOVE the employee
+  // is pre-filled with that layer's supervisors (any one of them can approve to
+  // advance). Used so a member added via the company structure shows their
+  // supervisors auto-selected here instead of a blank chain.
+  const defaultChainApprovers = (
+    teamId: string,
+    layer: number,
+  ): Record<number, string[]> => {
+    const team = teams.find((t) => t.id === teamId)
+    if (!team) return {}
+    const out: Record<number, string[]> = {}
+    for (let l = layer + 1; l <= team.layerCount; l++) {
+      const sup = allMembers
+        .filter(
+          (m) =>
+            m.id !== member.id &&
+            m.role === "SUPERVISOR" &&
+            m.teams.some((t) => t.teamId === teamId && t.layer === l),
+        )
+        .map((m) => m.id)
+      if (sup.length) out[l] = sup
+    }
+    return out
+  }
+
   const [projectConfigs, setProjectConfigs] = useState<
     Record<
       string,
@@ -313,7 +338,12 @@ export function EmployeeCompanyForm({
       t.chain.forEach((step, idx) => {
         map[t.layer + idx + 1] = step.approvers.map((a) => a.approverId)
       })
-      out[t.projectId] = { teamId: t.teamId, layer: t.layer, chainApproverByLayer: map }
+      // No saved chain yet (e.g. just added via company structure) → auto-fill
+      // each higher layer with that layer's supervisors.
+      const chain = Object.keys(map).length
+        ? map
+        : defaultChainApprovers(t.teamId, t.layer)
+      out[t.projectId] = { teamId: t.teamId, layer: t.layer, chainApproverByLayer: chain }
     }
     return out
   })
@@ -550,7 +580,11 @@ export function EmployeeCompanyForm({
                     onValueChange={(v) =>
                       setProjectConfigs((prev) => ({
                         ...prev,
-                        [pid]: { teamId: v, layer: 1, chainApproverByLayer: {} },
+                        [pid]: {
+                          teamId: v,
+                          layer: 1,
+                          chainApproverByLayer: defaultChainApprovers(v, 1),
+                        },
                       }))
                     }
                     disabled={pending}
@@ -588,7 +622,10 @@ export function EmployeeCompanyForm({
                           [pid]: {
                             ...prev[pid]!,
                             layer: Number(v) || 1,
-                            chainApproverByLayer: {},
+                            chainApproverByLayer: defaultChainApprovers(
+                              prev[pid]!.teamId,
+                              Number(v) || 1,
+                            ),
                           },
                         }))
                       }
