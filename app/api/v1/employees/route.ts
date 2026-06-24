@@ -5,6 +5,7 @@ import { z } from "zod"
 import { handleApiRequest } from "@/lib/api-auth"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { Prisma } from "@/generated/prisma/client"
 
 /**
  * Pagination defaults. The list endpoint always returns at most
@@ -57,30 +58,117 @@ const projectAssignmentSchema = z.object({
     .default([]),
 })
 
-const createEmployeeSchema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters."),
-  email: z.string().trim().toLowerCase().email("Enter a valid email."),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters."),
-  employeeId: z.string().trim().min(1, "Employee ID is required."),
-  role: z.enum(["EMPLOYEE", "SUPERVISOR"]),
-  jobTitle: z.string().trim().min(1, "Job title is required."),
-  /// Required employee policy. Its salaryType and otMethod drive
-  /// compensation/OT behavior.
-  policyId: z.string().min(1, "Employee policy is required."),
-  /// Required: backs the forgot-password WhatsApp delivery. Stored on
-  /// `PayrollProfile.phone`.
-  phone: z
-    .string()
-    .trim()
-    .min(7, "Phone number is required (at least 7 digits).")
-    .refine((v) => v.replace(/\D/g, "").length >= 7, {
-      message: "Phone number must contain at least 7 digits.",
-    }),
-  projectIds: z.array(z.string()).default([]),
-  projectAssignments: z.array(projectAssignmentSchema).default([]),
+const childReliefSchema = z.object({
+  age: z.number().int().min(0).max(100),
+  abilityStatus: z.enum(["NORMAL", "DISABLED"]).default("NORMAL"),
+  currentlyStudying: z
+    .enum(["NONE", "PRESCHOOL", "PRIMARY", "SECONDARY", "HIGHER_ED"])
+    .default("NONE"),
+  pcbDeduction: z.enum(["FULL", "HALF", "NONE"]).default("NONE"),
 })
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+
+const createEmployeeSchema = z
+  .object({
+    // ── Account ──────────────────────────────────────────────────────────
+    name: z.string().trim().min(2, "Name must be at least 2 characters."),
+    email: z.string().trim().toLowerCase().email("Enter a valid email."),
+    phone: z
+      .string()
+      .trim()
+      .min(7, "Phone number is required (at least 7 digits).")
+      .refine((v) => v.replace(/\D/g, "").length >= 7, {
+        message: "Phone number must contain at least 7 digits.",
+      }),
+    jobTitle: z.string().trim().min(1, "Job title is required."),
+    role: z.enum(["EMPLOYEE", "SUPERVISOR"]).default("EMPLOYEE"),
+    // Auto-defaulted when omitted: password ← email+MMDD, employeeId ← E###,
+    // policyId ← org default policy.
+    password: z.string().min(8, "Password must be at least 8 characters.").optional(),
+    employeeId: z.string().trim().min(1).optional(),
+    policyId: z.string().min(1).optional(),
+    projectIds: z.array(z.string()).default([]),
+    projectAssignments: z.array(projectAssignmentSchema).default([]),
+
+    // ── Personal (required) ──────────────────────────────────────────────
+    gender: z.enum(["MALE", "FEMALE"]),
+    dateOfBirth: z.string().regex(ISO_DATE, "Date of birth must be YYYY-MM-DD."),
+    idNumber: z.string().trim().min(1, "ID number is required."),
+    maritalStatus: z.enum(["SINGLE", "MARRIED", "DIVORCED", "WIDOWED"]),
+    incomeTaxNumber: z.string().trim().min(1, "Income tax (PCB) number is required."),
+    joinDate: z.string().regex(ISO_DATE, "Join date must be YYYY-MM-DD."),
+
+    // ── Personal (optional / defaulted) ──────────────────────────────────
+    alternateEmail: z.string().trim().toLowerCase().email().optional(),
+    nationality: z.string().trim().min(1).default("Malaysian"),
+    race: z.string().trim().max(2).optional(),
+    idType: z.enum(["NRIC", "PASSPORT", "ARMY_NO", "POLICE_NO"]).default("NRIC"),
+    hasPr: z.boolean().optional(),
+    isResident: z.boolean().optional(),
+    isOku: z.boolean().default(false),
+
+    // ── Spouse ───────────────────────────────────────────────────────────
+    spouseWorking: z.boolean().optional(),
+    spouseDisabled: z.boolean().optional(),
+    spousePcbNumber: z.string().trim().optional(),
+    spouseIdNumber: z.string().trim().optional(),
+
+    // ── Dependent children (up to 10) ────────────────────────────────────
+    childRelief: z.array(childReliefSchema).max(10).optional(),
+
+    // ── Compensation (salaryType comes from the policy) ──────────────────
+    monthlySalary: z.number().nonnegative().optional(),
+    hourlyRate: z.number().nonnegative().optional(),
+
+    // ── Previous employment (TP3) ────────────────────────────────────────
+    prevEmploymentYear: z.number().int().optional(),
+    prevRemuneration: z.number().nonnegative().optional(),
+    prevEpf: z.number().nonnegative().optional(),
+    prevPcb: z.number().nonnegative().optional(),
+    prevZakat: z.number().nonnegative().optional(),
+    prevAllowableDeductions: z.number().nonnegative().optional(),
+
+    // ── Statutory ────────────────────────────────────────────────────────
+    contributeToEpf: z.boolean().default(true),
+    epfMemberBefore1998: z.boolean().default(false),
+    epfNumber: z.string().trim().optional(),
+    epfEmployeeVoluntary: z.number().min(0).max(100).optional(),
+    epfEmployerVoluntary: z.number().min(0).max(100).optional(),
+    socsoScheme: z
+      .enum(["EMPLOYMENT_INJURY_INVALIDITY", "EMPLOYMENT_INJURY_ONLY"])
+      .optional(),
+    socsoNumber: z.string().trim().optional(),
+    contributeToEis: z.boolean().default(true),
+    ssfwNumber: z.string().trim().optional(),
+    paymentMethod: z.enum(["BANK_TRANSFER", "CASH", "CHEQUE"]).default("BANK_TRANSFER"),
+    bankName: z.string().trim().optional(),
+    bankAccountHolderName: z.string().trim().optional(),
+    bankAccountNumber: z.string().trim().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.maritalStatus === "MARRIED" && data.spouseWorking === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["spouseWorking"],
+        message: "spouseWorking is required when maritalStatus is MARRIED.",
+      })
+    }
+    if (data.contributeToEpf !== false && !data.epfNumber) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["epfNumber"],
+        message: "epfNumber is required when contributing to EPF.",
+      })
+    }
+    if (data.socsoScheme && !data.socsoNumber) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["socsoNumber"],
+        message: "socsoNumber is required when a SOCSO scheme is set.",
+      })
+    }
+  })
 
 /**
  * POST /api/v1/employees
@@ -127,26 +215,109 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
     )
   }
 
+  const orgId = ctx.integration.organizationId
+  const d = parsed.data
+
+  // Resolve the policy (org default when omitted) and require the salary
+  // figure that matches its salary type.
+  let policy: { id: string; salaryType: "MONTHLY" | "HOURLY" }
+  try {
+    policy = await organizationRepository.resolvePolicyForCreate(orgId, d.policyId)
+  } catch (error) {
+    return NextResponse.json(
+      { error: { status: 400, message: safeErrorMessage(error, "Invalid policy.") } },
+      { status: 400 },
+    )
+  }
+  if (policy.salaryType === "MONTHLY" && d.monthlySalary == null) {
+    return NextResponse.json(
+      { error: { status: 400, message: "monthlySalary is required for a monthly-salary policy." } },
+      { status: 400 },
+    )
+  }
+  if (policy.salaryType === "HOURLY" && d.hourlyRate == null) {
+    return NextResponse.json(
+      { error: { status: 400, message: "hourlyRate is required for an hourly-rate policy." } },
+      { status: 400 },
+    )
+  }
+
+  // Auto-assign employeeId (E###) and default password (email + MMDD of DOB)
+  // when the caller doesn't supply them.
+  const employeeId =
+    d.employeeId ?? (await organizationRepository.generateNextEmployeeId(orgId))
+  const [, mm, dd] = d.dateOfBirth.split("-")
+  const password = d.password ?? `${d.email}${mm}${dd}`
+
+  // Extra PayrollProfile fields. phone/salaryType/joinDate/dateOfBirth are set
+  // by the dedicated params below; everything else flows through here.
+  // `undefined` values are skipped by Prisma, so optional fields stay default.
+  // Malaysians are always PR + tax-resident (the UI locks these on); mirror
+  // that here so the API can't create an inconsistent Malaysian record.
+  const isMalaysian = d.nationality.trim().toLowerCase() === "malaysian"
+  const payroll: Prisma.PayrollProfileUpdateInput = {
+    gender: d.gender,
+    nationality: d.nationality,
+    idType: d.idType,
+    idNumber: d.idNumber,
+    maritalStatus: d.maritalStatus,
+    incomeTaxNumber: d.incomeTaxNumber,
+    isOku: d.isOku,
+    contributeToEpf: d.contributeToEpf,
+    epfMemberBefore1998: d.epfMemberBefore1998,
+    contributeToEis: d.contributeToEis,
+    paymentMethod: d.paymentMethod,
+    alternateEmail: d.alternateEmail,
+    race: d.race,
+    hasPr: isMalaysian ? true : d.hasPr,
+    isResident: isMalaysian ? true : d.isResident,
+    spouseWorking: d.spouseWorking,
+    spouseDisabled: d.spouseDisabled,
+    spousePcbNumber: d.spousePcbNumber,
+    spouseIdNumber: d.spouseIdNumber,
+    monthlySalary: d.monthlySalary,
+    hourlyRate: d.hourlyRate,
+    prevEmploymentYear: d.prevEmploymentYear,
+    prevRemuneration: d.prevRemuneration,
+    prevEpf: d.prevEpf,
+    prevPcb: d.prevPcb,
+    prevZakat: d.prevZakat,
+    prevAllowableDeductions: d.prevAllowableDeductions,
+    epfNumber: d.epfNumber,
+    epfEmployeeVoluntary: d.epfEmployeeVoluntary,
+    epfEmployerVoluntary: d.epfEmployerVoluntary,
+    socsoScheme: d.socsoScheme,
+    socsoNumber: d.socsoNumber,
+    ssfwNumber: d.ssfwNumber,
+    bankName: d.bankName,
+    bankAccountHolderName: d.bankAccountHolderName,
+    bankAccountNumber: d.bankAccountNumber,
+    ...(d.childRelief !== undefined
+      ? { childRelief: d.childRelief as unknown as Prisma.InputJsonValue }
+      : {}),
+  }
+
   let created: { id: string }
   try {
     created = await organizationRepository.createOrganizationMember({
-      name: parsed.data.name,
-      email: parsed.data.email,
-      password: parsed.data.password,
-      employeeId: parsed.data.employeeId,
-      role: parsed.data.role,
-      organizationId: ctx.integration.organizationId,
-      projectIds: parsed.data.projectIds,
-      jobTitle: parsed.data.jobTitle,
-      policyId: parsed.data.policyId,
-      phone: parsed.data.phone,
-      projectAssignments: parsed.data.projectAssignments,
+      name: d.name,
+      email: d.email,
+      password,
+      employeeId,
+      role: d.role,
+      organizationId: orgId,
+      projectIds: d.projectIds,
+      jobTitle: d.jobTitle,
+      policyId: policy.id,
+      phone: d.phone,
+      joinDate: new Date(d.joinDate),
+      dob: d.dateOfBirth,
+      projectAssignments: d.projectAssignments,
+      payroll,
     })
   } catch (error) {
-    const message =
-      safeErrorMessage(error, "Could not create employee.")
-    // Email collision / employeeId collision come back here; surface
-    // verbatim so the partner can react.
+    const message = safeErrorMessage(error, "Could not create employee.")
+    // Email / employeeId collision surface here — return verbatim.
     return NextResponse.json(
       { error: { status: 409, message } },
       { status: 409 },

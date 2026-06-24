@@ -2127,6 +2127,50 @@ export const organizationRepository = {
     })
   },
 
+  /// Next auto-assigned employee code for an org, of the form E001, E002…
+  /// Scans existing E-prefixed codes and increments the highest. Used by the
+  /// v1 create endpoint when the caller doesn't supply an employeeId.
+  async generateNextEmployeeId(organizationId: string): Promise<string> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    const rows = await prisma.employeeProfile.findMany({
+      where: { user: { organizationId }, employeeId: { startsWith: "E" } },
+      select: { employeeId: true },
+    })
+    let max = 0
+    for (const r of rows) {
+      const m = /^E(\d+)$/.exec(r.employeeId)
+      if (m) max = Math.max(max, Number(m[1]))
+    }
+    return `E${String(max + 1).padStart(3, "0")}`
+  },
+
+  /// Resolve the policy to use for a new employee: the given id, or the org's
+  /// default policy when none is supplied. Returns its id and translated
+  /// SalaryType (EmployeePolicy.salaryType is the PayoutMethod enum).
+  async resolvePolicyForCreate(
+    organizationId: string,
+    policyId?: string | null,
+  ): Promise<{ id: string; salaryType: "MONTHLY" | "HOURLY" }> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    let id = policyId ?? null
+    if (!id) {
+      const def = await policyRepository.findDefault(organizationId)
+      if (!def) {
+        throw new Error("No default employee policy configured for this organization.")
+      }
+      id = def.id
+    }
+    const policy = await prisma.employeePolicy.findFirst({
+      where: { id, organizationId },
+      select: { id: true, salaryType: true, archivedAt: true },
+    })
+    if (!policy) throw new Error("Selected employee policy not found.")
+    if (policy.archivedAt) throw new Error("Selected employee policy is archived.")
+    return { id: policy.id, salaryType: policy.salaryType === "HOURLY" ? "HOURLY" : "MONTHLY" }
+  },
+
   async createOrganizationMember(data: {
     name: string
     email: string
@@ -2175,6 +2219,11 @@ export const organizationRepository = {
     /// type defaults. `CUSTOM` lets the Add Employee dialog pass
     /// admin-typed per-type day counts and accrual-method overrides.
     leaveSeed?: LeaveSeedInput
+    /// Optional extra PayrollProfile fields (personal/spouse/children/
+    /// statutory/compensation) written right after the profile is created.
+    /// Used by the v1 create-employee API. Excludes phone/salaryType/joinDate/
+    /// dateOfBirth which are set from the dedicated params above.
+    payroll?: Prisma.PayrollProfileUpdateInput
   }): Promise<{ id: string }> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -2391,6 +2440,16 @@ export const organizationRepository = {
       },
       select: { id: true, employeeProfile: { select: { id: true } } },
     })
+
+    // Apply the optional extra PayrollProfile fields (v1 create API). Done as a
+    // follow-up update so the nested create above stays minimal; joinDate is
+    // already set in the create so leave seeding below still sees it.
+    if (data.payroll && user.employeeProfile?.id) {
+      await prisma.payrollProfile.update({
+        where: { employeeProfileId: user.employeeProfile.id },
+        data: data.payroll,
+      })
+    }
 
     // Write per-team chain rows. Each project's chain is independent.
     // Multiple approvers per layer share a single step number — they're
