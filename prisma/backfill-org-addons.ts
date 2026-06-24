@@ -35,6 +35,9 @@ import { PrismaClient } from "../generated/prisma/client"
  *   npm run db:backfill-org-addons -- --org=clxxxxxxxxxxxxxxxx
  *   npm run db:backfill-org-addons -- --apply --org=clxxxxxxxxxxxxxxxx
  *
+ *   # Force both addons on every org regardless of data presence.
+ *   npm run db:backfill-org-addons -- --apply --all
+ *
  * Notes:
  *   - Existing addon strings are preserved (set union, no removals).
  *   - Plan + tier are NEVER touched. Orgs on DIY+FREE get flagged
@@ -45,6 +48,7 @@ import { PrismaClient } from "../generated/prisma/client"
  */
 
 const APPLY = process.argv.includes("--apply")
+const FORCE_ALL = process.argv.includes("--all")
 const orgArg = process.argv.find((a) => a.startsWith("--org="))
 const ONLY_ORG_ID = orgArg ? orgArg.slice("--org=".length) : null
 
@@ -148,8 +152,19 @@ async function main() {
     for (const org of orgs) {
       const before = normaliseAddons(org.addons)
       const after = new Set(before)
-      if ((claimsByOrg.get(org.id) ?? 0) > 0) after.add("expense_claim")
-      if ((attendanceByOrg.get(org.id) ?? 0) > 0) after.add("clock")
+      // --all: force both addons on every org regardless of whether
+      // claim / attendance rows exist yet. Use when you want the nav
+      // to show the modules across the whole tenant base — e.g. you've
+      // decided everyone is entitled to Claims + Attendance by default
+      // and the data-driven backfill (default mode) would leave fresh
+      // tenants stuck with a half-empty sidebar.
+      if (FORCE_ALL) {
+        after.add("expense_claim")
+        after.add("clock")
+      } else {
+        if ((claimsByOrg.get(org.id) ?? 0) > 0) after.add("expense_claim")
+        if ((attendanceByOrg.get(org.id) ?? 0) > 0) after.add("clock")
+      }
 
       const added = [...after].filter((a) => !before.has(a))
       if (added.length === 0) continue
@@ -172,7 +187,7 @@ async function main() {
     }
 
     console.log(
-      `\n${APPLY ? "APPLYING" : "DRY RUN"} — ${updates.length} of ${orgs.length} organizations need addon backfill:\n`,
+      `\n${APPLY ? "APPLYING" : "DRY RUN"}${FORCE_ALL ? " (--all: forcing both addons on every org)" : ""} — ${updates.length} of ${orgs.length} organizations need addon backfill:\n`,
     )
 
     const namePad = Math.max(...updates.map((u) => u.name.length), 12)

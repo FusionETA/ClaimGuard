@@ -491,31 +491,37 @@ function RollCallCard({
           {people.length}
         </span>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent>
         {people.length === 0 ? (
           <p className="rounded-2xl bg-surface-low px-4 py-6 text-center text-sm text-muted-foreground">
             {emptyText}
           </p>
         ) : (
-          people.map((person) => (
-            <div
-              key={person.id}
-              className="rounded-2xl border border-border/60 bg-surface-low px-4 py-3"
-            >
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="truncate text-sm font-bold">{person.name}</p>
-                {showLateMeta && person.lateByMin != null ? (
-                  <span className="shrink-0 text-xs font-semibold text-tertiary">
-                    +{person.lateByMin}m
-                  </span>
-                ) : null}
+          // Cap the visible height + scroll inside the card so a 200-
+          // employee "Not clocked in" list doesn't blow out the
+          // dashboard. -mr-2 / pr-2 pair keeps the scrollbar flush
+          // with the card edge instead of cutting into the row layout.
+          <div className="nice-scrollbar -mr-2 max-h-[420px] space-y-2 overflow-y-auto pr-2">
+            {people.map((person) => (
+              <div
+                key={person.id}
+                className="rounded-2xl border border-border/60 bg-surface-low px-4 py-3"
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="truncate text-sm font-bold">{person.name}</p>
+                  {showLateMeta && person.lateByMin != null ? (
+                    <span className="shrink-0 text-xs font-semibold text-tertiary">
+                      +{person.lateByMin}m
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {[person.jobTitle, person.project].filter(Boolean).join(" · ") ||
+                    person.employeeId}
+                </p>
               </div>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                {[person.jobTitle, person.project].filter(Boolean).join(" · ") ||
-                  person.employeeId}
-              </p>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>
