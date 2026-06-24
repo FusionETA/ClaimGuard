@@ -896,10 +896,32 @@ export const claimRepository = {
       }
     }
 
-    if (actionableConditions.length === 0) return []
+    // History condition: ALSO surface every claim this supervisor has
+    // already acted on, via the ClaimApprovalEntry audit table. Without
+    // this branch, the supervisor's queue would drop a claim the
+    // instant they approve / reject it — which makes the Approved /
+    // Rejected filter tabs always empty and creates the worry that
+    // claims "got deleted". The decision is authoritative on the
+    // approval entry (not `Claim.lastReviewerId`, which gets
+    // overwritten as later steps act).
+    const historyEntries = await prisma.claimApprovalEntry.findMany({
+      where: { approverId: supervisor.id },
+      select: { claimId: true },
+    })
+    const historyClaimIds = Array.from(
+      new Set(historyEntries.map((e) => e.claimId)),
+    )
+    const historyCondition: Prisma.ClaimWhereInput | null =
+      historyClaimIds.length > 0 ? { id: { in: historyClaimIds } } : null
+
+    const finalConditions: Prisma.ClaimWhereInput[] = [
+      ...actionableConditions,
+      ...(historyCondition ? [historyCondition] : []),
+    ]
+    if (finalConditions.length === 0) return []
 
     const rows = await prisma.claim.findMany({
-      where: { OR: actionableConditions },
+      where: { OR: finalConditions },
       include: claimInclude,
       orderBy: { submittedAt: "desc" },
     })
@@ -1639,12 +1661,19 @@ export const claimRepository = {
    */
   async listClaimsForReports(input: {
     organizationId: string
-    /// Inclusive start date (UTC). Compared against `Claim.spentAt`.
+    /// Inclusive start date (UTC). Compared against the field selected
+    /// by `dateField`.
     dateFrom?: Date
     /// Exclusive end date (UTC). Use the first instant AFTER the
     /// admin's chosen end day so claims with timestamp 23:59 still
     /// match.
     dateTo?: Date
+    /// Which claim timestamp the [dateFrom, dateTo) window applies
+    /// to. Defaults to "spent" — that's the accounting view ("money
+    /// spent in this period"). "submitted" is the audit view ("claims
+    /// filed in this period"), which surfaces e.g. a 2024 receipt
+    /// that an employee only got around to filing this month.
+    dateField?: "spent" | "submitted"
     projectIds?: string[]
     teamIds?: string[]
     memberIds?: string[]
@@ -1698,11 +1727,12 @@ export const claimRepository = {
       }
     }
 
+    const dateField = input.dateField === "submitted" ? "submittedAt" : "spentAt"
     const where: Prisma.ClaimWhereInput = {
       organizationId: input.organizationId,
       ...(input.dateFrom || input.dateTo
         ? {
-            spentAt: {
+            [dateField]: {
               ...(input.dateFrom ? { gte: input.dateFrom } : {}),
               ...(input.dateTo ? { lt: input.dateTo } : {}),
             },
