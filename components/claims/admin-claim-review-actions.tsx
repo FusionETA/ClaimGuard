@@ -98,7 +98,15 @@ export function AdminClaimReviewActions({
       </DialogTrigger>
 
       <DialogContent
-        className="max-h-[90vh] overflow-y-auto"
+        // bg-card + backdrop-blur-none override: the base DialogContent
+        // primitive uses `bg-card/95 backdrop-blur-xl` on top of an
+        // overlay that's also backdrop-blurred. In Safari, stacking
+        // two translucent + backdrop-blurred layers over the page's
+        // purple gradient triggers a compositing bug — the gradient
+        // bleeds through as dark/red banding around the modal edges
+        // (visible on Globe's Drafter Claim Review screen). Same
+        // workaround as the RollCallCard fix in admin/attendance.
+        className="max-h-[90vh] overflow-y-auto bg-card backdrop-blur-none dark:bg-card"
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
         <DialogHeader>
