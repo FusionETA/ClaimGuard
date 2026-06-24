@@ -2289,6 +2289,76 @@ export const claimRepository = {
     }
   },
 
+  /**
+   * Admin-initiated re-coding of the Chart of Account on a claim that
+   * is still in flight (anywhere from SUBMITTED through REVIEWED, as
+   * long as it hasn't been synced to Xero yet — once synced, the COA
+   * is locked into the Xero bill and changing it here would silently
+   * desync the two systems).
+   *
+   * Returns `claimType` so the service layer can refuse MILEAGE
+   * claims (their snapshot mileage rate is tied to the original COA,
+   * so swapping the COA would invalidate `mileageRateUsed` /
+   * `mileageUnitUsed` on the row).
+   */
+  async updateClaimChartOfAccount(data: {
+    claimId: string
+    chartOfAccountId: string
+  }): Promise<
+    | { ok: true; organizationId: string | null }
+    | {
+        ok: false
+        error:
+          | "DB_UNAVAILABLE"
+          | "NOT_FOUND"
+          | "NOT_ACTIONABLE"
+          | "MILEAGE_LOCKED"
+      }
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return { ok: false, error: "DB_UNAVAILABLE" }
+
+    const existing = await prisma.claim.findUnique({
+      where: { id: data.claimId },
+      select: {
+        id: true,
+        status: true,
+        claimType: true,
+        xeroSyncStatus: true,
+        organizationId: true,
+      },
+    })
+    if (!existing) return { ok: false, error: "NOT_FOUND" }
+
+    // Refuse mileage outright — the row carries a snapshot rate
+    // (`mileageRateUsed` / `mileageUnitUsed`) keyed off the original
+    // COA. Swapping the COA would silently leave the amount derived
+    // from a stale rate. Repo-level guard so the service layer can't
+    // accidentally race a write past this check.
+    if (existing.claimType === "MILEAGE") {
+      return { ok: false, error: "MILEAGE_LOCKED" }
+    }
+
+    // Allow re-coding only while the claim is still in flight.
+    // REJECTED is terminal; once SYNCED the COA is locked into the
+    // Xero bill that already shipped.
+    const inFlight =
+      existing.status === "SUBMITTED" ||
+      existing.status === "PENDING" ||
+      existing.status === "APPROVED" ||
+      existing.status === "REVIEWED"
+    if (!inFlight || existing.xeroSyncStatus === "SYNCED") {
+      return { ok: false, error: "NOT_ACTIONABLE" }
+    }
+
+    await prisma.claim.update({
+      where: { id: data.claimId },
+      data: { chartOfAccountId: data.chartOfAccountId },
+    })
+
+    return { ok: true, organizationId: existing.organizationId }
+  },
+
   async getClaimForXeroSync(claimId: string): Promise<ClaimForXeroSync | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null

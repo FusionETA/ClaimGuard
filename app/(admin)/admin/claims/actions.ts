@@ -12,6 +12,7 @@ import {
   reviewClaimForAdmin,
   reviewClaimForSupervisor,
   syncClaimToXero,
+  updateClaimChartOfAccount,
 } from "@/modules/claims/application/services/claim-workflow.service"
 
 /**
@@ -189,6 +190,42 @@ export async function syncClaimAction(input: {
   if (orgId) await bustClaimCaches({ organizationId: orgId })
 
   return { ok: true, message: `Synced "${result.claimTitle}".` }
+}
+
+/**
+ * Admin re-codes a claim's Chart of Account before it gets paid out.
+ * Allowed for EXPENSE claims still in flight (SUBMITTED / PENDING /
+ * APPROVED / REVIEWED, not yet synced to Xero). MILEAGE claims and
+ * already-synced claims are refused at the service / repo layer.
+ *
+ * Returns a plain object — the UI fires this from a small
+ * useTransition flow inside the modal, not useActionState (the form
+ * already owns Approve / Reject; coupling them in one form would make
+ * the COA picker double as a review trigger).
+ */
+export async function updateClaimChartOfAccountAction(input: {
+  claimId: string
+  chartOfAccountId: string
+}): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+
+  const result = await updateClaimChartOfAccount({ session, input })
+  if (!result.ok) {
+    return { ok: false, message: result.message }
+  }
+
+  revalidatePath("/admin")
+  revalidatePath("/admin/claims")
+  revalidatePath("/employee")
+  revalidatePath("/employee/claims")
+
+  const orgId = resolveActiveOrgId(session)
+  if (orgId) await bustClaimCaches({ organizationId: orgId })
+
+  return { ok: true, message: "Chart of account updated." }
 }
 
 /**

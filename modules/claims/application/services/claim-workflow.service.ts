@@ -1164,6 +1164,101 @@ export async function reviewClaimForAdmin({
 // ---------------------------------------------------------------------------
 
 /**
+ * Admin recodes a claim to a different Chart of Account before it
+ * gets paid out / synced to Xero. Replaces the old "only at sync
+ * stage" restriction — admins routinely need to fix coding mistakes
+ * during the supervisor review window (SUBMITTED/PENDING) and during
+ * the post-approval / pre-payout window (APPROVED/REVIEWED) without
+ * forcing the employee to resubmit.
+ *
+ * Restrictions:
+ *   - Admin only (matches the rest of admin claim actions).
+ *   - EXPENSE claims only. MILEAGE claims snapshot the per-account
+ *     rate at submission time (`mileageRateUsed` / `mileageUnitUsed`);
+ *     swapping the COA after the fact would silently desync the
+ *     amount from the rate. If a MILEAGE claim was coded against the
+ *     wrong account, the employee has to resubmit.
+ *   - Target COA must belong to the same org as the claim AND be a
+ *     selectable expense account.
+ *   - Claim must still be in flight (SUBMITTED / PENDING / APPROVED /
+ *     REVIEWED) AND not yet synced to Xero. Once synced, the COA is
+ *     pinned to the Xero bill that already shipped.
+ *
+ * Limit re-checks are NOT performed here — recoding can push the
+ * claim past an account's spend limit and we intentionally let it
+ * through (admin override is the whole point). If you want a limit
+ * warning surfaced in the UI, the caller can re-run
+ * `checkClaimAccountLimit` against the new account beforehand.
+ */
+export type UpdateClaimChartOfAccountInput = {
+  claimId: string
+  chartOfAccountId: string
+}
+
+export type UpdateClaimChartOfAccountResult =
+  | { ok: true }
+  | { ok: false; status: number; message: string }
+
+export async function updateClaimChartOfAccount({
+  session,
+  input,
+}: {
+  session: AuthenticatedSession
+  input: UpdateClaimChartOfAccountInput
+}): Promise<UpdateClaimChartOfAccountResult> {
+  if (!isAdminRole(session.role)) {
+    return { ok: false, status: 403, message: "Admins only." }
+  }
+  if (!input.claimId.trim() || !input.chartOfAccountId.trim()) {
+    return { ok: false, status: 400, message: "Missing claim or account id." }
+  }
+
+  // Pre-flight: load the COA to confirm it belongs to the admin's
+  // active org AND is selectable for EXPENSE claims. Defends against
+  // someone forging a chartOfAccountId from another tenant or a
+  // disabled / non-selectable account that shouldn't be picked.
+  const account = await organizationRepository.getChartAccountByIdForOrganization(
+    {
+      organizationId: session.organizationId ?? "",
+      chartOfAccountId: input.chartOfAccountId,
+      forClaimType: "EXPENSE",
+    },
+  )
+  if (!account) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Pick a chart of account that's enabled for expense claims.",
+    }
+  }
+
+  const result = await claimRepository.updateClaimChartOfAccount({
+    claimId: input.claimId,
+    chartOfAccountId: input.chartOfAccountId,
+  })
+  if (!result.ok) {
+    const map = {
+      DB_UNAVAILABLE: { status: 503, message: "Database is not configured." },
+      NOT_FOUND: { status: 404, message: "Claim not found." },
+      NOT_ACTIONABLE: {
+        status: 409,
+        message:
+          "This claim has already been synced or rejected — its chart of account can't be changed anymore.",
+      },
+      MILEAGE_LOCKED: {
+        status: 409,
+        message:
+          "Mileage claims can't be recoded — the original rate is snapshotted onto the row. Ask the employee to resubmit.",
+      },
+    } as const
+    const m = map[result.error]
+    return { ok: false, status: m.status, message: m.message }
+  }
+
+  return { ok: true }
+}
+
+/**
  * Push a REVIEWED claim to Xero. Currently STUBBED — only flips the
  * `xeroSyncStatus` field to SYNCED, optionally re-codes the chart of
  * account, and records when the sync happened. The actual Xero call

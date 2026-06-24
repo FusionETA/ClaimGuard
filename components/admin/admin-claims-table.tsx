@@ -1,9 +1,19 @@
 "use client"
 
-import { useActionState, useEffect, useMemo, useState } from "react"
+import {
+  useActionState,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react"
+import { useRouter } from "next/navigation"
 import { CheckCircle2, Loader2, Search } from "lucide-react"
 
-import { adminFinalReviewClaimAction } from "@/app/(admin)/admin/claims/actions"
+import {
+  adminFinalReviewClaimAction,
+  updateClaimChartOfAccountAction,
+} from "@/app/(admin)/admin/claims/actions"
 import { createInitialReviewClaimFormState } from "@/app/(admin)/admin/claims/form-state"
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import {
@@ -42,7 +52,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { useToastOnAction } from "@/components/ui/toaster"
+import { useToast, useToastOnAction } from "@/components/ui/toaster"
 import { formatCurrency, formatShortDate } from "@/lib/utils"
 import {
   claimMatchesReviewerFilter,
@@ -99,13 +109,51 @@ function AdminFinalApprovalDialog({
   // buttons live in the same form so we toggle this hidden input value.
   const [pendingDecision, setPendingDecision] = useState<"APPROVED" | "REJECTED">("APPROVED")
 
+  // ── Chart of Account editor ───────────────────────────────────────
+  // Admins routinely need to recode a claim (e.g. employee picked the
+  // wrong expense category) during the review window OR after it's
+  // been marked reviewed but before payout/sync. Allowed for EXPENSE
+  // claims at SUBMITTED/PENDING/APPROVED/REVIEWED — repo + service
+  // enforce the same gates server-side.
+  const router = useRouter()
+  const { toast } = useToast()
+  const isMileage = claim.claimType === "MILEAGE"
+  const coaEditable =
+    !isMileage &&
+    chartAccounts.length > 0 &&
+    (claim.status === "SUBMITTED" ||
+      claim.status === "PENDING" ||
+      claim.status === "APPROVED" ||
+      claim.status === "REVIEWED")
+  const [selectedCoaId, setSelectedCoaId] = useState<string>(
+    claim.chartOfAccount?.id ?? "",
+  )
+  const [coaSaving, startCoaSave] = useTransition()
+  const coaChanged =
+    coaEditable && selectedCoaId !== (claim.chartOfAccount?.id ?? "")
+  function handleCoaSave() {
+    if (!selectedCoaId || !coaChanged) return
+    startCoaSave(async () => {
+      const result = await updateClaimChartOfAccountAction({
+        claimId: claim.id,
+        chartOfAccountId: selectedCoaId,
+      })
+      toast({
+        title: result.message,
+        variant: result.ok ? "success" : "error",
+      })
+      if (result.ok) router.refresh()
+    })
+  }
+
   // Reset local state when the dialog re-opens for a new claim.
   useEffect(() => {
     if (open) {
       setReason("")
       setPendingDecision("APPROVED")
+      setSelectedCoaId(claim.chartOfAccount?.id ?? "")
     }
-  }, [open, claim.id])
+  }, [open, claim.id, claim.chartOfAccount?.id])
 
   useToastOnAction(state)
 
@@ -126,8 +174,7 @@ function AdminFinalApprovalDialog({
         <DialogHeader>
           <DialogTitle>Review claim</DialogTitle>
           <DialogDescription>
-            Approve or reject this claim. Chart-of-account changes happen at
-            the Sync stage, not here.
+            Approve, reject, or recode this claim before payout.
           </DialogDescription>
         </DialogHeader>
 
@@ -150,20 +197,69 @@ function AdminFinalApprovalDialog({
 
             <div className="space-y-2">
               <Label>Chart of account (filed under)</Label>
-              <div className="rounded-lg border border-border/60 bg-surface-low px-3 py-2 text-sm">
-                {claim.chartOfAccount ? (
-                  <span className="font-semibold text-foreground">
-                    {claim.chartOfAccount.code} · {claim.chartOfAccount.name}
-                  </span>
-                ) : (
-                  <span className="italic text-muted-foreground">
-                    No account assigned
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                You can recode this when you sync the claim to Xero.
-              </p>
+              {coaEditable ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={selectedCoaId || undefined}
+                      onValueChange={(v) => setSelectedCoaId(v)}
+                      disabled={coaSaving}
+                    >
+                      <SelectTrigger className="h-10 flex-1">
+                        <SelectValue placeholder="Pick a chart of account" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {chartAccounts.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.code} · {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleCoaSave}
+                      disabled={!coaChanged || coaSaving || !selectedCoaId}
+                    >
+                      {coaSaving ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Save"
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Recode now to fix coding mistakes before payout. Locked
+                    once the claim is synced to Xero.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="rounded-lg border border-border/60 bg-surface-low px-3 py-2 text-sm">
+                    {claim.chartOfAccount ? (
+                      <span className="font-semibold text-foreground">
+                        {claim.chartOfAccount.code} · {claim.chartOfAccount.name}
+                      </span>
+                    ) : (
+                      <span className="italic text-muted-foreground">
+                        No account assigned
+                      </span>
+                    )}
+                  </div>
+                  {isMileage ? (
+                    <p className="text-xs text-muted-foreground">
+                      Mileage claims are coded at submission — the snapshot
+                      rate is tied to this account.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Recoding is locked once the claim is rejected or synced
+                      to Xero.
+                    </p>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="space-y-2">
