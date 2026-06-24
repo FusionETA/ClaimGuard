@@ -53,6 +53,10 @@ export type ClaimsReportFiltersProps = {
   /// month's bounds when no `from`/`to` was in the URL).
   initialFrom: string
   initialTo: string
+  /// Which claim timestamp the date range filters on. "spent" matches
+  /// receipt purchase date (accounting view, the default); "submitted"
+  /// matches the date the employee filed the claim (audit view).
+  initialDateField: "spent" | "submitted"
   initialProjectIds: string[]
   initialTeamIds: string[]
   initialMemberIds: string[]
@@ -69,6 +73,9 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
 
   const [from, setFrom] = useState(props.initialFrom)
   const [to, setTo] = useState(props.initialTo)
+  const [dateField, setDateField] = useState<"spent" | "submitted">(
+    props.initialDateField,
+  )
   const [projectIds, setProjectIds] = useState<string[]>(props.initialProjectIds)
   const [teamIds, setTeamIds] = useState<string[]>(props.initialTeamIds)
   const [memberIds, setMemberIds] = useState<string[]>(props.initialMemberIds)
@@ -79,12 +86,14 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
   useEffect(() => {
     setFrom(props.initialFrom)
     setTo(props.initialTo)
+    setDateField(props.initialDateField)
     setProjectIds(props.initialProjectIds)
     setTeamIds(props.initialTeamIds)
     setMemberIds(props.initialMemberIds)
   }, [
     props.initialFrom,
     props.initialTo,
+    props.initialDateField,
     props.initialProjectIds,
     props.initialTeamIds,
     props.initialMemberIds,
@@ -94,13 +103,16 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
     const params = new URLSearchParams()
     if (from) params.set("from", from)
     if (to) params.set("to", to)
+    // Only serialise non-default to keep the URL clean — default is
+    // "spent" everywhere downstream.
+    if (dateField !== "spent") params.set("dateField", dateField)
     if (projectIds.length > 0) params.set("projects", projectIds.join(","))
     if (teamIds.length > 0) params.set("teams", teamIds.join(","))
     if (memberIds.length > 0) params.set("members", memberIds.join(","))
     // Preserve any other params (e.g. page) that the page might use,
     // EXCEPT page itself — changing filters always resets to page 1.
     for (const [k, v] of searchParams.entries()) {
-      if (k === "from" || k === "to") continue
+      if (k === "from" || k === "to" || k === "dateField") continue
       if (k === "projects" || k === "teams" || k === "members") continue
       if (k === "page") continue
       params.set(k, v)
@@ -118,7 +130,8 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
     teamIds.length > 0 ||
     memberIds.length > 0 ||
     from !== props.initialFrom ||
-    to !== props.initialTo
+    to !== props.initialTo ||
+    dateField !== props.initialDateField
 
   // LIVE cascade — narrow the visible options based on the IN-STATE
   // parent selection, not the URL. This is what makes the Teams
@@ -146,7 +159,7 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
 
   return (
     <div className="space-y-3 rounded-2xl border border-border/70 bg-card/94 p-4 shadow-ambient">
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
         <div className="space-y-1.5">
           <Label htmlFor="report-from" className="text-xs uppercase tracking-wide text-muted-foreground">
             From
@@ -168,6 +181,29 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
             value={to}
             onChange={(e) => setTo(e.target.value)}
           />
+        </div>
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="report-date-field"
+            className="text-xs uppercase tracking-wide text-muted-foreground"
+          >
+            Filter by
+          </Label>
+          {/* Spent = accounting view ("money spent in this period",
+              based on the receipt's purchase date). Submitted = audit
+              view ("claims filed in this period", which surfaces
+              late-filed receipts from earlier months). */}
+          <select
+            id="report-date-field"
+            value={dateField}
+            onChange={(e) =>
+              setDateField(e.target.value === "submitted" ? "submitted" : "spent")
+            }
+            className="h-12 w-full rounded-2xl border border-border/80 bg-card px-4 text-sm text-foreground shadow-sm transition-colors hover:bg-surface-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background"
+          >
+            <option value="spent">Spent date</option>
+            <option value="submitted">Submitted date</option>
+          </select>
         </div>
         <MultiSelect
           label="Projects"

@@ -207,12 +207,20 @@ export async function getMemberClaimsBreakdown(input: {
 // Reports page (flat, paginated, multi-filter) — replaces the old drill-down
 // ───────────────────────────────────────────────────────────────────────────
 
+export type ClaimsReportDateField = "spent" | "submitted"
+
 export type ClaimsReportFilters = {
   /// Inclusive start (yyyy-mm-dd) parsed in UTC.
   from?: string | null
   /// Inclusive end (yyyy-mm-dd) — the service converts to "first instant
   /// of the next day" internally so claims dated on `to` are matched.
   to?: string | null
+  /// Which claim timestamp the date range filters on. Defaults to
+  /// "spent" because the report is primarily an accounting view ("how
+  /// much money was spent in this period?"). Switch to "submitted"
+  /// when the admin wants to audit submission velocity, or to find a
+  /// claim someone filed last month for a 2024 receipt.
+  dateField?: ClaimsReportDateField
   /// Multi-select; empty/undefined = "all projects".
   projects?: string[]
   /// Multi-select; cascades on `projects` (see filterOptions).
@@ -342,6 +350,7 @@ export async function getClaimsReportPageData(input: {
   const sig = [
     f.from ?? "",
     f.to ?? "",
+    f.dateField ?? "spent",
     (f.projects ?? []).slice().sort().join(","),
     (f.teams ?? []).slice().sort().join(","),
     (f.members ?? []).slice().sort().join(","),
@@ -398,6 +407,7 @@ async function loadClaimsReportPage(
       organizationId,
       dateFrom,
       dateTo,
+      dateField: input.filters.dateField ?? "spent",
       projectIds: nonEmpty(input.filters.projects),
       teamIds: nonEmpty(input.filters.teams),
       memberIds: nonEmpty(input.filters.members),

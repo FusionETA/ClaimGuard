@@ -38,6 +38,9 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const fromRaw = url.searchParams.get("from")
   const toRaw = url.searchParams.get("to")
+  const dateFieldRaw = url.searchParams.get("dateField")
+  const dateField: "spent" | "submitted" =
+    dateFieldRaw === "submitted" ? "submitted" : "spent"
   const projectIds = csv(url.searchParams.get("projects"))
   const teamIds = csv(url.searchParams.get("teams"))
   const memberIds = csv(url.searchParams.get("members"))
@@ -53,6 +56,7 @@ export async function GET(request: NextRequest) {
     organizationId,
     dateFrom: range.dateFrom,
     dateTo: range.dateTo,
+    dateField,
     projectIds: projectIds.length > 0 ? projectIds : undefined,
     teamIds: teamIds.length > 0 ? teamIds : undefined,
     memberIds: memberIds.length > 0 ? memberIds : undefined,

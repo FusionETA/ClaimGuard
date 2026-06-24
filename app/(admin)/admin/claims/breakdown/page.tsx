@@ -28,10 +28,20 @@ import { requireAdminModule } from "@/modules/organization/application/services/
 type SearchParams = {
   from?: string
   to?: string
+  /// "spent" (default) filters by the receipt's purchase date — the
+  /// accounting view ("money spent in this period"). "submitted"
+  /// filters by submission date — the audit view ("claims filed in
+  /// this period"), which surfaces late filings against historical
+  /// receipts. Anything else falls back to "spent".
+  dateField?: string
   projects?: string
   teams?: string
   members?: string
   page?: string
+}
+
+function parseDateField(value: string | undefined): "spent" | "submitted" {
+  return value === "submitted" ? "submitted" : "spent"
 }
 
 function parseCsvIds(value: string | undefined): string[] {
@@ -55,12 +65,14 @@ export default async function AdminClaimsReportsPage({
   const projectIds = parseCsvIds(params.projects)
   const teamIds = parseCsvIds(params.teams)
   const memberIds = parseCsvIds(params.members)
+  const dateField = parseDateField(params.dateField)
   const page = Math.max(1, Number(params.page) || 1)
 
   const data = await getClaimsReportPageData({
     filters: {
       from: params.from ?? null,
       to: params.to ?? null,
+      dateField,
       projects: projectIds,
       teams: teamIds,
       members: memberIds,
@@ -85,6 +97,7 @@ export default async function AdminClaimsReportsPage({
   const exportParams = new URLSearchParams()
   exportParams.set("from", data.resolvedFrom)
   exportParams.set("to", data.resolvedTo)
+  if (dateField !== "spent") exportParams.set("dateField", dateField)
   if (projectIds.length > 0) exportParams.set("projects", projectIds.join(","))
   if (teamIds.length > 0) exportParams.set("teams", teamIds.join(","))
   if (memberIds.length > 0) exportParams.set("members", memberIds.join(","))
@@ -113,6 +126,7 @@ export default async function AdminClaimsReportsPage({
       <ClaimsReportFilters
         initialFrom={data.resolvedFrom}
         initialTo={data.resolvedTo}
+        initialDateField={dateField}
         initialProjectIds={projectIds}
         initialTeamIds={teamIds}
         initialMemberIds={memberIds}
