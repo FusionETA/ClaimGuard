@@ -91,6 +91,15 @@ describeSmoke("employees API smoke", () => {
     const email = `smoke+${suffix}@example.com`
     const externalEmployeeId = `SMOKE-${suffix}`
 
+    // The v1 create-employee schema (since the "accepts full payroll
+    // fields" change) requires gender / DOB / IC / marital status / tax
+    // ref / join date alongside the account basics, and runs a superRefine
+    // that demands an EPF number when contributeToEpf is true. We send
+    // contributeToEpf: false here so the smoke fixture stays minimal —
+    // no need to invent statutory IDs for a row we're about to delete.
+    // Both salary figures are sent so this test works against either a
+    // MONTHLY- or HOURLY-typed policy (the API only enforces the one
+    // that matches the resolved policy's salaryType).
     const created = await apiPost<EmployeeBody>("/api/v1/employees", {
       name,
       email,
@@ -100,6 +109,15 @@ describeSmoke("employees API smoke", () => {
       jobTitle: "Smoke Tester",
       policyId: resolvedPolicyId,
       phone: "+60123456789",
+      gender: "MALE",
+      dateOfBirth: "1990-01-01",
+      idNumber: `SMOKE-IC-${suffix}`,
+      maritalStatus: "SINGLE",
+      incomeTaxNumber: `SG-SMOKE-${suffix}`,
+      joinDate: "2024-01-01",
+      contributeToEpf: false,
+      monthlySalary: 5000,
+      hourlyRate: 25,
     })
 
     expect(created.status).toBe(201)
