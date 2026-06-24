@@ -4456,6 +4456,59 @@ export const organizationRepository = {
         }
       }
 
+      // Auto-fill the (employee, team) approval chain when none exists
+      // yet. Without this, adding a member via the Company Structure ›
+      // Members table writes the membership row but leaves the chain
+      // empty — so claims have nowhere to route, and the employee's
+      // Account Info shows "No supervisor assigned" until an admin
+      // visits the per-employee Company tab and clicks Save. We only
+      // auto-fill when the chain is EMPTY so any manual customization
+      // made via the Company tab survives subsequent layer moves.
+      //
+      // Step numbering follows the same convention as
+      // `setEmployeeChainForTeam`: lowest layer above the employee
+      // becomes step 1, next becomes step 2, etc. Every SUPERVISOR
+      // sitting at a given layer above the employee is added as a
+      // parallel approver for that step (any one of them approves to
+      // advance).
+      if (data.layer < team.layerCount) {
+        const existingChain = await tx.approvalChainStep.findFirst({
+          where: { employeeId: profile.user.id, teamId: team.id },
+          select: { id: true },
+        })
+        if (!existingChain) {
+          const supersAbove = await tx.employeeTeamMembership.findMany({
+            where: {
+              teamId: team.id,
+              layer: { gt: data.layer },
+              employeeProfileId: { not: profile.id },
+              employeeProfile: { user: { role: "SUPERVISOR" } },
+            },
+            select: {
+              layer: true,
+              employeeProfile: { select: { user: { select: { id: true } } } },
+            },
+          })
+          if (supersAbove.length > 0) {
+            const layersSorted = [
+              ...new Set(supersAbove.map((m) => m.layer)),
+            ].sort((a, b) => a - b)
+            const layerToStep = new Map<number, number>()
+            layersSorted.forEach((layer, idx) =>
+              layerToStep.set(layer, idx + 1),
+            )
+            await tx.approvalChainStep.createMany({
+              data: supersAbove.map((m) => ({
+                employeeId: profile.user.id,
+                teamId: team.id,
+                approverId: m.employeeProfile.user.id,
+                step: layerToStep.get(m.layer)!,
+              })),
+            })
+          }
+        }
+      }
+
       return membership
     })
 
