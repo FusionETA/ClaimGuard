@@ -102,20 +102,32 @@ function expectedTimeOnLocalDay(now: Date, hhmm: string, tz: string): Date {
  * the matching AttendanceRecord.lateByMin so the supervisor still sees the
  * Late badge.
  */
-/// Joins each CLOCK_IN view to its AttendanceRecord to fill two fields
-/// in one query: lateMinutes (legacy backfill) and
-/// selfieAttendanceRecordId (drives the supervisor/admin selfie
-/// thumbnail). Always runs for CLOCK_IN views — bails early when the
-/// view list contains none.
+/// Joins CLOCK_IN and CLOCK_OUT views to their AttendanceRecord to fill:
+/// - lateMinutes (CLOCK_IN legacy backfill)
+/// - selfieAttendanceRecordId (drives the supervisor/admin selfie thumbnail,
+///   reads xeroSelfieFileId for clock-in, clockOutXeroSelfieFileId for clock-out)
+/// Bails early when the view list contains no CLOCK_IN or CLOCK_OUT rows.
 async function backfillLateMinutes(
   views: ApprovalRequestView[],
   prisma: ReturnType<typeof getClient>,
 ): Promise<ApprovalRequestView[]> {
-  const targets = views.filter((v) => v.kind === "CLOCK_IN")
+  const targets = views.filter(
+    (v) => v.kind === "CLOCK_IN" || v.kind === "CLOCK_OUT",
+  )
   if (targets.length === 0) return views
+
+  // Deduplicate by employeeId|date so we don't send duplicate OR clauses.
+  const seenKeys = new Set<string>()
+  const dedupedTargets = targets.filter((t) => {
+    const key = `${t.employeeId}|${t.date}`
+    if (seenKeys.has(key)) return false
+    seenKeys.add(key)
+    return true
+  })
+
   const records = await prisma.attendanceRecord.findMany({
     where: {
-      OR: targets.map((t) => ({
+      OR: dedupedTargets.map((t) => ({
         employeeId: t.employeeId,
         date: new Date(`${t.date}T00:00:00.000Z`),
       })),
@@ -126,12 +138,14 @@ async function backfillLateMinutes(
       date: true,
       lateByMin: true,
       xeroSelfieFileId: true,
+      clockOutXeroSelfieFileId: true,
     },
   })
   type Meta = {
     recordId: string
     lateByMin: number | null
     xeroSelfieFileId: string | null
+    clockOutXeroSelfieFileId: string | null
   }
   const lookup = new Map<string, Meta>()
   for (const r of records) {
@@ -139,21 +153,29 @@ async function backfillLateMinutes(
       recordId: r.id,
       lateByMin: r.lateByMin,
       xeroSelfieFileId: r.xeroSelfieFileId,
+      clockOutXeroSelfieFileId: r.clockOutXeroSelfieFileId,
     })
   }
   return views.map((v) => {
-    if (v.kind !== "CLOCK_IN") return v
+    if (v.kind !== "CLOCK_IN" && v.kind !== "CLOCK_OUT") return v
     const meta = lookup.get(`${v.employeeId}|${v.date}`)
     if (!meta) return v
+    if (v.kind === "CLOCK_IN") {
+      return {
+        ...v,
+        lateMinutes:
+          v.lateMinutes != null
+            ? v.lateMinutes
+            : meta.lateByMin && meta.lateByMin > 0
+              ? meta.lateByMin
+              : v.lateMinutes,
+        selfieAttendanceRecordId: meta.xeroSelfieFileId ? meta.recordId : null,
+      }
+    }
+    // CLOCK_OUT
     return {
       ...v,
-      lateMinutes:
-        v.lateMinutes != null
-          ? v.lateMinutes
-          : meta.lateByMin && meta.lateByMin > 0
-            ? meta.lateByMin
-            : v.lateMinutes,
-      selfieAttendanceRecordId: meta.xeroSelfieFileId ? meta.recordId : null,
+      selfieAttendanceRecordId: meta.clockOutXeroSelfieFileId ? meta.recordId : null,
     }
   })
 }
@@ -987,7 +1009,7 @@ export const attendanceRepository = {
    * Returns `null` if the record doesn't exist or has no selfie
    * attached.
    */
-  async getSelfieAccessRecord(recordId: string): Promise<{
+  async getSelfieAccessRecord(recordId: string, phase: "clock-in" | "clock-out" = "clock-in"): Promise<{
     employeeId: string
     employeeOrgId: string | null
     xeroSelfieFileId: string
@@ -998,14 +1020,18 @@ export const attendanceRepository = {
       select: {
         employeeId: true,
         xeroSelfieFileId: true,
+        clockOutXeroSelfieFileId: true,
         employee: { select: { organizationId: true } },
       },
     })
-    if (!row || !row.xeroSelfieFileId) return null
+    if (!row) return null
+    const fileId =
+      phase === "clock-out" ? row.clockOutXeroSelfieFileId : row.xeroSelfieFileId
+    if (!fileId) return null
     return {
       employeeId: row.employeeId,
       employeeOrgId: row.employee.organizationId ?? null,
-      xeroSelfieFileId: row.xeroSelfieFileId,
+      xeroSelfieFileId: fileId,
     }
   },
 
@@ -2778,6 +2804,9 @@ export const attendanceRepository = {
       clockOutLat: number | null
       clockOutLng: number | null
       offSite: boolean
+      attendanceRecordId: string | null
+      hasSelfie: boolean
+      hasClockOutSelfie: boolean
       sessions: AttendanceSessionView[]
     }>
   > {
@@ -2836,6 +2865,8 @@ export const attendanceRepository = {
         clockInLng: true,
         clockOutLat: true,
         clockOutLng: true,
+        xeroSelfieFileId: true,
+        clockOutXeroSelfieFileId: true,
         sessions: {
           orderBy: { startedAt: "asc" },
           select: SESSION_SELECT,
@@ -2933,6 +2964,9 @@ export const attendanceRepository = {
         clockOutLat: rec?.clockOutLat ?? null,
         clockOutLng: rec?.clockOutLng ?? null,
         offSite,
+        attendanceRecordId: rec?.id ?? null,
+        hasSelfie: !!rec?.xeroSelfieFileId,
+        hasClockOutSelfie: !!rec?.clockOutXeroSelfieFileId,
         sessions,
       }
     })
@@ -4426,13 +4460,22 @@ export const attendanceRepository = {
       }
     }
 
-    // Look up selfie attachments for the CLOCK_IN rows in one query.
-    const clockInRows = rows.filter((r) => r.kind === "CLOCK_IN")
-    let selfieByKey = new Map<string, string>()
-    if (clockInRows.length > 0) {
+    // Look up selfie attachments for CLOCK_IN and CLOCK_OUT rows in one query.
+    const selfieRowKeys = new Map<string, { employeeId: string; date: Date }>()
+    for (const r of rows) {
+      if (r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT") {
+        const key = `${r.employeeId}|${r.date.toISOString().slice(0, 10)}`
+        if (!selfieRowKeys.has(key)) {
+          selfieRowKeys.set(key, { employeeId: r.employeeId, date: r.date })
+        }
+      }
+    }
+    let selfieByKey = new Map<string, string>()         // dateKey → recordId (clock-in)
+    let clockOutSelfieByKey = new Map<string, string>() // dateKey → recordId (clock-out)
+    if (selfieRowKeys.size > 0) {
       const records = await prisma.attendanceRecord.findMany({
         where: {
-          OR: clockInRows.map((r) => ({
+          OR: Array.from(selfieRowKeys.values()).map((r) => ({
             employeeId: r.employeeId,
             date: startOfDay(r.date),
           })),
@@ -4442,16 +4485,14 @@ export const attendanceRepository = {
           employeeId: true,
           date: true,
           xeroSelfieFileId: true,
+          clockOutXeroSelfieFileId: true,
         },
       })
-      selfieByKey = new Map(
-        records
-          .filter((r) => !!r.xeroSelfieFileId)
-          .map((r) => [
-            `${r.employeeId}|${r.date.toISOString().slice(0, 10)}`,
-            r.id,
-          ]),
-      )
+      for (const rec of records) {
+        const key = `${rec.employeeId}|${rec.date.toISOString().slice(0, 10)}`
+        if (rec.xeroSelfieFileId) selfieByKey.set(key, rec.id)
+        if (rec.clockOutXeroSelfieFileId) clockOutSelfieByKey.set(key, rec.id)
+      }
     }
 
     return rows.map((r) => {
@@ -4467,6 +4508,12 @@ export const attendanceRepository = {
           ? `${r.employeeId}|${dateOnly}|${r.reviewerId}|${r.kind}`
           : null
       const override = overrideKey ? overrideByKey.get(overrideKey) : undefined
+      const selfieAttendanceRecordId =
+        r.kind === "CLOCK_IN"
+          ? selfieByKey.get(dateKey) ?? null
+          : r.kind === "CLOCK_OUT"
+            ? clockOutSelfieByKey.get(dateKey) ?? null
+            : null
       return {
         id: r.id,
         kind: r.kind as ApprovalKind,
@@ -4481,8 +4528,7 @@ export const attendanceRepository = {
         project: r.project,
         title: r.title,
         chainHistory: parseChainHistory(r.chainHistory),
-        selfieAttendanceRecordId:
-          r.kind === "CLOCK_IN" ? selfieByKey.get(dateKey) ?? null : null,
+        selfieAttendanceRecordId,
         overrideAt: override?.at ? override.at.toISOString() : null,
         overrideReason: override?.reason ?? null,
       }

@@ -91,11 +91,13 @@ async function uploadSelfieToXero({
   attendanceRecordId,
   sessionId,
   dataUrl,
+  phase = "clock-in",
 }: {
   employeeId: string
   attendanceRecordId: string
-  sessionId: string
+  sessionId?: string
   dataUrl: string
+  phase?: "clock-in" | "clock-out"
 }): Promise<void> {
   const prisma = getAttendancePrismaClientSafe()
   if (!prisma) return
@@ -108,8 +110,12 @@ async function uploadSelfieToXero({
     },
   })
   if (!profile) return
-  const selfieRequired = profile.policy?.requireSelfie ?? false
-  if (!selfieRequired) return
+  // Clock-out selfies: the calling code only passes the selfie when the
+  // client's policy required it, so no server-side re-check needed.
+  if (phase !== "clock-out") {
+    const selfieRequired = profile.policy?.requireSelfie ?? false
+    if (!selfieRequired) return
+  }
 
   // Resolve the org's single Xero connection.
   let connectionId: string | null = null
@@ -156,24 +162,35 @@ async function uploadSelfieToXero({
   })
 
   const now = new Date()
-  await Promise.all([
-    // Keep the record-level field for backward-compat consumers.
-    prisma.attendanceRecord.update({
+  if (phase === "clock-out") {
+    await prisma.attendanceRecord.update({
       where: { id: attendanceRecordId },
-      data: {
-        xeroSelfieFileId: upload.fileId,
-        selfieUploadedAt: now,
-      },
-    }),
-    // Write to the session so each clock-in has its own selfie.
-    prisma.attendanceSession.update({
-      where: { id: sessionId },
-      data: {
-        xeroSelfieFileId: upload.fileId,
-        selfieUploadedAt: now,
-      },
-    }),
-  ])
+      data: { clockOutXeroSelfieFileId: upload.fileId },
+    })
+  } else {
+    await Promise.all([
+      // Keep the record-level field for backward-compat consumers.
+      prisma.attendanceRecord.update({
+        where: { id: attendanceRecordId },
+        data: {
+          xeroSelfieFileId: upload.fileId,
+          selfieUploadedAt: now,
+        },
+      }),
+      // Write to the session so each clock-in has its own selfie.
+      ...(sessionId
+        ? [
+            prisma.attendanceSession.update({
+              where: { id: sessionId },
+              data: {
+                xeroSelfieFileId: upload.fileId,
+                selfieUploadedAt: now,
+              },
+            }),
+          ]
+        : []),
+    ])
+  }
 }
 
 /// Resolves the [Mon..Sun] week and [first..last day of month] month UTC
@@ -451,6 +468,7 @@ export const employeeAttendanceService = {
     employeeId: string,
     coords?: { lat: number; lng: number },
     notes?: string,
+    selfie?: string,
   ) {
     const { distanceMeters } = await enforceGeofenceForActiveRecord(
       employeeId,
@@ -466,6 +484,19 @@ export const employeeAttendanceService = {
       notes,
       coords ? { lat: coords.lat, lng: coords.lng, distanceMeters } : undefined,
     )
+
+    if (selfie) {
+      try {
+        await uploadSelfieToXero({
+          employeeId,
+          attendanceRecordId: result.recordId,
+          dataUrl: selfie,
+          phase: "clock-out",
+        })
+      } catch (err) {
+        console.error("[clockOut] selfie upload failed", err)
+      }
+    }
 
     // Live nudge for any pending clock-out / auto-OT approvals.
     if (result.pendingApproverIds.length > 0) {

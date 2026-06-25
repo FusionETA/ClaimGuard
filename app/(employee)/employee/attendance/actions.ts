@@ -117,8 +117,9 @@ export async function clockOutAction(
   const session = await requirePortalSession("EMPLOYEE")
   const coords = parseCoords(formData)
   const notes = parseNotes(formData)
+  const selfie = parseSelfie(formData)
   try {
-    await employeeAttendanceService.clockOut(session.userId, coords, notes)
+    await employeeAttendanceService.clockOut(session.userId, coords, notes, selfie)
   } catch (err) {
     return { error: safeErrorMessage(err, "Could not clock out") }
   }

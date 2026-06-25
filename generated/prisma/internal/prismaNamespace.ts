@@ -4065,6 +4065,7 @@ export const AttendanceRecordScalarFieldEnum = {
   projectId: 'projectId',
   selfieUploadedAt: 'selfieUploadedAt',
   xeroSelfieFileId: 'xeroSelfieFileId',
+  clockOutXeroSelfieFileId: 'clockOutXeroSelfieFileId',
   remark: 'remark',
   clockInDistanceMeters: 'clockInDistanceMeters',
   clockInLat: 'clockInLat',
@@ -5032,6 +5033,7 @@ export const AttendanceRecordOrderByRelevanceFieldEnum = {
   notes: 'notes',
   projectId: 'projectId',
   xeroSelfieFileId: 'xeroSelfieFileId',
+  clockOutXeroSelfieFileId: 'clockOutXeroSelfieFileId',
   remark: 'remark'
 } as const
 

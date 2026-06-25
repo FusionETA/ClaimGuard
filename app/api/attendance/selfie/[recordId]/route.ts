@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic"
 /// chain includes that employee. 404 when no selfie is attached so
 /// callers can hide the thumbnail safely.
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ recordId: string }> },
 ) {
   const session = await getCurrentSession()
@@ -25,8 +25,12 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
   const { recordId } = await context.params
+  const phase =
+    new URL(request.url).searchParams.get("phase") === "clock-out"
+      ? "clock-out"
+      : ("clock-in" as const)
 
-  const record = await attendanceRepository.getSelfieAccessRecord(recordId)
+  const record = await attendanceRepository.getSelfieAccessRecord(recordId, phase)
   if (!record) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }

@@ -375,6 +375,7 @@ export function ApprovalsList({ items }: Props) {
                               {r.selfieAttendanceRecordId ? (
                                 <SelfieThumbnail
                                   recordId={r.selfieAttendanceRecordId}
+                                  phase={r.kind === "CLOCK_OUT" ? "clock-out" : "clock-in"}
                                   size={72}
                                   className="rounded-lg"
                                 />

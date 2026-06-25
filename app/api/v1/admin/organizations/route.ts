@@ -6,6 +6,7 @@ import { API_SCOPE_CATALOG } from "@/lib/api-scopes"
 import { handleMasterApiRequest } from "@/lib/master-api-auth"
 import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { ensureDefaultLeaveTypesForOrg } from "@/modules/leave/application/services/leave-defaults.service"
 import {
   ORG_ADDONS,
   ORG_PLANS,
@@ -165,6 +166,8 @@ export const POST = handleMasterApiRequest(async (request, ctx) => {
     },
     plan: planTriple,
   })
+
+  await ensureDefaultLeaveTypesForOrg(result.org.id)
 
   // Optionally provision the OWNER (paying customer) for this org so they
   // can SSO straight into the admin dashboard. No password is set — they

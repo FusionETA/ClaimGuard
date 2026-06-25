@@ -819,6 +819,9 @@ model AttendanceRecord {
   /// selfie was captured (Office Workers, or upload failed). Cleared
   /// by the prune cron after the retention window.
   xeroSelfieFileId       String?
+  /// Xero Files API file ID for the clock-out selfie. Populated when
+  /// requireClockOutSelfie is enabled on the employee's policy.
+  clockOutXeroSelfieFileId String?
   /// Employee's free-form remark about their shift. Set via the clock-
   /// out summary popup or the dashboard remark card. Kept separate from
   /// `notes` so off-site context never bleeds into the employee's own
