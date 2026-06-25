@@ -45,6 +45,8 @@ export default async function EmployeeAttendancePage() {
   // behavior). Admins disable it per-policy in Settings → Policies.
   const enforceGeofence = policy?.requireGeofence ?? true
   const requiresSelfieOnClockIn = policy?.requireSelfie ?? profileExtras?.requiresSelfieOnClockIn ?? false
+  const requiresSelfieOnClockOut = policy?.requireClockOutSelfie ?? false
+  const otDailyThresholdMinutes = policy?.otDailyThresholdMinutes ?? 480
   // GPS capture flags — drive whether the client attaches coords to
   // each event regardless of geofence enforcement.
   const captureLocationEnabled = policy?.geolocationEnabled ?? true
@@ -61,6 +63,8 @@ export default async function EmployeeAttendancePage() {
         workingHours={workingHours}
         projects={projects}
         requiresSelfieOnClockIn={requiresSelfieOnClockIn}
+        requiresSelfieOnClockOut={requiresSelfieOnClockOut}
+        otDailyThresholdMinutes={otDailyThresholdMinutes}
         enforceGeofence={enforceGeofence}
         captureLocationEnabled={captureLocationEnabled}
         captureLocationOnClockIn={captureLocationOnClockIn}

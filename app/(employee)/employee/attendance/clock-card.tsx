@@ -119,6 +119,8 @@ type Props = {
   currentBreakStartedAt: string | null
   /** When true (Hourly Workers), the clock-in flow gates on a selfie capture. */
   requiresSelfieOnClockIn: boolean
+  /** When true, the clock-out flow gates on a selfie capture. */
+  requiresSelfieOnClockOut: boolean
   /** When false (policy says geofence not required), skip GPS capture and
    *  treat every clock event as "within radius" — no location is sent. */
   enforceGeofence: boolean
@@ -136,6 +138,9 @@ type Props = {
   captureLocationOnClockOut: boolean
   captureLocationOnBreakStart: boolean
   captureLocationOnBreakEnd: boolean
+  /** OT daily threshold in minutes — passed to the clock-out dialog to decide
+   *  whether a shift remark is required. Defaults to 480 (8 h) when absent. */
+  otDailyThresholdMinutes: number
   /** Today's full attendance record — drives the clock-out confirmation dialog. */
   todayRecord: AttendanceRecordView | null
   /** Most recent rejected clock-in/clock-out for today, if any. When present
@@ -262,12 +267,14 @@ export function ClockCard({
   onBreak,
   currentBreakStartedAt,
   requiresSelfieOnClockIn,
+  requiresSelfieOnClockOut,
   enforceGeofence,
   captureLocationEnabled,
   captureLocationOnClockIn,
   captureLocationOnClockOut,
   captureLocationOnBreakStart,
   captureLocationOnBreakEnd,
+  otDailyThresholdMinutes,
   todayRecord,
   latestRejection,
   pendingApproval,
@@ -303,6 +310,10 @@ export function ClockCard({
   )
 
   function prepareClockOut(formData: FormData) {
+    if (requiresSelfieOnClockOut && !formData.get("selfie")) {
+      setClockOutSelfiePending(formData)
+      return
+    }
     setClockOutCommitError(null)
     setClockOutDraft({ formData })
   }
@@ -347,10 +358,10 @@ export function ClockCard({
   const [isResolving, setIsResolving] = useState(false)
   const [employeeCoords, setEmployeeCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [gpsState, setGpsState] = useState<"idle" | "locating" | "ok" | "denied">("idle")
-  /// FormData held in flight while the selfie modal is open. Once the
-  /// employee confirms the photo, the data URL is attached and the rest of
-  /// the clock-in flow (geofence check / remark / dispatch) runs.
+  /// FormData held in flight while the clock-in selfie modal is open.
   const [selfiePending, setSelfiePending] = useState<FormData | null>(null)
+  /// FormData held while the clock-out selfie modal is open.
+  const [clockOutSelfiePending, setClockOutSelfiePending] = useState<FormData | null>(null)
   /// Client-side validation message for the project picker. Cleared as
   /// soon as the user picks a project.
   const [projectError, setProjectError] = useState<string | null>(null)
@@ -516,6 +527,19 @@ export function ClockCard({
 
   function onSelfieCancelled() {
     setSelfiePending(null)
+  }
+
+  function onClockOutSelfieConfirmed(dataUrl: string) {
+    if (!clockOutSelfiePending) return
+    clockOutSelfiePending.set("selfie", dataUrl)
+    const fd = clockOutSelfiePending
+    setClockOutSelfiePending(null)
+    setClockOutCommitError(null)
+    setClockOutDraft({ formData: fd })
+  }
+
+  function onClockOutSelfieCancelled() {
+    setClockOutSelfiePending(null)
   }
 
   async function handleClockOut(e: React.FormEvent<HTMLFormElement>) {
@@ -722,8 +746,8 @@ export function ClockCard({
                   : pendingApproval.kind === "CLOCK_OUT"
                     ? "clock-out"
                     : "break"}{" "}
-                is still pending review. The next clock or break action
-                will unlock once your supervisor approves it.
+                is pending supervisor review. You can still continue
+                clocking in or out — your supervisor will approve later.
               </p>
             </div>
           </div>
@@ -809,7 +833,6 @@ export function ClockCard({
           <form onSubmit={(e) => handleBreak(e, "BREAK_END")}>
             <BreakEndButton
               pending={isBreakPending || isResolving}
-              blocked={pendingApproval !== null}
             />
           </form>
         </div>
@@ -818,13 +841,11 @@ export function ClockCard({
           <form onSubmit={(e) => handleBreak(e, "BREAK_START")}>
             <BreakStartButton
               pending={isBreakPending || isResolving}
-              blocked={pendingApproval !== null}
             />
           </form>
           <form onSubmit={handleClockOut}>
             <ClockOutButton
               pending={isClockOutPending || isResolving}
-              blocked={pendingApproval !== null}
             />
           </form>
         </div>
@@ -849,6 +870,13 @@ export function ClockCard({
         />
       ) : null}
 
+      {clockOutSelfiePending ? (
+        <SelfieCaptureModal
+          onConfirm={onClockOutSelfieConfirmed}
+          onCancel={onClockOutSelfieCancelled}
+        />
+      ) : null}
+
       {restDayWarning ? (
         <RestDayWarningDialog
           reason={restDayWarning.reason}
@@ -867,6 +895,7 @@ export function ClockCard({
       error={clockOutCommitError}
       onConfirm={commitClockOut}
       onClose={cancelClockOutDraft}
+      otThresholdMin={otDailyThresholdMinutes}
     />
     </>
   )

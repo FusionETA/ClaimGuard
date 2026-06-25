@@ -139,9 +139,6 @@ export const OrganizationScalarFieldEnum = {
   claimCutoffDay: 'claimCutoffDay',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  plan: 'plan',
-  tier: 'tier',
-  addons: 'addons',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
   geofenceRadiusMeters: 'geofenceRadiusMeters',
@@ -153,7 +150,10 @@ export const OrganizationScalarFieldEnum = {
   defaultCurrency: 'defaultCurrency',
   supervisorReportEnabled: 'supervisorReportEnabled',
   supervisorSlaMinutes: 'supervisorSlaMinutes',
-  allowForecastedLeaveApply: 'allowForecastedLeaveApply'
+  allowForecastedLeaveApply: 'allowForecastedLeaveApply',
+  addons: 'addons',
+  plan: 'plan',
+  tier: 'tier'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -176,6 +176,7 @@ export const EmployeePolicyScalarFieldEnum = {
   otEnabled: 'otEnabled',
   requireGeofence: 'requireGeofence',
   requireSelfie: 'requireSelfie',
+  requireClockOutSelfie: 'requireClockOutSelfie',
   otDailyThresholdMinutes: 'otDailyThresholdMinutes',
   otRateNormalDay: 'otRateNormalDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
@@ -1007,8 +1008,6 @@ export const PayslipScalarFieldEnum = {
   socsoEmployer: 'socsoEmployer',
   eisEmployee: 'eisEmployee',
   eisEmployer: 'eisEmployer',
-  skbbkEmployee: 'skbbkEmployee',
-  skbbkWage: 'skbbkWage',
   pcb: 'pcb',
   hrdf: 'hrdf',
   zakat: 'zakat',
@@ -1021,7 +1020,9 @@ export const PayslipScalarFieldEnum = {
   totalBenefitsInKind: 'totalBenefitsInKind',
   expectedHours: 'expectedHours',
   unpaidLeaveDays: 'unpaidLeaveDays',
-  pcbCalculation: 'pcbCalculation'
+  pcbCalculation: 'pcbCalculation',
+  skbbkEmployee: 'skbbkEmployee',
+  skbbkWage: 'skbbkWage'
 } as const
 
 export type PayslipScalarFieldEnum = (typeof PayslipScalarFieldEnum)[keyof typeof PayslipScalarFieldEnum]

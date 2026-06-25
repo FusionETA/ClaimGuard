@@ -3680,9 +3680,6 @@ export const OrganizationScalarFieldEnum = {
   claimCutoffDay: 'claimCutoffDay',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  plan: 'plan',
-  tier: 'tier',
-  addons: 'addons',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
   geofenceRadiusMeters: 'geofenceRadiusMeters',
@@ -3694,7 +3691,10 @@ export const OrganizationScalarFieldEnum = {
   defaultCurrency: 'defaultCurrency',
   supervisorReportEnabled: 'supervisorReportEnabled',
   supervisorSlaMinutes: 'supervisorSlaMinutes',
-  allowForecastedLeaveApply: 'allowForecastedLeaveApply'
+  allowForecastedLeaveApply: 'allowForecastedLeaveApply',
+  addons: 'addons',
+  plan: 'plan',
+  tier: 'tier'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -3717,6 +3717,7 @@ export const EmployeePolicyScalarFieldEnum = {
   otEnabled: 'otEnabled',
   requireGeofence: 'requireGeofence',
   requireSelfie: 'requireSelfie',
+  requireClockOutSelfie: 'requireClockOutSelfie',
   otDailyThresholdMinutes: 'otDailyThresholdMinutes',
   otRateNormalDay: 'otRateNormalDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
@@ -4548,8 +4549,6 @@ export const PayslipScalarFieldEnum = {
   socsoEmployer: 'socsoEmployer',
   eisEmployee: 'eisEmployee',
   eisEmployer: 'eisEmployer',
-  skbbkEmployee: 'skbbkEmployee',
-  skbbkWage: 'skbbkWage',
   pcb: 'pcb',
   hrdf: 'hrdf',
   zakat: 'zakat',
@@ -4562,7 +4561,9 @@ export const PayslipScalarFieldEnum = {
   totalBenefitsInKind: 'totalBenefitsInKind',
   expectedHours: 'expectedHours',
   unpaidLeaveDays: 'unpaidLeaveDays',
-  pcbCalculation: 'pcbCalculation'
+  pcbCalculation: 'pcbCalculation',
+  skbbkEmployee: 'skbbkEmployee',
+  skbbkWage: 'skbbkWage'
 } as const
 
 export type PayslipScalarFieldEnum = (typeof PayslipScalarFieldEnum)[keyof typeof PayslipScalarFieldEnum]
@@ -5433,16 +5434,23 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
 
 
 /**
- * Reference to a field of type 'OrgPlan'
+ * Reference to a field of type 'Decimal'
  */
-export type EnumOrgPlanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrgPlan'>
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
     
 
 
 /**
- * Reference to a field of type 'OrgPlanTier'
+ * Reference to a field of type 'MileageUnit'
  */
-export type EnumOrgPlanTierFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrgPlanTier'>
+export type EnumMileageUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MileageUnit'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -5461,23 +5469,16 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
- * Reference to a field of type 'Decimal'
+ * Reference to a field of type 'OrgPlan'
  */
-export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+export type EnumOrgPlanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrgPlan'>
     
 
 
 /**
- * Reference to a field of type 'MileageUnit'
+ * Reference to a field of type 'OrgPlanTier'
  */
-export type EnumMileageUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MileageUnit'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+export type EnumOrgPlanTierFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrgPlanTier'>
     
 
 
@@ -5692,9 +5693,9 @@ export type EnumPayrollRunSourceFieldRefInput<$PrismaModel> = FieldRefInputType<
 
 
 /**
- * Reference to a field of type 'PayrollReportKind'
+ * Reference to a field of type 'PayrollRunReport_kind'
  */
-export type EnumPayrollReportKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollReportKind'>
+export type EnumPayrollRunReport_kindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollRunReport_kind'>
     
 
 

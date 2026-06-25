@@ -35,6 +35,9 @@ type Props = {
    * dialog must NOT commit the clock-out.
    */
   onClose: () => void
+  /** OT daily threshold in minutes. When projected duration >= this, the
+   *  shift is classified as overtime and a remark becomes required. */
+  otThresholdMin?: number
 }
 
 function fmtTime(iso: string | null | Date): string {
@@ -69,6 +72,7 @@ export function ClockOutSummaryDialog({
   error,
   onConfirm,
   onClose,
+  otThresholdMin,
 }: Props) {
   const [remark, setRemark] = useState("")
 
@@ -89,6 +93,11 @@ export function ClockOutSummaryDialog({
     const raw = Math.round((now.getTime() - inTime.getTime()) / 60000)
     projectedDurationMin = Math.max(0, raw - (todayRecord.breakMin ?? 0))
   }
+
+  const isOt =
+    projectedDurationMin !== null &&
+    otThresholdMin != null &&
+    projectedDurationMin >= otThresholdMin
   return (
     <Dialog
       open={open}
@@ -167,22 +176,38 @@ export function ClockOutSummaryDialog({
             </div>
           ) : null}
 
+          {isOt ? (
+            <div className="rounded-md border border-orange-300 bg-orange-50 p-3 text-xs text-orange-900">
+              <p className="font-bold">⏱ Overtime detected</p>
+              <p className="mt-0.5">
+                Your shift has exceeded the OT threshold. A shift remark is
+                required before clocking out.
+              </p>
+            </div>
+          ) : null}
+
           <label className="block space-y-1">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Adjustment request (optional)
+              {isOt ? "Shift remark (required)" : "Adjustment request (optional)"}
             </span>
             <Textarea
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
-              placeholder="e.g. forgot to clock out at 6pm — actually finished at 7:15"
+              placeholder={
+                isOt
+                  ? "Describe what you worked on during overtime…"
+                  : "e.g. forgot to clock out at 6pm — actually finished at 7:15"
+              }
               rows={4}
               disabled={pending}
               className="w-full resize-y"
             />
-            <p className="text-[10px] text-muted-foreground">
-              Describe what should be adjusted. Your supervisor will see this
-              alongside today&apos;s record.
-            </p>
+            {isOt ? null : (
+              <p className="text-[10px] text-muted-foreground">
+                Describe what should be adjusted. Your supervisor will see this
+                alongside today&apos;s record.
+              </p>
+            )}
           </label>
 
           {error ? (
@@ -193,7 +218,7 @@ export function ClockOutSummaryDialog({
             <Button
               type="button"
               size="lg"
-              disabled={pending}
+              disabled={pending || (isOt && !remark.trim())}
               onClick={() => onConfirm(remark.trim() || null)}
               className="w-full shadow-sm"
             >

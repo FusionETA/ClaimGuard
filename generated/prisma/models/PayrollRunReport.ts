@@ -53,7 +53,7 @@ export type PayrollRunReportSumAggregateOutputType = {
 export type PayrollRunReportMinAggregateOutputType = {
   id: string | null
   payrollRunId: string | null
-  kind: $Enums.PayrollReportKind | null
+  kind: $Enums.PayrollRunReport_kind | null
   fileName: string | null
   fileUrl: string | null
   mimeType: string | null
@@ -65,7 +65,7 @@ export type PayrollRunReportMinAggregateOutputType = {
 export type PayrollRunReportMaxAggregateOutputType = {
   id: string | null
   payrollRunId: string | null
-  kind: $Enums.PayrollReportKind | null
+  kind: $Enums.PayrollRunReport_kind | null
   fileName: string | null
   fileUrl: string | null
   mimeType: string | null
@@ -222,7 +222,7 @@ export type PayrollRunReportGroupByArgs<ExtArgs extends runtime.Types.Extensions
 export type PayrollRunReportGroupByOutputType = {
   id: string
   payrollRunId: string
-  kind: $Enums.PayrollReportKind
+  kind: $Enums.PayrollRunReport_kind
   fileName: string
   fileUrl: string
   mimeType: string
@@ -257,7 +257,7 @@ export type PayrollRunReportWhereInput = {
   NOT?: Prisma.PayrollRunReportWhereInput | Prisma.PayrollRunReportWhereInput[]
   id?: Prisma.StringFilter<"PayrollRunReport"> | string
   payrollRunId?: Prisma.StringFilter<"PayrollRunReport"> | string
-  kind?: Prisma.EnumPayrollReportKindFilter<"PayrollRunReport"> | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindFilter<"PayrollRunReport"> | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringFilter<"PayrollRunReport"> | string
   fileUrl?: Prisma.StringFilter<"PayrollRunReport"> | string
   mimeType?: Prisma.StringFilter<"PayrollRunReport"> | string
@@ -288,7 +288,7 @@ export type PayrollRunReportWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.PayrollRunReportWhereInput[]
   NOT?: Prisma.PayrollRunReportWhereInput | Prisma.PayrollRunReportWhereInput[]
   payrollRunId?: Prisma.StringFilter<"PayrollRunReport"> | string
-  kind?: Prisma.EnumPayrollReportKindFilter<"PayrollRunReport"> | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindFilter<"PayrollRunReport"> | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringFilter<"PayrollRunReport"> | string
   fileUrl?: Prisma.StringFilter<"PayrollRunReport"> | string
   mimeType?: Prisma.StringFilter<"PayrollRunReport"> | string
@@ -321,7 +321,7 @@ export type PayrollRunReportScalarWhereWithAggregatesInput = {
   NOT?: Prisma.PayrollRunReportScalarWhereWithAggregatesInput | Prisma.PayrollRunReportScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"PayrollRunReport"> | string
   payrollRunId?: Prisma.StringWithAggregatesFilter<"PayrollRunReport"> | string
-  kind?: Prisma.EnumPayrollReportKindWithAggregatesFilter<"PayrollRunReport"> | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindWithAggregatesFilter<"PayrollRunReport"> | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringWithAggregatesFilter<"PayrollRunReport"> | string
   fileUrl?: Prisma.StringWithAggregatesFilter<"PayrollRunReport"> | string
   mimeType?: Prisma.StringWithAggregatesFilter<"PayrollRunReport"> | string
@@ -332,7 +332,7 @@ export type PayrollRunReportScalarWhereWithAggregatesInput = {
 
 export type PayrollRunReportCreateInput = {
   id?: string
-  kind: $Enums.PayrollReportKind
+  kind: $Enums.PayrollRunReport_kind
   fileName: string
   fileUrl: string
   mimeType: string
@@ -345,7 +345,7 @@ export type PayrollRunReportCreateInput = {
 export type PayrollRunReportUncheckedCreateInput = {
   id?: string
   payrollRunId: string
-  kind: $Enums.PayrollReportKind
+  kind: $Enums.PayrollRunReport_kind
   fileName: string
   fileUrl: string
   mimeType: string
@@ -356,7 +356,7 @@ export type PayrollRunReportUncheckedCreateInput = {
 
 export type PayrollRunReportUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  kind?: Prisma.EnumPayrollReportKindFieldUpdateOperationsInput | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindFieldUpdateOperationsInput | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -369,7 +369,7 @@ export type PayrollRunReportUpdateInput = {
 export type PayrollRunReportUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   payrollRunId?: Prisma.StringFieldUpdateOperationsInput | string
-  kind?: Prisma.EnumPayrollReportKindFieldUpdateOperationsInput | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindFieldUpdateOperationsInput | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -381,7 +381,7 @@ export type PayrollRunReportUncheckedUpdateInput = {
 export type PayrollRunReportCreateManyInput = {
   id?: string
   payrollRunId: string
-  kind: $Enums.PayrollReportKind
+  kind: $Enums.PayrollRunReport_kind
   fileName: string
   fileUrl: string
   mimeType: string
@@ -392,7 +392,7 @@ export type PayrollRunReportCreateManyInput = {
 
 export type PayrollRunReportUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  kind?: Prisma.EnumPayrollReportKindFieldUpdateOperationsInput | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindFieldUpdateOperationsInput | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -404,7 +404,7 @@ export type PayrollRunReportUpdateManyMutationInput = {
 export type PayrollRunReportUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   payrollRunId?: Prisma.StringFieldUpdateOperationsInput | string
-  kind?: Prisma.EnumPayrollReportKindFieldUpdateOperationsInput | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindFieldUpdateOperationsInput | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -431,7 +431,7 @@ export type PayrollRunReportOrderByRelevanceInput = {
 
 export type PayrollRunReportPayrollRunIdKindCompoundUniqueInput = {
   payrollRunId: string
-  kind: $Enums.PayrollReportKind
+  kind: $Enums.PayrollRunReport_kind
 }
 
 export type PayrollRunReportCountOrderByAggregateInput = {
@@ -520,13 +520,13 @@ export type PayrollRunReportUncheckedUpdateManyWithoutPayrollRunNestedInput = {
   deleteMany?: Prisma.PayrollRunReportScalarWhereInput | Prisma.PayrollRunReportScalarWhereInput[]
 }
 
-export type EnumPayrollReportKindFieldUpdateOperationsInput = {
-  set?: $Enums.PayrollReportKind
+export type EnumPayrollRunReport_kindFieldUpdateOperationsInput = {
+  set?: $Enums.PayrollRunReport_kind
 }
 
 export type PayrollRunReportCreateWithoutPayrollRunInput = {
   id?: string
-  kind: $Enums.PayrollReportKind
+  kind: $Enums.PayrollRunReport_kind
   fileName: string
   fileUrl: string
   mimeType: string
@@ -537,7 +537,7 @@ export type PayrollRunReportCreateWithoutPayrollRunInput = {
 
 export type PayrollRunReportUncheckedCreateWithoutPayrollRunInput = {
   id?: string
-  kind: $Enums.PayrollReportKind
+  kind: $Enums.PayrollRunReport_kind
   fileName: string
   fileUrl: string
   mimeType: string
@@ -578,7 +578,7 @@ export type PayrollRunReportScalarWhereInput = {
   NOT?: Prisma.PayrollRunReportScalarWhereInput | Prisma.PayrollRunReportScalarWhereInput[]
   id?: Prisma.StringFilter<"PayrollRunReport"> | string
   payrollRunId?: Prisma.StringFilter<"PayrollRunReport"> | string
-  kind?: Prisma.EnumPayrollReportKindFilter<"PayrollRunReport"> | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindFilter<"PayrollRunReport"> | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringFilter<"PayrollRunReport"> | string
   fileUrl?: Prisma.StringFilter<"PayrollRunReport"> | string
   mimeType?: Prisma.StringFilter<"PayrollRunReport"> | string
@@ -589,7 +589,7 @@ export type PayrollRunReportScalarWhereInput = {
 
 export type PayrollRunReportCreateManyPayrollRunInput = {
   id?: string
-  kind: $Enums.PayrollReportKind
+  kind: $Enums.PayrollRunReport_kind
   fileName: string
   fileUrl: string
   mimeType: string
@@ -600,7 +600,7 @@ export type PayrollRunReportCreateManyPayrollRunInput = {
 
 export type PayrollRunReportUpdateWithoutPayrollRunInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  kind?: Prisma.EnumPayrollReportKindFieldUpdateOperationsInput | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindFieldUpdateOperationsInput | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -611,7 +611,7 @@ export type PayrollRunReportUpdateWithoutPayrollRunInput = {
 
 export type PayrollRunReportUncheckedUpdateWithoutPayrollRunInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  kind?: Prisma.EnumPayrollReportKindFieldUpdateOperationsInput | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindFieldUpdateOperationsInput | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -622,7 +622,7 @@ export type PayrollRunReportUncheckedUpdateWithoutPayrollRunInput = {
 
 export type PayrollRunReportUncheckedUpdateManyWithoutPayrollRunInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  kind?: Prisma.EnumPayrollReportKindFieldUpdateOperationsInput | $Enums.PayrollReportKind
+  kind?: Prisma.EnumPayrollRunReport_kindFieldUpdateOperationsInput | $Enums.PayrollRunReport_kind
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -673,7 +673,7 @@ export type $PayrollRunReportPayload<ExtArgs extends runtime.Types.Extensions.In
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     payrollRunId: string
-    kind: $Enums.PayrollReportKind
+    kind: $Enums.PayrollRunReport_kind
     /**
      * Final filename the user sees on download
      * (e.g. `Payroll_Summary_January_2026.pdf`). Derived from the run's
@@ -1064,7 +1064,7 @@ export interface Prisma__PayrollRunReportClient<T, Null = never, ExtArgs extends
 export interface PayrollRunReportFieldRefs {
   readonly id: Prisma.FieldRef<"PayrollRunReport", 'String'>
   readonly payrollRunId: Prisma.FieldRef<"PayrollRunReport", 'String'>
-  readonly kind: Prisma.FieldRef<"PayrollRunReport", 'PayrollReportKind'>
+  readonly kind: Prisma.FieldRef<"PayrollRunReport", 'PayrollRunReport_kind'>
   readonly fileName: Prisma.FieldRef<"PayrollRunReport", 'String'>
   readonly fileUrl: Prisma.FieldRef<"PayrollRunReport", 'String'>
   readonly mimeType: Prisma.FieldRef<"PayrollRunReport", 'String'>

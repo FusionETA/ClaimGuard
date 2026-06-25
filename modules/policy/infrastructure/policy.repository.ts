@@ -28,6 +28,7 @@ type PolicyRow = {
   captureLocationOnBreakStart: boolean
   captureLocationOnBreakEnd: boolean
   requireSelfie: boolean
+  requireClockOutSelfie: boolean
   temporary: boolean
   otRateNormalDay: unknown
   otRateRestDay: unknown
@@ -59,6 +60,7 @@ function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
     captureLocationOnBreakStart: row.captureLocationOnBreakStart,
     captureLocationOnBreakEnd: row.captureLocationOnBreakEnd,
     requireSelfie: row.requireSelfie,
+    requireClockOutSelfie: row.requireClockOutSelfie,
     temporary: row.temporary,
     otRateNormalDay: toNumber(row.otRateNormalDay, 1.5),
     otRateRestDay: toNumber(row.otRateRestDay, 2.0),
@@ -100,6 +102,7 @@ export type PolicyCreateInput = {
   captureLocationOnBreakStart?: boolean
   captureLocationOnBreakEnd?: boolean
   requireSelfie: boolean
+  requireClockOutSelfie?: boolean
   temporary: boolean
   isDefault?: boolean
 } & PolicyOtRateInput
@@ -122,6 +125,7 @@ export type PolicyUpdateInput = {
   captureLocationOnBreakStart?: boolean
   captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
+  requireClockOutSelfie?: boolean
   temporary?: boolean
 } & Partial<PolicyOtRateInput>
 
@@ -206,6 +210,7 @@ export const policyRepository = {
           captureLocationOnBreakStart: input.captureLocationOnBreakStart ?? true,
           captureLocationOnBreakEnd: input.captureLocationOnBreakEnd ?? true,
           requireSelfie: input.requireSelfie,
+          requireClockOutSelfie: input.requireClockOutSelfie ?? false,
           temporary: input.temporary,
           otRateNormalDay: input.otRateNormalDay,
           otRateRestDay: input.otRateRestDay,
@@ -267,6 +272,7 @@ export const policyRepository = {
           captureLocationOnBreakEnd:
             input.captureLocationOnBreakEnd ?? undefined,
           requireSelfie: input.requireSelfie ?? undefined,
+          requireClockOutSelfie: input.requireClockOutSelfie ?? undefined,
           temporary: input.temporary ?? undefined,
           otRateNormalDay: input.otRateNormalDay ?? undefined,
           otRateRestDay: input.otRateRestDay ?? undefined,

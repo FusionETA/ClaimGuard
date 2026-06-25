@@ -46,22 +46,6 @@ export const PayrollAnnualReportKind = {
 export type PayrollAnnualReportKind = (typeof PayrollAnnualReportKind)[keyof typeof PayrollAnnualReportKind]
 
 
-export const PayrollReportKind = {
-  PAYROLL_SUMMARY_PDF: 'PAYROLL_SUMMARY_PDF',
-  PAYMENT_SCHEDULE_PDF: 'PAYMENT_SCHEDULE_PDF',
-  DETAILED_CALCULATIONS_PDF: 'DETAILED_CALCULATIONS_PDF',
-  PCB_LHDN_FORM_PDF: 'PCB_LHDN_FORM_PDF',
-  BULK_PAYSLIPS_PDF: 'BULK_PAYSLIPS_PDF',
-  EPF_CSV: 'EPF_CSV',
-  SOCSO_EIS_TXT: 'SOCSO_EIS_TXT',
-  SOCSO_EIS_SKBBK_TXT: 'SOCSO_EIS_SKBBK_TXT',
-  PCB_TXT: 'PCB_TXT',
-  BANK_PB_ECP_XLSX: 'BANK_PB_ECP_XLSX'
-} as const
-
-export type PayrollReportKind = (typeof PayrollReportKind)[keyof typeof PayrollReportKind]
-
-
 export const ClaimApprovalDecision = {
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED'
@@ -385,3 +369,18 @@ export const Claim_reviewerRole = {
 } as const
 
 export type Claim_reviewerRole = (typeof Claim_reviewerRole)[keyof typeof Claim_reviewerRole]
+
+
+export const PayrollRunReport_kind = {
+  PAYROLL_SUMMARY_PDF: 'PAYROLL_SUMMARY_PDF',
+  PAYMENT_SCHEDULE_PDF: 'PAYMENT_SCHEDULE_PDF',
+  DETAILED_CALCULATIONS_PDF: 'DETAILED_CALCULATIONS_PDF',
+  PCB_LHDN_FORM_PDF: 'PCB_LHDN_FORM_PDF',
+  BULK_PAYSLIPS_PDF: 'BULK_PAYSLIPS_PDF',
+  EPF_CSV: 'EPF_CSV',
+  SOCSO_EIS_TXT: 'SOCSO_EIS_TXT',
+  PCB_TXT: 'PCB_TXT',
+  BANK_PB_ECP_XLSX: 'BANK_PB_ECP_XLSX'
+} as const
+
+export type PayrollRunReport_kind = (typeof PayrollRunReport_kind)[keyof typeof PayrollRunReport_kind]

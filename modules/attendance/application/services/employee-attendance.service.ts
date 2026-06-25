@@ -20,6 +20,7 @@ import type {
   EmployeeAttendanceDashboard,
 } from "@/modules/attendance/domain/models"
 import { getUsableXeroAccessToken } from "@/modules/organization/application/services/xero-connection.service"
+import { notify } from "@/modules/notifications/application/services/notification.service"
 
 const ARCHIVED_XERO_STATUSES = new Set(["CLOSED", "ARCHIVED"])
 
@@ -559,5 +560,26 @@ export const employeeAttendanceService = {
       employeeId,
       remark,
     })
+  },
+
+  async sendOtWarningNotifications({ orgId }: { orgId: string }): Promise<number> {
+    const openRecords = await attendanceRepository.findOpenRecordsForOtWarning({ orgId })
+    let notified = 0
+    for (const record of openRecords) {
+      try {
+        await notify({
+          userId: record.employeeId,
+          organizationId: orgId,
+          type: "ATTENDANCE_APPROVAL",
+          title: "You're on overtime",
+          body: "You've been clocked in past your OT threshold. Please add a shift remark and remember to clock out.",
+          url: "/employee/attendance",
+        })
+        notified += 1
+      } catch {
+        // Non-fatal — continue notifying other employees.
+      }
+    }
+    return notified
   },
 }

@@ -59,17 +59,6 @@ model Organization {
   claimCutoffDay            Int                       @default(25)
   createdAt                 DateTime                  @default(now())
   updatedAt                 DateTime                  @updatedAt
-  /// Subscription plan provisioned by the partner API.
-  /// DIY = self-service customer; EXPERT = we manage their account.
-  /// Defaults to DIY for legacy orgs that pre-date plan tracking.
-  plan                      OrgPlan                   @default(DIY)
-  /// FREE | PAID only when plan = DIY. Null for EXPERT (no tier split).
-  tier                      OrgPlanTier?
-  /// JSON string[] of feature addons. Today: ["expense_claim", "clock"].
-  /// Drives org-level navigation gating — admins + employees only see
-  /// Claims when "expense_claim" is in this list AND the plan is paid
-  /// (or expert). Drives the deriveOrgEnabledModules helper.
-  addons                    Json?
   workingHoursEnd           String                    @default("18:00")
   workingHoursStart         String                    @default("09:00")
   geofenceRadiusMeters      Int                       @default(200)
@@ -102,6 +91,17 @@ model Organization {
   /// balance. Only affects PRO_RATED leave types; LUMP_SUM is fully
   /// credited at the start of the year so forecasting is a no-op.
   allowForecastedLeaveApply Boolean                   @default(false)
+  /// JSON string[] of feature addons. Today: ["expense_claim", "clock"].
+  /// Drives org-level navigation gating — admins + employees only see
+  /// Claims when "expense_claim" is in this list AND the plan is paid
+  /// (or expert). Drives the deriveOrgEnabledModules helper.
+  addons                    Json?
+  /// Subscription plan provisioned by the partner API.
+  /// DIY = self-service customer; EXPERT = we manage their account.
+  /// Defaults to DIY for legacy orgs that pre-date plan tracking.
+  plan                      OrgPlan                   @default(DIY)
+  /// FREE | PAID only when plan = DIY. Null for EXPERT (no tier split).
+  tier                      OrgPlanTier?
   adminMembers              AdminOrganization[]
   apiIntegrations           ApiIntegration[]
   chartAccounts             ChartOfAccount[]
@@ -158,6 +158,9 @@ model EmployeePolicy {
   /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
   /// selfie on for any policy regardless of pay type.
   requireSelfie               Boolean                  @default(false)
+  /// Require a selfie when the employee clocks out (and when submitting
+  /// the 10 pm OT remark). Same camera modal as clock-in selfie.
+  requireClockOutSelfie       Boolean                  @default(false)
   /// Daily working minutes after which extra time becomes OT-eligible.
   /// Stored as minutes for precision; the admin UI presents this as
   /// hours (minutes ÷ 60).
@@ -1516,9 +1519,9 @@ model PayrollRun {
 /// optional change detection if we later add a "regenerate if changed"
 /// flow.
 model PayrollRunReport {
-  id           String            @id @default(cuid())
+  id           String                @id @default(cuid())
   payrollRunId String
-  kind         PayrollReportKind
+  kind         PayrollRunReport_kind
   /// Final filename the user sees on download
   /// (e.g. `Payroll_Summary_January_2026.pdf`). Derived from the run's
   /// period + the report kind at generation time.
@@ -1530,8 +1533,8 @@ model PayrollRunReport {
   sizeBytes    Int
   /// SHA-256 of the file bytes, hex-encoded.
   contentHash  String
-  generatedAt  DateTime          @default(now())
-  payrollRun   PayrollRun        @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  generatedAt  DateTime              @default(now())
+  payrollRun   PayrollRun            @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
 
   @@unique([payrollRunId, kind])
   @@index([payrollRunId])
@@ -1680,16 +1683,6 @@ model Payslip {
   socsoEmployer         Decimal           @default(0.00) @db.Decimal(12, 2)
   eisEmployee           Decimal           @default(0.00) @db.Decimal(12, 2)
   eisEmployer           Decimal           @default(0.00) @db.Decimal(12, 2)
-  /// SKBBK (Skim LINDUNG 24 Jam / Non-Employment Injury Scheme) —
-  /// employee-only contribution effective 1 Jun 2026. 0 for payslips
-  /// before that month or for non-Akta-4 employees. Default 0 also
-  /// covers historical rows from before this column existed.
-  skbbkEmployee         Decimal           @default(0.00) @db.Decimal(12, 2)
-  /// Wage base used to look up SKBBK from the gazette table —
-  /// equals socso wage in current code but persisted separately so
-  /// historical payslips remain interpretable if PERKESO ever
-  /// decouples the two wage definitions.
-  skbbkWage             Decimal           @default(0.00) @db.Decimal(12, 2)
   pcb                   Decimal           @default(0.00) @db.Decimal(12, 2)
   hrdf                  Decimal           @default(0.00) @db.Decimal(12, 2)
   zakat                 Decimal           @default(0.00) @db.Decimal(12, 2)
@@ -1729,6 +1722,16 @@ model Payslip {
   /// `CalcPayslipResult.pcbBreakdown` field (which is just the
   /// `{normal, additional}` amount split).
   pcbCalculation        Json?
+  /// SKBBK (Skim LINDUNG 24 Jam / Non-Employment Injury Scheme) —
+  /// employee-only contribution effective 1 Jun 2026. 0 for payslips
+  /// before that month or for non-Akta-4 employees. Default 0 also
+  /// covers historical rows from before this column existed.
+  skbbkEmployee         Decimal           @default(0.00) @db.Decimal(12, 2)
+  /// Wage base used to look up SKBBK from the gazette table —
+  /// equals socso wage in current code but persisted separately so
+  /// historical payslips remain interpretable if PERKESO ever
+  /// decouples the two wage definitions.
+  skbbkWage             Decimal           @default(0.00) @db.Decimal(12, 2)
   employeeProfile       EmployeeProfile   @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
   payrollProfile        PayrollProfile?   @relation(fields: [payrollProfileId], references: [id])
   payrollRun            PayrollRun        @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
@@ -2045,40 +2048,6 @@ enum PayrollAnnualReportKind {
   CP8D_EMPLOYEE_TXT
 }
 
-/// Which downloadable file a `PayrollRunReport` row represents. The
-/// modal on the run detail page renders one row per kind, grouped
-/// into Reports / Statutory uploads / Payslips / Bank disbursement
-/// sections.
-enum PayrollReportKind {
-  PAYROLL_SUMMARY_PDF
-  PAYMENT_SCHEDULE_PDF
-  DETAILED_CALCULATIONS_PDF
-  /// LHDN MTD §E worksheet PDF — official LHDN-form layout with
-  /// numbered sections (PCB(A) Normal / Yearly PCB / Yearly Tax / AR
-  /// PCB / Net PCB), each LHDN variable in its own table card with
-  /// abbreviation + full description + amount. Counterpart of
-  /// DETAILED_CALCULATIONS_PDF for auditors expecting the official
-  /// form layout.
-  PCB_LHDN_FORM_PDF
-  BULK_PAYSLIPS_PDF
-  EPF_CSV
-  SOCSO_EIS_TXT
-  /// PERKESO ASSIST 2.0 combined contribution file — SOCSO + EIS +
-  /// SKBBK (Skim LINDUNG 24 Jam) in one 278-char fixed-width text
-  /// file. Effective Jun 2026. Differs from SOCSO_EIS_TXT only in
-  /// that SKBBK employee amount populates positions 239-244 (was
-  /// blank filler in v1). Grace period through Sep 2026 — admins can
-  /// still upload the v1 file plus a separate SKBBK file during the
-  /// transition.
-  SOCSO_EIS_SKBBK_TXT
-  PCB_TXT
-  /// Public Bank ECP Payroll Excel — bulk salary disbursement file.
-  /// Uploaded to PB enterprise > Bulk Payroll. Filename follows
-  /// `{10-digit account}PR{DDMMYY}{NN}.xlsx`. Required configuration:
-  /// `PayrollSettings.ecpPayorAccountNo`.
-  BANK_PB_ECP_XLSX
-}
-
 enum ClaimApprovalDecision {
   APPROVED
   REJECTED
@@ -2336,4 +2305,16 @@ enum Claim_reviewerRole {
   ADMIN
   EMPLOYEE
   SUPERVISOR
+}
+
+enum PayrollRunReport_kind {
+  PAYROLL_SUMMARY_PDF
+  PAYMENT_SCHEDULE_PDF
+  DETAILED_CALCULATIONS_PDF
+  PCB_LHDN_FORM_PDF
+  BULK_PAYSLIPS_PDF
+  EPF_CSV
+  SOCSO_EIS_TXT
+  PCB_TXT
+  BANK_PB_ECP_XLSX
 }

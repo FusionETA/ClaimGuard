@@ -18,6 +18,8 @@ type Props = {
   workingHours: { start: string; end: string }
   projects: AttendanceProjectView[]
   requiresSelfieOnClockIn: boolean
+  requiresSelfieOnClockOut: boolean
+  otDailyThresholdMinutes: number
   enforceGeofence: boolean
   /// Master + per-event GPS capture flags from the employee's policy.
   /// Drive whether the ClockCard attaches coords to each event.
@@ -78,6 +80,8 @@ export function EmployeeAttendanceDashboardView({
   workingHours,
   projects,
   requiresSelfieOnClockIn,
+  requiresSelfieOnClockOut,
+  otDailyThresholdMinutes,
   enforceGeofence,
   captureLocationEnabled,
   captureLocationOnClockIn,
@@ -129,6 +133,8 @@ export function EmployeeAttendanceDashboardView({
         onBreak={dashboard.today?.onBreak ?? false}
         currentBreakStartedAt={dashboard.today?.currentBreakStartedAt ?? null}
         requiresSelfieOnClockIn={requiresSelfieOnClockIn}
+        requiresSelfieOnClockOut={requiresSelfieOnClockOut}
+        otDailyThresholdMinutes={otDailyThresholdMinutes}
         enforceGeofence={enforceGeofence}
         captureLocationEnabled={captureLocationEnabled}
         captureLocationOnClockIn={captureLocationOnClockIn}

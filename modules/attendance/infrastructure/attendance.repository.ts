@@ -4706,4 +4706,37 @@ export const attendanceRepository = {
 
     return { rows: records.map(attendanceToView), total }
   },
+
+  async getAllOrganizationIds(): Promise<string[]> {
+    const prisma = getClient()
+    const rows = await prisma.organization.findMany({
+      select: { id: true },
+    })
+    return rows.map((r) => r.id)
+  },
+
+  async findOpenRecordsForOtWarning({
+    orgId,
+  }: {
+    orgId: string
+  }): Promise<Array<{ employeeId: string; timeIn: Date }>> {
+    const prisma = getClient()
+    // Return records where the employee is still clocked in and has been
+    // clocked in within the last 24 hours (handles midnight-crossing shifts
+    // that started before 10 pm — we don't filter by date = today).
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    const rows = await prisma.attendanceRecord.findMany({
+      where: {
+        employee: { organizationId: orgId },
+        timeIn: { not: null, gte: cutoff },
+        timeOut: null,
+      },
+      select: {
+        employeeId: true,
+        timeIn: true,
+      },
+    })
+    return rows
+      .filter((r): r is { employeeId: string; timeIn: Date } => r.timeIn !== null)
+  },
 }

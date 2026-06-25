@@ -39,6 +39,9 @@ export type EmployeePolicy = {
   /// When true, the clock-in flow gates on a selfie capture. Replaces
   /// the legacy "Hourly Worker == selfie required" hardcoding.
   requireSelfie: boolean
+  /// When true, the clock-out flow (and the 10 pm OT remark card) also
+  /// require a selfie before the employee can proceed.
+  requireClockOutSelfie: boolean
   /// When true, employees on this policy are temporary (probation /
   /// fixed-term). Enables the per-employee `temporaryReviewDate` field
   /// and the admin review reminder.
