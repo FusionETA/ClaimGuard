@@ -119,6 +119,8 @@ export default async function EmployeeDashboardPage() {
   // Selfie + geofence requirements come from the already-loaded policy
   // (line 55) — no need to re-query the employee profile.
   const requiresSelfieOnClockIn = policy?.requireSelfie ?? false
+  const requiresSelfieOnClockOut = policy?.requireClockOutSelfie ?? false
+  const otDailyThresholdMinutes = policy?.otDailyThresholdMinutes ?? 480
   const enforceGeofence = policy?.requireGeofence ?? true
   const captureLocationEnabled = policy?.geolocationEnabled ?? true
   const captureLocationOnClockIn = policy?.captureLocationOnClockIn ?? true
@@ -173,6 +175,8 @@ export default async function EmployeeDashboardPage() {
             onBreak={attendanceDashboard.today?.onBreak ?? false}
             currentBreakStartedAt={attendanceDashboard.today?.currentBreakStartedAt ?? null}
             requiresSelfieOnClockIn={requiresSelfieOnClockIn}
+            requiresSelfieOnClockOut={requiresSelfieOnClockOut}
+            otDailyThresholdMinutes={otDailyThresholdMinutes}
             enforceGeofence={enforceGeofence}
             captureLocationEnabled={captureLocationEnabled}
             captureLocationOnClockIn={captureLocationOnClockIn}

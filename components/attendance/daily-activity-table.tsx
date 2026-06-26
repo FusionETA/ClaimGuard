@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp } from "lucide-react"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CoordsLink } from "@/components/attendance/coords-link"
+import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
 import {
   TableFilterBar,
   type TableFilterValue,
@@ -38,6 +39,9 @@ export type DailyActivityRow = {
   clockOutLat?: number | null
   clockOutLng?: number | null
   offSite?: boolean
+  attendanceRecordId?: string | null
+  hasSelfie?: boolean
+  hasClockOutSelfie?: boolean
   sessions?: AttendanceSessionView[]
 }
 
@@ -235,7 +239,17 @@ export function DailyActivityTable({
                     <span className="sm:hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                       Clock in:{" "}
                     </span>
-                    {inLabel ?? <span className="text-muted-foreground">—</span>}
+                    <span className="flex items-center gap-1.5">
+                      {inLabel ?? <span className="text-muted-foreground">—</span>}
+                      {row.hasSelfie && row.attendanceRecordId ? (
+                        <SelfieThumbnail
+                          recordId={row.attendanceRecordId}
+                          phase="clock-in"
+                          size={20}
+                          className="rounded"
+                        />
+                      ) : null}
+                    </span>
                     {row.clockInLat != null && row.clockInLng != null ? (
                       <CoordsLink
                         lat={row.clockInLat}
@@ -248,15 +262,25 @@ export function DailyActivityTable({
                     <span className="sm:hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                       Clock out:{" "}
                     </span>
-                    {outLabel ? (
-                      outLabel
-                    ) : inLabel ? (
-                      <span className="italic text-muted-foreground">
-                        Still working
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
+                    <span className="flex items-center gap-1.5">
+                      {outLabel ? (
+                        outLabel
+                      ) : inLabel ? (
+                        <span className="italic text-muted-foreground">
+                          Still working
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                      {row.hasClockOutSelfie && row.attendanceRecordId ? (
+                        <SelfieThumbnail
+                          recordId={row.attendanceRecordId}
+                          phase="clock-out"
+                          size={20}
+                          className="rounded"
+                        />
+                      ) : null}
+                    </span>
                     {outLabel &&
                     row.clockOutLat != null &&
                     row.clockOutLng != null ? (

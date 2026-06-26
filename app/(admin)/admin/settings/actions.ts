@@ -31,6 +31,7 @@ import {
 } from "@/modules/organization/application/services/csv-import.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import { ensureDefaultLeaveTypesForOrg } from "@/modules/leave/application/services/leave-defaults.service"
 
 const XERO_PENDING_COOKIE = "claimguard_xero_pending"
 // Cookie that persists the admin's currently-selected Xero connection id
@@ -864,6 +865,8 @@ export async function createOrganizationAction(
       adminId: session.userId,
       name,
     })
+
+    await ensureDefaultLeaveTypesForOrg(org.id)
 
     // Switch to the newly created organization
     await updateCurrentSession(

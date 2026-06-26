@@ -6,6 +6,9 @@ import { X } from "lucide-react"
 
 type Props = {
   recordId: string
+  /// "clock-in" (default) or "clock-out" — controls which selfie file
+  /// the proxy route serves from the attendance record.
+  phase?: "clock-in" | "clock-out"
   /// Visible thumbnail size in pixels (square). Ignored when `fill`
   /// is true.
   size?: number
@@ -25,13 +28,18 @@ type Props = {
 /// /api/attendance/selfie/{recordId} proxy route.
 export function SelfieThumbnail({
   recordId,
+  phase = "clock-in",
   size = 40,
   fill = false,
   className = "",
-  alt = "Clock-in selfie",
+  alt,
 }: Props) {
   const [open, setOpen] = useState(false)
-  const url = `/api/attendance/selfie/${recordId}`
+  const resolvedAlt = alt ?? (phase === "clock-out" ? "Clock-out selfie" : "Clock-in selfie")
+  const url =
+    phase === "clock-out"
+      ? `/api/attendance/selfie/${recordId}?phase=clock-out`
+      : `/api/attendance/selfie/${recordId}`
 
   const sizingClass = fill ? "h-full aspect-square self-stretch" : ""
   const sizingStyle = fill ? undefined : { width: `${size}px`, height: `${size}px` }
@@ -43,18 +51,18 @@ export function SelfieThumbnail({
         onClick={() => setOpen(true)}
         className={`block flex-shrink-0 overflow-hidden rounded-md border border-border/60 bg-muted transition hover:opacity-90 ${sizingClass} ${className}`}
         style={sizingStyle}
-        title="View clock-in selfie"
-        aria-label={alt}
+        title={resolvedAlt}
+        aria-label={resolvedAlt}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={url}
-          alt={alt}
+          alt={resolvedAlt}
           className="h-full w-full object-cover"
           loading="lazy"
         />
       </button>
-      {open ? <Lightbox url={url} alt={alt} onClose={() => setOpen(false)} /> : null}
+      {open ? <Lightbox url={url} alt={resolvedAlt} onClose={() => setOpen(false)} /> : null}
     </>
   )
 }

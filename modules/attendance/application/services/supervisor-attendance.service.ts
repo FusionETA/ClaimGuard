@@ -100,15 +100,12 @@ export const supervisorAttendanceService = {
         type: "refresh",
         scope: "attendance",
       })
-      if (result.finalStatus !== "PENDING") {
-        const approved = result.finalStatus === "APPROVED"
+      if (result.finalStatus === "REJECTED") {
         await notify({
           userId: result.employeeUserId,
           type: "ATTENDANCE_APPROVAL",
-          title: approved ? "Attendance Approved" : "Attendance Rejected",
-          body: `Your ${approvalKindLabel(result.kind)} request was ${
-            approved ? "approved" : "rejected"
-          }.`,
+          title: "Attendance Rejected",
+          body: `Your ${approvalKindLabel(result.kind)} request was rejected.`,
           url: "/employee/attendance",
         })
       }
