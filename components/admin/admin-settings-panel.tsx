@@ -567,6 +567,7 @@ export function AdminSettingsPanel({
   admin,
   organization,
   xeroConnection,
+  isDemoOrg = false,
   chartAccounts,
   customAccounts,
   projects,
@@ -594,6 +595,11 @@ export function AdminSettingsPanel({
   admin: AdminProfile
   organization?: OrganizationSummary
   xeroConnection: XeroConnectionSummary
+  /// True when the active org is the designated demo company (set via
+  /// DEMO_ORG_ID env var on the server). Gates the Xero "Update
+  /// permissions" / re-authorize prompt so production customers don't
+  /// see a CTA they can't act on yet. Defaults to false.
+  isDemoOrg?: boolean
   chartAccounts: ChartOfAccountOption[]
   customAccounts: ChartOfAccountOption[]
   projects: OrganizationProjectOption[]
@@ -971,7 +977,12 @@ export function AdminSettingsPanel({
 
       {activeTab === "organization" ? (
         <div className="space-y-6">
-          <XeroConnectionCard connection={xeroConnection} status={xeroStatus} reason={xeroReason} />
+          <XeroConnectionCard
+            connection={xeroConnection}
+            status={xeroStatus}
+            reason={xeroReason}
+            isDemoOrg={isDemoOrg}
+          />
 
           {xeroStatus === "select-tenant" && pendingTenants && pendingTenants.length > 0 ? (
             <Card>
