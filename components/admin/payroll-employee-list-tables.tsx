@@ -26,8 +26,12 @@ import type { PayrollEmployeeRow } from "@/modules/payroll/domain/models"
 
 type PayrollState = "complete" | "incomplete" | "archived"
 
-const ACTIVE_PAGE_SIZE = 10
-const SETUP_PAGE_LIMIT = 5
+// Each section paginates independently — admins kept asking why
+// flipping past page 1 hid Ready rows behind a single shared paginator
+// when Needs-setup ran long, so the two lists no longer share a page
+// counter. 10 rows per section keeps the on-screen density manageable
+// without making admins click Next on every other row.
+const PAGE_SIZE = 10
 
 export function PayrollEmployeeListTables({
   employees,
@@ -35,7 +39,8 @@ export function PayrollEmployeeListTables({
   employees: PayrollEmployeeRow[]
 }) {
   const [query, setQuery] = useState("")
-  const [page, setPage] = useState(1)
+  const [setupPage, setSetupPage] = useState(1)
+  const [readyPage, setReadyPage] = useState(1)
   const normalizedQuery = query.trim().toLowerCase()
 
   const complete = useMemo(
@@ -84,16 +89,27 @@ export function PayrollEmployeeListTables({
 
   const filteredTotal =
     filteredComplete.length + filteredIncomplete.length + filteredArchived.length
-  const activeTotal = filteredIncomplete.length + filteredComplete.length
-  const totalPages = getBalancedTotalPages(
-    filteredIncomplete.length,
-    filteredComplete.length,
+
+  const setupTotalPages = Math.max(
+    1,
+    Math.ceil(filteredIncomplete.length / PAGE_SIZE),
   )
-  const currentPage = Math.min(page, totalPages)
-  const paginatedEmployees = getBalancedPage(
-    filteredIncomplete,
-    filteredComplete,
-    currentPage,
+  const setupCurrentPage = Math.min(setupPage, setupTotalPages)
+  const setupSliceStart = (setupCurrentPage - 1) * PAGE_SIZE
+  const setupSlice = filteredIncomplete.slice(
+    setupSliceStart,
+    setupSliceStart + PAGE_SIZE,
+  )
+
+  const readyTotalPages = Math.max(
+    1,
+    Math.ceil(filteredComplete.length / PAGE_SIZE),
+  )
+  const readyCurrentPage = Math.min(readyPage, readyTotalPages)
+  const readySliceStart = (readyCurrentPage - 1) * PAGE_SIZE
+  const readySlice = filteredComplete.slice(
+    readySliceStart,
+    readySliceStart + PAGE_SIZE,
   )
 
   return (
@@ -106,7 +122,8 @@ export function PayrollEmployeeListTables({
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value)
-                setPage(1)
+                setSetupPage(1)
+                setReadyPage(1)
               }}
               placeholder="Search employee, email, job title, or ID"
               className="h-10 pl-9"
@@ -121,7 +138,7 @@ export function PayrollEmployeeListTables({
         </CardContent>
       </Card>
 
-      {paginatedEmployees.setup.length > 0 ? (
+      {filteredIncomplete.length > 0 ? (
         <Card className="border-amber-300/60 bg-amber-50/40 dark:border-amber-700/40 dark:bg-amber-950/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -136,15 +153,24 @@ export function PayrollEmployeeListTables({
           </CardHeader>
           <CardContent className="p-0">
             <EmployeeTable
-              employees={paginatedEmployees.setup}
+              employees={setupSlice}
               emptyText="No setup rows match your search."
               state="incomplete"
             />
           </CardContent>
+          <SectionPaginationControls
+            currentPage={setupCurrentPage}
+            totalItems={filteredIncomplete.length}
+            totalPages={setupTotalPages}
+            sliceStart={setupSliceStart}
+            sliceEnd={setupSliceStart + setupSlice.length}
+            itemLabel="needs setup"
+            onPageChange={setSetupPage}
+          />
         </Card>
       ) : null}
 
-      {paginatedEmployees.ready.length > 0 ? (
+      {filteredComplete.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -158,11 +184,20 @@ export function PayrollEmployeeListTables({
           </CardHeader>
           <CardContent className="p-0">
             <EmployeeTable
-              employees={paginatedEmployees.ready}
+              employees={readySlice}
               emptyText="No ready employees match your search."
               state="complete"
             />
           </CardContent>
+          <SectionPaginationControls
+            currentPage={readyCurrentPage}
+            totalItems={filteredComplete.length}
+            totalPages={readyTotalPages}
+            sliceStart={readySliceStart}
+            sliceEnd={readySliceStart + readySlice.length}
+            itemLabel="ready for payroll"
+            onPageChange={setReadyPage}
+          />
         </Card>
       ) : null}
 
@@ -184,41 +219,43 @@ export function PayrollEmployeeListTables({
           </CardContent>
         </Card>
       ) : null}
-
-      <BalancedPaginationControls
-        currentPage={currentPage}
-        visibleItems={paginatedEmployees.setup.length + paginatedEmployees.ready.length}
-        totalItems={activeTotal}
-        totalPages={totalPages}
-        itemLabel="active employees"
-        onPageChange={setPage}
-      />
     </div>
   )
 }
 
-function BalancedPaginationControls({
+/**
+ * Per-section paginator. Lives INSIDE the section's Card (not as a
+ * sibling card) so it's visually scoped to the list it controls —
+ * eliminates the old single-paginator ambiguity where a "Next" click
+ * paged BOTH lists at once. Hides itself when there's only one page.
+ */
+function SectionPaginationControls({
   currentPage,
-  visibleItems,
   totalItems,
   totalPages,
+  sliceStart,
+  sliceEnd,
   itemLabel,
   onPageChange,
 }: {
   currentPage: number
-  visibleItems: number
   totalItems: number
   totalPages: number
+  sliceStart: number
+  sliceEnd: number
   itemLabel: string
   onPageChange: (page: number) => void
 }) {
   if (totalPages <= 1) return null
 
   return (
-    <div className="flex flex-col gap-3 rounded-3xl border border-border/70 bg-background/80 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-      <div className="text-sm text-muted-foreground">
+    <div className="flex flex-col gap-3 border-t border-border/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <div className="text-xs text-muted-foreground">
         Showing{" "}
-        <span className="font-semibold text-foreground">{visibleItems}</span> of{" "}
+        <span className="font-semibold text-foreground">
+          {sliceStart + 1}–{sliceEnd}
+        </span>{" "}
+        of{" "}
         <span className="font-semibold text-foreground">{totalItems}</span>{" "}
         {itemLabel}
       </div>
@@ -233,7 +270,7 @@ function BalancedPaginationControls({
         >
           Previous
         </Button>
-        <span className="text-sm font-medium text-foreground">
+        <span className="text-xs font-medium text-foreground">
           Page {currentPage} of {totalPages}
         </span>
         <Button
@@ -249,51 +286,6 @@ function BalancedPaginationControls({
       </div>
     </div>
   )
-}
-
-function getBalancedPage<T>(setupRows: T[], readyRows: T[], page: number) {
-  let setupIndex = 0
-  let readyIndex = 0
-  let currentPage = 1
-
-  while (currentPage < page) {
-    const setupTake = Math.min(
-      SETUP_PAGE_LIMIT,
-      setupRows.length - setupIndex,
-    )
-    setupIndex += setupTake
-    readyIndex += Math.min(
-      ACTIVE_PAGE_SIZE - setupTake,
-      readyRows.length - readyIndex,
-    )
-    currentPage += 1
-  }
-
-  const setupTake = Math.min(SETUP_PAGE_LIMIT, setupRows.length - setupIndex)
-  const readyTake = Math.min(
-    ACTIVE_PAGE_SIZE - setupTake,
-    readyRows.length - readyIndex,
-  )
-
-  return {
-    setup: setupRows.slice(setupIndex, setupIndex + setupTake),
-    ready: readyRows.slice(readyIndex, readyIndex + readyTake),
-  }
-}
-
-function getBalancedTotalPages(setupCount: number, readyCount: number) {
-  let pages = 0
-  let setupIndex = 0
-  let readyIndex = 0
-
-  while (setupIndex < setupCount || readyIndex < readyCount) {
-    const setupTake = Math.min(SETUP_PAGE_LIMIT, setupCount - setupIndex)
-    setupIndex += setupTake
-    readyIndex += Math.min(ACTIVE_PAGE_SIZE - setupTake, readyCount - readyIndex)
-    pages += 1
-  }
-
-  return Math.max(1, pages)
 }
 
 function EmployeeTable({
