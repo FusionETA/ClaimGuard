@@ -989,12 +989,17 @@ function hasValue(value: unknown): boolean {
 }
 
 /**
- * Personal-tab completion. These are the identity / contact / family
- * fields LHDN E-filing + payslip generation need:
+ * Personal-tab completion. These are the identity / family fields LHDN
+ * E-filing + payslip generation need:
  *   - gender, dateOfBirth (EIS age gating)
  *   - nationality, idType, idNumber (PCB TXT + SOCSO+EIS file)
  *   - maritalStatus (drives spouse + child relief calc)
- *   - addressLine1, city, postcode, state (payslip + LHDN filings)
+ *
+ * Address fields (addressLine1 / city / postcode / state) are NOT
+ * gated here — admins routinely run payroll for foreign workers and
+ * new joiners whose Malaysian address hasn't been captured yet.
+ * Address still feeds payslip + LHDN filings when set; it just
+ * doesn't block the readiness pill.
  *
  * When marital status is MARRIED, spouseWorking must also be set
  * (drives the PCB joint-relief branch).
@@ -1006,10 +1011,6 @@ export function isPersonalTabComplete(p: PayrollProfileData): boolean {
   if (!hasValue(p.idType)) return false
   if (!hasValue(p.idNumber)) return false
   if (!hasValue(p.maritalStatus)) return false
-  if (!hasValue(p.addressLine1)) return false
-  if (!hasValue(p.city)) return false
-  if (!hasValue(p.postcode)) return false
-  if (!hasValue(p.state)) return false
   // Spouse-working is required when married (drives PCB spouse reliefs:
   // S = RM 4,000 when spouse has no income, plus SU = RM 6,000 if also
   // disabled). Without this, PCB defaults to the safer "no relief"
@@ -1041,12 +1042,16 @@ export function isEmploymentTabComplete(p: PayrollProfileData): boolean {
  * file generation:
  *   - if EPF contribution enabled → EPF number
  *   - if a SOCSO scheme is set → SOCSO number
- *   - incomeTaxNumber (always; required for PCB TXT + CP39)
+ *
+ * incomeTaxNumber (PCB / TIN) is NOT gated here — admins routinely
+ * onboard new joiners before LHDN issues their TIN. PCB calc runs
+ * fine without it; the CP39 / PCB TXT generator still surfaces a
+ * clear error at file-build time when LHDN actually needs the TIN
+ * to file.
  */
 export function isStatutoryTabComplete(p: PayrollProfileData): boolean {
   if (p.contributeToEpf && !hasValue(p.epfNumber)) return false
   if (hasValue(p.socsoScheme) && !hasValue(p.socsoNumber)) return false
-  if (!hasValue(p.incomeTaxNumber)) return false
   return true
 }
 
