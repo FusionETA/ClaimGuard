@@ -333,6 +333,71 @@ function buildImportedPayslipInput(input: {
     grossPay + a.epfEmployer + a.socsoEmployer + a.eisEmployer + a.hrdf,
   )
 
+  // Materialise each non-zero adjustment column from the upload as a
+  // PayslipLineItem so the run-detail UI can render the breakdown
+  // (bonus / commission / per-allowance / etc.) instead of showing
+  // only the collapsed totals scalar. Overtime is excluded — it has
+  // its own `otPay` field on the payslip + a dedicated UI row, so
+  // mirroring it as a line item would double-display. Zakat is also
+  // excluded for the same reason (its own scalar).
+  //
+  // subjectToEpf / SOCSO / EIS / PCB are conservatively set to true:
+  // the imported amounts represent what the previous payroll system
+  // already taxed, so we want next month's YTD aggregator (which
+  // only counts subjectToPcb allowances toward £Y) to include them.
+  // If an admin needs to mark a specific allowance PCB-exempt
+  // retroactively, they can edit the line item from the payslip
+  // detail page.
+  const lineItems: Array<{
+    kind: "ALLOWANCE" | "DEDUCTION" | "REIMBURSEMENT"
+    label: string
+    amount: number
+    category: string | null
+    subjectToEpf: boolean
+    subjectToSocso: boolean
+    subjectToEis: boolean
+    subjectToPcb: boolean
+  }> = []
+  const pushAllowance = (label: string, amount: number) => {
+    if (amount > 0) {
+      lineItems.push({
+        kind: "ALLOWANCE",
+        label,
+        amount: round2(amount),
+        category: null,
+        subjectToEpf: true,
+        subjectToSocso: true,
+        subjectToEis: true,
+        subjectToPcb: true,
+      })
+    }
+  }
+  const pushDeduction = (label: string, amount: number) => {
+    if (amount > 0) {
+      lineItems.push({
+        kind: "DEDUCTION",
+        label,
+        amount: round2(amount),
+        category: null,
+        // Deductions don't affect statutory bases — flags ignored on
+        // the deduction path but set to false for clarity.
+        subjectToEpf: false,
+        subjectToSocso: false,
+        subjectToEis: false,
+        subjectToPcb: false,
+      })
+    }
+  }
+  pushAllowance("Bonus", a.bonus)
+  pushAllowance("Commission", a.commission)
+  pushAllowance("Service charge", a.serviceCharge)
+  pushAllowance("Travel allowance", a.travelAllowance)
+  pushAllowance("Parking allowance", a.parkingAllowance)
+  pushAllowance("Phone allowance", a.phoneAllowance)
+  pushAllowance("Other allowance", a.otherAllowance)
+  pushDeduction("Unpaid leave", a.unpaidLeave)
+  pushDeduction("Net salary deduction", a.netSalaryDeduction)
+
   return {
     employeeProfileId: m.employeeProfileId,
     payrollProfileId: m.payrollProfileId,
@@ -390,7 +455,7 @@ function buildImportedPayslipInput(input: {
     grossPay,
     netPay,
     totalCostToEmployer,
-    lineItems: [],
+    lineItems,
   }
 }
 

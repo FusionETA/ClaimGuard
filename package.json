@@ -18,6 +18,7 @@
     "db:backfill-policies": "tsx prisma/backfill-policies.ts",
     "db:backfill-org-addons": "tsx prisma/backfill-org-addons.ts",
     "db:backfill-approval-chains": "tsx prisma/backfill-approval-chains.ts",
+    "db:diagnose-ytd-duplicates": "tsx scripts/diagnose-ytd-duplicates.ts",
     "db:create-master-key": "tsx prisma/create-master-key.ts",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",

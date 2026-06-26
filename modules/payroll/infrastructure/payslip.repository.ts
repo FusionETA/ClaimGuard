@@ -167,6 +167,30 @@ export const payslipRepository = {
           grossPay: p.grossPay,
           netPay: p.netPay,
           totalCostToEmployer: p.totalCostToEmployer,
+          // Nested write so each non-zero adjustment column from the
+          // YTD import XLSX (bonus / commission / service charge /
+          // travel-parking-phone-other allowance / unpaid leave / net
+          // deduction) materialises as a PayslipLineItem the UI can
+          // render in the breakdown. Without these, an imported
+          // payslip showed only the gross/net totals and admins
+          // couldn't see WHICH columns drove the numbers.
+          ...(p.lineItems.length > 0
+            ? {
+                lineItems: {
+                  create: p.lineItems.map((li) => ({
+                    kind: li.kind,
+                    label: li.label,
+                    amount: li.amount,
+                    category: li.category,
+                    claimId: li.claimId,
+                    subjectToEpf: li.subjectToEpf,
+                    subjectToSocso: li.subjectToSocso,
+                    subjectToEis: li.subjectToEis,
+                    subjectToPcb: li.subjectToPcb,
+                  })),
+                },
+              }
+            : {}),
         },
       })
       return { created: true }
