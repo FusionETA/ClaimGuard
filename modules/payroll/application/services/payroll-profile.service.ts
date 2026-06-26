@@ -98,8 +98,15 @@ export async function getManageEmployeesPageData(): Promise<{
   // `bustOrgConfigCaches` on hierarchy/member edits AND — because the
   // list shows payroll-readiness — by the payroll-profile save/archive
   // actions (which now also call bustOrgConfigCaches).
+  //
+  // `:v2` suffix invalidates the entire cache layer when the
+  // payroll-readiness rules change shape. Bumped 2026-06-26 alongside
+  // d5fa24f (address + PCB-TIN no longer gate isComplete) so admins
+  // see the new ready/incomplete classification immediately on
+  // deploy instead of waiting for the per-org cache TTL to expire.
+  // Bump again on any future change to isPayrollProfileComplete.
   return getOrSetCache(
-    key("org", orgId, "config", "page", "manage-employees", scopeTag),
+    key("org", orgId, "config", "page", "manage-employees:v2", scopeTag),
     600,
     () => loadManageEmployeesPageData(orgId),
   )
