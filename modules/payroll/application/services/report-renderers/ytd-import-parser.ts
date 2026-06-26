@@ -189,12 +189,12 @@ export async function parseYtdImport(
     return out
   }
 
-  // Flag unknown columns explicitly so admins who renamed or invented
-  // headers (e.g. "Annual Bonus", "Director Fee", "Medical Allowance")
-  // see WHY their values didn't land. The template's "duplicate to
-  // add more" instruction is misleading — column names are a fixed
-  // allowlist; only the listed names are read. For anything that
-  // doesn't fit, use the "Other Allowance" column.
+  // Flag unknown columns so admins who renamed or invented headers
+  // (e.g. "Annual Bonus", "Director Fee", "Medical Allowance") see
+  // WHY their values didn't land. Column names are a fixed allowlist
+  // — only the listed names are read. For anything that doesn't fit,
+  // admin should use "Other Allowance" (which catches all into the
+  // imported payslip's totalAllowances bucket).
   if (header.unknownHeaders.length > 0) {
     const supportedOptionals = Array.from(
       new Set(Object.values(OPTIONAL_HEADER_TO_KEY)),
@@ -307,8 +307,8 @@ type HeaderMap = {
   /// Header cells that don't match Full Name / Personal ID, any
   /// mandatory column, or any optional column. Surfaced as a parser
   /// warning so admins who renamed or invented columns (e.g. "Annual
-  /// Bonus" instead of "Bonus", or "Director Fee" hoping it would
-  /// add a new category) see explicitly what got silently dropped.
+  /// Bonus" instead of "Bonus", or "Director Fee") see explicitly
+  /// what got silently dropped + the supported list of column names.
   unknownHeaders: string[]
 }
 
@@ -334,8 +334,6 @@ function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
       const rawCell = cellToString(row.getCell(c).value).trim()
       if (!rawCell) continue
       const text = rawCell.toLowerCase()
-      // Skip the two name/id columns + the header-row scaffolding
-      // (section bands above this row aren't reached, but defensive).
       if (text === NAME_HEADER || text === ID_HEADER) continue
       const mandatoryKey =
         (MANDATORY_HEADER_TO_KEY as Record<string, string>)[text]
@@ -348,8 +346,8 @@ function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
         colByKey.set(optionalKey, c)
         continue
       }
-      // Anything else: capture the ORIGINAL casing so the warning
-      // reads naturally ("Annual Bonus" not "annual bonus").
+      // Capture the ORIGINAL casing so the warning reads naturally
+      // ("Annual Bonus" not "annual bonus").
       unknownHeaders.push(rawCell)
     }
     return { rowNum: r, nameCol, idCol, colByKey, unknownHeaders }

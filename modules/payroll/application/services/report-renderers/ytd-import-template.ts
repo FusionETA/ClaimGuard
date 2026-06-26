@@ -192,8 +192,20 @@ function buildInstructionsSheet(
     {
       heading: "Optional columns",
       body: [
-        "Allowances, bonuses, commission, overtime, deductions. Add what your employees actually received — leave blank if none.",
-        "Anything in the optional columns rolls into the imported payslip's display breakdown but does not change the PCB / EPF / SOCSO / EIS / HRDF numbers above (those are taken as you typed them).",
+        "Only the column names below are read. Renaming a column or adding a new name (e.g. \"Annual Bonus\", \"Director Fee\") is NOT supported — those values will be ignored and you'll see a warning on upload. For anything that doesn't fit the listed labels, put the amount in \"Other Allowance\".",
+        "Supported optional column names:",
+        "  • Bonus",
+        "  • Commission",
+        "  • Overtime",
+        "  • Service Charge",
+        "  • Travel/Petrol Allowance  (also accepts \"Travel Allowance\" or \"Petrol Allowance\")",
+        "  • Parking Allowance",
+        "  • Phone/Broadband Allowance  (also accepts \"Phone Allowance\" or \"Broadband Allowance\")",
+        "  • Other Allowance  ← catch-all for anything not listed above",
+        "  • Unpaid Leave",
+        "  • Net Salary Deduction",
+        "  • Zakat",
+        "Anything in these columns rolls into the imported payslip's display breakdown but does not change the PCB / EPF / SOCSO / EIS / HRDF numbers (those are taken as you typed them above).",
       ],
     },
     {
