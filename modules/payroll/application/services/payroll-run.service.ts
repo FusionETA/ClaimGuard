@@ -1619,7 +1619,7 @@ export async function getPayrollRunDetailWithPayslipsPageData(input: {
   // payroll mutation (generate, adjustment save, attach/detach, status
   // transition, Xero sync) calls `bustPayrollCaches({ organizationId })`.
   return getOrSetCache(
-    key("org", orgId, "payroll", "page", "run-detail:v8", input.runId, scopeTag),
+    key("org", orgId, "payroll", "page", "run-detail:v7", input.runId, scopeTag),
     3600,
     () => loadPayrollRunDetailWithPayslipsPageData(input, orgId, policyIdScope),
   )
