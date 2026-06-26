@@ -107,6 +107,24 @@ const OPTIONAL_HEADER_TO_KEY: Record<string, keyof ParsedYtdRow["amounts"]> = {
   zakat: "zakat",
 }
 
+// Display labels for the unknown-column warning. Keyed on the same
+// amount-key the OPTIONAL_HEADER_TO_KEY maps to, so we don't list
+// every alias (e.g. travelAllowance has three header aliases — admin
+// only needs to know one canonical name to use).
+const OPTIONAL_KEY_LABEL: Partial<Record<keyof ParsedYtdRow["amounts"], string>> = {
+  bonus: "Bonus",
+  commission: "Commission",
+  overtime: "Overtime",
+  serviceCharge: "Service Charge",
+  travelAllowance: "Travel/Petrol Allowance",
+  parkingAllowance: "Parking Allowance",
+  phoneAllowance: "Phone/Broadband Allowance",
+  otherAllowance: "Other Allowance",
+  unpaidLeave: "Unpaid Leave",
+  netSalaryDeduction: "Net Salary Deduction",
+  zakat: "Zakat",
+}
+
 const NAME_HEADER = "full name"
 const ID_HEADER = "personal id"
 
@@ -169,6 +187,27 @@ export async function parseYtdImport(
       `Missing mandatory column${missingMandatory.length === 1 ? "" : "s"}: ${missingMandatory.join(", ")}. Don't rename or delete the mandatory headers.`,
     )
     return out
+  }
+
+  // Flag unknown columns explicitly so admins who renamed or invented
+  // headers (e.g. "Annual Bonus", "Director Fee", "Medical Allowance")
+  // see WHY their values didn't land. The template's "duplicate to
+  // add more" instruction is misleading — column names are a fixed
+  // allowlist; only the listed names are read. For anything that
+  // doesn't fit, use the "Other Allowance" column.
+  if (header.unknownHeaders.length > 0) {
+    const supportedOptionals = Array.from(
+      new Set(Object.values(OPTIONAL_HEADER_TO_KEY)),
+    )
+      .map((key) => OPTIONAL_KEY_LABEL[key])
+      .filter(Boolean)
+      .join(", ")
+    out.warnings.push(
+      `Ignored ${header.unknownHeaders.length} unrecognised column header${
+        header.unknownHeaders.length === 1 ? "" : "s"
+      }: ${header.unknownHeaders.map((h) => `"${h}"`).join(", ")}. ` +
+        `Only fixed names are read; rename to one of: ${supportedOptionals}, or use "Other Allowance" for anything else.`,
+    )
   }
 
   // Walk rows after the header row, finding employee blocks.
@@ -265,6 +304,12 @@ type HeaderMap = {
   idCol: number
   /// Maps amount-key (e.g. "basicSalary") → column number.
   colByKey: Map<string, number>
+  /// Header cells that don't match Full Name / Personal ID, any
+  /// mandatory column, or any optional column. Surfaced as a parser
+  /// warning so admins who renamed or invented columns (e.g. "Annual
+  /// Bonus" instead of "Bonus", or "Director Fee" hoping it would
+  /// add a new category) see explicitly what got silently dropped.
+  unknownHeaders: string[]
 }
 
 function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
@@ -284,9 +329,14 @@ function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
 
     // Found it — map every other header on this row.
     const colByKey = new Map<string, number>()
+    const unknownHeaders: string[] = []
     for (let c = 1; c <= ws.columnCount; c++) {
-      const text = cellToString(row.getCell(c).value).toLowerCase().trim()
-      if (!text) continue
+      const rawCell = cellToString(row.getCell(c).value).trim()
+      if (!rawCell) continue
+      const text = rawCell.toLowerCase()
+      // Skip the two name/id columns + the header-row scaffolding
+      // (section bands above this row aren't reached, but defensive).
+      if (text === NAME_HEADER || text === ID_HEADER) continue
       const mandatoryKey =
         (MANDATORY_HEADER_TO_KEY as Record<string, string>)[text]
       if (mandatoryKey) {
@@ -298,8 +348,11 @@ function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
         colByKey.set(optionalKey, c)
         continue
       }
+      // Anything else: capture the ORIGINAL casing so the warning
+      // reads naturally ("Annual Bonus" not "annual bonus").
+      unknownHeaders.push(rawCell)
     }
-    return { rowNum: r, nameCol, idCol, colByKey }
+    return { rowNum: r, nameCol, idCol, colByKey, unknownHeaders }
   }
   return null
 }

@@ -208,7 +208,7 @@ function buildInstructionsSheet(
       body: [
         "Amounts are in Malaysian Ringgit, 2 decimal places. Use 0 not blank.",
         "Personal ID format: NRIC: 001127-08-0576 or Passport: A1234567 — keep the prefix.",
-        "Don't delete or rename the mandatory columns. You may duplicate or remove optional ones.",
+        "Don't delete or rename the mandatory columns. Optional columns can be deleted if unused; renaming or adding new column names is NOT supported — use 'Other Allowance' for anything that doesn't fit the listed labels.",
       ],
     },
   ]
@@ -313,7 +313,7 @@ function buildDataSheet(
   ws.mergeCells(4, optionalStart, 4, optionalEnd)
   const optBand = ws.getCell(4, optionalStart)
   optBand.value =
-    "OPTIONAL — duplicate to add more · delete to remove · order doesn't matter"
+    "OPTIONAL — delete unused columns · don't rename or invent new ones · order doesn't matter"
   optBand.font = { bold: true, size: 11, color: { argb: BRAND_PURPLE } }
   optBand.fill = {
     type: "pattern",
