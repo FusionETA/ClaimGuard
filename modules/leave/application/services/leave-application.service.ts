@@ -228,6 +228,146 @@ export async function submitLeaveApplication(
   return { ok: true, applicationId: app.id, status, totalDays }
 }
 
+// ─── Admin apply on behalf ──────────────────────────────────────────────
+
+export type AdminApplyLeaveInput = {
+  /// EmployeeProfile.id of the employee the admin is filing for.
+  employeeProfileId: string
+  leaveTypeId: string
+  startDate: Date
+  endDate: Date
+  duration: LeaveDuration
+  reason: string | null
+}
+
+export type AdminApplyLeaveResult =
+  | { ok: true; applicationId: string; totalDays: number }
+  | { ok: false; error: string }
+
+/**
+ * Admin applies leave on behalf of an employee. Lands directly as
+ * APPROVED — bypasses the supervisor chain because the admin already
+ * has authority to grant. The originating admin's user id is recorded
+ * on `LeaveApplication.appliedByAdminId` for audit + UI display, plus
+ * a synthetic `ADMIN_APPLIED` entry is added to the `approvals` JSON
+ * so the per-application history shows "Applied by admin" as the
+ * decision actor.
+ *
+ * Balance handling mirrors the auto-approve branch of
+ * `submitLeaveApplication`: usedDays is incremented on the
+ * entitlement row. The same balance-sufficiency check runs first so
+ * admins don't accidentally over-grant paid leave. Unpaid types
+ * still track usage but allow negative balance.
+ */
+export async function applyLeaveOnBehalfOfEmployee(input: {
+  adminUserId: string
+  payload: AdminApplyLeaveInput
+}): Promise<AdminApplyLeaveResult> {
+  const { payload } = input
+  if (payload.endDate < payload.startDate) {
+    return { ok: false, error: "End date is before start date" }
+  }
+  if (
+    (payload.duration === "MORNING" || payload.duration === "AFTERNOON") &&
+    !sameDay(payload.startDate, payload.endDate)
+  ) {
+    return {
+      ok: false,
+      error: "Half-day leave must start and end on the same day",
+    }
+  }
+
+  const workingDays = await workingDaysForEmployee(payload.employeeProfileId)
+  const totalDays = computeTotalDays(
+    payload.startDate,
+    payload.endDate,
+    payload.duration,
+    workingDays,
+  )
+  if (totalDays <= 0) {
+    return { ok: false, error: "Selected dates contain no working days" }
+  }
+
+  const year = payload.startDate.getUTCFullYear()
+  const entitlement = await ensureEntitlement(
+    payload.employeeProfileId,
+    payload.leaveTypeId,
+    year,
+  )
+
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) return { ok: false, error: "Database not configured" }
+
+  const leaveType = await prisma.leaveType.findUnique({
+    where: { id: payload.leaveTypeId },
+  })
+  if (!leaveType) return { ok: false, error: "Leave type not found" }
+  if (leaveType.archivedAt)
+    return { ok: false, error: "Leave type is archived" }
+
+  // Balance check — mirrors the employee-self path so admins can't
+  // accidentally over-grant paid leave. Unpaid types track usage but
+  // allow negative balance (same as employee-submit).
+  if (leaveType.paid) {
+    const balances = await listEmployeeBalances(payload.employeeProfileId, year)
+    const balance = balances.find((b) => b.leaveTypeId === payload.leaveTypeId)
+    if (!balance) {
+      return { ok: false, error: "No entitlement row for this leave type" }
+    }
+    const eff = await effectiveAvailableDaysFor({
+      employeeProfileId: payload.employeeProfileId,
+      balance,
+      startDate: payload.startDate,
+    })
+    if (totalDays > eff.available + 0.0001) {
+      const rounded = Math.round(eff.available * 100) / 100
+      return {
+        ok: false,
+        error: eff.forecasted
+          ? `Insufficient balance: requesting ${totalDays} day(s); even by the leave start date (${formatIsoDate(eff.asOf)}) the employee will only have ${rounded} day(s) available.`
+          : `Insufficient balance: requesting ${totalDays} but only ${rounded} available`,
+      }
+    }
+  }
+
+  // Synthetic approval entry so the per-application history tells
+  // the truth: it was an admin act, not a supervisor decision. The
+  // approver step "0" mirrors the auto-approve self-submit branch.
+  // `LeaveApplication.appliedByAdminId` is the canonical signal for
+  // "this was admin-applied"; the entry here just makes the
+  // existing approval-history UI render the timestamp + actor.
+  const approvalEntry: LeaveApprovalEntry = {
+    step: 0,
+    approverId: input.adminUserId,
+    decidedAt: new Date().toISOString(),
+    decision: "APPROVED",
+    ...(payload.reason ? { notes: payload.reason } : {}),
+  }
+
+  const app = await leaveRepository.createApplication({
+    employeeId: payload.employeeProfileId,
+    leaveTypeId: payload.leaveTypeId,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    duration: payload.duration,
+    totalDays,
+    reason: payload.reason,
+    attachmentUrl: null,
+    attachmentName: null,
+    xeroFileId: null,
+    status: "APPROVED",
+    currentStep: 0,
+    decidedAt: new Date(),
+    appliedByAdminId: input.adminUserId,
+    approvals: [approvalEntry],
+  })
+
+  await leaveRepository.addUsedDays(entitlement.id, totalDays)
+  await bustLeaveForProfile(payload.employeeProfileId)
+
+  return { ok: true, applicationId: app.id, totalDays }
+}
+
 export type EditLeaveInput = {
   applicationId: string
   /// The user (User.id, not EmployeeProfile.id) submitting the edit.

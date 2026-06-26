@@ -38,6 +38,7 @@ model User {
   claimApprovalEntries            ClaimApprovalEntry[]   @relation("UserApprovalEntries")
   employeeImportDrafts            EmployeeImportDraft[]
   employeeProfile                 EmployeeProfile?       @relation("EmployeeProfileUser")
+  leaveApplicationsAppliedByAdmin LeaveApplication[]     @relation("LeaveAppliedByAdmin")
   notifications                   Notification[]
   auditLogActor                   OrganizationAuditLog[] @relation("OrgAuditLogActor")
   submittedPayrollRuns            PayrollRun[]           @relation("PayrollRunSubmittedBy")
@@ -1971,13 +1972,21 @@ model LeaveApplication {
   /// Xero Files API id when the attachment lives in Xero. Null for local
   /// fallback uploads. Used by the proxy route to look up & authorise.
   xeroFileId     String?
+  /// Admin User.id who applied this leave on behalf of the employee.
+  /// Null when the employee submitted it themselves through their
+  /// portal. Drives the UI's "Applied by <admin name>" tag + the
+  /// audit log entry on the admin-apply flow, and lets us safely
+  /// auto-approve without a fake supervisor approval entry.
+  appliedByAdminId String?
   employee       EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   leaveType      LeaveType       @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  appliedByAdmin User?           @relation("LeaveAppliedByAdmin", fields: [appliedByAdminId], references: [id])
 
   @@index([employeeId])
   @@index([leaveTypeId])
   @@index([status])
   @@index([startDate, endDate])
+  @@index([appliedByAdminId], map: "LeaveApplication_appliedByAdmin_fkey")
 }
 
 /// Per-organization audit / activity log. Records who did what (and

@@ -1,5 +1,7 @@
 import "server-only"
 
+import { Prisma } from "@/generated/prisma/client"
+
 import { getPrismaClient } from "@/lib/prisma"
 
 import type {
@@ -588,6 +590,14 @@ export const leaveRepository = {
     status: LeaveStatus
     currentStep: number
     decidedAt: Date | null
+    /// Set when an admin applies leave on behalf of the employee.
+    /// Null on the employee-self-submit path. Drives the "Applied by
+    /// <admin>" tag in the audit log + the UI list.
+    appliedByAdminId?: string | null
+    /// Optional pre-built approvals JSON. Used by the admin-apply
+    /// flow to record a single "ADMIN_APPLIED" entry so the audit
+    /// trail is self-explanatory without a fake supervisor approval.
+    approvals?: LeaveApprovalEntry[] | null
   }) {
     const prisma = requirePrisma()
     return prisma.leaveApplication.create({
@@ -605,6 +615,10 @@ export const leaveRepository = {
         status: input.status,
         currentStep: input.currentStep,
         decidedAt: input.decidedAt,
+        appliedByAdminId: input.appliedByAdminId ?? null,
+        ...(input.approvals && input.approvals.length > 0
+          ? { approvals: input.approvals as unknown as Prisma.InputJsonValue }
+          : {}),
       },
     })
   },
