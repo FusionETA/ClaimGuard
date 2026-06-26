@@ -54,17 +54,24 @@ import {
 
 // ─── Validation schema ───────────────────────────────────────────────────
 
-const TRUE_VALUES = new Set(["TRUE", "true", "1", "YES", "yes", "Y", "y"])
-const FALSE_VALUES = new Set(["FALSE", "false", "0", "NO", "no", "N", "n", ""])
+// Case-insensitive token sets. Compared against `t.toLowerCase()` so
+// any case mix from the file (TRUE / True / true / TruE) lands the
+// same way. Stored as lowercase tokens for that reason.
+const TRUE_TOKENS = new Set(["true", "1", "yes", "y", "t"])
+const FALSE_TOKENS = new Set(["false", "0", "no", "n", "f"])
 
 const booleanCell = z
   .string()
   .optional()
   .transform((v, ctx) => {
     if (v == null || v.trim() === "") return null
-    const t = v.trim()
-    if (TRUE_VALUES.has(t)) return true
-    if (FALSE_VALUES.has(t)) return false
+    // Case-insensitive: covers "True", "TRUE", "true", "Yes", etc.
+    // without forcing the upstream heuristic to run first. Without
+    // this the schema would reject mixed-case literals from CSV
+    // exports where Excel re-cased the values.
+    const t = v.trim().toLowerCase()
+    if (TRUE_TOKENS.has(t)) return true
+    if (FALSE_TOKENS.has(t)) return false
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: `Expected TRUE/FALSE, got "${v}"`,
@@ -1926,9 +1933,18 @@ function normaliseValue(
   if (v === "") return ""
 
   // Admin-confirmed value-to-enum mapping wins over everything.
-  const mapped = valueMap?.[target]?.[v]
-  if (mapped !== undefined) {
-    return mapped ?? ""
+  // Case-insensitive lookup so an admin mapping "True" → "TRUE"
+  // also covers cells with "TRUE" / "true" / "TRue" without forcing
+  // them to map every case variant individually. Exact match is
+  // tried first to keep behaviour deterministic when admins
+  // intentionally distinguish casing.
+  const targetMap = valueMap?.[target]
+  if (targetMap) {
+    if (v in targetMap) return targetMap[v] ?? ""
+    const vLower = v.toLowerCase()
+    for (const [key, canonical] of Object.entries(targetMap)) {
+      if (key.toLowerCase() === vLower) return canonical ?? ""
+    }
   }
 
   if (DATE_TARGETS.has(target)) {
