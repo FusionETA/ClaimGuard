@@ -1179,14 +1179,43 @@ export function EmployeePayslipPdfDocument(
             </View>
           </View>
 
-          {p.totalBenefitsInKind > 0 ? (
-            <View style={{ marginTop: 12 }}>
-              <Text style={payslipStyles.sectionLabel}>
-                Benefits-in-kind (BIK, non-cash)
-              </Text>
-              <PayRow label="Total BIK" amount={p.totalBenefitsInKind} />
-            </View>
-          ) : null}
+          {/* Benefits-in-kind section.
+              Section only renders when the employee actually has BIK
+              this period (gated on the scalar totalBenefitsInKind so
+              normal-month payslips don't show an empty header).
+              Inside, we enumerate the bik_* line items so the employee
+              sees WHICH benefit drove the figure (Company car,
+              accommodation, phone, etc.). Falls back to a single
+              "Total BIK" row when the scalar is set but no line items
+              were attached — happens on legacy / pre-2026-06 imported
+              payslips that only carried the scalar total. */}
+          {p.totalBenefitsInKind > 0 ? (() => {
+            const bikLines = p.lineItems.filter(
+              (li) => li.category?.startsWith("bik_"),
+            )
+            return (
+              <View style={{ marginTop: 12 }}>
+                <Text style={payslipStyles.sectionLabel}>
+                  Benefits-in-kind (BIK, non-cash)
+                </Text>
+                {bikLines.length > 0 ? (
+                  <>
+                    {bikLines.map((li) => (
+                      <PayRow key={li.id} label={li.label} amount={li.amount} />
+                    ))}
+                    <View style={payslipStyles.subTotalRow}>
+                      <Text style={payslipStyles.subTotalLabel}>Total BIK</Text>
+                      <Text style={payslipStyles.subTotalAmount}>
+                        {fmtMyr(p.totalBenefitsInKind)}
+                      </Text>
+                    </View>
+                  </>
+                ) : (
+                  <PayRow label="Total BIK" amount={p.totalBenefitsInKind} />
+                )}
+              </View>
+            )
+          })() : null}
 
           {/* ── Year-to-date ─────────────────────────────────────── */}
           <View style={{ marginTop: 14 }}>
