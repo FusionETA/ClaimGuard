@@ -25,22 +25,11 @@ function formatTimestamp(value?: string) {
   }).format(new Date(value))
 }
 
-function ConnectionRow({
-  connection,
-  isDemoOrg,
-}: {
-  connection: XeroConnectionInfo
-  /// Re-authorize banner + button are gated behind this flag (set via
-  /// DEMO_ORG_ID env var, computed in the settings page). Non-demo
-  /// orgs see the connection card without the "Update permissions"
-  /// CTA so customers don't get a button they can't act on yet.
-  isDemoOrg: boolean
-}) {
+function ConnectionRow({ connection }: { connection: XeroConnectionInfo }) {
   const { toast } = useToast()
   const [disconnecting, setDisconnecting] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const connectedAt = formatTimestamp(connection.connectedAt)
-  const showReauthPrompt = connection.requiresReauth && isDemoOrg
 
   async function handleConfirmDisconnect() {
     setDisconnecting(true)
@@ -68,7 +57,7 @@ function ConnectionRow({
           {connectedAt ? (
             <p className="mt-0.5 text-xs text-muted-foreground">Connected: {connectedAt}</p>
           ) : null}
-          {showReauthPrompt ? (
+          {connection.requiresReauth ? (
             <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900">
               <ShieldCheck className="h-3 w-3" />
               Permission update required — click to re-authorize.
@@ -76,7 +65,7 @@ function ConnectionRow({
           ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {showReauthPrompt ? (
+          {connection.requiresReauth ? (
             <Button
               asChild
               type="button"
@@ -212,15 +201,10 @@ export function XeroConnectionCard({
   connection,
   status,
   reason,
-  isDemoOrg = false,
 }: {
   connection: XeroConnectionSummary
   status?: string
   reason?: string
-  /// Forwarded to each ConnectionRow — gates the re-authorize banner +
-  /// button so non-demo orgs don't see a CTA they can't act on while
-  /// the new Xero permission set is still being rolled out.
-  isDemoOrg?: boolean
 }) {
   const hasConnections = connection.connections.length > 0
 
@@ -250,11 +234,7 @@ export function XeroConnectionCard({
         <div className="space-y-3">
           {hasConnections ? (
             connection.connections.map((conn) => (
-              <ConnectionRow
-                key={conn.id}
-                connection={conn}
-                isDemoOrg={isDemoOrg}
-              />
+              <ConnectionRow key={conn.id} connection={conn} />
             ))
           ) : (
             <div className="rounded-[24px] bg-surface-low p-5">

@@ -129,23 +129,11 @@ export async function AdminSettingsPanelPage({
     }
   }
 
-  // The Xero "Update permissions" / re-authorize prompt is intentionally
-  // limited to the demo org while the new permission set rolls out to
-  // production customers. Anywhere else, the banner + button stay
-  // hidden so customers don't see a CTA they can't act on. Set
-  // DEMO_ORG_ID=<orgId> on the server to designate which org sees it.
-  const isDemoOrg = Boolean(
-    orgIdForAdmins &&
-      process.env.DEMO_ORG_ID &&
-      orgIdForAdmins === process.env.DEMO_ORG_ID,
-  )
-
   return (
     <AdminSettingsPanel
       admin={data.admin}
       organization={data.organization}
       xeroConnection={data.xeroConnection}
-      isDemoOrg={isDemoOrg}
       chartAccounts={data.chartAccounts}
       customAccounts={data.customAccounts}
       projects={data.projects}
