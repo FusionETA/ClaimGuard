@@ -28,9 +28,16 @@ import { PAYROLL_REQUIRED_COMPANY_INFO_FIELDS } from "@/modules/payroll/domain/s
  *
  * Required PER-EMPLOYEE fields (block submit):
  *   - employeeCode             — PCB TXT
- *   - incomeTaxNumber          — PCB TXT
  *   - idNumber                 — PCB TXT + SOCSO+EIS TXT
  *                                (label depends on Malaysian/foreigner)
+ *
+ * NOT required (intentionally — admins fill these in later before they
+ * actually generate the file LHDN needs them for, and missing them
+ * shouldn't block the monthly payroll run):
+ *   - incomeTaxNumber          — PCB calc runs without a TIN. The TIN
+ *                                only matters when generating the CP39
+ *                                / PCB TXT for LHDN; admins can patch
+ *                                it in then.
  */
 
 export type RunReadinessOrgField =
@@ -102,7 +109,10 @@ export async function getPayrollRunReadiness(input: {
     const missing: string[] = []
 
     if (isBlank(row.employeeCode)) missing.push("Employee/payroll number")
-    if (isBlank(row.incomeTaxNumber)) missing.push("Income tax number (PCB)")
+    // PCB number (TIN / incomeTaxNumber) intentionally NOT in the
+    // submit gate — see the header comment. The CP39 / PCB TXT file
+    // checks it separately at generate time so admins can run payroll
+    // for new joiners whose TIN hasn't been issued yet.
 
     // IC for Malaysians/PRs, passport for foreigners. Label tailored
     // so the admin knows which field to fix.

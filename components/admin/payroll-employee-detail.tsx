@@ -903,13 +903,7 @@ function PersonalTab(props: {
             <Input
               name="addressLine1"
               defaultValue={props.profile?.addressLine1 ?? ""}
-              aria-invalid={!hasValue(props.profile?.addressLine1) || undefined}
             />
-            {!hasValue(props.profile?.addressLine1) ? (
-              <p className="mt-1 text-xs font-medium text-destructive">
-                Required — appears on payslip and LHDN filings.
-              </p>
-            ) : null}
           </Field>
           <Field label="Address line 2" className="md:col-span-2">
             <Input
@@ -927,37 +921,19 @@ function PersonalTab(props: {
             <Input
               name="city"
               defaultValue={props.profile?.city ?? ""}
-              aria-invalid={!hasValue(props.profile?.city) || undefined}
             />
-            {!hasValue(props.profile?.city) ? (
-              <p className="mt-1 text-xs font-medium text-destructive">
-                Required.
-              </p>
-            ) : null}
           </Field>
           <Field label="Postcode">
             <Input
               name="postcode"
               defaultValue={props.profile?.postcode ?? ""}
-              aria-invalid={!hasValue(props.profile?.postcode) || undefined}
             />
-            {!hasValue(props.profile?.postcode) ? (
-              <p className="mt-1 text-xs font-medium text-destructive">
-                Required.
-              </p>
-            ) : null}
           </Field>
           <Field label="State">
             <Input
               name="state"
               defaultValue={props.profile?.state ?? ""}
-              aria-invalid={!hasValue(props.profile?.state) || undefined}
             />
-            {!hasValue(props.profile?.state) ? (
-              <p className="mt-1 text-xs font-medium text-destructive">
-                Required.
-              </p>
-            ) : null}
           </Field>
         </CardContent>
       </Card>
@@ -2327,17 +2303,15 @@ function StatutoryTab(props: {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <Field label="Income tax (PCB) number">
+            {/* Not flagged as required at the form level anymore — PCB
+                calc runs without a TIN; admins can fill it in before
+                generating the CP39 / PCB TXT file when LHDN actually
+                needs it. */}
             <Input
               name="incomeTaxNumber"
               value={incomeTaxNumber}
               onChange={(e) => setIncomeTaxNumber(e.target.value)}
-              aria-invalid={incomeTaxNumberMissing || undefined}
             />
-            {incomeTaxNumberMissing ? (
-              <p className="mt-1 text-xs font-medium text-destructive">
-                Required for PCB TXT generation.
-              </p>
-            ) : null}
           </Field>
           {/* "PCB borne by employer" toggle removed — the gross-up
               calculation is listed in the "Upcoming features" card

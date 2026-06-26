@@ -96,7 +96,10 @@ const createEmployeeSchema = z
     dateOfBirth: z.string().regex(ISO_DATE, "Date of birth must be YYYY-MM-DD."),
     idNumber: z.string().trim().min(1, "ID number is required."),
     maritalStatus: z.enum(["SINGLE", "MARRIED", "DIVORCED", "WIDOWED"]),
-    incomeTaxNumber: z.string().trim().min(1, "Income tax (PCB) number is required."),
+    // PCB number is optional — admins routinely create new joiners
+    // before LHDN issues the TIN. PCB calc runs without it; the CP39
+    // generator checks it separately at file-build time.
+    incomeTaxNumber: z.string().trim().optional(),
     joinDate: z.string().regex(ISO_DATE, "Join date must be YYYY-MM-DD."),
 
     // ── Personal (optional / defaulted) ──────────────────────────────────
