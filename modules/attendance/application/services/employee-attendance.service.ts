@@ -100,7 +100,7 @@ async function uploadSelfieToXero({
   phase?: "clock-in" | "clock-out"
 }): Promise<void> {
   const prisma = getAttendancePrismaClientSafe()
-  if (!prisma) return
+  if (!prisma) { console.warn("[uploadSelfieToXero] no prisma client"); return }
 
   const profile = await prisma.employeeProfile.findUnique({
     where: { userId: employeeId },
@@ -109,12 +109,12 @@ async function uploadSelfieToXero({
       policy: { select: { requireSelfie: true } },
     },
   })
-  if (!profile) return
+  if (!profile) { console.warn("[uploadSelfieToXero] no employee profile for", employeeId); return }
   // Clock-out selfies: the calling code only passes the selfie when the
   // client's policy required it, so no server-side re-check needed.
   if (phase !== "clock-out") {
     const selfieRequired = profile.policy?.requireSelfie ?? false
-    if (!selfieRequired) return
+    if (!selfieRequired) { console.warn("[uploadSelfieToXero] requireSelfie=false on policy, skipping clock-in selfie"); return }
   }
 
   // Resolve the org's single Xero connection.
@@ -131,7 +131,7 @@ async function uploadSelfieToXero({
     })
     connectionId = conn?.id ?? null
   }
-  if (!connectionId) return
+  if (!connectionId) { console.warn("[uploadSelfieToXero] no Xero connection for org of user", employeeId); return }
 
   // data URL → Buffer
   const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(dataUrl)
@@ -141,7 +141,7 @@ async function uploadSelfieToXero({
   if (fileBuffer.length === 0) return
 
   const token = await getUsableXeroAccessToken(connectionId)
-  if (!token) return
+  if (!token) { console.warn("[uploadSelfieToXero] could not get usable Xero token for connection", connectionId); return }
 
   const folderId = await getOrCreateAttendanceSelfieFolder({
     accessToken: token.accessToken,
