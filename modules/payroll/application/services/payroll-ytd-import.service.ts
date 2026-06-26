@@ -4,6 +4,10 @@ import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
 import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import {
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  type PayrollAdjustmentCategory,
+} from "@/modules/payroll/domain/models"
+import {
   parseYtdImport,
   type ParsedYtdRow,
 } from "@/modules/payroll/application/services/report-renderers/ytd-import-parser"
@@ -302,6 +306,30 @@ function buildImportedPayslipInput(input: {
   const m = input.match
   const a = input.row.amounts
 
+  // ── Split the custom-category line items into their three buckets ──
+  // BIK rows (nonCash: true on the meta) → totalBenefitsInKind. Don't
+  // touch gross/net since the employee never receives cash. Cash
+  // allowances → totalAllowances (folded into grossPay). Deductions
+  // → totalDeductions (net-only). REIMBURSEMENT rows are written as
+  // line items but don't move gross/net here — they're treated like
+  // payouts that already left the bank.
+  let extraCashAllowances = 0
+  let extraBik = 0
+  let extraDeductions = 0
+  for (const li of a.customLineItems) {
+    const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[
+      li.categoryCode as PayrollAdjustmentCategory
+    ]
+    if (!meta) continue
+    if (meta.kind === "ALLOWANCE" && meta.nonCash) {
+      extraBik += li.amount
+    } else if (meta.kind === "ALLOWANCE") {
+      extraCashAllowances += li.amount
+    } else if (meta.kind === "DEDUCTION") {
+      extraDeductions += li.amount
+    }
+  }
+
   // Allowance + deduction buckets — keeps the per-line breakdown out
   // of scope for the MVP, but the imported totals still feed
   // gross/net correctly.
@@ -313,11 +341,12 @@ function buildImportedPayslipInput(input: {
     a.travelAllowance +
     a.parkingAllowance +
     a.phoneAllowance +
-    a.otherAllowance
+    a.otherAllowance +
+    extraCashAllowances
   // Unpaid leave is the only legit gross-reducing deduction column
   // on the template; the rest reduce net only.
   const grossReducingDeductions = a.unpaidLeave
-  const netOnlyDeductions = a.netSalaryDeduction
+  const netOnlyDeductions = a.netSalaryDeduction + extraDeductions
 
   const grossPay = round2(a.basicSalary + totalAllowances - grossReducingDeductions)
   const netPay = round2(
@@ -332,6 +361,7 @@ function buildImportedPayslipInput(input: {
   const totalCostToEmployer = round2(
     grossPay + a.epfEmployer + a.socsoEmployer + a.eisEmployer + a.hrdf,
   )
+  const totalBenefitsInKind = round2(extraBik)
 
   // Materialise each non-zero adjustment column from the upload as a
   // PayslipLineItem so the run-detail UI can render the breakdown
@@ -398,6 +428,30 @@ function buildImportedPayslipInput(input: {
   pushDeduction("Unpaid leave", a.unpaidLeave)
   pushDeduction("Net salary deduction", a.netSalaryDeduction)
 
+  // Custom-category line items — admin used a non-legacy column
+  // header that matched a PAYROLL_ADJUSTMENT_CATEGORY_META label.
+  // Each becomes its own line item with the FULL statutory flag set
+  // sourced from the meta (so BIK correctly skips EPF/SOCSO/EIS but
+  // contributes to PCB taxable income; deductions don't touch any
+  // statutory base; etc.). Category code is persisted so next
+  // month's YTD aggregator can apply tax-exempt-limit rules.
+  for (const li of a.customLineItems) {
+    const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[
+      li.categoryCode as PayrollAdjustmentCategory
+    ]
+    if (!meta) continue
+    lineItems.push({
+      kind: meta.kind,
+      label: meta.label,
+      amount: round2(li.amount),
+      category: li.categoryCode,
+      subjectToEpf: meta.subjectToEpf,
+      subjectToSocso: meta.subjectToSocso,
+      subjectToEis: meta.subjectToEis,
+      subjectToPcb: meta.subjectToPcb,
+    })
+  }
+
   return {
     employeeProfileId: m.employeeProfileId,
     payrollProfileId: m.payrollProfileId,
@@ -432,7 +486,7 @@ function buildImportedPayslipInput(input: {
     otPublicHours: 0,
     otPay: a.overtime,
     totalAllowances,
-    totalBenefitsInKind: 0,
+    totalBenefitsInKind,
     totalReimbursements: 0,
     totalDeductions: round2(grossReducingDeductions + netOnlyDeductions + a.zakat),
     epfEmployee: a.epfEmployee,

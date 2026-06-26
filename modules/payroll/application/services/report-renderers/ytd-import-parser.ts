@@ -2,6 +2,11 @@ import "server-only"
 
 import ExcelJS from "exceljs"
 
+import {
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  type PayrollAdjustmentCategory,
+} from "@/modules/payroll/domain/models"
+
 /**
  * Reads a YTD import XLSX (the one our `ytd-import-template.ts`
  * renderer produces, with the admin's numbers filled in) and returns
@@ -61,6 +66,20 @@ export type ParsedYtdRow = {
     unpaidLeave: number
     netSalaryDeduction: number
     zakat: number
+    /// Columns whose header matched a PAYROLL_ADJUSTMENT_CATEGORY_META
+    /// label (the same category set the per-run adjustment form uses)
+    /// but isn't one of the 11 legacy named scalars above. Each entry
+    /// becomes a PayslipLineItem on the imported payslip with the
+    /// statutory flags + kind + nonCash from its meta — so e.g. a
+    /// BIK column lands as a non-cash benefit (rolled into
+    /// totalBenefitsInKind, not totalAllowances) with subjectToPcb
+    /// true but subjectToEpf/SOCSO/EIS false. Empty when admin only
+    /// used legacy column names.
+    customLineItems: Array<{
+      categoryCode: string
+      label: string
+      amount: number
+    }>
   }
 }
 
@@ -111,7 +130,7 @@ const OPTIONAL_HEADER_TO_KEY: Record<string, keyof ParsedYtdRow["amounts"]> = {
 // amount-key the OPTIONAL_HEADER_TO_KEY maps to, so we don't list
 // every alias (e.g. travelAllowance has three header aliases — admin
 // only needs to know one canonical name to use).
-const OPTIONAL_KEY_LABEL: Partial<Record<keyof ParsedYtdRow["amounts"], string>> = {
+const OPTIONAL_KEY_LABEL: Partial<Record<string, string>> = {
   bonus: "Bonus",
   commission: "Commission",
   overtime: "Overtime",
@@ -124,6 +143,24 @@ const OPTIONAL_KEY_LABEL: Partial<Record<keyof ParsedYtdRow["amounts"], string>>
   netSalaryDeduction: "Net Salary Deduction",
   zakat: "Zakat",
 }
+
+// Lookup of every standard adjustment category by its display label
+// (lowercase, for case-insensitive matching). Built once at module
+// load from PAYROLL_ADJUSTMENT_CATEGORY_META so the YTD import
+// recognises any of the same labels the per-run adjustment form
+// offers: Annual Bonus, Director Fee, Car/Petrol BIK, CP38, etc.
+//
+// Legacy OPTIONAL_HEADER_TO_KEY entries take precedence (matched
+// first in findHeaderRow) — they map to named scalars on `amounts`
+// for back-compat with the original 11-column importer. Anything
+// new flows through this map into `amounts.customLineItems`.
+const CATEGORY_LABEL_TO_CODE: Map<string, PayrollAdjustmentCategory> = (() => {
+  const map = new Map<string, PayrollAdjustmentCategory>()
+  for (const [code, meta] of Object.entries(PAYROLL_ADJUSTMENT_CATEGORY_META)) {
+    map.set(meta.label.toLowerCase().trim(), code as PayrollAdjustmentCategory)
+  }
+  return map
+})()
 
 const NAME_HEADER = "full name"
 const ID_HEADER = "personal id"
@@ -189,14 +226,13 @@ export async function parseYtdImport(
     return out
   }
 
-  // Flag unknown columns so admins who renamed or invented headers
-  // (e.g. "Annual Bonus", "Director Fee", "Medical Allowance") see
-  // WHY their values didn't land. Column names are a fixed allowlist
-  // — only the listed names are read. For anything that doesn't fit,
-  // admin should use "Other Allowance" (which catches all into the
-  // imported payslip's totalAllowances bucket).
+  // Flag header cells that didn't match ANY known label — these are
+  // typos or genuinely-made-up names (e.g. "Annual Bonu" or "Misc"),
+  // not just unrecognised aliases. Standard category labels (Annual
+  // Bonus, Director Fee, Car/Petrol BIK, CP38, etc.) are accepted
+  // via PAYROLL_ADJUSTMENT_CATEGORY_META — see findHeaderRow.
   if (header.unknownHeaders.length > 0) {
-    const supportedOptionals = Array.from(
+    const legacyOptionals = Array.from(
       new Set(Object.values(OPTIONAL_HEADER_TO_KEY)),
     )
       .map((key) => OPTIONAL_KEY_LABEL[key])
@@ -206,7 +242,7 @@ export async function parseYtdImport(
       `Ignored ${header.unknownHeaders.length} unrecognised column header${
         header.unknownHeaders.length === 1 ? "" : "s"
       }: ${header.unknownHeaders.map((h) => `"${h}"`).join(", ")}. ` +
-        `Only fixed names are read; rename to one of: ${supportedOptionals}, or use "Other Allowance" for anything else.`,
+        `Accepted optional column names: ${legacyOptionals}, plus any standard adjustment category label (Annual Bonus, Director Fee, Car/Petrol BIK, CP38, etc. — the same list the per-run adjustment form offers).`,
     )
   }
 
@@ -249,7 +285,26 @@ export async function parseYtdImport(
         const raw = editSheet.getCell(monthRow, colNum).value
         const n = cellToNumber(raw)
         if (n !== 0) hasAny = true
-        ;(amounts as Record<string, number>)[key] = n
+        // `customLineItems` is the only non-number field on amounts;
+        // isAmountKey excludes it, so the cast is safe.
+        ;(amounts as unknown as Record<string, number>)[key] = n
+      }
+      // Also read every category-labelled column (BIK / Director Fee
+      // / Annual Bonus / etc.) for this month. Each non-zero amount
+      // becomes a customLineItem on this row; the import builder
+      // routes it via PAYROLL_ADJUSTMENT_CATEGORY_META so the
+      // statutory flags + bucket (cash allowance vs BIK vs
+      // deduction) match what the per-run adjustment form would do.
+      for (const col of header.categoryColumns) {
+        const raw = editSheet.getCell(monthRow, col.colNum).value
+        const n = cellToNumber(raw)
+        if (n === 0) continue
+        hasAny = true
+        amounts.customLineItems.push({
+          categoryCode: col.categoryCode,
+          label: col.label,
+          amount: n,
+        })
       }
       // Skip month rows where everything is zero or blank — that month
       // either wasn't paid (employee not yet on payroll) or the admin
@@ -304,11 +359,21 @@ type HeaderMap = {
   idCol: number
   /// Maps amount-key (e.g. "basicSalary") → column number.
   colByKey: Map<string, number>
+  /// Columns whose header matched a PAYROLL_ADJUSTMENT_CATEGORY_META
+  /// label but isn't one of the 11 legacy named scalars. Each entry
+  /// becomes a customLineItem on every per-employee month row with
+  /// statutory flags routed via the meta — BIK skips EPF/SOCSO/EIS,
+  /// deductions flow into totalDeductions, etc.
+  categoryColumns: Array<{
+    categoryCode: PayrollAdjustmentCategory
+    label: string
+    colNum: number
+  }>
   /// Header cells that don't match Full Name / Personal ID, any
-  /// mandatory column, or any optional column. Surfaced as a parser
-  /// warning so admins who renamed or invented columns (e.g. "Annual
-  /// Bonus" instead of "Bonus", or "Director Fee") see explicitly
-  /// what got silently dropped + the supported list of column names.
+  /// mandatory / optional / standard-category label. Surfaced as a
+  /// parser warning so admins who genuinely typo'd a column name
+  /// (e.g. "Annual Bonu" instead of "Annual Bonus") see what got
+  /// dropped + the canonical labels they should use.
   unknownHeaders: string[]
 }
 
@@ -329,6 +394,7 @@ function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
 
     // Found it — map every other header on this row.
     const colByKey = new Map<string, number>()
+    const categoryColumns: HeaderMap["categoryColumns"] = []
     const unknownHeaders: string[] = []
     for (let c = 1; c <= ws.columnCount; c++) {
       const rawCell = cellToString(row.getCell(c).value).trim()
@@ -346,11 +412,36 @@ function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
         colByKey.set(optionalKey, c)
         continue
       }
+      // Fall through to the broader category-label allowlist (every
+      // entry in PAYROLL_ADJUSTMENT_CATEGORY_META). This is what
+      // makes the YTD importer accept the same labels the per-run
+      // adjustment form does — "Annual Bonus", "Director Fee",
+      // "Car/Petrol BIK", "CP38 (PCB Adjustment)", etc.
+      const categoryCode = CATEGORY_LABEL_TO_CODE.get(text)
+      if (categoryCode) {
+        const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[categoryCode]
+        categoryColumns.push({
+          categoryCode,
+          // Use the meta's canonical label (not the cell text) so a
+          // typo-free admin variant like "annual bonus" still renders
+          // as "Annual Bonus" on the imported payslip.
+          label: meta.label,
+          colNum: c,
+        })
+        continue
+      }
       // Capture the ORIGINAL casing so the warning reads naturally
-      // ("Annual Bonus" not "annual bonus").
+      // ("Annual Bonu" → admin can see the typo).
       unknownHeaders.push(rawCell)
     }
-    return { rowNum: r, nameCol, idCol, colByKey, unknownHeaders }
+    return {
+      rowNum: r,
+      nameCol,
+      idCol,
+      colByKey,
+      categoryColumns,
+      unknownHeaders,
+    }
   }
   return null
 }
@@ -463,10 +554,16 @@ function freshAmounts(): ParsedYtdRow["amounts"] {
     unpaidLeave: 0,
     netSalaryDeduction: 0,
     zakat: 0,
+    customLineItems: [],
   }
 }
 
 function isAmountKey(key: string): key is keyof ParsedYtdRow["amounts"] {
+  // `customLineItems` lives on amounts but isn't a number — it's
+  // populated via the categoryColumns path, not the named-scalar
+  // path. Excluding it here lets the named-scalar reader cast its
+  // accumulator to Record<string, number> safely.
+  if (key === "customLineItems") return false
   return key in freshAmounts()
 }
 
