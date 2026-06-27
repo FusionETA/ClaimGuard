@@ -6,8 +6,11 @@ import { ChevronDown, Search } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import type { EmployeeLeaveBalances } from "@/modules/leave/application/services/leave-entitlements.service"
 import { cn, formatDays } from "@/lib/utils"
+
+const PAGE_SIZE = 10
 
 type Props = {
   /// All employees in scope (org-wide for admin; direct reports only for
@@ -52,61 +55,21 @@ function EmployeeBalancesCard({
   }
 
   return (
-    <Card>
+    <div>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-[28px]"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
         aria-expanded={open}
       >
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="truncate text-sm font-bold text-foreground">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-sm font-semibold text-foreground">
               {employee.name}
             </span>
             {employee.role === "SUPERVISOR" ? (
-              <Badge variant="outline" className="text-[10px]">
+              <Badge variant="outline" className="shrink-0 text-[10px]">
                 Supervisor
-              </Badge>
-            ) : null}
-            {showSource ? (
-              // Small distinct-color pill — green/blue/red — so it's
-              // visually separable from the outline-style "Supervisor"
-              // pill that sits next to it. Hover for the longer
-              // description.
-              <span
-                className={cn(
-                  "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide",
-                  employee.leaveSource === "default" &&
-                    "border-emerald-300 bg-emerald-50 text-emerald-700",
-                  employee.leaveSource === "policy" &&
-                    "border-sky-300 bg-sky-50 text-sky-700",
-                  employee.leaveSource === "custom" &&
-                    "border-rose-300 bg-rose-50 text-rose-700",
-                )}
-                title={
-                  employee.leaveSource === "custom"
-                    ? "Has at least one per-employee leave override (entitled days or accrual method)."
-                    : employee.leaveSource === "policy"
-                      ? "Follows the employee's policy. Their policy has at least one leave-type override."
-                      : "Follows the leave type defaults. No policy or per-employee overrides apply."
-                }
-              >
-                {employee.leaveSource === "custom"
-                  ? "Custom"
-                  : employee.leaveSource === "policy"
-                    ? "Policy"
-                    : "Default"}
-              </span>
-            ) : null}
-            {outCount > 0 ? (
-              <Badge variant="rejected" className="text-[10px]">
-                {outCount} out
-              </Badge>
-            ) : null}
-            {lowCount > 0 ? (
-              <Badge variant="pending" className="text-[10px]">
-                {lowCount} low
               </Badge>
             ) : null}
           </div>
@@ -119,15 +82,54 @@ function EmployeeBalancesCard({
             {employee.balances.length === 1 ? "" : "s"}
           </p>
         </div>
-        <ChevronDown
-          className={cn(
-            "h-5 w-5 shrink-0 text-muted-foreground transition-transform mt-0.5",
-            open && "rotate-180",
-          )}
-        />
+        {/* Right-aligned meta: at-risk badges, source pill, chevron. */}
+        <div className="flex shrink-0 items-center gap-2">
+          {outCount > 0 ? (
+            <Badge variant="rejected" className="text-[10px]">
+              {outCount} out
+            </Badge>
+          ) : null}
+          {lowCount > 0 ? (
+            <Badge variant="pending" className="text-[10px]">
+              {lowCount} low
+            </Badge>
+          ) : null}
+          {showSource ? (
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide",
+                employee.leaveSource === "default" &&
+                  "border-emerald-300 bg-emerald-50 text-emerald-700",
+                employee.leaveSource === "policy" &&
+                  "border-sky-300 bg-sky-50 text-sky-700",
+                employee.leaveSource === "custom" &&
+                  "border-rose-300 bg-rose-50 text-rose-700",
+              )}
+              title={
+                employee.leaveSource === "custom"
+                  ? "Has at least one per-employee leave override (entitled days or accrual method)."
+                  : employee.leaveSource === "policy"
+                    ? "Follows the employee's policy. Their policy has at least one leave-type override."
+                    : "Follows the leave type defaults. No policy or per-employee overrides apply."
+              }
+            >
+              {employee.leaveSource === "custom"
+                ? "Custom"
+                : employee.leaveSource === "policy"
+                  ? "Policy"
+                  : "Default"}
+            </span>
+          ) : null}
+          <ChevronDown
+            className={cn(
+              "h-5 w-5 shrink-0 text-muted-foreground transition-transform",
+              open && "rotate-180",
+            )}
+          />
+        </div>
       </button>
       {open && (
-        <CardContent className="px-4 pb-4 pt-0">
+        <div className="px-4 pb-4 pt-0">
           {employee.balances.length === 0 ? (
             <p className="text-xs text-muted-foreground">
               No leave types configured for this employee.
@@ -179,14 +181,15 @@ function EmployeeBalancesCard({
               })}
             </div>
           )}
-        </CardContent>
+        </div>
       )}
-    </Card>
+    </div>
   )
 }
 
 export function LeaveBalancesGrid({ employees, year, emptyHint, showSource }: Props) {
   const [query, setQuery] = useState("")
+  const [page, setPage] = useState(1)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -198,6 +201,12 @@ export function LeaveBalancesGrid({ employees, year, emptyHint, showSource }: Pr
         e.jobTitle.toLowerCase().includes(q),
     )
   }, [employees, query])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  // Clamp in case the result set shrank (e.g. after a search) below the
+  // current page — keeps the slice valid without an effect.
+  const safePage = Math.min(page, totalPages)
+  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
   if (employees.length === 0) {
     return (
@@ -222,7 +231,10 @@ export function LeaveBalancesGrid({ employees, year, emptyHint, showSource }: Pr
           <Input
             placeholder="Search by name, email, or job title…"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setPage(1)
+            }}
             className="pl-9"
           />
         </div>
@@ -243,15 +255,52 @@ export function LeaveBalancesGrid({ employees, year, emptyHint, showSource }: Pr
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {filtered.map((emp) => (
-            <EmployeeBalancesCard
-              key={emp.userId}
-              employee={emp}
-              showSource={showSource}
-            />
-          ))}
-        </div>
+        <>
+          <Card className="overflow-hidden">
+            <div className="divide-y divide-border/60">
+              {pageItems.map((emp) => (
+                <EmployeeBalancesCard
+                  key={emp.userId}
+                  employee={emp}
+                  showSource={showSource}
+                />
+              ))}
+            </div>
+          </Card>
+
+          {totalPages > 1 ? (
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <p className="text-xs text-muted-foreground tabular-nums">
+                Showing {(safePage - 1) * PAGE_SIZE + 1}–
+                {Math.min(safePage * PAGE_SIZE, filtered.length)} of{" "}
+                {filtered.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={safePage <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  Previous
+                </Button>
+                <span className="text-xs font-semibold text-muted-foreground tabular-nums">
+                  Page {safePage} of {totalPages}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={safePage >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </>
       )}
     </div>
   )
