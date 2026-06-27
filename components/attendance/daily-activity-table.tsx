@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { Badge } from "@/components/attendance/ui/badge"
@@ -12,6 +12,7 @@ import {
   type TableFilterValue,
 } from "@/components/attendance/table-filter-bar"
 import type { AttendanceSessionView } from "@/modules/attendance/domain/models"
+import { cn } from "@/lib/utils"
 
 export type DailyActivityDerivedStatus =
   | "WORKING"
@@ -80,6 +81,34 @@ function statusBadge(s: DailyActivityDerivedStatus | null | undefined) {
       return <span className="text-muted-foreground">—</span>
   }
 }
+
+type StatusGroup = "clocked_in" | "not_clocked_in" | "on_leave"
+
+// Anyone who clocked in today (working / on break / already out) groups as
+// "clocked in"; the rest fall into their own buckets.
+const STATUS_GROUP: Record<DailyActivityDerivedStatus, StatusGroup> = {
+  WORKING: "clocked_in",
+  ON_BREAK: "clocked_in",
+  CLOCKED_OUT: "clocked_in",
+  NOT_CLOCKED_IN: "not_clocked_in",
+  ON_LEAVE: "on_leave",
+}
+
+// Sort priority — actively working on top, not-clocked-in last.
+const STATUS_ORDER: Record<DailyActivityDerivedStatus, number> = {
+  WORKING: 0,
+  ON_BREAK: 1,
+  CLOCKED_OUT: 2,
+  ON_LEAVE: 3,
+  NOT_CLOCKED_IN: 4,
+}
+
+const STATUS_FILTERS: { key: "all" | StatusGroup; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "clocked_in", label: "Clocked in" },
+  { key: "not_clocked_in", label: "Not clocked in" },
+  { key: "on_leave", label: "On leave" },
+]
 
 function SessionsExpander({
   sessions,
@@ -170,6 +199,34 @@ export function DailyActivityTable({
     timeZone: timezone,
   }).format(new Date())
 
+  const [statusFilter, setStatusFilter] = useState<"all" | StatusGroup>("all")
+
+  const counts = useMemo(() => {
+    const c = { all: rows.length, clocked_in: 0, not_clocked_in: 0, on_leave: 0 }
+    for (const r of rows) {
+      const g = r.derivedStatus ? STATUS_GROUP[r.derivedStatus] : null
+      if (g) c[g] += 1
+    }
+    return c
+  }, [rows])
+
+  const visibleRows = useMemo(() => {
+    const filtered =
+      statusFilter === "all"
+        ? rows
+        : rows.filter(
+            (r) =>
+              r.derivedStatus != null &&
+              STATUS_GROUP[r.derivedStatus] === statusFilter,
+          )
+    // Stable sort, clocked-in on top → not-clocked-in last.
+    return [...filtered].sort((a, b) => {
+      const oa = a.derivedStatus != null ? STATUS_ORDER[a.derivedStatus] : 5
+      const ob = b.derivedStatus != null ? STATUS_ORDER[b.derivedStatus] : 5
+      return oa - ob
+    })
+  }, [rows, statusFilter])
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
@@ -192,15 +249,41 @@ export function DailyActivityTable({
             No employees yet.
           </p>
         ) : (
-          <div className="space-y-2">
-            <div className="hidden grid-cols-[2fr_2fr_1fr_1fr_1.2fr] gap-3 px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:grid">
-              <span>Employee</span>
-              <span>Project / Job</span>
-              <span>Clock in</span>
-              <span>Clock out</span>
-              <span>Status</span>
+          <>
+            <div className="flex flex-wrap gap-2">
+              {STATUS_FILTERS.map((f) => {
+                const n = f.key === "all" ? counts.all : counts[f.key]
+                return (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setStatusFilter(f.key)}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                      statusFilter === f.key
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {f.label} · {n}
+                  </button>
+                )
+              })}
             </div>
-            {rows.map((row) => {
+            {visibleRows.length === 0 ? (
+              <p className="rounded-2xl bg-surface-low px-4 py-6 text-center text-sm text-muted-foreground">
+                No employees match this filter.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <div className="hidden grid-cols-[2fr_2fr_1fr_1fr_1.2fr] gap-3 px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:grid">
+                  <span>Employee</span>
+                  <span>Project / Job</span>
+                  <span>Clock in</span>
+                  <span>Clock out</span>
+                  <span>Status</span>
+                </div>
+                {visibleRows.map((row) => {
               const inLabel = formatTime(row.timeIn, timezone)
               const outLabel = formatTime(row.timeOut, timezone)
               const meta =
@@ -297,7 +380,9 @@ export function DailyActivityTable({
                 </div>
               )
             })}
-          </div>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
