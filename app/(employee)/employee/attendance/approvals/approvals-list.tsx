@@ -439,6 +439,16 @@ export function ApprovalsList({ items }: Props) {
                         const canAdjust =
                           r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT"
                         const isAdjusting = overrides[r.id] !== undefined
+                        const isLate =
+                          r.kind === "CLOCK_IN" && (r.lateMinutes ?? 0) > 0
+                        const earlyMin =
+                          r.kind === "CLOCK_IN" && !r.lateMinutes
+                            ? parseEarlyMinutes(r.title)
+                            : null
+                        const stepFlag = r.totalSteps > 1 && r.currentStep
+                        const hasFlags = Boolean(
+                          isLate || earlyMin || parsed.offSite || stepFlag,
+                        )
 
                         return (
                           <div key={r.id} className="flex gap-3 px-4 py-3">
@@ -451,70 +461,66 @@ export function ApprovalsList({ items }: Props) {
                               />
                             </div>
                             <div className="min-w-0 flex-1">
-                            {/* Event header row */}
-                            <div className="flex items-center gap-2">
-                              <div className="flex flex-1 flex-wrap items-center gap-2">
-                                {r.kind === "OT" ? (
-                                  <>
-                                    <Badge variant="overtime">
-                                      {r.otSubtype
-                                        ? otSubtypeMeta[r.otSubtype].label
-                                        : "OT"}
+                            {/* Event header: type + time on one line, flags on
+                                a second tidy row so badges don't scatter. */}
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1 space-y-1.5">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {r.kind === "OT" ? (
+                                    <>
+                                      <Badge variant="overtime">
+                                        {r.otSubtype
+                                          ? otSubtypeMeta[r.otSubtype].label
+                                          : "OT"}
+                                      </Badge>
+                                      {r.otPayoutMethod ? (
+                                        <Badge variant="outline">
+                                          {r.otPayoutMethod === "TIME_BANK"
+                                            ? "Time bank"
+                                            : "Cash"}
+                                        </Badge>
+                                      ) : null}
+                                    </>
+                                  ) : (
+                                    <Badge
+                                      variant={
+                                        r.kind === "CLOCK_IN"
+                                          ? "clocked-in"
+                                          : r.kind === "CLOCK_OUT"
+                                            ? "clocked-out"
+                                            : "pending"
+                                      }
+                                    >
+                                      {CLOCK_LABEL[r.kind] ?? "Clock"}
                                     </Badge>
-                                    {r.otPayoutMethod ? (
-                                      <Badge
-                                        variant="outline"
-                                        className="font-semibold"
-                                      >
-                                        {r.otPayoutMethod === "TIME_BANK"
-                                          ? "Time bank"
-                                          : "Cash"}
+                                  )}
+                                  <span className="text-sm font-semibold text-foreground">
+                                    {fmtTime(r.eventAt)}
+                                  </span>
+                                </div>
+                                {hasFlags ? (
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    {isLate ? (
+                                      <Badge variant="late" className="text-[10px]">
+                                        Late · {r.lateMinutes}m
                                       </Badge>
                                     ) : null}
-                                  </>
-                                ) : (
-                                  <Badge
-                                    variant={
-                                      r.kind === "CLOCK_IN"
-                                        ? "clocked-in"
-                                        : r.kind === "CLOCK_OUT"
-                                          ? "clocked-out"
-                                          : "pending"
-                                    }
-                                  >
-                                    {CLOCK_LABEL[r.kind] ?? "Clock"}
-                                  </Badge>
-                                )}
-                                <span className="text-xs font-bold text-foreground">
-                                  {fmtTime(r.eventAt)}
-                                </span>
-                                {r.kind === "CLOCK_IN" &&
-                                r.lateMinutes &&
-                                r.lateMinutes > 0 ? (
-                                  <Badge variant="late" className="font-bold">
-                                    ⚠ LATE · {r.lateMinutes}m
-                                  </Badge>
-                                ) : null}
-                                {r.kind === "CLOCK_IN" && !r.lateMinutes
-                                  ? (() => {
-                                      const early = parseEarlyMinutes(r.title)
-                                      return early ? (
-                                        <Badge
-                                          variant="on-time"
-                                          className="font-bold"
-                                        >
-                                          EARLY · {early}m
-                                        </Badge>
-                                      ) : null
-                                    })()
-                                  : null}
-                                {r.totalSteps > 1 && r.currentStep ? (
-                                  <Badge
-                                    variant="pending"
-                                    className="font-semibold"
-                                  >
-                                    Step {r.currentStep}/{r.totalSteps}
-                                  </Badge>
+                                    {earlyMin ? (
+                                      <Badge variant="on-time" className="text-[10px]">
+                                        Early · {earlyMin}m
+                                      </Badge>
+                                    ) : null}
+                                    {parsed.offSite ? (
+                                      <Badge variant="overtime" className="text-[10px]">
+                                        Off-site
+                                      </Badge>
+                                    ) : null}
+                                    {stepFlag ? (
+                                      <Badge variant="outline" className="text-[10px]">
+                                        Step {r.currentStep}/{r.totalSteps}
+                                      </Badge>
+                                    ) : null}
+                                  </div>
                                 ) : null}
                               </div>
 
@@ -554,11 +560,6 @@ export function ApprovalsList({ items }: Props) {
                                 />
                               ) : null}
                               <div className="min-w-0 flex-1">
-                                {parsed.offSite ? (
-                                  <Badge variant="overtime" className="mb-1">
-                                    ⚠ Off-site
-                                  </Badge>
-                                ) : null}
                                 <p className="text-xs text-muted-foreground">
                                   {parsed.base}
                                 </p>
