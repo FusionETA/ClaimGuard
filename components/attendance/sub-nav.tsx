@@ -76,7 +76,7 @@ export function AttendanceSubNav({ items }: Props) {
               {showPendingDot ? (
                 <span
                   aria-label="pending"
-                  className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-destructive shadow-[0_0_0_2px_hsl(var(--card))]"
+                  className="absolute right-1 top-1 h-2 w-2 rounded-full bg-destructive shadow-[0_0_0_2px_hsl(var(--card))]"
                 />
               ) : null}
             </Link>
