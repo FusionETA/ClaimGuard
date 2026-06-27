@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react"
 import { Search } from "lucide-react"
 
 import { decideLeaveAction } from "@/app/(employee)/employee/leave/actions"
+import { notifyBadgeRefresh } from "@/lib/badge-refresh"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -135,6 +136,8 @@ function ApprovalCard({
         setError(res.error)
         setPendingDecision(null)
         onRestore()
+      } else {
+        notifyBadgeRefresh()
       }
     })
   }

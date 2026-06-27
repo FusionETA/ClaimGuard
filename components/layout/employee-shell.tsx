@@ -21,7 +21,10 @@ import { PushNotificationPrompt } from "@/components/pwa/push-notification-promp
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import type { AuthenticatedSession } from "@/lib/auth/types"
-import { registerClaimsReviewedHandler } from "@/lib/badge-refresh"
+import {
+  registerBadgeRefreshHandler,
+  registerClaimsReviewedHandler,
+} from "@/lib/badge-refresh"
 import { cn } from "@/lib/utils"
 
 type EmployeeNavItem = {
@@ -254,6 +257,21 @@ export function EmployeeShell({
       }, 400)
     })
     return () => registerClaimsReviewedHandler(null)
+  }, [user.role, fetchContext])
+
+  // After an attendance/leave approve or reject, the list calls
+  // `notifyBadgeRefresh()` so the nav pills + shortcut cards re-sync
+  // immediately (those flows don't navigate away, so the badge would
+  // otherwise stay stale until the next mount/navigation). Slight delay so
+  // the DB transaction settles before we re-read the counts.
+  useEffect(() => {
+    if (user.role !== "SUPERVISOR") return
+    registerBadgeRefreshHandler(() => {
+      window.setTimeout(() => {
+        void fetchContext()
+      }, 400)
+    })
+    return () => registerBadgeRefreshHandler(null)
   }, [user.role, fetchContext])
 
   // SSE: when the realtime listener (mounted lower in this shell) gets

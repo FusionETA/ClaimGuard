@@ -25,3 +25,18 @@ export function registerClaimsReviewedHandler(fn: Handler | null) {
 export function notifyClaimsReviewed() {
   handler?.()
 }
+
+// Generic "a supervisor just reviewed something — re-sync the nav badge counts
+// now" channel. Used by the attendance + leave approval lists which, unlike
+// claims, don't navigate away on approve, so the badge would otherwise stay
+// stale until the next mount/navigation. The handler just re-pulls
+// /api/employee/context (no per-type optimistic decrement).
+let refreshHandler: Handler | null = null
+
+export function registerBadgeRefreshHandler(fn: Handler | null) {
+  refreshHandler = fn
+}
+
+export function notifyBadgeRefresh() {
+  refreshHandler?.()
+}
