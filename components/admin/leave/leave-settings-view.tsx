@@ -86,6 +86,50 @@ type EmployeeEntitlement = {
 
 type Tab = "types" | "policies" | "employees"
 
+const PAGE_SIZE = 10
+
+/// Shared Previous/Next pager for the settings tabs. Renders nothing when
+/// there's only one page.
+function Pager({
+  page,
+  totalPages,
+  total,
+  onPrev,
+  onNext,
+}: {
+  page: number
+  totalPages: number
+  total: number
+  onPrev: () => void
+  onNext: () => void
+}) {
+  if (totalPages <= 1) return null
+  return (
+    <div className="flex items-center justify-between gap-3 px-6 py-3">
+      <p className="text-xs text-muted-foreground tabular-nums">
+        Showing {(page - 1) * PAGE_SIZE + 1}–
+        {Math.min(page * PAGE_SIZE, total)} of {total}
+      </p>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" disabled={page <= 1} onClick={onPrev}>
+          Previous
+        </Button>
+        <span className="text-xs font-semibold text-muted-foreground tabular-nums">
+          Page {page} of {totalPages}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={page >= totalPages}
+          onClick={onNext}
+        >
+          Next
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export function LeaveSettingsView(props: {
   orgId: string
   year: number
@@ -223,6 +267,7 @@ function LeaveTypesCard(props: {
   onEdit: (t: LeaveTypeRow) => void
 }) {
   const [pending, startTransition] = useTransition()
+  const [page, setPage] = useState(1)
 
   const policyCountByType = useMemo(() => {
     const counts = new Map<string, Set<string>>()
@@ -233,6 +278,13 @@ function LeaveTypesCard(props: {
     }
     return counts
   }, [props.policyDefaults])
+
+  const totalPages = Math.max(1, Math.ceil(props.leaveTypes.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageTypes = props.leaveTypes.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  )
 
   return (
     <Card>
@@ -260,7 +312,7 @@ function LeaveTypesCard(props: {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {props.leaveTypes.map((t) => {
+                {pageTypes.map((t) => {
                   const isProtected = t.code.toUpperCase() === "UNPAID"
                   const policyCount = policyCountByType.get(t.id)?.size ?? 0
                   return (
@@ -321,6 +373,15 @@ function LeaveTypesCard(props: {
                 })}
               </TableBody>
             </Table>
+            <div className="border-t">
+              <Pager
+                page={safePage}
+                totalPages={totalPages}
+                total={props.leaveTypes.length}
+                onPrev={() => setPage((p) => Math.max(1, p - 1))}
+                onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+              />
+            </div>
             <p className="px-6 py-3 text-xs text-muted-foreground border-t">
               Changing a default here doesn&apos;t retroactively update employees who already have
               entitlement rows — only new employees created after the change are affected.
@@ -791,10 +852,19 @@ function PerPolicyOverridesTab(props: {
     return map
   }, [props.defaults])
 
+  const [page, setPage] = useState(1)
+
   // Only paid leave types can carry custom day counts (unpaid leave
   // always resolves to 0); filtering here matches the matrix's old
   // behaviour and keeps each policy card focused.
   const paidTypes = props.leaveTypes.filter((t) => t.paid)
+
+  const totalPages = Math.max(1, Math.ceil(props.policies.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pagePolicies = props.policies.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  )
 
   if (props.policies.length === 0 || paidTypes.length === 0) {
     return (
@@ -810,7 +880,7 @@ function PerPolicyOverridesTab(props: {
 
   return (
     <div className="space-y-3">
-      {props.policies.map((p) => {
+      {pagePolicies.map((p) => {
         // Quick header summary: how many overrides this policy holds.
         const overrideCount = paidTypes.filter(
           (t) => lookup.get(`${p.id}:${t.id}`) != null,
@@ -825,6 +895,13 @@ function PerPolicyOverridesTab(props: {
           />
         )
       })}
+      <Pager
+        page={safePage}
+        totalPages={totalPages}
+        total={props.policies.length}
+        onPrev={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+      />
     </div>
   )
 }
@@ -1050,6 +1127,7 @@ function EmployeeEntitlementsTab(props: {
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [filter, setFilter] = useState("")
+  const [page, setPage] = useState(1)
 
   const lookup = useMemo(() => {
     const map = new Map<
@@ -1107,6 +1185,13 @@ function EmployeeEntitlementsTab(props: {
     )
   }, [props.employees, filter])
 
+  const totalPages = Math.max(1, Math.ceil(filteredEmployees.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageEmployees = filteredEmployees.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  )
+
   if (props.employees.length === 0) {
     return (
       <Card>
@@ -1122,7 +1207,10 @@ function EmployeeEntitlementsTab(props: {
       <Input
         placeholder="Search by name or email"
         value={filter}
-        onChange={(e) => setFilter(e.target.value)}
+        onChange={(e) => {
+          setFilter(e.target.value)
+          setPage(1)
+        }}
         className="max-w-xs"
       />
       <div className="rounded-xl border">
@@ -1143,7 +1231,7 @@ function EmployeeEntitlementsTab(props: {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredEmployees.flatMap((emp) => {
+              pageEmployees.flatMap((emp) => {
                 const isExpanded = expandedId === emp.id
                 const source = resolveEmployeeLeaveSource({
                   employeePolicyId: emp.policyId,
@@ -1227,6 +1315,13 @@ function EmployeeEntitlementsTab(props: {
           </TableBody>
         </Table>
       </div>
+      <Pager
+        page={safePage}
+        totalPages={totalPages}
+        total={filteredEmployees.length}
+        onPrev={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+      />
     </div>
   )
 }
