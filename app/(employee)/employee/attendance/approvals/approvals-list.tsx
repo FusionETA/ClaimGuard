@@ -1,11 +1,11 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
-import { ChevronDown, ChevronUp, Pencil, Search } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, Minus, Pencil, Search } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Button } from "@/components/attendance/ui/button"
-import { Card, CardContent } from "@/components/attendance/ui/card"
+import { Card } from "@/components/attendance/ui/card"
 import { DateTimeField } from "@/components/attendance/datetime-field"
 import { Input } from "@/components/attendance/ui/input"
 import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
@@ -13,6 +13,8 @@ import { useToast } from "@/components/ui/toaster"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
 import { otSubtypeMeta } from "@/modules/attendance/domain/metadata"
 import { cn } from "@/lib/utils"
+
+import { notifyBadgeRefresh } from "@/lib/badge-refresh"
 
 import { bulkReviewApprovalsAction, reviewApprovalAction } from "./actions"
 
@@ -72,6 +74,47 @@ type Props = {
   items: ApprovalRequestView[]
 }
 
+/// Small tri-state checkbox (button, so it can be indeterminate and nest
+/// next to other interactive elements without an <input>). `mixed` =
+/// some-but-not-all selected.
+function CheckBox({
+  state,
+  onClick,
+  disabled,
+  label,
+}: {
+  state: "checked" | "unchecked" | "indeterminate"
+  onClick: () => void
+  disabled?: boolean
+  label: string
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={state === "indeterminate" ? "mixed" : state === "checked"}
+      aria-label={label}
+      disabled={disabled}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick()
+      }}
+      className={cn(
+        "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors disabled:opacity-40",
+        state === "unchecked"
+          ? "border-border/70 bg-transparent hover:border-primary/60"
+          : "border-primary bg-primary text-primary-foreground",
+      )}
+    >
+      {state === "checked" ? (
+        <Check className="h-3 w-3" />
+      ) : state === "indeterminate" ? (
+        <Minus className="h-3 w-3" />
+      ) : null}
+    </button>
+  )
+}
+
 type EmployeeGroup = {
   employeeId: string
   employeeName: string
@@ -82,6 +125,7 @@ type EmployeeGroup = {
 export function ApprovalsList({ items }: Props) {
   const { toast } = useToast()
   const [query, setQuery] = useState("")
+  const [dateFilter, setDateFilter] = useState<"all" | "today" | "7days">("all")
   const [optimisticallyHidden, setOptimisticallyHidden] = useState<Set<string>>(new Set())
   // Which employee:date groups are expanded (collapsed by default)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
@@ -90,6 +134,44 @@ export function ApprovalsList({ items }: Props) {
   // Per-row time override: maps approvalId → local datetime string.
   // `undefined` means the editor isn't open for that row.
   const [overrides, setOverrides] = useState<Record<string, string>>({})
+  // Selected approval ids (for partial Approve/Reject). Empty = act on all.
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  function visibleIdsFor(group: EmployeeGroup): string[] {
+    return group.events
+      .filter((e) => !optimisticallyHidden.has(e.id))
+      .map((e) => e.id)
+  }
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAllInGroup(group: EmployeeGroup) {
+    const ids = visibleIdsFor(group)
+    setSelected((prev) => {
+      const next = new Set(prev)
+      const allSelected = ids.length > 0 && ids.every((id) => next.has(id))
+      for (const id of ids) {
+        if (allSelected) next.delete(id)
+        else next.add(id)
+      }
+      return next
+    })
+  }
+
+  function clearGroupSelection(group: EmployeeGroup) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      for (const e of group.events) next.delete(e.id)
+      return next
+    })
+  }
 
   function toggleExpanded(groupKey: string) {
     setExpandedGroups((prev) => {
@@ -118,10 +200,8 @@ export function ApprovalsList({ items }: Props) {
   function bulkAction(
     group: EmployeeGroup,
     status: "APPROVED" | "REJECTED",
+    ids: string[],
   ) {
-    const ids = group.events
-      .filter((e) => !optimisticallyHidden.has(e.id))
-      .map((e) => e.id)
     if (ids.length === 0) return
 
     const groupKey = `${group.employeeId}:${group.date}`
@@ -129,6 +209,11 @@ export function ApprovalsList({ items }: Props) {
     setOptimisticallyHidden((prev) => {
       const next = new Set(prev)
       for (const id of ids) next.add(id)
+      return next
+    })
+    setSelected((prev) => {
+      const next = new Set(prev)
+      for (const id of ids) next.delete(id)
       return next
     })
 
@@ -172,16 +257,35 @@ export function ApprovalsList({ items }: Props) {
         })
       }
       setBulkPendingFor(null)
+      if (ok) notifyBadgeRefresh()
       toast({ title: message, variant: ok ? "success" : "error" })
     })
   }
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase()
+    // Preset date filter (dates are ISO yyyy-mm-dd, so string compare works).
+    let exactDate: string | null = null
+    let minDate: string | null = null
+    if (dateFilter !== "all") {
+      const pad = (n: number) => String(n).padStart(2, "0")
+      const ymd = (d: Date) =>
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+      const today = new Date()
+      if (dateFilter === "today") {
+        exactDate = ymd(today)
+      } else {
+        const start = new Date(today)
+        start.setDate(start.getDate() - 6)
+        minDate = ymd(start)
+      }
+    }
     const map = new Map<string, EmployeeGroup>()
     for (const item of items) {
       if (optimisticallyHidden.has(item.id)) continue
       if (q && !item.employeeName.toLowerCase().includes(q)) continue
+      if (exactDate && item.date !== exactDate) continue
+      if (minDate && item.date < minDate) continue
       const key = `${item.employeeId}:${item.date}`
       const existing = map.get(key)
       if (existing) {
@@ -206,7 +310,7 @@ export function ApprovalsList({ items }: Props) {
       if (b.date !== a.date) return b.date.localeCompare(a.date)
       return a.employeeName.localeCompare(b.employeeName)
     })
-  }, [items, query, optimisticallyHidden])
+  }, [items, query, optimisticallyHidden, dateFilter])
 
   const totalVisible = groups.reduce((acc, g) => acc + g.events.length, 0)
 
@@ -228,6 +332,30 @@ export function ApprovalsList({ items }: Props) {
         />
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            ["all", "All"],
+            ["today", "Today"],
+            ["7days", "Last 7 days"],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setDateFilter(key)}
+            className={cn(
+              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+              dateFilter === key
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {groups.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-sm font-semibold text-foreground">No pending requests</p>
@@ -236,40 +364,76 @@ export function ApprovalsList({ items }: Props) {
           </p>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {groups.map((group) => {
-            const groupKey = `${group.employeeId}:${group.date}`
-            const isExpanded = expandedGroups.has(groupKey)
-            const isBusy = bulkPendingFor === groupKey
+        <Card className="overflow-hidden">
+          <div className="divide-y divide-border/60">
+            {groups.map((group) => {
+              const groupKey = `${group.employeeId}:${group.date}`
+              const isExpanded = expandedGroups.has(groupKey)
+              const isBusy = bulkPendingFor === groupKey
+              const visibleIds = visibleIdsFor(group)
+              const selectedIds = visibleIds.filter((id) => selected.has(id))
+              const hasSelection = selectedIds.length > 0
+              const groupState: "checked" | "unchecked" | "indeterminate" =
+                selectedIds.length === 0
+                  ? "unchecked"
+                  : selectedIds.length === visibleIds.length
+                    ? "checked"
+                    : "indeterminate"
+              const lateCount = group.events.filter(
+                (e) => e.kind === "CLOCK_IN" && e.lateMinutes && e.lateMinutes > 0,
+              ).length
+              const offSite = group.events.some(
+                (e) => parseApprovalDetail(e.detail).offSite,
+              )
 
-            return (
-              <Card key={groupKey} className="overflow-hidden">
-                {/* Clickable header — toggles expand */}
-                <button
-                  type="button"
-                  onClick={() => toggleExpanded(groupKey)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-surface-low/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                >
-                  <div>
-                    <p className="text-sm font-bold text-foreground">
-                      {group.employeeName}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {group.date} &middot; {group.events.length} event
-                      {group.events.length !== 1 ? "s" : ""} pending
-                    </p>
+              return (
+                <div key={groupKey}>
+                  <div className="flex items-center gap-2 px-3">
+                    {isExpanded ? (
+                      <CheckBox
+                        state={groupState}
+                        disabled={isBusy}
+                        onClick={() => toggleSelectAllInGroup(group)}
+                        label={`Select all events for ${group.employeeName}`}
+                      />
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => toggleExpanded(groupKey)}
+                      className="flex flex-1 items-center justify-between gap-3 py-3 pl-1 text-left transition-colors hover:bg-surface-low/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground">
+                          {group.employeeName}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {group.date} &middot; {group.events.length} event
+                          {group.events.length !== 1 ? "s" : ""} pending
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {lateCount > 0 ? (
+                          <Badge variant="late" className="text-[10px]">
+                            {lateCount} late
+                          </Badge>
+                        ) : null}
+                        {offSite ? (
+                          <Badge variant="overtime" className="text-[10px]">
+                            Off-site
+                          </Badge>
+                        ) : null}
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    </button>
                   </div>
-                  {isExpanded ? (
-                    <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  )}
-                </button>
 
-                {isExpanded ? (
-                  <>
-                    {/* Event rows */}
-                    <CardContent className="divide-y divide-border/40 border-t border-border/60 p-0">
+                  {isExpanded ? (
+                    <>
+                      <div className="divide-y divide-border/40 border-t border-border/60">
                       {group.events.map((r) => {
                         const parsed = parseApprovalDetail(r.detail)
                         const canAdjust =
@@ -277,7 +441,16 @@ export function ApprovalsList({ items }: Props) {
                         const isAdjusting = overrides[r.id] !== undefined
 
                         return (
-                          <div key={r.id} className="px-4 py-3">
+                          <div key={r.id} className="flex gap-3 px-4 py-3">
+                            <div className="pt-0.5">
+                              <CheckBox
+                                state={selected.has(r.id) ? "checked" : "unchecked"}
+                                disabled={isBusy}
+                                onClick={() => toggleSelect(r.id)}
+                                label="Select this event"
+                              />
+                            </div>
+                            <div className="min-w-0 flex-1">
                             {/* Event header row */}
                             <div className="flex items-center gap-2">
                               <div className="flex flex-1 flex-wrap items-center gap-2">
@@ -459,37 +632,72 @@ export function ApprovalsList({ items }: Props) {
                                 </p>
                               </div>
                             ) : null}
+                            </div>
                           </div>
                         )
                       })}
-                    </CardContent>
+                      </div>
 
-                    {/* Card footer — Approve all / Reject all */}
-                    <div className="flex gap-2 border-t border-border/60 px-4 py-3">
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        disabled={isBusy}
-                        onClick={() => bulkAction(group, "APPROVED")}
-                      >
-                        {isBusy ? "Saving…" : "Approve all"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        disabled={isBusy}
-                        onClick={() => bulkAction(group, "REJECTED")}
-                      >
-                        Reject all
-                      </Button>
-                    </div>
-                  </>
-                ) : null}
-              </Card>
-            )
-          })}
-        </div>
+                      {/* Adaptive footer: acts on the selected events, or all
+                          when nothing is ticked. */}
+                      <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3">
+                        {hasSelection ? (
+                          <>
+                            <span className="text-xs text-muted-foreground">
+                              {selectedIds.length} of {visibleIds.length} selected
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => clearGroupSelection(group)}
+                              className="text-xs font-medium text-primary hover:underline"
+                            >
+                              Clear
+                            </button>
+                          </>
+                        ) : null}
+                        <div className="ml-auto flex gap-2">
+                          <Button
+                            size="sm"
+                            disabled={isBusy}
+                            onClick={() =>
+                              bulkAction(
+                                group,
+                                "APPROVED",
+                                hasSelection ? selectedIds : visibleIds,
+                              )
+                            }
+                          >
+                            {isBusy
+                              ? "Saving…"
+                              : hasSelection
+                                ? `Approve selected (${selectedIds.length})`
+                                : `Approve all (${visibleIds.length})`}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isBusy}
+                            onClick={() =>
+                              bulkAction(
+                                group,
+                                "REJECTED",
+                                hasSelection ? selectedIds : visibleIds,
+                              )
+                            }
+                          >
+                            {hasSelection
+                              ? `Reject selected (${selectedIds.length})`
+                              : `Reject all (${visibleIds.length})`}
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
+        </Card>
       )}
     </div>
   )
