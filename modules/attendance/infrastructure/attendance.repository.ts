@@ -139,6 +139,10 @@ async function backfillLateMinutes(
       lateByMin: true,
       xeroSelfieFileId: true,
       clockOutXeroSelfieFileId: true,
+      clockInLat: true,
+      clockInLng: true,
+      clockOutLat: true,
+      clockOutLng: true,
     },
   })
   type Meta = {
@@ -146,6 +150,10 @@ async function backfillLateMinutes(
     lateByMin: number | null
     xeroSelfieFileId: string | null
     clockOutXeroSelfieFileId: string | null
+    clockInLat: number | null
+    clockInLng: number | null
+    clockOutLat: number | null
+    clockOutLng: number | null
   }
   const lookup = new Map<string, Meta>()
   for (const r of records) {
@@ -154,6 +162,10 @@ async function backfillLateMinutes(
       lateByMin: r.lateByMin,
       xeroSelfieFileId: r.xeroSelfieFileId,
       clockOutXeroSelfieFileId: r.clockOutXeroSelfieFileId,
+      clockInLat: r.clockInLat,
+      clockInLng: r.clockInLng,
+      clockOutLat: r.clockOutLat,
+      clockOutLng: r.clockOutLng,
     })
   }
   return views.map((v) => {
@@ -170,12 +182,16 @@ async function backfillLateMinutes(
               ? meta.lateByMin
               : v.lateMinutes,
         selfieAttendanceRecordId: meta.xeroSelfieFileId ? meta.recordId : null,
+        latitude: meta.clockInLat,
+        longitude: meta.clockInLng,
       }
     }
-    // CLOCK_OUT
+    // CLOCK_OUT — fall back to clock-in coords if the clock-out point is missing.
     return {
       ...v,
       selfieAttendanceRecordId: meta.clockOutXeroSelfieFileId ? meta.recordId : null,
+      latitude: meta.clockOutLat ?? meta.clockInLat,
+      longitude: meta.clockOutLng ?? meta.clockInLng,
     }
   })
 }
@@ -346,6 +362,9 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
         ? r.otPayoutMethod
         : null,
     lateMinutes: r.lateMinutes,
+    // Populated by backfillLateMinutes() from the AttendanceRecord; null here.
+    latitude: null,
+    longitude: null,
     offsetRef: r.offsetRef,
     reviewNotes: r.reviewNotes,
     submittedAt: r.submittedAt.toISOString(),

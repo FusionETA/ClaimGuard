@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useTransition } from "react"
+import { useMemo, useState, useTransition, type ReactNode } from "react"
 import { Check, ChevronDown, ChevronUp, Minus, Pencil, Search } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
@@ -9,6 +9,7 @@ import { Card } from "@/components/attendance/ui/card"
 import { DateTimeField } from "@/components/attendance/datetime-field"
 import { Input } from "@/components/attendance/ui/input"
 import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
+import { CoordsLink } from "@/components/attendance/coords-link"
 import { useToast } from "@/components/ui/toaster"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
 import { otSubtypeMeta } from "@/modules/attendance/domain/metadata"
@@ -112,6 +113,23 @@ function CheckBox({
         <Minus className="h-3 w-3" />
       ) : null}
     </button>
+  )
+}
+
+// A single label: value line in an event's detail list. Label is muted and
+// fixed-width so the values align into a tidy column.
+function DetailRow({
+  label,
+  children,
+}: {
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex gap-2">
+      <dt className="w-[72px] shrink-0 text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 flex-1 text-foreground">{children}</dd>
+    </div>
   )
 }
 
@@ -446,9 +464,6 @@ export function ApprovalsList({ items }: Props) {
                             ? parseEarlyMinutes(r.title)
                             : null
                         const stepFlag = r.totalSteps > 1 && r.currentStep
-                        const hasFlags = Boolean(
-                          isLate || earlyMin || parsed.offSite || stepFlag,
-                        )
 
                         return (
                           <div key={r.id} className="flex gap-3 px-4 py-3">
@@ -461,68 +476,17 @@ export function ApprovalsList({ items }: Props) {
                               />
                             </div>
                             <div className="min-w-0 flex-1">
-                            {/* Event header: type + time on one line, flags on
-                                a second tidy row so badges don't scatter. */}
+                            {/* Event header: just the type label + pencil. The
+                                colored triage badges live on the group header;
+                                here we lay everything out as a clean detail list. */}
                             <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0 flex-1 space-y-1.5">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  {r.kind === "OT" ? (
-                                    <>
-                                      <Badge variant="overtime">
-                                        {r.otSubtype
-                                          ? otSubtypeMeta[r.otSubtype].label
-                                          : "OT"}
-                                      </Badge>
-                                      {r.otPayoutMethod ? (
-                                        <Badge variant="outline">
-                                          {r.otPayoutMethod === "TIME_BANK"
-                                            ? "Time bank"
-                                            : "Cash"}
-                                        </Badge>
-                                      ) : null}
-                                    </>
-                                  ) : (
-                                    <Badge
-                                      variant={
-                                        r.kind === "CLOCK_IN"
-                                          ? "clocked-in"
-                                          : r.kind === "CLOCK_OUT"
-                                            ? "clocked-out"
-                                            : "pending"
-                                      }
-                                    >
-                                      {CLOCK_LABEL[r.kind] ?? "Clock"}
-                                    </Badge>
-                                  )}
-                                  <span className="text-sm font-semibold text-foreground">
-                                    {fmtTime(r.eventAt)}
-                                  </span>
-                                </div>
-                                {hasFlags ? (
-                                  <div className="flex flex-wrap items-center gap-1.5">
-                                    {isLate ? (
-                                      <Badge variant="late" className="text-[10px]">
-                                        Late · {r.lateMinutes}m
-                                      </Badge>
-                                    ) : null}
-                                    {earlyMin ? (
-                                      <Badge variant="on-time" className="text-[10px]">
-                                        Early · {earlyMin}m
-                                      </Badge>
-                                    ) : null}
-                                    {parsed.offSite ? (
-                                      <Badge variant="overtime" className="text-[10px]">
-                                        Off-site
-                                      </Badge>
-                                    ) : null}
-                                    {stepFlag ? (
-                                      <Badge variant="outline" className="text-[10px]">
-                                        Step {r.currentStep}/{r.totalSteps}
-                                      </Badge>
-                                    ) : null}
-                                  </div>
-                                ) : null}
-                              </div>
+                              <span className="text-sm font-semibold text-foreground">
+                                {r.kind === "OT"
+                                  ? r.otSubtype
+                                    ? otSubtypeMeta[r.otSubtype].label
+                                    : "Overtime"
+                                  : CLOCK_LABEL[r.kind] ?? "Clock"}
+                              </span>
 
                               {/* Pencil — time-adjust toggle (CLOCK_IN / CLOCK_OUT only) */}
                               {canAdjust ? (
@@ -549,7 +513,7 @@ export function ApprovalsList({ items }: Props) {
                               ) : null}
                             </div>
 
-                            {/* Event body */}
+                            {/* Event body — selfie + plain label/value detail list */}
                             <div className="mt-1.5 flex items-start gap-3">
                               {r.selfieAttendanceRecordId ? (
                                 <SelfieThumbnail
@@ -560,27 +524,73 @@ export function ApprovalsList({ items }: Props) {
                                 />
                               ) : null}
                               <div className="min-w-0 flex-1">
-                                <p className="text-xs text-muted-foreground">
-                                  {parsed.base}
-                                </p>
-                                {parsed.remark ? (
-                                  <p className="mt-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-900">
-                                    <span className="font-semibold">
-                                      Remark:
-                                    </span>{" "}
-                                    {parsed.remark}
-                                  </p>
-                                ) : null}
-                                {r.project ? (
-                                  <p className="mt-0.5 text-[11px] font-semibold text-primary">
-                                    🛠 {r.project}
-                                  </p>
-                                ) : null}
-                                {r.location ? (
-                                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                                    📍 {r.location}
-                                  </p>
-                                ) : null}
+                                <dl className="space-y-1 text-xs">
+                                  <DetailRow label="Time">
+                                    {fmtTime(r.eventAt)}
+                                  </DetailRow>
+                                  {r.kind === "OT" && r.otPayoutMethod ? (
+                                    <DetailRow label="Payout">
+                                      {r.otPayoutMethod === "TIME_BANK"
+                                        ? "Time bank"
+                                        : "Cash"}
+                                    </DetailRow>
+                                  ) : null}
+                                  {isLate ? (
+                                    <DetailRow label="Late">
+                                      <span className="font-semibold text-amber-700 dark:text-amber-400">
+                                        Yes · {r.lateMinutes} min
+                                      </span>
+                                    </DetailRow>
+                                  ) : null}
+                                  {earlyMin ? (
+                                    <DetailRow label="Early">
+                                      {earlyMin} min
+                                    </DetailRow>
+                                  ) : null}
+                                  {r.kind !== "OT" ? (
+                                    <DetailRow label="Off-site">
+                                      <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                        {parsed.offSite ? (
+                                          <span className="font-semibold text-destructive">
+                                            Yes
+                                          </span>
+                                        ) : (
+                                          "No"
+                                        )}
+                                        {r.latitude != null &&
+                                        r.longitude != null ? (
+                                          <CoordsLink
+                                            lat={r.latitude}
+                                            lng={r.longitude}
+                                            showCoords={false}
+                                            label="Open in map"
+                                          />
+                                        ) : null}
+                                      </span>
+                                    </DetailRow>
+                                  ) : null}
+                                  {r.project ? (
+                                    <DetailRow label="Project">
+                                      {r.project}
+                                    </DetailRow>
+                                  ) : null}
+                                  {r.location ? (
+                                    <DetailRow label="Location">
+                                      {r.location}
+                                    </DetailRow>
+                                  ) : null}
+                                  {stepFlag ? (
+                                    <DetailRow label="Step">
+                                      {r.currentStep} of {r.totalSteps}
+                                    </DetailRow>
+                                  ) : null}
+                                  {parsed.remark ? (
+                                    <DetailRow label="Remark">
+                                      {parsed.remark}
+                                    </DetailRow>
+                                  ) : null}
+                                </dl>
+
                                 {r.chainHistory && r.chainHistory.length > 0 ? (
                                   <div className="mt-2 space-y-0.5 rounded-md border border-border/60 bg-secondary/20 px-2 py-1.5">
                                     {r.chainHistory.map((h) => (

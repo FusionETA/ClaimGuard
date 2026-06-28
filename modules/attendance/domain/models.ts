@@ -98,6 +98,12 @@ export type ApprovalRequestView = {
   /// kinds). Drives whether the UI shows the thumbnail.
   selfieAttendanceRecordId: string | null
   lateMinutes: number | null
+  /// GPS of the clock event, joined from the AttendanceRecord by
+  /// backfillLateMinutes (clock-in coords for CLOCK_IN, clock-out for
+  /// CLOCK_OUT). Null for OT / legacy rows or when no coords were captured.
+  /// Drives the "Open in map" link on the approval detail.
+  latitude: number | null
+  longitude: number | null
   offsetRef: string | null
   reviewNotes: string | null
   submittedAt: string
