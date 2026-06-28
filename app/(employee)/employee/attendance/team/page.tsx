@@ -1,8 +1,9 @@
 import Link from "next/link"
-import { ChevronRight, ClipboardCheck, Clock, UmbrellaOff, Users } from "lucide-react"
+import { ClipboardCheck, Clock, UmbrellaOff, Users } from "lucide-react"
 
 import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
+import { TeamDirectory } from "@/components/attendance/team-directory"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
@@ -30,6 +31,32 @@ export default async function TeamOverviewPage() {
     overview.teamSize > 0
       ? Math.round((overview.presentToday / overview.teamSize) * 100)
       : 0
+
+  // Shape the directory for the client component: each member's status group
+  // (clocked-in / on-leave / not-clocked-in) + a pre-formatted subtitle. On-leave
+  // members carry a today record with status ON_LEAVE; not-clocked-in have none.
+  const directory = overview.team.map((m) => {
+    const group: "clocked_in" | "on_leave" | "not_clocked_in" = !m.today
+      ? "not_clocked_in"
+      : m.today.status === "ON_LEAVE"
+        ? "on_leave"
+        : "clocked_in"
+    const subtitle =
+      group === "on_leave"
+        ? "On leave today"
+        : group === "clocked_in"
+          ? `${fmtTime(m.today!.timeIn, tz)}${
+              m.today!.location ? ` • ${m.today!.location}` : ""
+            }`
+          : "No clock-in yet today"
+    return {
+      employeeId: m.employeeId,
+      name: m.name,
+      initials: m.initials,
+      group,
+      subtitle,
+    }
+  })
 
   return (
     <div className="space-y-5">
@@ -98,37 +125,7 @@ export default async function TeamOverviewPage() {
       <Card className="rounded-2xl">
         <CardContent className="p-4">
           <p className="mb-3 text-sm font-bold text-foreground">Team directory</p>
-          {overview.team.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              No reports assigned. Add team members under{" "}
-              <span className="font-semibold">Hierarchy</span> to see them here.
-            </p>
-          ) : (
-            <div className="space-y-1">
-              {overview.team.map((m) => (
-                <Link
-                  key={m.employeeId}
-                  href={`/employee/attendance/team/${m.employeeId}`}
-                  className="flex items-center gap-3 rounded-xl border border-transparent px-2 py-2 transition hover:border-border/60 hover:bg-secondary/30"
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold text-secondary-foreground">
-                    {m.initials}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-foreground">{m.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {m.today
-                        ? `${fmtTime(m.today.timeIn, tz)} ${
-                            m.today.location ? `• ${m.today.location}` : ""
-                          }`
-                        : "No clock-in yet today"}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                </Link>
-              ))}
-            </div>
-          )}
+          <TeamDirectory items={directory} />
         </CardContent>
       </Card>
     </div>
