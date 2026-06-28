@@ -863,32 +863,37 @@ export function ClockCard({
         />
       ) : null}
 
-      {selfiePending ? (
-        <SelfieCaptureModal
-          onConfirm={onSelfieConfirmed}
-          onCancel={onSelfieCancelled}
-        />
-      ) : null}
-
-      {clockOutSelfiePending ? (
-        <SelfieCaptureModal
-          onConfirm={onClockOutSelfieConfirmed}
-          onCancel={onClockOutSelfieCancelled}
-        />
-      ) : null}
-
-      {restDayWarning ? (
-        <RestDayWarningDialog
-          reason={restDayWarning.reason}
-          onConfirm={() => {
-            const fd = restDayWarning.formData
-            setRestDayWarning(null)
-            void continueClockIn(fd)
-          }}
-          onCancel={() => setRestDayWarning(null)}
-        />
-      ) : null}
     </Card>
+    {/* These overlays must live OUTSIDE <Card>: the card has `backdrop-blur-sm`
+        (backdrop-filter), which makes it the containing block for position:fixed
+        descendants — so a `fixed inset-0` modal rendered inside the card collapses
+        to the card's bounds instead of covering the screen. Kept here as siblings
+        (like ClockOutSummaryDialog) so they overlay the full viewport. */}
+    {selfiePending ? (
+      <SelfieCaptureModal
+        onConfirm={onSelfieConfirmed}
+        onCancel={onSelfieCancelled}
+      />
+    ) : null}
+
+    {clockOutSelfiePending ? (
+      <SelfieCaptureModal
+        onConfirm={onClockOutSelfieConfirmed}
+        onCancel={onClockOutSelfieCancelled}
+      />
+    ) : null}
+
+    {restDayWarning ? (
+      <RestDayWarningDialog
+        reason={restDayWarning.reason}
+        onConfirm={() => {
+          const fd = restDayWarning.formData
+          setRestDayWarning(null)
+          void continueClockIn(fd)
+        }}
+        onCancel={() => setRestDayWarning(null)}
+      />
+    ) : null}
     <ClockOutSummaryDialog
       todayRecord={clockOutDraft ? todayRecord : null}
       pending={isClockOutPending}
