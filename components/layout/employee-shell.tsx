@@ -146,15 +146,6 @@ const LEAVE_HREF = "/employee/leave"
 // leave approvals route after a fresh code generation).
 const LEAVE_APPROVALS_HREF = "/employee/leave/approvals" as string
 
-function NotificationDot() {
-  return (
-    <span
-      aria-label="pending approvals"
-      className="ml-auto inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-destructive shadow-[0_0_0_3px_rgba(255,255,255,0.6)]"
-    />
-  )
-}
-
 function NotificationCountBadge({ count, className }: { count: number; className?: string }) {
   if (count <= 0) return null
   return (
@@ -302,7 +293,6 @@ export function EmployeeShell({
       if (item.href === "/employee/leave") return moduleAccess.leave
       return true
     })
-  const hasPendingApprovals = pendingApprovals > 0
 
   return (
     <div className="attendance-module min-h-screen bg-background [background-image:none] lg:grid lg:grid-cols-[280px_1fr]">
@@ -344,12 +334,12 @@ export function EmployeeShell({
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
-                  {item.href === ATTENDANCE_HREF && hasPendingApprovals ? (
-                    <NotificationDot />
+                  {item.href === ATTENDANCE_HREF ? (
+                    <NotificationCountBadge count={pendingApprovals} />
                   ) : item.href === CLAIMS_HREF ? (
                     <NotificationCountBadge count={pendingClaimApprovals} />
-                  ) : item.href === LEAVE_HREF && pendingLeaveApprovals > 0 ? (
-                    <NotificationDot />
+                  ) : item.href === LEAVE_HREF ? (
+                    <NotificationCountBadge count={pendingLeaveApprovals} />
                   ) : null}
                 </Link>
 
@@ -371,12 +361,12 @@ export function EmployeeShell({
                             )}
                           >
                             <span>{child.label}</span>
-                            {child.href === APPROVALS_HREF && hasPendingApprovals ? (
-                              <NotificationDot />
+                            {child.href === APPROVALS_HREF ? (
+                              <NotificationCountBadge count={pendingApprovals} />
                             ) : child.href === CLAIMS_QUEUE_HREF ? (
                               <NotificationCountBadge count={pendingClaimApprovals} />
-                            ) : child.href === LEAVE_APPROVALS_HREF && pendingLeaveApprovals > 0 ? (
-                              <NotificationDot />
+                            ) : child.href === LEAVE_APPROVALS_HREF ? (
+                              <NotificationCountBadge count={pendingLeaveApprovals} />
                             ) : null}
                           </Link>
                         )
@@ -440,10 +430,16 @@ export function EmployeeShell({
               const active = pathname === item.href
               const Icon = item.icon
 
-              const showAttendanceDot =
-                item.href === ATTENDANCE_HREF && hasPendingApprovals
-              const showClaimCount =
-                item.href === CLAIMS_HREF && pendingClaimApprovals > 0
+              // Unified pending count per primary tab (attendance / claims /
+              // leave) so the bottom bar matches the side-nav number badges.
+              const badgeCount =
+                item.href === ATTENDANCE_HREF
+                  ? pendingApprovals
+                  : item.href === CLAIMS_HREF
+                    ? pendingClaimApprovals
+                    : item.href === LEAVE_HREF
+                      ? pendingLeaveApprovals
+                      : 0
 
               return (
                 <Link
@@ -456,18 +452,12 @@ export function EmployeeShell({
                 >
                   <Icon className="h-4 w-4 shrink-0" />
                   <span className="line-clamp-2">{item.label}</span>
-                  {showAttendanceDot ? (
+                  {badgeCount > 0 ? (
                     <span
-                      aria-label="pending approvals"
-                      className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive"
-                    />
-                  ) : null}
-                  {showClaimCount ? (
-                    <span
-                      aria-label={`${pendingClaimApprovals} pending claim approval${pendingClaimApprovals === 1 ? "" : "s"}`}
+                      aria-label={`${badgeCount} pending approval${badgeCount === 1 ? "" : "s"}`}
                       className="absolute right-1 top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground"
                     >
-                      {pendingClaimApprovals > 99 ? "99+" : pendingClaimApprovals}
+                      {badgeCount > 99 ? "99+" : badgeCount}
                     </span>
                   ) : null}
                 </Link>
