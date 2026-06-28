@@ -513,8 +513,10 @@ export function ApprovalsList({ items }: Props) {
                               ) : null}
                             </div>
 
-                            {/* Event body — selfie + plain label/value detail list */}
-                            <div className="mt-1.5 flex items-start gap-3">
+                            {/* Event body — detail list on the left, selfie on the
+                                right (flex-row-reverse keeps the selfie first in the
+                                DOM but renders it on the right). */}
+                            <div className="mt-1.5 flex flex-row-reverse items-start gap-3">
                               {r.selfieAttendanceRecordId ? (
                                 <SelfieThumbnail
                                   recordId={r.selfieAttendanceRecordId}
