@@ -89,9 +89,6 @@ export function TeamDirectory({ items }: { items: TeamDirectoryItem[] }) {
               href={`/employee/attendance/team/${m.employeeId}` as Route}
               className="flex items-center gap-3 rounded-xl border border-transparent px-2 py-2 transition hover:border-border/60 hover:bg-secondary/30"
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold text-secondary-foreground">
-                {m.initials}
-              </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-foreground">{m.name}</p>
                 <p className="text-xs text-muted-foreground">{m.subtitle}</p>
