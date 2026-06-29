@@ -4472,6 +4472,7 @@ export const organizationRepository = {
       // parallel approver for that step (any one of them approves to
       // advance).
       if (data.layer < team.layerCount) {
+        // Chain for the member being added.
         const existingChain = await tx.approvalChainStep.findFirst({
           where: { employeeId: profile.user.id, teamId: team.id },
           select: { id: true },
@@ -4506,6 +4507,62 @@ export const organizationRepository = {
               })),
             })
           }
+        }
+      }
+
+      // When the member being added is a SUPERVISOR, also backfill chains
+      // for any lower-layer members in this team who have no chain yet.
+      // This covers the case where employees are added before their
+      // supervisors — without this, those employees are left chainless
+      // until an admin manually saves each one via the Company tab.
+      if (data.layer >= 2) {
+        const unchainedBelow = await tx.employeeTeamMembership.findMany({
+          where: {
+            teamId: team.id,
+            layer: { lt: data.layer },
+            employeeProfileId: { not: profile.id },
+          },
+          select: {
+            layer: true,
+            employeeProfile: { select: { id: true, user: { select: { id: true } } } },
+          },
+        })
+        for (const below of unchainedBelow) {
+          const belowUserId = below.employeeProfile.user.id
+          const belowProfileId = below.employeeProfile.id
+          const alreadyHasChain = await tx.approvalChainStep.findFirst({
+            where: { employeeId: belowUserId, teamId: team.id },
+            select: { id: true },
+          })
+          if (alreadyHasChain) continue
+          // Find all supervisors above this lower-layer member (including
+          // the one being added now and any already in the team).
+          const supersAboveMember = await tx.employeeTeamMembership.findMany({
+            where: {
+              teamId: team.id,
+              layer: { gt: below.layer },
+              employeeProfileId: { not: belowProfileId },
+              employeeProfile: { user: { role: "SUPERVISOR" } },
+            },
+            select: {
+              layer: true,
+              employeeProfile: { select: { user: { select: { id: true } } } },
+            },
+          })
+          if (supersAboveMember.length === 0) continue
+          const layersSorted = [
+            ...new Set(supersAboveMember.map((m) => m.layer)),
+          ].sort((a, b) => a - b)
+          const layerToStep = new Map<number, number>()
+          layersSorted.forEach((layer, idx) => layerToStep.set(layer, idx + 1))
+          await tx.approvalChainStep.createMany({
+            data: supersAboveMember.map((m) => ({
+              employeeId: belowUserId,
+              teamId: team.id,
+              approverId: m.employeeProfile.user.id,
+              step: layerToStep.get(m.layer)!,
+            })),
+          })
         }
       }
 

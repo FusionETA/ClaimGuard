@@ -125,6 +125,12 @@ export function initialProRatedAccrual(args: {
   } else {
     nowMonthInTarget = now.getUTCMonth()
   }
+  // Employee hasn't started yet within targetYear (hire month is later
+  // in the year than `now`) — nothing has accrued. Without this guard the
+  // partial-join-month credit below would be applied a month (or more)
+  // before the employee's first day. See docstring example 4.
+  if (nowMonthInTarget < startMonth) return 0
+
   const fullMonthsCrossed = Math.max(0, nowMonthInTarget - startMonth)
 
   const seeded =
