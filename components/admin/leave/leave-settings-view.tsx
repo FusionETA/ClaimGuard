@@ -1008,10 +1008,18 @@ function PolicyOverrideRow(props: {
     props.daysValue !== null ? String(props.daysValue) : "",
   )
   const [pending, startTransition] = useTransition()
+  const [saved, setSaved] = useState(false)
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const methodSelectValue: "LUMP_SUM" | "PRO_RATED" | "__DEFAULT__" =
     props.methodValue ?? "__DEFAULT__"
   const isOverriddenDays = props.daysValue !== null
   const isOverriddenMethod = props.methodValue !== null
+
+  function flashSaved() {
+    if (savedTimer.current) clearTimeout(savedTimer.current)
+    setSaved(true)
+    savedTimer.current = setTimeout(() => setSaved(false), 2000)
+  }
 
   return (
     <TableRow>
@@ -1037,36 +1045,37 @@ function PolicyOverrideRow(props: {
           onBlur={() => {
             const numeric = val.trim() === "" ? null : Number(val)
             if (numeric === null) {
-              // Days cleared. Keep the row alive if there's still a
-              // method override; otherwise drop the row entirely.
               if (props.methodValue !== null) {
-                startTransition(() =>
-                  setPolicyDefaultAction({
+                startTransition(async () => {
+                  await setPolicyDefaultAction({
                     policyId: props.policyId,
                     leaveTypeId: props.leaveType.id,
                     defaultDays: props.leaveType.defaultDays,
-                  }),
-                )
+                  })
+                  flashSaved()
+                })
                 return
               }
               if (props.daysValue !== null) {
-                startTransition(() =>
-                  clearPolicyDefaultAction({
+                startTransition(async () => {
+                  await clearPolicyDefaultAction({
                     policyId: props.policyId,
                     leaveTypeId: props.leaveType.id,
-                  }),
-                )
+                  })
+                  flashSaved()
+                })
               }
               return
             }
             if (numeric === props.daysValue) return
-            startTransition(() =>
-              setPolicyDefaultAction({
+            startTransition(async () => {
+              await setPolicyDefaultAction({
                 policyId: props.policyId,
                 leaveTypeId: props.leaveType.id,
                 defaultDays: numeric,
-              }),
-            )
+              })
+              flashSaved()
+            })
           }}
           disabled={pending}
         />
@@ -1075,39 +1084,47 @@ function PolicyOverrideRow(props: {
           for Annual Leave. For every other type the cell is empty
           (the constraint matches the LeaveTypeDialog gate). */}
       <TableCell>
-        {props.leaveType.code.toUpperCase() === "ANNUAL" ? (
-          <Select
-            value={methodSelectValue}
-            onValueChange={(v) => {
-              const next: "LUMP_SUM" | "PRO_RATED" | null =
-                v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
-              startTransition(() =>
-                setPolicyDefaultAction({
-                  policyId: props.policyId,
-                  leaveTypeId: props.leaveType.id,
-                  accrualMethod: next,
-                }),
-              )
-            }}
-            disabled={pending}
-          >
-            <SelectTrigger
-              className={
-                "h-9 w-44 text-sm " +
-                (isOverriddenMethod ? "" : "text-muted-foreground")
-              }
+        <div className="flex items-center gap-2">
+          {props.leaveType.code.toUpperCase() === "ANNUAL" ? (
+            <Select
+              value={methodSelectValue}
+              onValueChange={(v) => {
+                const next: "LUMP_SUM" | "PRO_RATED" | null =
+                  v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
+                startTransition(async () => {
+                  await setPolicyDefaultAction({
+                    policyId: props.policyId,
+                    leaveTypeId: props.leaveType.id,
+                    accrualMethod: next,
+                  })
+                  flashSaved()
+                })
+              }}
+              disabled={pending}
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__DEFAULT__">
-                Inherit from type ({props.leaveType.accrualMethod === "PRO_RATED" ? "pro-rated" : "lump sum"})
-              </SelectItem>
-              <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
-              <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
-            </SelectContent>
-          </Select>
-        ) : null}
+              <SelectTrigger
+                className={
+                  "h-9 w-44 text-sm " +
+                  (isOverriddenMethod ? "" : "text-muted-foreground")
+                }
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__DEFAULT__">
+                  Inherit from type ({props.leaveType.accrualMethod === "PRO_RATED" ? "pro-rated" : "lump sum"})
+                </SelectItem>
+                <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
+                <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : null}
+          {saved && (
+            <span className="text-xs font-medium text-emerald-600 transition-opacity">
+              ✓ Saved
+            </span>
+          )}
+        </div>
       </TableCell>
     </TableRow>
   )
@@ -1493,6 +1510,14 @@ function EmployeeEntitlementRow(props: {
     props.currentDays !== null ? String(props.currentDays) : "",
   )
   const [pending, startTransition] = useTransition()
+  const [saved, setSaved] = useState(false)
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function flashSaved() {
+    if (savedTimer.current) clearTimeout(savedTimer.current)
+    setSaved(true)
+    savedTimer.current = setTimeout(() => setSaved(false), 2000)
+  }
 
   // Reset local state when the selected employee changes.
   const lastKey = useRef<string>("")
@@ -1538,14 +1563,15 @@ function EmployeeEntitlementRow(props: {
           onBlur={() => {
             const numeric = val.trim() === "" ? null : Number(val)
             if (numeric === null || numeric === props.currentDays) return
-            startTransition(() =>
-              setEmployeeEntitlementAction({
+            startTransition(async () => {
+              await setEmployeeEntitlementAction({
                 employeeId: props.employeeId,
                 leaveTypeId: props.leaveType.id,
                 year: props.year,
                 entitledDays: numeric,
-              }),
-            )
+              })
+              flashSaved()
+            })
           }}
           disabled={pending}
         />
@@ -1560,14 +1586,15 @@ function EmployeeEntitlementRow(props: {
             onValueChange={(v) => {
               const next: "LUMP_SUM" | "PRO_RATED" | null =
                 v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
-              startTransition(() =>
-                setEmployeeEntitlementAction({
+              startTransition(async () => {
+                await setEmployeeEntitlementAction({
                   employeeId: props.employeeId,
                   leaveTypeId: props.leaveType.id,
                   year: props.year,
                   accrualMethod: next,
-                }),
-              )
+                })
+                flashSaved()
+              })
             }}
             disabled={pending}
           >
@@ -1598,24 +1625,31 @@ function EmployeeEntitlementRow(props: {
         ) : null}
       </TableCell>
       <TableCell className="text-right">
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={pending}
-          title="Reset to inherit from policy / type"
-          onClick={() =>
-            startTransition(async () => {
-              await resetEmployeeEntitlementAction({
-                employeeId: props.employeeId,
-                leaveTypeId: props.leaveType.id,
-                year: props.year,
+        <div className="flex items-center justify-end gap-2">
+          {saved && (
+            <span className="text-xs font-medium text-emerald-600">
+              ✓ Saved
+            </span>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={pending}
+            title="Reset to inherit from policy / type"
+            onClick={() =>
+              startTransition(async () => {
+                await resetEmployeeEntitlementAction({
+                  employeeId: props.employeeId,
+                  leaveTypeId: props.leaveType.id,
+                  year: props.year,
+                })
+                setVal("")
               })
-              setVal("")
-            })
-          }
-        >
-          Reset
-        </Button>
+            }
+          >
+            Reset
+          </Button>
+        </div>
       </TableCell>
     </TableRow>
   )
