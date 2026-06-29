@@ -884,6 +884,12 @@ export type PayrollProfileData = {
   prevPcb: number | null               // X
   prevZakat: number | null             // Z
   prevAllowableDeductions: number | null // ΣLP
+  /// True when the prev* figures above were entered as the employee's
+  /// TOTAL YTD (including any period already worked at THIS employer
+  /// earlier in the same year). Used on rehires to prevent
+  /// double-counting in PCB calc — the run service subtracts this
+  /// org's submitted-payslip YTD from each prev* value before adding.
+  prevIncludesPriorThisOrgPeriod: boolean
 
   // EPF
   contributeToEpf: boolean

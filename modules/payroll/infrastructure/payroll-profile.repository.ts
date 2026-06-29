@@ -563,18 +563,47 @@ export const payrollProfileRepository = {
    * Restore an archived employee to active payroll. Also clears
    * `leaveDate` since they're no longer leaving — otherwise the next
    * run's proration would still think they're departing.
+   *
+   * Optional rehire-with-other-employer path: when the admin says the
+   * employee worked elsewhere during the absence, we persist the TP3
+   * carryover (total YTD figures) plus
+   * `prevIncludesPriorThisOrgPeriod = true` so the run service
+   * subtracts this org's existing payslip YTD before adding to PCB.
    */
-  async unarchive(employeeProfileId: string): Promise<void> {
+  async unarchive(
+    employeeProfileId: string,
+    rehireCarryover?: {
+      prevEmploymentYear: number
+      prevRemuneration: number
+      prevEpf: number
+      prevPcb: number
+      prevZakat: number
+    } | null,
+  ): Promise<void> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
+    const data: Record<string, unknown> = {
+      isArchived: false,
+      archivedAt: null,
+      archiveReason: null,
+      leaveDate: null,
+    }
+    if (rehireCarryover) {
+      data.prevEmploymentYear = rehireCarryover.prevEmploymentYear
+      data.prevRemuneration = rehireCarryover.prevRemuneration
+      data.prevEpf = rehireCarryover.prevEpf
+      data.prevPcb = rehireCarryover.prevPcb
+      data.prevZakat = rehireCarryover.prevZakat
+      data.prevIncludesPriorThisOrgPeriod = true
+    } else {
+      // "No, didn't work elsewhere" — clear any stale carryover so the
+      // restored employee starts fresh. PCB will use only this org's
+      // existing YTD from submitted payslips.
+      data.prevIncludesPriorThisOrgPeriod = false
+    }
     await prisma.payrollProfile.update({
       where: { employeeProfileId },
-      data: {
-        isArchived: false,
-        archivedAt: null,
-        archiveReason: null,
-        leaveDate: null,
-      },
+      data,
     })
   },
 }
@@ -635,6 +664,7 @@ function mapPayrollProfile(row: any): PayrollProfileData {
       row.prevAllowableDeductions === null
         ? null
         : toNumber(row.prevAllowableDeductions, 0),
+    prevIncludesPriorThisOrgPeriod: row.prevIncludesPriorThisOrgPeriod ?? false,
 
     contributeToEpf: row.contributeToEpf,
     epfMemberBefore1998: row.epfMemberBefore1998,
@@ -744,6 +774,7 @@ function toPrismaUpsertData(
   copy("prevPcb")
   copy("prevZakat")
   copy("prevAllowableDeductions")
+  copy("prevIncludesPriorThisOrgPeriod")
 
   copy("contributeToEpf")
   copy("epfMemberBefore1998")

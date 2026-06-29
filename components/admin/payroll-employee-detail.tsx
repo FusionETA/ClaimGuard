@@ -1536,6 +1536,16 @@ function EmploymentTab(props: {
             Optional carry-over figures for PCB estimation when an
             employee joins mid-year.
           </CardDescription>
+          {props.profile?.prevIncludesPriorThisOrgPeriod ? (
+            <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <strong>Rehire TP3 carryover active.</strong> The figures below
+              are the employee&apos;s <em>total YTD</em> (entered when
+              restored to payroll). At payroll-run time, this
+              organisation&apos;s own submitted-payslip YTD is automatically
+              deducted before being added to the PCB calculation, so prior
+              periods worked here aren&apos;t double-counted.
+            </div>
+          ) : null}
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <Field label="Year">
@@ -2780,12 +2790,11 @@ function ArchiveCard(props: {
       </CardHeader>
       <CardContent>
         {props.profile.isArchived ? (
-          <form action={unarchiveAction} className="inline-flex">
-            <input type="hidden" name="userId" value={props.userId} hidden />
-            <Button type="submit" variant="outline" disabled={unarchivePending}>
-              {unarchivePending ? "Restoring…" : "Restore to payroll"}
-            </Button>
-          </form>
+          <RestoreToPayrollDialog
+            userId={props.userId}
+            action={unarchiveAction}
+            pending={unarchivePending}
+          />
         ) : (
           <form
             id="archive-payroll-profile-form"
@@ -2841,6 +2850,182 @@ function ArchiveCard(props: {
         )}
       </CardContent>
     </Card>
+  )
+}
+
+/**
+ * Restore-to-payroll dialog. Asks whether the employee worked
+ * elsewhere during the absence. If yes, collects the rehire TP3
+ * carryover (total YTD figures the employee provided) and posts them
+ * along with the unarchive request. The repo persists +
+ * `prevIncludesPriorThisOrgPeriod = true`, and the run engine
+ * subtracts this org's existing payslip YTD before adding to PCB.
+ */
+function RestoreToPayrollDialog(props: {
+  userId: string
+  action: (formData: FormData) => void
+  pending: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [workedElsewhere, setWorkedElsewhere] = useState<
+    "yes" | "no" | null
+  >(null)
+  const currentYear = new Date().getFullYear()
+
+  function handleClose(next: boolean) {
+    setOpen(next)
+    if (!next) setWorkedElsewhere(null)
+  }
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setOpen(true)}
+        disabled={props.pending}
+      >
+        {props.pending ? "Restoring…" : "Restore to payroll"}
+      </Button>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Restore to payroll</DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Did this employee work at another company during their
+              absence? Their TP3 totals affect this year&apos;s PCB
+              calculation.
+            </p>
+          </DialogHeader>
+
+          {workedElsewhere === null ? (
+            <div className="flex flex-col gap-2 py-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setWorkedElsewhere("yes")}
+              >
+                Yes — they worked elsewhere
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setWorkedElsewhere("no")}
+              >
+                No — gap or other reason
+              </Button>
+            </div>
+          ) : workedElsewhere === "no" ? (
+            <form action={props.action} className="space-y-3">
+              <input type="hidden" name="userId" value={props.userId} hidden />
+              <input
+                type="hidden"
+                name="workedElsewhereDuringAbsence"
+                value="false"
+                hidden
+              />
+              <p className="text-sm text-muted-foreground">
+                We&apos;ll restore them using only this organisation&apos;s
+                payslip history for PCB. No TP3 carryover applied.
+              </p>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setWorkedElsewhere(null)}
+                >
+                  Back
+                </Button>
+                <Button type="submit" disabled={props.pending}>
+                  {props.pending ? "Restoring…" : "Confirm restore"}
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <form action={props.action} className="space-y-3">
+              <input type="hidden" name="userId" value={props.userId} hidden />
+              <input
+                type="hidden"
+                name="workedElsewhereDuringAbsence"
+                value="true"
+                hidden
+              />
+              <p className="text-sm text-muted-foreground">
+                Enter the employee&apos;s <strong>total YTD</strong> figures
+                (the single number they hand over, including any period
+                they worked here earlier this year). We&apos;ll
+                automatically deduct what&apos;s already in our payslip
+                history so PCB isn&apos;t double-counted.
+              </p>
+              <Field label="Year of assessment">
+                <Input
+                  name="prevEmploymentYear"
+                  type="number"
+                  min={2000}
+                  max={2100}
+                  defaultValue={currentYear}
+                  required
+                />
+              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Total YTD Remuneration (MYR)">
+                  <Input
+                    name="prevRemuneration"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    defaultValue="0"
+                    required
+                  />
+                </Field>
+                <Field label="Total YTD EPF paid (MYR)">
+                  <Input
+                    name="prevEpf"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    defaultValue="0"
+                    required
+                  />
+                </Field>
+                <Field label="Total YTD PCB paid (MYR)">
+                  <Input
+                    name="prevPcb"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    defaultValue="0"
+                    required
+                  />
+                </Field>
+                <Field label="Total YTD Zakat paid (MYR)">
+                  <Input
+                    name="prevZakat"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    defaultValue="0"
+                    required
+                  />
+                </Field>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setWorkedElsewhere(null)}
+                >
+                  Back
+                </Button>
+                <Button type="submit" disabled={props.pending}>
+                  {props.pending ? "Restoring…" : "Save TP3 & restore"}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 

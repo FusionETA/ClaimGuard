@@ -502,8 +502,35 @@ export async function unarchivePayrollProfileAction(
   const userId = String(formData.get("userId") ?? "").trim()
   if (!userId) return { status: "error", message: "Missing employee id." }
 
+  // Rehire-with-other-employer path: when admin answered "yes" in the
+  // restore dialog, the form posts the carryover TP3 figures. We pass
+  // them through to the service so the run engine deducts this org's
+  // existing YTD before adding (prevents double-count).
+  const workedElsewhere =
+    String(formData.get("workedElsewhereDuringAbsence") ?? "").toLowerCase() ===
+    "true"
+  const num = (key: string) => {
+    const raw = String(formData.get(key) ?? "").trim()
+    if (raw.length === 0) return 0
+    const n = Number(raw)
+    return Number.isFinite(n) && n >= 0 ? n : 0
+  }
+  const rehireCarryover = workedElsewhere
+    ? {
+        prevEmploymentYear: (() => {
+          const raw = String(formData.get("prevEmploymentYear") ?? "").trim()
+          const n = parseInt(raw, 10)
+          return Number.isFinite(n) ? n : new Date().getFullYear()
+        })(),
+        prevRemuneration: num("prevRemuneration"),
+        prevEpf: num("prevEpf"),
+        prevPcb: num("prevPcb"),
+        prevZakat: num("prevZakat"),
+      }
+    : null
+
   try {
-    await unarchivePayrollProfile({ userId })
+    await unarchivePayrollProfile({ userId, rehireCarryover })
   } catch (err) {
     return {
       status: "error",

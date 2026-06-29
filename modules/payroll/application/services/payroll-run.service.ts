@@ -1120,26 +1120,45 @@ export async function generatePayrollPayslips(input: {
         year: run.periodYear,
         excludeRunId: run.id,
       })
-      // Add prev-employer TP3-like carryover when the employee joined
-      // this year (prev income from a different employer in the same
-      // calendar year — pulled from the payroll profile).
-      const joinedThisYear =
-        e.profile.joinDate &&
-        new Date(e.profile.joinDate).getUTCFullYear() === run.periodYear
+      // Add prev-employer TP3-like carryover when the employee's prior
+      // figures are tagged for this calendar year (typically a mid-year
+      // joiner; for a rehire the prevEmploymentYear is set during
+      // restore).
+      //
+      // joinedThisYear is no longer a precondition — rehires keep their
+      // original join date from years past, but the carryover still
+      // applies to the same-year prev figures. The
+      // prevEmploymentYear === run.periodYear check is what actually
+      // gates this carryover.
       const isPrevForSameYear =
-        joinedThisYear && (e.profile.prevEmploymentYear ?? null) === run.periodYear
+        (e.profile.prevEmploymentYear ?? null) === run.periodYear
+      // Rehire path: if the admin entered prev* as the TOTAL YTD
+      // (including the period the employee already worked at THIS
+      // employer this year), subtract this org's submitted-payslip YTD
+      // before adding — otherwise we'd double-count.
+      const subtractThisOrg = e.profile.prevIncludesPriorThisOrgPeriod === true
+      const effPrevRem = subtractThisOrg
+        ? Math.max(0, (e.profile.prevRemuneration ?? 0) - ytd.ytdTaxable)
+        : (e.profile.prevRemuneration ?? 0)
+      const effPrevEpf = subtractThisOrg
+        ? Math.max(0, (e.profile.prevEpf ?? 0) - ytd.ytdEpf)
+        : (e.profile.prevEpf ?? 0)
+      const effPrevPcb = subtractThisOrg
+        ? Math.max(0, (e.profile.prevPcb ?? 0) - ytd.ytdPcb)
+        : (e.profile.prevPcb ?? 0)
+      const effPrevZakat = subtractThisOrg
+        ? Math.max(0, (e.profile.prevZakat ?? 0) - ytd.ytdZakat)
+        : (e.profile.prevZakat ?? 0)
       return {
         empId: e.employeeProfileId,
         // TP3 carryover: add the prev-employer figures to each YTD
         // bucket only when the employee's `prevEmploymentYear` equals
         // the current run's calendar year. Per LHDN MTD Spec § 10
         // (page 23) the TP3 form provides (Y-K), X, Z, ΣLP.
-        ytdTaxable:
-          ytd.ytdTaxable + (isPrevForSameYear ? e.profile.prevRemuneration ?? 0 : 0),
-        ytdEpf: ytd.ytdEpf + (isPrevForSameYear ? e.profile.prevEpf ?? 0 : 0),
-        ytdPcb: ytd.ytdPcb + (isPrevForSameYear ? e.profile.prevPcb ?? 0 : 0),
-        ytdZakat:
-          ytd.ytdZakat + (isPrevForSameYear ? e.profile.prevZakat ?? 0 : 0),
+        ytdTaxable: ytd.ytdTaxable + (isPrevForSameYear ? effPrevRem : 0),
+        ytdEpf: ytd.ytdEpf + (isPrevForSameYear ? effPrevEpf : 0),
+        ytdPcb: ytd.ytdPcb + (isPrevForSameYear ? effPrevPcb : 0),
+        ytdZakat: ytd.ytdZakat + (isPrevForSameYear ? effPrevZakat : 0),
         // Prev-employer SOCSO+EIS carryover is intentionally omitted —
         // the RM 350 cap saturates at typical contribution levels
         // within the first ~3-4 months, so a mid-year joiner converges

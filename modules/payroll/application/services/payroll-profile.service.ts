@@ -437,6 +437,18 @@ export async function updateEmployeeEmail(input: {
 
 export async function unarchivePayrollProfile(input: {
   userId: string
+  /// When set, admin indicated the employee worked elsewhere during
+  /// the absence and entered the TOTAL YTD figures. The repo persists
+  /// these + sets `prevIncludesPriorThisOrgPeriod = true` so the
+  /// payroll-run engine subtracts this org's existing YTD before
+  /// adding to PCB — preventing double-count.
+  rehireCarryover?: {
+    prevEmploymentYear: number
+    prevRemuneration: number
+    prevEpf: number
+    prevPcb: number
+    prevZakat: number
+  } | null
 }): Promise<void> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
@@ -456,7 +468,10 @@ export async function unarchivePayrollProfile(input: {
     throw new Error("Employee not found in this organisation.")
   }
 
-  await payrollProfileRepository.unarchive(user.employeeProfile.id)
+  await payrollProfileRepository.unarchive(
+    user.employeeProfile.id,
+    input.rehireCarryover ?? null,
+  )
 
   void writeAudit({
     organizationId: orgId,
@@ -468,7 +483,9 @@ export async function unarchivePayrollProfile(input: {
     },
     action: "employee.restore",
     status: "SUCCESS",
-    summary: "Restored employee to active payroll",
+    summary: input.rehireCarryover
+      ? "Restored employee to active payroll (with rehire TP3 carryover)"
+      : "Restored employee to active payroll",
     targetType: "user",
     targetId: input.userId,
   })

@@ -4305,6 +4305,7 @@ export const PayrollProfileScalarFieldEnum = {
   prevAllowableDeductions: 'prevAllowableDeductions',
   prevPcb: 'prevPcb',
   prevZakat: 'prevZakat',
+  prevIncludesPriorThisOrgPeriod: 'prevIncludesPriorThisOrgPeriod',
   temporaryReviewDate: 'temporaryReviewDate'
 } as const
 
