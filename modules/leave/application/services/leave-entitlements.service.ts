@@ -360,23 +360,26 @@ export async function setEmployeeEntitlement(
 
   let accruedDays: number
   if (newEffectiveMethod === "PRO_RATED") {
-    if (previousEffectiveMethod !== "PRO_RATED") {
-      // Transitioning INTO PRO_RATED — reseed accruedDays via the
-      // join-date-aware backfill (same math as the initial seed and the
-      // joinDate-change recompute). Without this, the row keeps the
-      // LUMP_SUM full quota and the employee appears fully accrued.
-      const joinDate = await leaveRepository.getEmployeeJoinDate(employeeId)
-      accruedDays = initialProRatedAccrual({
-        entitledDays,
-        joinDate,
-        targetYear: year,
-        now: new Date(),
-      })
-    } else {
-      // Already PRO_RATED — preserve progress, capped at the new
-      // entitled ceiling (admin may have reduced entitledDays).
-      accruedDays = Math.min(existing.accruedDays, entitledDays)
-    }
+    // Recompute accruedDays from the join-date-aware backfill for the
+    // (possibly changed) entitledDays as-of now. This covers BOTH
+    // transitioning INTO PRO_RATED and editing an already-PRO_RATED
+    // row's entitled amount: in both cases the stored accruedDays must
+    // track the new basis. Previously the already-PRO_RATED path only
+    // capped the stale value (`Math.min(existing.accruedDays,
+    // entitledDays)`), so raising the entitlement — or re-confirming the
+    // method when the type default was already PRO_RATED — never moved
+    // the balance. `initialProRatedAccrual` evaluated at `now` yields the
+    // same months-elapsed value the monthly cron maintains, so this
+    // preserves legitimate progress while caps internally at entitledDays.
+    // Never drop below days the employee has already used.
+    const joinDate = await leaveRepository.getEmployeeJoinDate(employeeId)
+    const recomputed = initialProRatedAccrual({
+      entitledDays,
+      joinDate,
+      targetYear: year,
+      now: new Date(),
+    })
+    accruedDays = Math.max(recomputed, existing.usedDays)
   } else {
     // LUMP_SUM (or anything non-PRO_RATED) — fully credit.
     accruedDays = entitledDays
