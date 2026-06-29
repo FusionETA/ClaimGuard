@@ -535,7 +535,13 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     code: "wages_expense_claim",
     label: "Expense Claim",
     group: "Remuneration",
-    kind: "REIMBURSEMENT",
+    // ALLOWANCE so it sums into displayed gross — but every statutory
+    // flag stays false (PCB / EPF / SOCSO / EIS / HRDF unaffected).
+    // The native attach-claim flow (calc.ts line items with
+    // kind: REIMBURSEMENT, category: null, claimId set) is a separate
+    // code path and does NOT use this metadata — it keeps its own
+    // REIMBURSEMENT bucket + dedicated Xero journal line.
+    kind: "ALLOWANCE",
     subjectToEpf: false,
     subjectToSocso: false,
     subjectToEis: false,
