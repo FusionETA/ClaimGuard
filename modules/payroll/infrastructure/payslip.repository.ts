@@ -418,8 +418,9 @@ export const payslipRepository = {
     /// Subtracted from annual tax inside `calcPcb` because zakat
     /// fully offsets MTD obligation.
     ytdZakat: number
-    /// YTD employee-side SOCSO + EIS contributions. Feeds the RM 350
-    /// SOCSO+EIS relief inside `calcPcb` (annualised, capped).
+    /// YTD employee-side SOCSO + EIS + SKBBK contributions. Feeds the
+    /// RM 350 PERKESO relief inside `calcPcb` (annualised, capped).
+    /// SKBBK joins the same bucket per Payroll Panda 2026 parity.
     ytdSocsoEis: number
     /// YTD sum of allowance line items grouped by their
     /// `PayrollAdjustmentCategory` code. Used by the next run to
@@ -458,6 +459,7 @@ export const payslipRepository = {
           otPay: true,
           epfEmployee: true,
           socsoEmployee: true,
+          skbbkEmployee: true,
           eisEmployee: true,
           pcb: true,
           zakat: true,
@@ -505,6 +507,7 @@ export const payslipRepository = {
       ytdZakat: toNumber(agg._sum.zakat, 0),
       ytdSocsoEis:
         toNumber(agg._sum.socsoEmployee, 0) +
+        toNumber(agg._sum.skbbkEmployee, 0) +
         toNumber(agg._sum.eisEmployee, 0),
       ytdAllowanceByCategory,
     }

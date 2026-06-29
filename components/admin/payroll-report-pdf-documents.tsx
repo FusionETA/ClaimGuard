@@ -741,7 +741,7 @@ function PcbCalculationDetailsBody({
       <Text style={lhdnStyles.sectionTitle}>ΣLP & LP₁ Details</Text>
       <LhdnVar
         abbrev="SOCSO & EIS"
-        description="Employee SOCSO + EIS contributions used as LP relief. ΣLP is the YTD accumulated amount; LP₁ is this month's amount. Capped at RM 350/year per LHDN."
+        description="Employee SOCSO + EIS + SKBBK contributions used as LP relief. ΣLP is the YTD accumulated amount; LP₁ is this month's amount. Capped at RM 350/year per LHDN."
         amount={sumLP + LP1}
       />
     </View>

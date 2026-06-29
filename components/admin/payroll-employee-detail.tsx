@@ -53,6 +53,7 @@ import {
 } from "@/modules/payroll/domain/pcb"
 import {
   lookupEis,
+  lookupSkbbk,
   lookupSocso,
   recommendSocsoScheme,
   socsoSchemeNeedsManualChoice,
@@ -2394,7 +2395,7 @@ function StatutoryTab(props: {
                   Math.round(estEpfMonth * 12 * 100) / 100,
                 )
 
-                // ── Annual SOCSO + EIS relief ────────────────────────
+                // ── Annual SOCSO + EIS + SKBBK relief ────────────────
                 // Auto-applied (see SOCSO_EIS_RELIEF_CAP doc in pcb.ts
                 // for the "soft TP1" rationale). Uses the actuals-only
                 // formula: at year-end, total relief = min(RM 350,
@@ -2404,7 +2405,8 @@ function StatutoryTab(props: {
                 // from across the year. The PCB calc applies it
                 // gradually month-by-month (no forward projection),
                 // so the actual monthly impact starts small and grows
-                // until the cap is hit.
+                // until the cap is hit. SKBBK joins the same bucket
+                // from Jun 2026 onwards.
                 const cat2 =
                   props.profile?.socsoScheme === "EMPLOYMENT_INJURY_ONLY"
                 const socsoMonth = props.profile?.socsoScheme
@@ -2413,9 +2415,18 @@ function StatutoryTab(props: {
                 const eisMonth = props.profile?.contributeToEis
                   ? lookupEis(monthly).employee
                   : 0
+                const previewNow = new Date()
+                const skbbkMonth = props.profile?.socsoScheme
+                  ? lookupSkbbk({
+                      wage: monthly,
+                      periodYear: previewNow.getFullYear(),
+                      periodMonth: previewNow.getMonth() + 1,
+                    })
+                  : 0
                 const estSocsoEisRelief = Math.min(
                   SOCSO_EIS_RELIEF_CAP,
-                  Math.round((socsoMonth + eisMonth) * 12 * 100) / 100,
+                  Math.round((socsoMonth + eisMonth + skbbkMonth) * 12 * 100) /
+                    100,
                 )
 
                 const items: Array<{
@@ -2492,7 +2503,7 @@ function StatutoryTab(props: {
                         : "estimate based on this month's salary × 12",
                 })
                 items.push({
-                  label: "SOCSO + EIS (auto, capped RM 350)",
+                  label: "SOCSO + EIS + SKBBK (auto, capped RM 350)",
                   amount: estSocsoEisRelief,
                   reason:
                     estSocsoEisRelief === 0

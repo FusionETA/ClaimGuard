@@ -1235,10 +1235,12 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   const epfFromNormal = round2(
     Math.max(0, epf.employee - pcbAdditionalRemunerationEpf),
   )
-  // SOCSO + EIS employee contributions feed the RM 350/year combined
-  // relief inside calcPcb. We auto-apply this (it would otherwise be
-  // a TP1 item) because the employer already knows the exact figure
-  // — see SOCSO_EIS_RELIEF_CAP in pcb.ts for the rationale.
+  // SOCSO + EIS + SKBBK employee contributions feed the RM 350/year
+  // combined PERKESO relief inside calcPcb. We auto-apply this (it
+  // would otherwise be a TP1 item) because the employer already knows
+  // the exact figure — see SOCSO_EIS_RELIEF_CAP in pcb.ts for the
+  // rationale. SKBBK joins the same RM 350 bucket: per Payroll Panda's
+  // 2026 rollout, "SOCSO relief" in PCB input = SOCSO + SKBBK employee.
   // Honour the org-level "Auto-apply SOCSO + EIS relief" setting.
   // When the admin turns it off, we hand calcPcb zero figures so
   // the RM 350 relief is effectively not applied — the employee
@@ -1246,7 +1248,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   // Default true matches the pre-toggle behaviour.
   const autoApplySocsoEis = settings.autoApplySocsoEisRelief !== false
   const thisMonthSocsoEis = autoApplySocsoEis
-    ? round2(socso.employee + eis.employee)
+    ? round2(socso.employee + eis.employee + socso.employeeSkbbk)
     : 0
   const ytdSocsoEisForRelief = autoApplySocsoEis
     ? (input.ytdSocsoEis ?? 0)

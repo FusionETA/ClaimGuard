@@ -276,11 +276,15 @@ export function calcResidentReliefsBreakdown(profile: {
 
 export const EPF_RELIEF_CAP = 4000
 
-// ─── SOCSO + EIS relief cap ─────────────────────────────────────────────
+// ─── SOCSO + EIS + SKBBK relief cap ─────────────────────────────────────
 
 /**
- * Combined PERKESO (SOCSO + EIS) employee-contribution relief, capped
- * at RM 350 per year of assessment.
+ * Combined PERKESO (SOCSO + EIS + SKBBK) employee-contribution relief,
+ * capped at RM 350 per year of assessment. SKBBK (Skim Keselamatan
+ * Bersepadu Pekerja Bebas, eff. 1 Jun 2026) is a PERKESO scheme and
+ * shares the same RM 350 relief bucket — confirmed against Payroll
+ * Panda's 2026 rollout (their "SOCSO" PCB-relief input = SOCSO + SKBBK
+ * employee).
  *
  * **Classification.** Strictly per LHDN MTD Specification 2026 this is
  * a TP1 (optional) deduction — the employee should submit Form TP1 to
