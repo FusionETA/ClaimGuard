@@ -306,16 +306,21 @@ function buildImportedPayslipInput(input: {
   const m = input.match
   const a = input.row.amounts
 
-  // ── Split the custom-category line items into their three buckets ──
+  // ── Split the custom-category line items into their buckets ──
   // BIK rows (nonCash: true on the meta) → totalBenefitsInKind. Don't
   // touch gross/net since the employee never receives cash. Cash
   // allowances → totalAllowances (folded into grossPay). Deductions
-  // → totalDeductions (net-only). REIMBURSEMENT rows are written as
-  // line items but don't move gross/net here — they're treated like
-  // payouts that already left the bank.
+  // → totalDeductions (net-only). REIMBURSEMENT rows → totalReimbursements
+  // AND netPay (employee receives the money via payroll, but it
+  // isn't taxable income so it stays out of grossPay + statutory
+  // bases). Before this bucket existed the import dropped REIMBURSEMENT
+  // amounts entirely — Nicholas's screenshot showed an "Expense Claim"
+  // line item rendered with a +RM 2,447 marker but the total ignored
+  // it, because no scalar received the value.
   let extraCashAllowances = 0
   let extraBik = 0
   let extraDeductions = 0
+  let extraReimbursements = 0
   for (const li of a.customLineItems) {
     const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[
       li.categoryCode as PayrollAdjustmentCategory
@@ -327,6 +332,8 @@ function buildImportedPayslipInput(input: {
       extraCashAllowances += li.amount
     } else if (meta.kind === "DEDUCTION") {
       extraDeductions += li.amount
+    } else if (meta.kind === "REIMBURSEMENT") {
+      extraReimbursements += li.amount
     }
   }
 
@@ -349,6 +356,13 @@ function buildImportedPayslipInput(input: {
   const netOnlyDeductions = a.netSalaryDeduction + extraDeductions
 
   const grossPay = round2(a.basicSalary + totalAllowances - grossReducingDeductions)
+  // Reimbursements (e.g. Expense Claim) flow into net pay because the
+  // employee actually receives the money this month, but NOT into
+  // grossPay or statutory bases — they're non-taxable expense recovery.
+  // Without this `+ extraReimbursements`, an imported "Expense Claim"
+  // line item rendered in the breakdown but vanished from the
+  // payroll-row total (Nicholas's screenshot).
+  const totalReimbursements = round2(extraReimbursements)
   const netPay = round2(
     grossPay -
       a.epfEmployee -
@@ -356,7 +370,8 @@ function buildImportedPayslipInput(input: {
       a.eisEmployee -
       a.pcb -
       netOnlyDeductions -
-      a.zakat,
+      a.zakat +
+      totalReimbursements,
   )
   const totalCostToEmployer = round2(
     grossPay + a.epfEmployer + a.socsoEmployer + a.eisEmployer + a.hrdf,
@@ -487,7 +502,7 @@ function buildImportedPayslipInput(input: {
     otPay: a.overtime,
     totalAllowances,
     totalBenefitsInKind,
-    totalReimbursements: 0,
+    totalReimbursements,
     totalDeductions: round2(grossReducingDeductions + netOnlyDeductions + a.zakat),
     epfEmployee: a.epfEmployee,
     epfEmployer: a.epfEmployer,
