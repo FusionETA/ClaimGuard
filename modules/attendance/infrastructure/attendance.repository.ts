@@ -168,11 +168,43 @@ async function backfillLateMinutes(
       clockOutLng: r.clockOutLng,
     })
   }
+
+  // For CLOCK_IN approvals, look up the per-session selfie via
+  // clockInApprovalRequestId so multi-session days each show their own
+  // selfie rather than the record-level field (which gets overwritten by
+  // successive sessions on the same day).
+  const clockInIds = targets
+    .filter((v) => v.kind === "CLOCK_IN")
+    .map((v) => v.id)
+  const sessionByApprovalId = new Map<string, string>() // approvalId → sessionId
+  if (clockInIds.length > 0) {
+    const sessions = await prisma.attendanceSession.findMany({
+      where: {
+        clockInApprovalRequestId: { in: clockInIds },
+        xeroSelfieFileId: { not: null },
+      },
+      select: { id: true, clockInApprovalRequestId: true },
+    })
+    for (const s of sessions) {
+      if (s.clockInApprovalRequestId) {
+        sessionByApprovalId.set(s.clockInApprovalRequestId, s.id)
+      }
+    }
+  }
+
   return views.map((v) => {
     if (v.kind !== "CLOCK_IN" && v.kind !== "CLOCK_OUT") return v
     const meta = lookup.get(`${v.employeeId}|${v.date}`)
     if (!meta) return v
     if (v.kind === "CLOCK_IN") {
+      // Prefer session-level selfie ID (correct for multi-session days).
+      // Fall back to record-level for older approvals without a session link.
+      const sessionId = sessionByApprovalId.get(v.id)
+      const selfieAttendanceRecordId = sessionId
+        ? sessionId
+        : meta.xeroSelfieFileId
+          ? meta.recordId
+          : null
       return {
         ...v,
         lateMinutes:
@@ -181,7 +213,7 @@ async function backfillLateMinutes(
             : meta.lateByMin && meta.lateByMin > 0
               ? meta.lateByMin
               : v.lateMinutes,
-        selfieAttendanceRecordId: meta.xeroSelfieFileId ? meta.recordId : null,
+        selfieAttendanceRecordId,
         latitude: meta.clockInLat,
         longitude: meta.clockInLng,
       }
@@ -1034,6 +1066,34 @@ export const attendanceRepository = {
     xeroSelfieFileId: string
   } | null> {
     const prisma = getClient()
+
+    // For CLOCK_IN with multiple sessions on the same day, backfillLateMinutes
+    // now passes an AttendanceSession.id so each session shows its own selfie.
+    // Try session lookup first; fall back to the legacy AttendanceRecord path.
+    if (phase === "clock-in") {
+      const session = await prisma.attendanceSession.findUnique({
+        where: { id: recordId },
+        select: {
+          xeroSelfieFileId: true,
+          attendanceRecord: {
+            select: {
+              employeeId: true,
+              employee: { select: { organizationId: true } },
+            },
+          },
+        },
+      })
+      if (session) {
+        if (!session.xeroSelfieFileId) return null
+        return {
+          employeeId: session.attendanceRecord.employeeId,
+          employeeOrgId: session.attendanceRecord.employee.organizationId ?? null,
+          xeroSelfieFileId: session.xeroSelfieFileId,
+        }
+      }
+      // Not a session ID — fall through to record lookup below.
+    }
+
     const row = await prisma.attendanceRecord.findUnique({
       where: { id: recordId },
       select: {
@@ -4481,15 +4541,17 @@ export const attendanceRepository = {
 
     // Look up selfie attachments for CLOCK_IN and CLOCK_OUT rows in one query.
     const selfieRowKeys = new Map<string, { employeeId: string; date: Date }>()
+    const clockInRowIds: string[] = []
     for (const r of rows) {
       if (r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT") {
         const key = `${r.employeeId}|${r.date.toISOString().slice(0, 10)}`
         if (!selfieRowKeys.has(key)) {
           selfieRowKeys.set(key, { employeeId: r.employeeId, date: r.date })
         }
+        if (r.kind === "CLOCK_IN") clockInRowIds.push(r.id)
       }
     }
-    let selfieByKey = new Map<string, string>()         // dateKey → recordId (clock-in)
+    let selfieByKey = new Map<string, string>()         // dateKey → recordId (clock-in fallback)
     let clockOutSelfieByKey = new Map<string, string>() // dateKey → recordId (clock-out)
     if (selfieRowKeys.size > 0) {
       const records = await prisma.attendanceRecord.findMany({
@@ -4513,6 +4575,24 @@ export const attendanceRepository = {
         if (rec.clockOutXeroSelfieFileId) clockOutSelfieByKey.set(key, rec.id)
       }
     }
+    // Per-session selfie map: approvalId → sessionId. Avoids the day-level
+    // record collision on multi-session days where the record-level
+    // xeroSelfieFileId is overwritten by successive clock-ins.
+    const sessionByApprovalId = new Map<string, string>()
+    if (clockInRowIds.length > 0) {
+      const sessions = await prisma.attendanceSession.findMany({
+        where: {
+          clockInApprovalRequestId: { in: clockInRowIds },
+          xeroSelfieFileId: { not: null },
+        },
+        select: { id: true, clockInApprovalRequestId: true },
+      })
+      for (const s of sessions) {
+        if (s.clockInApprovalRequestId) {
+          sessionByApprovalId.set(s.clockInApprovalRequestId, s.id)
+        }
+      }
+    }
 
     return rows.map((r) => {
       const reviewedAt = r.reviewedAt
@@ -4529,7 +4609,7 @@ export const attendanceRepository = {
       const override = overrideKey ? overrideByKey.get(overrideKey) : undefined
       const selfieAttendanceRecordId =
         r.kind === "CLOCK_IN"
-          ? selfieByKey.get(dateKey) ?? null
+          ? (sessionByApprovalId.get(r.id) ?? selfieByKey.get(dateKey) ?? null)
           : r.kind === "CLOCK_OUT"
             ? clockOutSelfieByKey.get(dateKey) ?? null
             : null
