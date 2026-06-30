@@ -130,9 +130,40 @@ export class YtdImportConflictError extends Error {
   }
 }
 
+/**
+ * Preview-only pass: returns the workbook's column headers classified
+ * (mandatory / optional-legacy / standard-category / unknown / name+id).
+ * The import dialog calls this when the admin picks a file so it can
+ * surface a mapping UI for any UNKNOWN headers. Doesn't read data rows
+ * and writes nothing to the DB. No conflict checks. Cheap.
+ */
+export async function previewYtdImportColumns(input: {
+  file: Buffer
+}): Promise<import("./report-renderers/ytd-import-parser").YtdImportColumnsPreview> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    throw new Error("Session expired. Please log in again.")
+  }
+  // Admin gate is the only auth check — we don't read any DB data, so
+  // no org-scope check is needed for the preview itself.
+  const { previewYtdImportColumns: preview } = await import(
+    "./report-renderers/ytd-import-parser"
+  )
+  return preview(input.file)
+}
+
 export async function importYtdPayrollHistory(input: {
   file: Buffer
   year: number
+  /// Optional per-header overrides. Lets the admin map non-standard
+  /// column names (e.g. "OT 1.5x" from a migrated payroll system) onto
+  /// a known PayrollAdjustmentCategory. Keys are the **normalized**
+  /// header text (lowercase, trimmed, whitespace-collapsed — see
+  /// `normalizeHeader()` in the parser). Two distinct headers mapped
+  /// to the same category get summed at calc time (each becomes its
+  /// own customLineItem; both buckets add into the same totalAllowances
+  /// / totalDeductions / totalReimbursements aggregate).
+  columnOverrides?: import("./report-renderers/ytd-import-parser").YtdImportColumnOverrides
 }): Promise<YtdImportSummary> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
@@ -157,8 +188,10 @@ export async function importYtdPayrollHistory(input: {
     parserErrors: [],
   }
 
-  // 1. Parse the workbook.
-  const parsed = await parseYtdImport(input.file)
+  // 1. Parse the workbook (with admin-supplied column overrides if any).
+  const parsed = await parseYtdImport(input.file, {
+    columnOverrides: input.columnOverrides,
+  })
   summary.parserWarnings.push(...parsed.warnings)
   summary.parserErrors.push(...parsed.errors)
   if (parsed.errors.length > 0) {

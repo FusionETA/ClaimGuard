@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   AlertTriangle,
   CheckCircle2,
@@ -14,12 +14,20 @@ import {
 import {
   getYtdImportYearContextAction,
   importYtdPayrollHistoryAction,
+  previewYtdImportColumnsAction,
 } from "@/app/(admin)/admin/payroll/runs/actions"
 import type {
   YtdImportActionResult,
+  YtdImportColumnInfoShape,
   YtdImportSummaryShape,
   YtdImportYearContext,
 } from "@/app/(admin)/admin/payroll/runs/form-state"
+import {
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  payrollAdjustmentCategories,
+  type PayrollAdjustmentCategory,
+} from "@/modules/payroll/domain/models"
+import { NativeSelect } from "@/components/admin/payroll-form-controls"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -82,6 +90,19 @@ export function PayrollYtdImportDialog({
     null,
   )
   const [yearContextLoading, setYearContextLoading] = useState(false)
+  // Column preview + mapping state — populated when the admin picks a
+  // file. `unknownColumns` drives whether the mapping UI renders at
+  // all (it's hidden when every column auto-matched). `mapping` is
+  // keyed by the column's NORMALIZED header text (matches the parser
+  // side); value is a category code or "SKIP".
+  const [columnPreview, setColumnPreview] = useState<
+    YtdImportColumnInfoShape[] | null
+  >(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewError, setPreviewError] = useState<string | null>(null)
+  const [mapping, setMapping] = useState<
+    Record<string, PayrollAdjustmentCategory | "SKIP">
+  >({})
   const { toast } = useToast()
 
   const yearNum = Number(year)
@@ -91,6 +112,9 @@ export function PayrollYtdImportDialog({
   function reset() {
     setFile(null)
     setResult(null)
+    setColumnPreview(null)
+    setPreviewError(null)
+    setMapping({})
   }
 
   function handleOpenChange(next: boolean) {
@@ -193,16 +217,68 @@ export function PayrollYtdImportDialog({
     }
     setFile(next)
     setResult(null)
+    setColumnPreview(null)
+    setPreviewError(null)
+    setMapping({})
+    if (next) void runColumnPreview(next)
   }
+
+  async function runColumnPreview(picked: File) {
+    setPreviewLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", picked)
+      const r = await previewYtdImportColumnsAction(formData)
+      if (r.ok) {
+        setColumnPreview(r.columns)
+        // Pre-fill mapping: every UNKNOWN column starts unmapped (empty
+        // string = "pick a category"). Admin sees an inline dropdown
+        // for each. Auto-matched columns aren't in the mapping dict at
+        // all — they continue to flow through the existing auto-detect
+        // path in the parser, no override needed.
+        setMapping({})
+      } else {
+        setPreviewError(r.message)
+      }
+    } catch (err) {
+      setPreviewError(
+        err instanceof Error ? err.message : "Couldn't read column headers.",
+      )
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
+  // Unknown headers awaiting an admin decision (no override picked yet,
+  // not even "Skip"). Used to gate the Import button so they can't
+  // ship an import with unmapped columns silently dropped.
+  const unknownColumns = columnPreview
+    ? columnPreview.filter((c) => c.autoMatch.kind === "unknown")
+    : []
+  const unmappedUnknownCount = unknownColumns.filter(
+    (c) => !mapping[c.normalized],
+  ).length
 
   async function handleImport() {
     if (!file || !yearValid || importing) return
+    if (unmappedUnknownCount > 0) {
+      toast({
+        title: `Map or skip ${unmappedUnknownCount} unknown column${
+          unmappedUnknownCount === 1 ? "" : "s"
+        } before importing.`,
+        variant: "error",
+      })
+      return
+    }
     setImporting(true)
     setResult(null)
     try {
       const formData = new FormData()
       formData.append("year", String(yearNum))
       formData.append("file", file)
+      if (Object.keys(mapping).length > 0) {
+        formData.append("columnOverrides", JSON.stringify(mapping))
+      }
       const r = await importYtdPayrollHistoryAction(formData)
       setResult(r)
       if (r.ok) {
@@ -377,7 +453,39 @@ export function PayrollYtdImportDialog({
                 {Math.round(file.size / 1024)} KB)
               </p>
             )}
+            {previewLoading && (
+              <p className="text-[11px] text-muted-foreground">
+                <Loader2 className="mr-1 inline h-3 w-3 animate-spin" />
+                Reading column headers…
+              </p>
+            )}
+            {previewError && (
+              <p className="text-[11px] text-destructive">{previewError}</p>
+            )}
           </section>
+
+          {/* Column mapping — only when there are UNKNOWN headers the
+              parser couldn't auto-match. Customers using our template
+              never see this section because every header auto-matches.
+              Customers importing from another platform see one dropdown
+              per non-standard column (e.g. "OT 1.5x") and pick which of
+              our categories to route it through, or skip it.
+              Multiple columns mapped to the same category get summed
+              automatically per employee per month. */}
+          {unknownColumns.length > 0 && (
+            <ColumnMappingPanel
+              columns={unknownColumns}
+              mapping={mapping}
+              onChange={(normalized, value) =>
+                setMapping((prev) => {
+                  const next = { ...prev }
+                  if (!value) delete next[normalized]
+                  else next[normalized] = value
+                  return next
+                })
+              }
+            />
+          )}
 
           {/* Result summary — only after a real attempt. */}
           {result && <ResultPanel result={result} />}
@@ -392,6 +500,112 @@ export function PayrollYtdImportDialog({
     </Dialog>
   )
 }
+
+// ─── Column mapping panel ──────────────────────────────────────────
+
+/**
+ * Inline mapping UI shown when the uploaded XLSX has columns whose
+ * headers don't match any of our known names. One row per unknown
+ * column with a dropdown of the ~37 PayrollAdjustmentCategory options
+ * plus a "Skip this column" choice. Admin must pick something for
+ * every row before the Import button accepts the submission.
+ *
+ * Mapped columns become customLineItems in the imported payslip with
+ * the statutory flags + kind + nonCash of the chosen category. Two
+ * columns mapped to the same category sum into the same bucket per
+ * employee per month (e.g. "OT 1.5x" + "OT 2.0x" → wages_other_allowance
+ * sums into one total).
+ */
+function ColumnMappingPanel({
+  columns,
+  mapping,
+  onChange,
+}: {
+  columns: YtdImportColumnInfoShape[]
+  mapping: Record<string, PayrollAdjustmentCategory | "SKIP">
+  onChange: (
+    normalizedHeader: string,
+    next: PayrollAdjustmentCategory | "SKIP" | null,
+  ) => void
+}) {
+  // Group categories by their `group` field for the dropdown's
+  // <optgroup>s. Skips the "Compulsory" / mandatory groups since
+  // mandatory columns aren't overridable.
+  const groupedCategories = useMemo(() => {
+    const out = new Map<string, PayrollAdjustmentCategory[]>()
+    for (const code of payrollAdjustmentCategories) {
+      const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[code]
+      if (!meta) continue
+      const list = out.get(meta.group) ?? []
+      list.push(code)
+      out.set(meta.group, list)
+    }
+    return out
+  }, [])
+
+  return (
+    <section className="space-y-2 rounded-lg border border-amber-300/60 bg-amber-50/40 p-4 dark:border-amber-700/40 dark:bg-amber-950/15">
+      <header className="flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+        <h3 className="text-sm font-semibold">
+          Map {columns.length} unknown column
+          {columns.length === 1 ? "" : "s"}
+        </h3>
+      </header>
+      <p className="text-xs text-muted-foreground">
+        Your file has column headers we don&apos;t recognise. Pick a
+        matching category for each (or skip the column). Multiple
+        columns mapped to the same category will be summed per
+        employee per month.
+      </p>
+      <div className="space-y-2 pt-1">
+        {columns.map((col) => {
+          const current = mapping[col.normalized] ?? ""
+          return (
+            <div
+              key={col.normalized}
+              className="grid items-center gap-2 sm:grid-cols-[1fr_1.4fr]"
+            >
+              <div className="text-xs">
+                <span className="font-mono font-semibold">{col.rawText}</span>
+              </div>
+              <NativeSelect
+                aria-label={`Map column ${col.rawText}`}
+                value={current}
+                onChange={(e) => {
+                  const v = e.target.value
+                  if (!v) onChange(col.normalized, null)
+                  else if (v === "SKIP") onChange(col.normalized, "SKIP")
+                  else onChange(col.normalized, v as PayrollAdjustmentCategory)
+                }}
+              >
+                <option value="">— Select category —</option>
+                <option value="SKIP">Skip this column</option>
+                {Array.from(groupedCategories.entries()).map(
+                  ([group, codes]) => (
+                    <optgroup key={group} label={group}>
+                      {codes.map((code) => {
+                        const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[code]
+                        return (
+                          <option key={code} value={code}>
+                            {meta.label} ({meta.kind.toLowerCase()})
+                          </option>
+                        )
+                      })}
+                    </optgroup>
+                  ),
+                )}
+              </NativeSelect>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+// Need useMemo on the import line
+// (added above to keep the diff small; this comment is a marker)
 
 // ─── Year context warnings ─────────────────────────────────────────
 

@@ -36,3 +36,23 @@ export type YtdImportYearContext = {
   importedMonths: number[]
   computedMonths: number[]
 }
+
+/**
+ * Client-friendly mirror of one column's classification (parser-side
+ * `YtdImportColumnInfo`). Re-declared here so the dialog can import
+ * without dragging the server-only parser into the browser bundle.
+ */
+export type YtdImportColumnInfoShape = {
+  rawText: string
+  normalized: string
+  autoMatch:
+    | { kind: "mandatory"; amountKey: string }
+    | { kind: "optionalLegacy"; amountKey: string }
+    | { kind: "standardCategory"; categoryCode: string }
+    | { kind: "nameOrId" }
+    | { kind: "unknown" }
+}
+
+export type YtdImportColumnsPreviewResult =
+  | { ok: true; columns: YtdImportColumnInfoShape[] }
+  | { ok: false; message: string }

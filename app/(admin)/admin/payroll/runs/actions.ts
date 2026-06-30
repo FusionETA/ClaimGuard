@@ -8,13 +8,19 @@ import { z } from "zod"
 import type { BaseFormState } from "@/lib/form-state"
 import type {
   YtdImportActionResult,
+  YtdImportColumnsPreviewResult,
   YtdImportYearContext,
 } from "@/app/(admin)/admin/payroll/runs/form-state"
 import {
   getYtdImportYearContext,
   importYtdPayrollHistory,
+  previewYtdImportColumns,
   YtdImportConflictError,
 } from "@/modules/payroll/application/services/payroll-ytd-import.service"
+import {
+  type PayrollAdjustmentCategory,
+  payrollAdjustmentCategories,
+} from "@/modules/payroll/domain/models"
 import {
   buildPayrollSyncPreview,
   type PayrollSyncPreviewResult,
@@ -536,10 +542,46 @@ export async function importYtdPayrollHistoryAction(
   const arrayBuffer = await fileEntry.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
 
+  // Optional admin-supplied mapping for unknown columns (e.g. when
+  // migrating from another payroll system whose column names don't
+  // match ours). Sent from the dialog as JSON in the `columnOverrides`
+  // field. Keys are NORMALIZED header text (matches the parser's
+  // `normalizeHeader()` convention); values are either a
+  // PayrollAdjustmentCategory code or the literal string "SKIP".
+  // Silently ignored if absent or malformed — the parser still runs
+  // with auto-detect for everything else.
+  const overridesRaw = formData.get("columnOverrides")
+  let columnOverrides:
+    | Record<string, PayrollAdjustmentCategory | "SKIP">
+    | undefined
+  if (typeof overridesRaw === "string" && overridesRaw.trim().length > 0) {
+    try {
+      const obj = JSON.parse(overridesRaw)
+      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+        const sanitised: Record<string, PayrollAdjustmentCategory | "SKIP"> = {}
+        const validCodes = new Set<string>(payrollAdjustmentCategories)
+        for (const [k, v] of Object.entries(obj)) {
+          if (typeof k !== "string" || typeof v !== "string") continue
+          if (v === "SKIP") {
+            sanitised[k] = "SKIP"
+          } else if (validCodes.has(v)) {
+            sanitised[k] = v as PayrollAdjustmentCategory
+          }
+        }
+        if (Object.keys(sanitised).length > 0) columnOverrides = sanitised
+      }
+    } catch {
+      // Bad JSON — silently fall through to "no overrides". The dialog
+      // controls this payload, so a malformed value is a bug, not a
+      // user-facing error.
+    }
+  }
+
   try {
     const summary = await importYtdPayrollHistory({
       file: buffer,
       year: parsedMeta.data.year,
+      columnOverrides,
     })
     revalidatePath("/admin/payroll/runs")
     revalidatePath("/admin/payroll")
@@ -565,6 +607,41 @@ export async function importYtdPayrollHistoryAction(
     return {
       ok: false,
       message: safeErrorMessage(err, "Couldn't process the uploaded file."),
+    }
+  }
+}
+
+/**
+ * Server action invoked the moment the admin picks a file in the
+ * import dialog. Reads the uploaded XLSX's header row and returns a
+ * classified list of every column so the dialog can render a mapping
+ * UI for any UNKNOWN headers. Does NOT touch the DB.
+ */
+export async function previewYtdImportColumnsAction(
+  formData: FormData,
+): Promise<YtdImportColumnsPreviewResult> {
+  const fileEntry = formData.get("file")
+  if (!(fileEntry instanceof File) || fileEntry.size === 0) {
+    return { ok: false, message: "Pick the filled-in XLSX file first." }
+  }
+  if (fileEntry.size > 10 * 1024 * 1024) {
+    return {
+      ok: false,
+      message: "File is over 10 MB — split it into smaller batches.",
+    }
+  }
+  const arrayBuffer = await fileEntry.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+  try {
+    const preview = await previewYtdImportColumns({ file: buffer })
+    if (preview.errors.length > 0) {
+      return { ok: false, message: preview.errors[0] ?? "Couldn't parse file." }
+    }
+    return { ok: true, columns: preview.columns }
+  } catch (err) {
+    return {
+      ok: false,
+      message: safeErrorMessage(err, "Couldn't read column headers."),
     }
   }
 }

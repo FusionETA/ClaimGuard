@@ -167,8 +167,39 @@ const ID_HEADER = "personal id"
 
 // ─── Entry point ────────────────────────────────────────────────────
 
+/**
+ * Optional mapping for columns whose header text isn't recognized
+ * automatically. Keyed by the **normalized** header text (lowercase,
+ * whitespace-collapsed — use `normalizeHeader()`). Value is either a
+ * PayrollAdjustmentCategory code (column data becomes a customLineItem
+ * routed via that category's meta) or "SKIP" (column ignored, no
+ * warning emitted).
+ *
+ * Mandatory headers (basic salary / EPF / SOCSO / EIS / PCB / HRDF)
+ * are NEVER overridable — they always auto-detect from
+ * MANDATORY_HEADER_TO_KEY.
+ *
+ * When two distinct headers map to the same category code, the parser
+ * sums their per-employee per-month values into ONE customLineItem
+ * for that category (de-duplicates at extraction time).
+ */
+export type YtdImportColumnOverrides = Record<
+  string,
+  PayrollAdjustmentCategory | "SKIP"
+>
+
+/**
+ * Lower-case + trim + collapse internal whitespace. Mirror what the
+ * parser's auto-detect comparison does, so the UI's mapping keys
+ * match a column header even if the admin typed `"  Phone   Allowance "`.
+ */
+export function normalizeHeader(raw: string): string {
+  return raw.trim().toLowerCase().replace(/\s+/g, " ")
+}
+
 export async function parseYtdImport(
   buffer: Buffer,
+  options?: { columnOverrides?: YtdImportColumnOverrides },
 ): Promise<ParsedYtdImport> {
   const out: ParsedYtdImport = { rows: [], warnings: [], errors: [] }
 
@@ -203,7 +234,7 @@ export async function parseYtdImport(
   }
 
   // Locate the header row + map column index → amount key.
-  const header = findHeaderRow(editSheet)
+  const header = findHeaderRow(editSheet, options?.columnOverrides)
   if (!header) {
     out.errors.push(
       'Couldn\'t find the header row. Expected "Full Name" and "Personal ID" on the same row.',
@@ -377,7 +408,10 @@ type HeaderMap = {
   unknownHeaders: string[]
 }
 
-function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
+function findHeaderRow(
+  ws: ExcelJS.Worksheet,
+  overrides?: YtdImportColumnOverrides,
+): HeaderMap | null {
   // Scan the first 20 rows for a row that contains both NAME_HEADER
   // and ID_HEADER.
   const maxScan = Math.min(20, ws.rowCount)
@@ -400,6 +434,7 @@ function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
       const rawCell = cellToString(row.getCell(c).value).trim()
       if (!rawCell) continue
       const text = rawCell.toLowerCase()
+      const normalised = normalizeHeader(rawCell)
       if (text === NAME_HEADER || text === ID_HEADER) continue
       const mandatoryKey =
         (MANDATORY_HEADER_TO_KEY as Record<string, string>)[text]
@@ -430,6 +465,26 @@ function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
         })
         continue
       }
+      // Last-resort: admin-supplied override mapping for this column
+      // header. Lets a customer migrating from another platform map
+      // their non-standard column names (e.g. "OT 1.5x") onto one of
+      // our standard categories without renaming the XLSX.
+      // "SKIP" silently drops the column (no warning).
+      const override = overrides?.[normalised]
+      if (override === "SKIP") {
+        continue
+      }
+      if (override) {
+        const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[override]
+        if (meta) {
+          categoryColumns.push({
+            categoryCode: override,
+            label: meta.label,
+            colNum: c,
+          })
+          continue
+        }
+      }
       // Capture the ORIGINAL casing so the warning reads naturally
       // ("Annual Bonu" → admin can see the typo).
       unknownHeaders.push(rawCell)
@@ -444,6 +499,145 @@ function findHeaderRow(ws: ExcelJS.Worksheet): HeaderMap | null {
     }
   }
   return null
+}
+
+// ─── Column-headers preview ─────────────────────────────────────────
+
+/**
+ * One column found in the uploaded XLSX, classified for the mapping UI.
+ */
+export type YtdImportColumnInfo = {
+  /// Original raw header text as the admin typed it (preserves casing
+  /// for display).
+  rawText: string
+  /// Lowercase + trim + collapsed-whitespace form. Use this as the key
+  /// in `YtdImportColumnOverrides` so the parser sees the same key
+  /// the UI saved.
+  normalized: string
+  /// How the parser would classify this header today (without any
+  /// admin override). Drives whether the UI even surfaces this header
+  /// in the mapping section.
+  autoMatch:
+    | { kind: "mandatory"; amountKey: string }
+    | { kind: "optionalLegacy"; amountKey: string }
+    | { kind: "standardCategory"; categoryCode: PayrollAdjustmentCategory }
+    | { kind: "nameOrId" }
+    | { kind: "unknown" }
+}
+
+export type YtdImportColumnsPreview = {
+  /// All non-NAME/ID column headers found, in workbook column order.
+  columns: YtdImportColumnInfo[]
+  /// Parser-level errors (couldn't open file / no data sheet / no
+  /// header row). When non-empty, `columns` is best-effort.
+  errors: string[]
+}
+
+/**
+ * Read the uploaded XLSX, locate the data sheet's header row, and
+ * return a classified list of every column header found. Used by the
+ * import dialog to render a mapping UI for unknown headers BEFORE the
+ * admin commits the import. Doesn't read any data rows — preview-only.
+ */
+export async function previewYtdImportColumns(
+  buffer: Buffer,
+): Promise<YtdImportColumnsPreview> {
+  const out: YtdImportColumnsPreview = { columns: [], errors: [] }
+
+  let wb: ExcelJS.Workbook
+  try {
+    wb = new ExcelJS.Workbook()
+    const ab = buffer.buffer.slice(
+      buffer.byteOffset,
+      buffer.byteOffset + buffer.byteLength,
+    ) as ArrayBuffer
+    await wb.xlsx.load(ab)
+  } catch (err) {
+    out.errors.push(
+      `Couldn't open file as an XLSX workbook: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    )
+    return out
+  }
+
+  const editSheet = findEditSheet(wb)
+  if (!editSheet) {
+    out.errors.push(
+      "Couldn't find the YTD data sheet. Expected a tab starting with ✏️.",
+    )
+    return out
+  }
+
+  // Find the header row the same way parseYtdImport does: scan first
+  // 20 rows for one with both NAME_HEADER and ID_HEADER cells.
+  const maxScan = Math.min(20, editSheet.rowCount)
+  for (let r = 1; r <= maxScan; r++) {
+    const row = editSheet.getRow(r)
+    let nameCol = 0
+    let idCol = 0
+    for (let c = 1; c <= editSheet.columnCount; c++) {
+      const v = cellToString(row.getCell(c).value).toLowerCase().trim()
+      if (v === NAME_HEADER) nameCol = c
+      else if (v === ID_HEADER) idCol = c
+    }
+    if (nameCol === 0 || idCol === 0) continue
+
+    // Found header row — classify every cell on it.
+    for (let c = 1; c <= editSheet.columnCount; c++) {
+      const rawCell = cellToString(row.getCell(c).value).trim()
+      if (!rawCell) continue
+      const text = rawCell.toLowerCase()
+      const normalized = normalizeHeader(rawCell)
+      if (text === NAME_HEADER || text === ID_HEADER) {
+        out.columns.push({
+          rawText: rawCell,
+          normalized,
+          autoMatch: { kind: "nameOrId" },
+        })
+        continue
+      }
+      const mandatoryKey =
+        (MANDATORY_HEADER_TO_KEY as Record<string, string>)[text]
+      if (mandatoryKey) {
+        out.columns.push({
+          rawText: rawCell,
+          normalized,
+          autoMatch: { kind: "mandatory", amountKey: mandatoryKey },
+        })
+        continue
+      }
+      const optionalKey = OPTIONAL_HEADER_TO_KEY[text]
+      if (optionalKey) {
+        out.columns.push({
+          rawText: rawCell,
+          normalized,
+          autoMatch: { kind: "optionalLegacy", amountKey: optionalKey },
+        })
+        continue
+      }
+      const categoryCode = CATEGORY_LABEL_TO_CODE.get(text)
+      if (categoryCode) {
+        out.columns.push({
+          rawText: rawCell,
+          normalized,
+          autoMatch: { kind: "standardCategory", categoryCode },
+        })
+        continue
+      }
+      out.columns.push({
+        rawText: rawCell,
+        normalized,
+        autoMatch: { kind: "unknown" },
+      })
+    }
+    return out
+  }
+
+  out.errors.push(
+    'Couldn\'t find the header row. Expected "Full Name" and "Personal ID" on the same row.',
+  )
+  return out
 }
 
 // ─── Cell coercion ──────────────────────────────────────────────────
