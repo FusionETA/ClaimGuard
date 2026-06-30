@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 import type { PayrollEmployeeRow } from "@/modules/payroll/domain/models"
 
 type PayrollState = "complete" | "incomplete" | "archived"
@@ -41,6 +42,11 @@ export function PayrollEmployeeListTables({
   const [query, setQuery] = useState("")
   const [setupPage, setSetupPage] = useState(1)
   const [readyPage, setReadyPage] = useState(1)
+  // Active vs Archived tab. Defaults to Active so admins land on the
+  // employees that affect the upcoming payroll run. Archived list lives
+  // behind its own tab so admins don't accidentally scroll past their
+  // working set of active employees to reach it.
+  const [activeTab, setActiveTab] = useState<"active" | "archived">("active")
   const normalizedQuery = query.trim().toLowerCase()
 
   const complete = useMemo(
@@ -87,8 +93,14 @@ export function PayrollEmployeeListTables({
     )
   }
 
+  const activeCount = complete.length + incomplete.length
+  const archivedCount = archived.length
+  const filteredActiveTotal =
+    filteredComplete.length + filteredIncomplete.length
   const filteredTotal =
-    filteredComplete.length + filteredIncomplete.length + filteredArchived.length
+    activeTab === "active" ? filteredActiveTotal : filteredArchived.length
+  const tabbedTotalCount =
+    activeTab === "active" ? activeCount : archivedCount
 
   const setupTotalPages = Math.max(
     1,
@@ -112,8 +124,52 @@ export function PayrollEmployeeListTables({
     readySliceStart + PAGE_SIZE,
   )
 
+  const tabs: Array<{
+    value: "active" | "archived"
+    label: string
+    count: number
+  }> = [
+    { value: "active", label: "Active", count: activeCount },
+    { value: "archived", label: "Archived", count: archivedCount },
+  ]
+
   return (
     <div className="space-y-6">
+      {/* Active vs Archived tab strip. Pill style — matches the
+          settings page's mobile sub-nav. Counts shown so admins can
+          tell at a glance how many sit in each bucket. */}
+      <div className="flex gap-2">
+        {tabs.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            onClick={() => {
+              setActiveTab(tab.value)
+              setSetupPage(1)
+              setReadyPage(1)
+            }}
+            className={cn(
+              "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+              activeTab === tab.value
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {tab.label}
+            <span
+              className={cn(
+                "ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                activeTab === tab.value
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              {tab.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
       <Card>
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div className="relative w-full sm:max-w-md">
@@ -132,13 +188,14 @@ export function PayrollEmployeeListTables({
           <p className="text-sm text-muted-foreground">
             Showing{" "}
             <span className="font-semibold text-foreground">{filteredTotal}</span>{" "}
-            of <span className="font-semibold text-foreground">{employees.length}</span>{" "}
-            employees
+            of <span className="font-semibold text-foreground">{tabbedTotalCount}</span>{" "}
+            {activeTab === "active" ? "active" : "archived"} employee
+            {tabbedTotalCount === 1 ? "" : "s"}
           </p>
         </CardContent>
       </Card>
 
-      {filteredIncomplete.length > 0 ? (
+      {activeTab === "active" && filteredIncomplete.length > 0 ? (
         <Card className="border-amber-300/60 bg-amber-50/40 dark:border-amber-700/40 dark:bg-amber-950/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -170,7 +227,7 @@ export function PayrollEmployeeListTables({
         </Card>
       ) : null}
 
-      {filteredComplete.length > 0 ? (
+      {activeTab === "active" && filteredComplete.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -201,10 +258,10 @@ export function PayrollEmployeeListTables({
         </Card>
       ) : null}
 
-      {archived.length > 0 ? (
-        <Card className="opacity-70">
+      {activeTab === "archived" && archived.length > 0 ? (
+        <Card>
           <CardHeader>
-            <CardTitle className="text-base">Archived</CardTitle>
+            <CardTitle className="text-base">Archived employees</CardTitle>
             <CardDescription>
               Excluded from new payroll runs. Click to view historical
               payslips or un-archive.
@@ -217,6 +274,34 @@ export function PayrollEmployeeListTables({
               state="archived"
             />
           </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Empty-tab hint: tab is selected but there's nothing in it.
+          Without this the page just looks blank below the tab strip. */}
+      {activeTab === "active" &&
+      filteredIncomplete.length === 0 &&
+      filteredComplete.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">No active employees</CardTitle>
+            <CardDescription>
+              {query.trim().length > 0
+                ? "No active employees match your search."
+                : "All employees are archived. Switch to the Archived tab to view them."}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      ) : null}
+      {activeTab === "archived" && archived.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">No archived employees</CardTitle>
+            <CardDescription>
+              When you archive an employee from their profile page they
+              show up here.
+            </CardDescription>
+          </CardHeader>
         </Card>
       ) : null}
     </div>
