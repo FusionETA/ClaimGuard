@@ -529,16 +529,26 @@ export function AdminShell({
                           {org.name}
                         </SelectItem>
                       ))}
-                      <SelectSeparator />
-                      <SelectItem
-                        value={ADD_COMPANY_SENTINEL}
-                        className="font-semibold text-primary focus:text-primary"
-                      >
-                        <span className="inline-flex items-center gap-2">
-                          <Plus className="h-4 w-4" />
-                          Add company
-                        </span>
-                      </SelectItem>
+                      {/* SSO sessions can't add new companies here — the
+                          partner system (Altomate Accounting) provisions
+                          organisations server-to-server via
+                          POST /api/v1/admin/organizations. Letting the
+                          customer create one through our UI would diverge
+                          from the partner's source of truth. */}
+                      {user.loggedInViaSso ? null : (
+                        <>
+                          <SelectSeparator />
+                          <SelectItem
+                            value={ADD_COMPANY_SENTINEL}
+                            className="font-semibold text-primary focus:text-primary"
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <Plus className="h-4 w-4" />
+                              Add company
+                            </span>
+                          </SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
