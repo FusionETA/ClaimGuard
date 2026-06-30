@@ -436,11 +436,34 @@ function findHeaderRow(
       const text = rawCell.toLowerCase()
       const normalised = normalizeHeader(rawCell)
       if (text === NAME_HEADER || text === ID_HEADER) continue
+      // Mandatory columns are never overridable — re-routing Basic
+      // Salary / EPF / SOCSO / PCB would break the calc engine.
       const mandatoryKey =
         (MANDATORY_HEADER_TO_KEY as Record<string, string>)[text]
       if (mandatoryKey) {
         colByKey.set(mandatoryKey, c)
         continue
+      }
+      // Admin-supplied override comes BEFORE auto-detect for everything
+      // except mandatory columns — admin's explicit choice wins over
+      // the auto-matched optional/standard-category mapping. Lets them
+      // override even our own template's recognized columns (e.g.
+      // re-route "Bonus" to `wages_bonus_annual` instead of the legacy
+      // bonus scalar). "SKIP" silently drops the column (no warning).
+      const override = overrides?.[normalised]
+      if (override === "SKIP") {
+        continue
+      }
+      if (override) {
+        const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[override]
+        if (meta) {
+          categoryColumns.push({
+            categoryCode: override,
+            label: meta.label,
+            colNum: c,
+          })
+          continue
+        }
       }
       const optionalKey = OPTIONAL_HEADER_TO_KEY[text]
       if (optionalKey) {
@@ -464,26 +487,6 @@ function findHeaderRow(
           colNum: c,
         })
         continue
-      }
-      // Last-resort: admin-supplied override mapping for this column
-      // header. Lets a customer migrating from another platform map
-      // their non-standard column names (e.g. "OT 1.5x") onto one of
-      // our standard categories without renaming the XLSX.
-      // "SKIP" silently drops the column (no warning).
-      const override = overrides?.[normalised]
-      if (override === "SKIP") {
-        continue
-      }
-      if (override) {
-        const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[override]
-        if (meta) {
-          categoryColumns.push({
-            categoryCode: override,
-            label: meta.label,
-            colNum: c,
-          })
-          continue
-        }
       }
       // Capture the ORIGINAL casing so the warning reads naturally
       // ("Annual Bonu" → admin can see the typo).

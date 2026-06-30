@@ -249,14 +249,18 @@ export function PayrollYtdImportDialog({
     }
   }
 
-  // Unknown headers awaiting an admin decision (no override picked yet,
-  // not even "Skip"). Used to gate the Import button so they can't
-  // ship an import with unmapped columns silently dropped.
-  const unknownColumns = columnPreview
-    ? columnPreview.filter((c) => c.autoMatch.kind === "unknown")
+  // Renderable columns for the mapping panel: every column except
+  // Full Name / Personal ID. Mandatory ones display as locked,
+  // auto-matched ones display pre-filled but editable, unknown ones
+  // require an explicit choice.
+  const mappableColumns = columnPreview
+    ? columnPreview.filter((c) => c.autoMatch.kind !== "nameOrId")
     : []
-  const unmappedUnknownCount = unknownColumns.filter(
-    (c) => !mapping[c.normalized],
+  // Unknown headers awaiting an admin decision (no override picked yet,
+  // not even "Skip"). Gate the Import button so they can't ship an
+  // import with unmapped columns silently dropped.
+  const unmappedUnknownCount = mappableColumns.filter(
+    (c) => c.autoMatch.kind === "unknown" && !mapping[c.normalized],
   ).length
 
   async function handleImport() {
@@ -464,17 +468,18 @@ export function PayrollYtdImportDialog({
             )}
           </section>
 
-          {/* Column mapping — only when there are UNKNOWN headers the
-              parser couldn't auto-match. Customers using our template
-              never see this section because every header auto-matches.
-              Customers importing from another platform see one dropdown
-              per non-standard column (e.g. "OT 1.5x") and pick which of
-              our categories to route it through, or skip it.
-              Multiple columns mapped to the same category get summed
-              automatically per employee per month. */}
-          {unknownColumns.length > 0 && (
+          {/* Column mapping — always rendered after a file is picked.
+              Shows every column in the file so admin can see what was
+              auto-detected and override if they want. Mandatory (e.g.
+              Basic Salary, EPF) are locked — overriding them would
+              break the calc. Auto-matched optional columns are pre-
+              filled but editable. Unknown columns require an explicit
+              choice (Import button blocked until each is decided).
+              Multiple columns mapped to the same category sum per
+              employee per month. */}
+          {mappableColumns.length > 0 && (
             <ColumnMappingPanel
-              columns={unknownColumns}
+              columns={mappableColumns}
               mapping={mapping}
               onChange={(normalized, value) =>
                 setMapping((prev) => {
@@ -504,17 +509,25 @@ export function PayrollYtdImportDialog({
 // ─── Column mapping panel ──────────────────────────────────────────
 
 /**
- * Inline mapping UI shown when the uploaded XLSX has columns whose
- * headers don't match any of our known names. One row per unknown
- * column with a dropdown of the ~37 PayrollAdjustmentCategory options
- * plus a "Skip this column" choice. Admin must pick something for
- * every row before the Import button accepts the submission.
+ * Inline mapping UI rendered after a file is picked. Shows every
+ * non-name/id column with one of three behaviours:
  *
- * Mapped columns become customLineItems in the imported payslip with
- * the statutory flags + kind + nonCash of the chosen category. Two
- * columns mapped to the same category sum into the same bucket per
- * employee per month (e.g. "OT 1.5x" + "OT 2.0x" → wages_other_allowance
- * sums into one total).
+ *   1. **Mandatory** (Basic Salary / EPF / SOCSO / PCB / HRDF) —
+ *      locked row, dropdown disabled. Re-routing these would break
+ *      the calc engine, so admin can only see the auto-detect result.
+ *
+ *   2. **Auto-matched optional** (Bonus, Phone Allowance, Annual
+ *      Bonus, etc.) — dropdown defaults to the matched category but
+ *      is editable. Admin can override (e.g. re-route "Bonus" to
+ *      `wages_bonus_annual` instead of the legacy bonus scalar) or
+ *      skip the column entirely.
+ *
+ *   3. **Unknown** — dropdown blank, must select a category or
+ *      "Skip this column". Import button is blocked until every
+ *      unknown row has a decision.
+ *
+ * Multiple columns mapped (or auto-matched) to the same category get
+ * summed per employee per month at calc time.
  */
 function ColumnMappingPanel({
   columns,
@@ -529,8 +542,7 @@ function ColumnMappingPanel({
   ) => void
 }) {
   // Group categories by their `group` field for the dropdown's
-  // <optgroup>s. Skips the "Compulsory" / mandatory groups since
-  // mandatory columns aren't overridable.
+  // <optgroup>s.
   const groupedCategories = useMemo(() => {
     const out = new Map<string, PayrollAdjustmentCategory[]>()
     for (const code of payrollAdjustmentCategories) {
@@ -543,69 +555,146 @@ function ColumnMappingPanel({
     return out
   }, [])
 
+  const unknownCount = columns.filter(
+    (c) => c.autoMatch.kind === "unknown",
+  ).length
+  const headerColor =
+    unknownCount > 0
+      ? "border-amber-300/60 bg-amber-50/40 dark:border-amber-700/40 dark:bg-amber-950/15"
+      : "border-border/60 bg-card/40"
+
   return (
-    <section className="space-y-2 rounded-lg border border-amber-300/60 bg-amber-50/40 p-4 dark:border-amber-700/40 dark:bg-amber-950/15">
+    <section className={cn("space-y-2 rounded-lg border p-4", headerColor)}>
       <header className="flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+        {unknownCount > 0 ? (
+          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+        ) : (
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
+        )}
         <h3 className="text-sm font-semibold">
-          Map {columns.length} unknown column
-          {columns.length === 1 ? "" : "s"}
+          {unknownCount > 0
+            ? `Map ${unknownCount} unknown column${unknownCount === 1 ? "" : "s"}`
+            : "Column mapping"}
         </h3>
       </header>
       <p className="text-xs text-muted-foreground">
-        Your file has column headers we don&apos;t recognise. Pick a
-        matching category for each (or skip the column). Multiple
-        columns mapped to the same category will be summed per
+        Review the auto-detected category for each column. Mandatory
+        columns are locked. Optional columns are editable — leave the
+        dropdown alone to keep the auto-match, or pick a different
+        category to override. Unknown columns must be mapped or skipped
+        before importing.
+        <br />
+        Multiple columns mapped to the same category get summed per
         employee per month.
       </p>
       <div className="space-y-2 pt-1">
         {columns.map((col) => {
+          const kind = col.autoMatch.kind
+          const isMandatory = kind === "mandatory"
+          const isUnknown = kind === "unknown"
           const current = mapping[col.normalized] ?? ""
+
+          // Resolve what category (if any) the auto-detect found, so we
+          // can display it as the "Keep auto-match: X" option and pre-
+          // select it visually when admin hasn't overridden.
+          let autoMatchedLabel: string | null = null
+          let autoMatchedKind: string | null = null
+          if (kind === "mandatory") {
+            autoMatchedLabel = `Statutory · ${col.rawText}`
+            autoMatchedKind = "mandatory"
+          } else if (kind === "optionalLegacy") {
+            autoMatchedLabel = `Legacy column: ${col.autoMatch.amountKey}`
+            autoMatchedKind = "auto"
+          } else if (kind === "standardCategory") {
+            const meta =
+              PAYROLL_ADJUSTMENT_CATEGORY_META[
+                col.autoMatch.categoryCode as PayrollAdjustmentCategory
+              ]
+            autoMatchedLabel = meta?.label ?? col.autoMatch.categoryCode
+            autoMatchedKind = "auto"
+          }
+
           return (
             <div
               key={col.normalized}
               className="grid items-center gap-2 sm:grid-cols-[1fr_1.4fr]"
             >
-              <div className="text-xs">
+              <div className="flex items-center gap-2 text-xs">
                 <span className="font-mono font-semibold">{col.rawText}</span>
-              </div>
-              <NativeSelect
-                aria-label={`Map column ${col.rawText}`}
-                value={current}
-                onChange={(e) => {
-                  const v = e.target.value
-                  if (!v) onChange(col.normalized, null)
-                  else if (v === "SKIP") onChange(col.normalized, "SKIP")
-                  else onChange(col.normalized, v as PayrollAdjustmentCategory)
-                }}
-              >
-                <option value="">— Select category —</option>
-                <option value="SKIP">Skip this column</option>
-                {Array.from(groupedCategories.entries()).map(
-                  ([group, codes]) => (
-                    <optgroup key={group} label={group}>
-                      {codes.map((code) => {
-                        const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[code]
-                        return (
-                          <option key={code} value={code}>
-                            {meta.label} ({meta.kind.toLowerCase()})
-                          </option>
-                        )
-                      })}
-                    </optgroup>
-                  ),
+                {isMandatory ? (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Statutory
+                  </span>
+                ) : isUnknown ? (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-800 dark:bg-amber-950/50 dark:text-amber-200">
+                    Unknown
+                  </span>
+                ) : current ? (
+                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-blue-800 dark:bg-blue-950/50 dark:text-blue-200">
+                    Overridden
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
+                    Auto-matched
+                  </span>
                 )}
-              </NativeSelect>
+              </div>
+              {isMandatory ? (
+                <div className="text-xs text-muted-foreground">
+                  {autoMatchedLabel} — locked
+                </div>
+              ) : (
+                <NativeSelect
+                  aria-label={`Map column ${col.rawText}`}
+                  value={current}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    if (!v) onChange(col.normalized, null)
+                    else if (v === "SKIP") onChange(col.normalized, "SKIP")
+                    else
+                      onChange(
+                        col.normalized,
+                        v as PayrollAdjustmentCategory,
+                      )
+                  }}
+                >
+                  {isUnknown ? (
+                    <option value="">— Select category —</option>
+                  ) : (
+                    <option value="">
+                      Keep auto-match: {autoMatchedLabel}
+                    </option>
+                  )}
+                  <option value="SKIP">Skip this column</option>
+                  {Array.from(groupedCategories.entries()).map(
+                    ([group, codes]) => (
+                      <optgroup key={group} label={group}>
+                        {codes.map((code) => {
+                          const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[code]
+                          return (
+                            <option key={code} value={code}>
+                              {meta.label} ({meta.kind.toLowerCase()})
+                            </option>
+                          )
+                        })}
+                      </optgroup>
+                    ),
+                  )}
+                </NativeSelect>
+              )}
             </div>
           )
         })}
       </div>
+      <p className="pt-1 text-[11px] text-muted-foreground">
+        Tip: <strong>Keep auto-match</strong> on an optional column
+        means the importer uses the detected category. Pick another
+        category to override, or <strong>Skip this column</strong> to
+        ignore it entirely (no warning).
+      </p>
     </section>
   )
 }
-
-// Need useMemo on the import line
-// (added above to keep the diff small; this comment is a marker)
 
 // ─── Year context warnings ─────────────────────────────────────────
 
