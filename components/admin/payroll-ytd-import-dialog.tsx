@@ -81,6 +81,15 @@ export function PayrollYtdImportDialog({
   defaultYear: number
 }) {
   const [open, setOpen] = useState(false)
+  // Two-step flow:
+  //   "upload" — pick year + download template + pick file (auto runs
+  //              column preview as soon as a file is selected)
+  //   "review" — show the auto-detected mapping for every column;
+  //              admin confirms or overrides, then clicks Import.
+  // Result panel lives on the review step (shown after the import
+  // action returns) so the admin can see what they confirmed alongside
+  // any post-import warnings/errors.
+  const [step, setStep] = useState<"upload" | "review">("upload")
   const [year, setYear] = useState<string>(String(defaultYear))
   const [downloading, setDownloading] = useState(false)
   const [file, setFile] = useState<File | null>(null)
@@ -110,6 +119,7 @@ export function PayrollYtdImportDialog({
     Number.isInteger(yearNum) && yearNum >= 2000 && yearNum <= 2100
 
   function reset() {
+    setStep("upload")
     setFile(null)
     setResult(null)
     setColumnPreview(null)
@@ -350,98 +360,210 @@ export function PayrollYtdImportDialog({
             scroll area room to render without clipping against the
             container's left edge — see components/CLAUDE.md. */}
         <div className="nice-scrollbar -mr-2 max-h-[65vh] space-y-5 overflow-y-auto py-2 pl-1 pr-2">
-          {/* Year picker — drives both steps + the context warnings. */}
-          <div className="space-y-1.5">
-            <Label htmlFor="ytd-year">Year of payroll history</Label>
-            <Input
-              id="ytd-year"
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              inputMode="numeric"
-              className="max-w-[140px]"
-              placeholder="2026"
-            />
-            {!yearValid && year.length > 0 && (
-              <p className="text-xs text-destructive">
-                Year must be 4 digits between 2000 and 2100.
-              </p>
-            )}
-          </div>
+          {step === "upload" ? (
+            <>
+              {/* Year picker — drives both steps + the context warnings. */}
+              <div className="space-y-1.5">
+                <Label htmlFor="ytd-year">Year of payroll history</Label>
+                <Input
+                  id="ytd-year"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  inputMode="numeric"
+                  className="max-w-[140px]"
+                  placeholder="2026"
+                />
+                {!yearValid && year.length > 0 && (
+                  <p className="text-xs text-destructive">
+                    Year must be 4 digits between 2000 and 2100.
+                  </p>
+                )}
+              </div>
 
-          {/* Year context warnings — only when the year is valid and
-              we've got data back. */}
-          {yearValid && yearContext && !yearContextLoading && (
-            <YearContextWarnings
-              year={yearNum}
-              importedMonths={importedMonths}
-              computedMonths={computedMonths}
-            />
-          )}
-
-          {/* Step 1 — Download template */}
-          <section className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-4">
-            <header className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
-                1
-              </span>
-              <h3 className="text-sm font-semibold">Download template</h3>
-            </header>
-            <p className="text-xs text-muted-foreground">
-              Pre-filled with your employees and 12 month rows each.
-              Fill in past months&apos; basic salary, PCB, EPF, SOCSO,
-              EIS, HRDF (and optional allowances) for each employee.
-            </p>
-            <Button
-              type="button"
-              variant="default"
-              className="gap-2"
-              onClick={handleDownload}
-              disabled={!yearValid || downloading}
-            >
-              {downloading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
+              {/* Year context warnings — only when the year is valid
+                  and we've got data back. */}
+              {yearValid && yearContext && !yearContextLoading && (
+                <YearContextWarnings
+                  year={yearNum}
+                  importedMonths={importedMonths}
+                  computedMonths={computedMonths}
+                />
               )}
-              {downloading
-                ? "Preparing…"
-                : `Download ${yearValid ? yearNum : ""} template`}
-            </Button>
-          </section>
 
-          {/* Step 2 — Upload filled template */}
-          <section className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-4">
-            <header className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
-                2
-              </span>
-              <h3 className="text-sm font-semibold">Upload filled template</h3>
-            </header>
-            <p className="text-xs text-muted-foreground">
-              Matches each row to an existing employee by NRIC /
-              Passport. Unknown IDs are skipped (we&apos;ll list them).
-              If any month in the file collides with an existing
-              computed run, the whole upload fails — fix the file and
-              re-upload.
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <Input
-                type="file"
-                accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                onChange={handleFileChange}
-                // `cursor-pointer` covers the input's text area;
-                // `file:cursor-pointer` targets the browser-rendered
-                // "Choose file" button inside the input (it's a
-                // pseudo-element and needs its own modifier).
-                className="max-w-xs cursor-pointer file:cursor-pointer"
+              {/* Step 1 — Download template */}
+              <section className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-4">
+                <header className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+                    1
+                  </span>
+                  <h3 className="text-sm font-semibold">Download template</h3>
+                </header>
+                <p className="text-xs text-muted-foreground">
+                  Pre-filled with your employees and 12 month rows
+                  each. Fill in past months&apos; basic salary, PCB,
+                  EPF, SOCSO, EIS, HRDF (and optional allowances) for
+                  each employee.
+                </p>
+                <Button
+                  type="button"
+                  variant="default"
+                  className="gap-2"
+                  onClick={handleDownload}
+                  disabled={!yearValid || downloading}
+                >
+                  {downloading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  {downloading
+                    ? "Preparing…"
+                    : `Download ${yearValid ? yearNum : ""} template`}
+                </Button>
+              </section>
+
+              {/* Step 2 — Upload filled template */}
+              <section className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-4">
+                <header className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+                    2
+                  </span>
+                  <h3 className="text-sm font-semibold">
+                    Upload filled template
+                  </h3>
+                </header>
+                <p className="text-xs text-muted-foreground">
+                  Matches each row to an existing employee by NRIC /
+                  Passport. Unknown IDs are skipped (we&apos;ll list
+                  them). If any month in the file collides with an
+                  existing computed run, the whole upload fails — fix
+                  the file and re-upload.
+                </p>
+                <Input
+                  type="file"
+                  accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  onChange={handleFileChange}
+                  // `cursor-pointer` covers the input's text area;
+                  // `file:cursor-pointer` targets the browser-rendered
+                  // "Choose file" button inside the input (it's a
+                  // pseudo-element and needs its own modifier).
+                  className="max-w-xs cursor-pointer file:cursor-pointer"
+                  disabled={importing}
+                />
+                {file && (
+                  <p className="text-[11px] text-muted-foreground">
+                    Selected:{" "}
+                    <span className="font-mono">{file.name}</span> (
+                    {Math.round(file.size / 1024)} KB)
+                  </p>
+                )}
+                {previewLoading && (
+                  <p className="text-[11px] text-muted-foreground">
+                    <Loader2 className="mr-1 inline h-3 w-3 animate-spin" />
+                    Reading column headers…
+                  </p>
+                )}
+                {previewError && (
+                  <p className="text-[11px] text-destructive">
+                    {previewError}
+                  </p>
+                )}
+              </section>
+            </>
+          ) : (
+            <>
+              {/* Review-mapping step. File picked, columns previewed —
+                  admin confirms or overrides each column's category
+                  before the import actually runs. */}
+              <div className="rounded-lg border border-border/60 bg-card/40 p-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <FileSpreadsheet className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="font-mono">{file?.name}</span>
+                  {file && (
+                    <span className="text-muted-foreground">
+                      ({Math.round(file.size / 1024)} KB)
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-muted-foreground">
+                  Year of payroll history: <strong>{yearNum}</strong>
+                  {willReplaceCount > 0
+                    ? ` · Will replace ${willReplaceCount} existing import${willReplaceCount === 1 ? "" : "s"}`
+                    : ""}
+                </p>
+              </div>
+
+              {mappableColumns.length > 0 ? (
+                <ColumnMappingPanel
+                  columns={mappableColumns}
+                  mapping={mapping}
+                  onChange={(normalized, value) =>
+                    setMapping((prev) => {
+                      const next = { ...prev }
+                      if (!value) delete next[normalized]
+                      else next[normalized] = value
+                      return next
+                    })
+                  }
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No columns to map. Click Import to proceed.
+                </p>
+              )}
+
+              {/* Result summary — appears after a real import attempt. */}
+              {result && <ResultPanel result={result} />}
+            </>
+          )}
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          {step === "upload" ? (
+            <>
+              <DialogClose asChild>
+                <Button variant="ghost">Close</Button>
+              </DialogClose>
+              <Button
+                type="button"
+                variant="default"
+                className="gap-2"
+                onClick={() => setStep("review")}
+                disabled={
+                  !file ||
+                  !yearValid ||
+                  previewLoading ||
+                  !columnPreview ||
+                  Boolean(previewError)
+                }
+              >
+                Next: Review mapping
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setStep("upload")
+                  setResult(null)
+                }}
                 disabled={importing}
-              />
+              >
+                ← Back
+              </Button>
+              <DialogClose asChild>
+                <Button variant="ghost">Close</Button>
+              </DialogClose>
               <Button
                 type="button"
                 variant={willReplaceCount > 0 ? "destructive" : "default"}
                 className="gap-2"
                 onClick={handleImport}
-                disabled={!file || !yearValid || importing}
+                disabled={
+                  !file || !yearValid || importing || unmappedUnknownCount > 0
+                }
               >
                 {importing ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -450,56 +572,8 @@ export function PayrollYtdImportDialog({
                 )}
                 {importButtonLabel}
               </Button>
-            </div>
-            {file && (
-              <p className="text-[11px] text-muted-foreground">
-                Selected: <span className="font-mono">{file.name}</span> (
-                {Math.round(file.size / 1024)} KB)
-              </p>
-            )}
-            {previewLoading && (
-              <p className="text-[11px] text-muted-foreground">
-                <Loader2 className="mr-1 inline h-3 w-3 animate-spin" />
-                Reading column headers…
-              </p>
-            )}
-            {previewError && (
-              <p className="text-[11px] text-destructive">{previewError}</p>
-            )}
-          </section>
-
-          {/* Column mapping — always rendered after a file is picked.
-              Shows every column in the file so admin can see what was
-              auto-detected and override if they want. Mandatory (e.g.
-              Basic Salary, EPF) are locked — overriding them would
-              break the calc. Auto-matched optional columns are pre-
-              filled but editable. Unknown columns require an explicit
-              choice (Import button blocked until each is decided).
-              Multiple columns mapped to the same category sum per
-              employee per month. */}
-          {mappableColumns.length > 0 && (
-            <ColumnMappingPanel
-              columns={mappableColumns}
-              mapping={mapping}
-              onChange={(normalized, value) =>
-                setMapping((prev) => {
-                  const next = { ...prev }
-                  if (!value) delete next[normalized]
-                  else next[normalized] = value
-                  return next
-                })
-              }
-            />
+            </>
           )}
-
-          {/* Result summary — only after a real attempt. */}
-          {result && <ResultPanel result={result} />}
-        </div>
-
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="ghost">Close</Button>
-          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
