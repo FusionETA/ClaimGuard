@@ -8,6 +8,7 @@ import type {
 } from "@/lib/auth/types"
 import { isAdminRole } from "@/lib/auth/types"
 import { buildInitials } from "@/lib/utils"
+import { employeeOrganizationRepository } from "@/modules/organization/infrastructure/employee-organization.repository"
 
 function buildSubtitle(
   role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER",
@@ -83,13 +84,44 @@ export async function authenticateUser({
     }
   }
 
+  // Multi-org employee resolution: read the active EmployeeOrganization
+  // memberships to decide which org the session should land on.
+  //
+  //   0 memberships → pure admin (or edge-case user with no employee
+  //     profile at all). Fall back to `User.organizationId` — same as
+  //     pre-rollout behaviour.
+  //   1 membership  → auto-select that org.
+  //   2+ memberships → leave `activeOrganizationId` UNDEFINED. The
+  //     login-form redirect logic (Phase 3) will detect the missing
+  //     active org and route to /employee/pick-company.
+  //
+  // Admin sessions still use `User.organizationId` as the initial
+  // active org; AdminOrganization is their multi-org switch mechanism
+  // (already implemented via the header org-switcher for admins).
+  let activeOrganizationId: string | undefined
+  if (isAdminRole(user.role)) {
+    activeOrganizationId = user.organizationId ?? undefined
+  } else {
+    const memberships =
+      await employeeOrganizationRepository.listActiveMembershipsForUser(
+        prisma,
+        user.id,
+      )
+    if (memberships.length === 1) {
+      activeOrganizationId = memberships[0]!.organizationId
+    } else if (memberships.length === 0) {
+      activeOrganizationId = user.organizationId ?? undefined
+    }
+    // else 2+ → leave undefined, picker will fill it.
+  }
+
   // Pre-populate the active Xero connection so every downstream query that
   // reads session.activeXeroConnectionId can trust it without re-resolving.
-  // Picks the first connection on the user's organization at login time.
+  // Picks the first connection on the resolved active org at login time.
   let activeXeroConnectionId: string | undefined
-  if (user.organizationId) {
+  if (activeOrganizationId) {
     const firstConnection = await prisma.xeroConnection.findFirst({
-      where: { organizationId: user.organizationId },
+      where: { organizationId: activeOrganizationId },
       orderBy: { createdAt: "asc" },
       select: { id: true },
     })
@@ -108,7 +140,7 @@ export async function authenticateUser({
       subtitle: buildSubtitle(user.role, primaryProfile),
       organizationId: user.organizationId ?? undefined,
       organizationName: user.organization?.name ?? undefined,
-      activeOrganizationId: user.organizationId ?? undefined,
+      activeOrganizationId,
       activeXeroConnectionId,
     } satisfies SessionUser,
   }
