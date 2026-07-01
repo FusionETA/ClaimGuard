@@ -83,22 +83,26 @@ export default async function EmployeeDashboardPage() {
       ? employeeAttendanceService.getEmployeeDashboard(session.userId)
       : Promise.resolve(null),
     moduleAccess.attendance
-      ? employeeAttendanceService.getAvailableProjects(session.userId)
+      ? employeeAttendanceService.getAvailableProjects(session.userId, orgId)
       : Promise.resolve([]),
     isSupervisor && moduleAccess.attendance
       ? supervisorAttendanceService.countPendingApprovalsForSupervisor(session.userId)
       : Promise.resolve(0),
     isSupervisor && moduleAccess.claims
-      ? countPendingClaimsForSupervisor(session.email)
+      ? countPendingClaimsForSupervisor(session.email, orgId)
       : Promise.resolve(0),
     isSupervisor && moduleAccess.leave
       ? countPendingLeaveApprovalsForReviewer(session.userId)
       : Promise.resolve(0),
     moduleAccess.leave
-      ? listEmployeeBalancesForUser(session.userId, new Date().getUTCFullYear())
+      ? listEmployeeBalancesForUser(
+          session.userId,
+          new Date().getUTCFullYear(),
+          orgId,
+        )
       : Promise.resolve([]),
     moduleAccess.leave
-      ? leaveRepository.findEmployeeProfileIdByUserId(session.userId)
+      ? leaveRepository.findEmployeeProfileIdByUserId(session.userId, orgId)
       : Promise.resolve(null),
     moduleAccess.leave && orgId
       ? organizationRepository.getOrganizationById(orgId)

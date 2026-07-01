@@ -86,12 +86,20 @@ export const leaveRepository = {
    * Returns `null` if the user has no profile yet. Pages and routes
    * should call this through a service rather than reaching for
    * Prisma themselves.
+   *
+   * Multi-org: pass `organizationId` so a user with EmployeeProfiles
+   * at multiple companies resolves to the profile at the CURRENT
+   * active org. Omitting the filter falls back to the first profile
+   * found (legacy single-org behaviour).
    */
-  async findEmployeeProfileIdByUserId(userId: string): Promise<string | null> {
+  async findEmployeeProfileIdByUserId(
+    userId: string,
+    organizationId?: string,
+  ): Promise<string | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
     const row = await prisma.employeeProfile.findFirst({
-      where: { userId },
+      where: organizationId ? { userId, organizationId } : { userId },
       select: { id: true },
     })
     return row?.id ?? null

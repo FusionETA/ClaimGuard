@@ -376,8 +376,14 @@ export const employeeAttendanceService = {
     return attendanceRepository.getWorkingHours(orgId)
   },
 
-  async getAvailableProjects(employeeId: string): Promise<AttendanceProjectView[]> {
-    const data = await attendanceRepository.getEmployeeProjectAssignments(employeeId)
+  async getAvailableProjects(
+    employeeId: string,
+    organizationId?: string,
+  ): Promise<AttendanceProjectView[]> {
+    const data = await attendanceRepository.getEmployeeProjectAssignments(
+      employeeId,
+      organizationId,
+    )
     if (!data || !data.organizationId) return []
 
     return data.assignments

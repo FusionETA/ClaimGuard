@@ -1,7 +1,7 @@
 import "server-only"
 
 import { getOrSetCache } from "@/lib/cache"
-import { getCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { key } from "@/lib/redis"
 import {
   buildEmployeeDashboard,
@@ -49,10 +49,15 @@ export async function getEmployeeDashboard(): Promise<EmployeeDashboardData | nu
   const session = await requireEmployeeSession()
   if (!session) return null
 
+  // Multi-org: scope everything to the CURRENT active org so a
+  // multi-org employee only sees the picked company's claims,
+  // profile, and org config. Cache key uses the active org (not
+  // legacy home org) so switching companies produces a distinct key.
+  const orgId = resolveActiveOrgId(session)
   return getOrSetCache(
     key(
       "org",
-      session.organizationId ?? "_none",
+      orgId ?? "_none",
       "user",
       session.userId,
       "claims",
@@ -64,8 +69,8 @@ export async function getEmployeeDashboard(): Promise<EmployeeDashboardData | nu
       // (for header chrome + xeroConnectionId) and their claims (for
       // the analytics block below).
       const [employee, claims] = await Promise.all([
-        claimRepository.getEmployeeWithProfile(session.email),
-        claimRepository.getClaimsByEmployee(session.email),
+        claimRepository.getEmployeeWithProfile(session.email, orgId),
+        claimRepository.getClaimsByEmployee(session.email, orgId),
       ])
       if (!employee) return null
       const organization = employee.organizationId
@@ -80,17 +85,18 @@ export async function getEmployeeClaimHistory(): Promise<ClaimRecord[] | null> {
   const session = await requireEmployeeSession()
   if (!session) return null
 
+  const orgId = resolveActiveOrgId(session)
   return getOrSetCache(
     key(
       "org",
-      session.organizationId ?? "_none",
+      orgId ?? "_none",
       "user",
       session.userId,
       "claims",
       "history",
     ),
     60,
-    () => claimRepository.getClaimsByEmployee(session.email),
+    () => claimRepository.getClaimsByEmployee(session.email, orgId),
   )
 }
 
@@ -102,10 +108,11 @@ export async function getEmployeeAccount(): Promise<EmployeeAccountData | null> 
   // min TTL — the "config" namespace is busted by `bustOrgConfigCaches`
   // on every hierarchy/settings change, so the TTL only matters if a
   // bust slips past (which our audit covered).
+  const orgId = resolveActiveOrgId(session)
   return getOrSetCache(
     key(
       "org",
-      session.organizationId ?? "_none",
+      orgId ?? "_none",
       "user",
       session.userId,
       "config",
@@ -113,7 +120,10 @@ export async function getEmployeeAccount(): Promise<EmployeeAccountData | null> 
     ),
     1800,
     async () => {
-      const employee = await claimRepository.getEmployeeWithProfile(session.email)
+      const employee = await claimRepository.getEmployeeWithProfile(
+        session.email,
+        orgId,
+      )
       if (!employee) return null
       const organization = employee.organizationId
         ? await organizationRepository.getOrganizationById(employee.organizationId)
@@ -140,24 +150,29 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
   // mutation so the next form load is always fresh. The longer TTL is
   // safe because the bust is the primary invalidation path, not the
   // TTL.
+  const orgId = resolveActiveOrgId(session)
   return getOrSetCache(
     key(
       "org",
-      session.organizationId ?? "_none",
+      orgId ?? "_none",
       "user",
       session.userId,
       "config",
       "claim-submission-data",
     ),
     1800,
-    () => loadEmployeeClaimSubmissionData(session.email),
+    () => loadEmployeeClaimSubmissionData(session.email, orgId),
   )
 }
 
 async function loadEmployeeClaimSubmissionData(
   email: string,
+  organizationId?: string,
 ): Promise<EmployeeClaimSubmissionData | null> {
-  const employee = await claimRepository.getEmployeeWithProfile(email)
+  const employee = await claimRepository.getEmployeeWithProfile(
+    email,
+    organizationId,
+  )
   if (!employee) return null
 
   if (!employee.organizationId) {

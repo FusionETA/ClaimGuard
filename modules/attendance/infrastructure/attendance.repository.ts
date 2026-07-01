@@ -1185,7 +1185,10 @@ export const attendanceRepository = {
    * to use the assignment list or fall back to legacy. Replaces a 25-line
    * `prisma.user.findUnique` literal that the service used to do directly.
    */
-  async getEmployeeProjectAssignments(employeeId: string): Promise<{
+  async getEmployeeProjectAssignments(
+    employeeId: string,
+    organizationId?: string,
+  ): Promise<{
     organizationId: string | null
     assignments: Array<{
       id: string
@@ -1197,11 +1200,18 @@ export const attendanceRepository = {
     }>
   } | null> {
     const prisma = getClient()
+    // Multi-org: filter the employeeProfiles include by
+    // `organizationId` so a user with profiles at 2+ companies reads
+    // the CURRENT company's project assignments (not the first-
+    // created one). The returned `organizationId` is the active org
+    // when provided, so downstream code (empty-list short-circuit,
+    // geofence lookups) uses the right org too.
     const user = await prisma.user.findUnique({
       where: { id: employeeId },
       select: {
         organizationId: true,
         employeeProfiles: {
+          where: organizationId ? { organizationId } : undefined,
           select: {
             projectAssignments: {
               select: {
@@ -1225,7 +1235,7 @@ export const attendanceRepository = {
     })
     if (!user) return null
     return {
-      organizationId: user.organizationId ?? null,
+      organizationId: organizationId ?? user.organizationId ?? null,
       assignments: (user.employeeProfiles[0]?.projectAssignments ?? []).map(
         (assignment) => assignment.project
       ),

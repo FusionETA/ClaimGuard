@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
-import { getCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import {
   decideLeaveApplication,
   editLeaveApplication,
@@ -19,8 +19,11 @@ async function profileIdForCurrentUser(): Promise<{
 } | null> {
   const session = await getCurrentSession()
   if (!session) return null
+  // Multi-org: resolve to the profile at the CURRENT active org so a
+  // leave submission/edit doesn't leak into a different company.
   const profileId = await leaveRepository.findEmployeeProfileIdByUserId(
     session.userId,
+    resolveActiveOrgId(session),
   )
   if (!profileId) return null
   return { profileId, userId: session.userId, role: session.role }

@@ -214,6 +214,17 @@ export function EmployeeShell({
     [],
   )
 
+  // Keep the header's displayed org name in sync with the prop from
+  // the server layout. When a multi-org employee switches company,
+  // the layout re-renders with the new active org's name; without
+  // this sync the shell (which persists across route changes in the
+  // same layout) would keep showing the initial-mount value.
+  useEffect(() => {
+    if (organizationName) {
+      setDisplayOrganizationName(organizationName)
+    }
+  }, [organizationName])
+
   useEffect(() => {
     if (user.role !== "SUPERVISOR" && organizationName) {
       return

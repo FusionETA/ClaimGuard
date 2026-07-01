@@ -30,7 +30,10 @@ export default async function EmployeeAttendancePage() {
   const [dashboard, workingHours, projects, hoursSummary, profileExtras, policy, progress, timezone] = await Promise.all([
     employeeAttendanceService.getEmployeeDashboard(session.userId),
     employeeAttendanceService.getWorkingHours(session.userId),
-    employeeAttendanceService.getAvailableProjects(session.userId),
+    employeeAttendanceService.getAvailableProjects(
+      session.userId,
+      orgId ?? undefined,
+    ),
     employeeAttendanceService.getHoursSummary(
       session.userId,
       new Date(initialFrom),

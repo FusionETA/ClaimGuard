@@ -271,11 +271,20 @@ function isUniqueConstraintError(err: unknown): boolean {
 /// the userId → employeeProfileId lookup internally. Pages and routes
 /// should call this version so they don't have to touch Prisma directly
 /// just to map the session userId.
+///
+/// Multi-org: pass `organizationId` so the balances belong to the
+/// profile at the CURRENT active org. Without it, a user with
+/// EmployeeProfiles at 2+ companies would fall back to the first
+/// profile and read the wrong company's leave.
 export async function listEmployeeBalancesForUser(
   userId: string,
   year: number,
+  organizationId?: string,
 ): Promise<LeaveEntitlementView[]> {
-  const profileId = await leaveRepository.findEmployeeProfileIdByUserId(userId)
+  const profileId = await leaveRepository.findEmployeeProfileIdByUserId(
+    userId,
+    organizationId,
+  )
   if (!profileId) return []
   return listEmployeeBalances(profileId, year)
 }

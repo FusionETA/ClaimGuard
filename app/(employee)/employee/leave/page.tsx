@@ -12,17 +12,23 @@ export default async function EmployeeLeavePage() {
   const session = await requirePortalSession("EMPLOYEE")
   await requireModuleAccess("leave")
 
-  // Confirm the user has an employee profile (otherwise we have nothing
-  // to render for the leave tab — e.g. an admin viewing the employee
-  // surface without an underlying EmployeeProfile row).
-  const profileId = await leaveRepository.findEmployeeProfileIdByUserId(session.userId)
+  const orgId = resolveActiveOrgId(session)
+
+  // Confirm the user has an employee profile at the CURRENT active
+  // org (multi-org users may have profiles at other companies — we
+  // only want this one). Otherwise we have nothing to render for the
+  // leave tab (e.g. an admin viewing the employee surface without an
+  // underlying EmployeeProfile row).
+  const profileId = await leaveRepository.findEmployeeProfileIdByUserId(
+    session.userId,
+    orgId,
+  )
   if (!profileId) redirect("/")
 
-  const orgId = resolveActiveOrgId(session)
   const year = new Date().getUTCFullYear()
   const [balances, applications, joinDate, organization] = await Promise.all([
-    listEmployeeBalancesForUser(session.userId, year),
-    listMyApplicationsForUser(session.userId),
+    listEmployeeBalancesForUser(session.userId, year, orgId),
+    listMyApplicationsForUser(session.userId, orgId),
     leaveRepository.getEmployeeJoinDate(profileId),
     orgId ? organizationRepository.getOrganizationById(orgId) : null,
   ])

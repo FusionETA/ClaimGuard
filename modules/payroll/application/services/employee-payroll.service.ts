@@ -36,10 +36,9 @@ export async function getEmployeePayslipsPageData(): Promise<{
     return null
   }
 
-  const employeeProfileId = await resolveEmployeeProfileId(session.userId)
-  if (!employeeProfileId) return null
-
   const orgId = resolveActiveOrgId(session)
+  const employeeProfileId = await resolveEmployeeProfileId(session.userId, orgId)
+  if (!employeeProfileId) return null
   // Payslips only exist for SUBMITTED runs (immutable). Cache under the
   // org payroll namespace so run submit/approve/revert busts them.
   const load = async () => ({
@@ -65,10 +64,9 @@ export async function getEmployeePayslipDetailPageData(input: {
     return null
   }
 
-  const employeeProfileId = await resolveEmployeeProfileId(session.userId)
-  if (!employeeProfileId) return null
-
   const orgId = resolveActiveOrgId(session)
+  const employeeProfileId = await resolveEmployeeProfileId(session.userId, orgId)
+  if (!employeeProfileId) return null
   const load = () => loadPayslipDetail(employeeProfileId, input.payslipId)
   if (!orgId) return load()
   return getOrSetCache(
@@ -115,11 +113,17 @@ async function loadPayslipDetail(
 
 // ─── Helpers ─────────────────────────────────────────────────────────────
 
-async function resolveEmployeeProfileId(userId: string): Promise<string | null> {
+async function resolveEmployeeProfileId(
+  userId: string,
+  organizationId?: string,
+): Promise<string | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
+  // Multi-org: filter to the profile at the current active org so a
+  // user with EmployeeProfiles at 2+ companies reads THIS company's
+  // payslips, not the first-created one.
   const row = await prisma.employeeProfile.findFirst({
-    where: { userId },
+    where: organizationId ? { userId, organizationId } : { userId },
     select: { id: true },
   })
   return row?.id ?? null

@@ -1,5 +1,5 @@
 import { EmployeeShell } from "@/components/layout/employee-shell"
-import { requirePortalSession } from "@/lib/auth/session"
+import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getPrismaClient } from "@/lib/prisma"
 import { deriveOrgEnabledModulesFromRow } from "@/modules/organization/domain/plan"
 import { employeeOrganizationRepository } from "@/modules/organization/infrastructure/employee-organization.repository"
@@ -26,8 +26,15 @@ export default async function EmployeeLayout({
   // policy would normally allow it. Legacy orgs (no plan recorded)
   // return null → no intersection, existing tenants keep their full
   // nav.
-  const orgPlanRow = session.organizationId
-    ? await organizationRepository.getOrgPlanModules(session.organizationId)
+  // Multi-org: everything below (plan-modules, org-name for the
+  // header, membership count) uses the ACTIVE org, not the legacy
+  // `User.organizationId` home org. When a user switches company via
+  // /employee/pick-company we update `session.activeOrganizationId`
+  // — this layout re-renders with that new value on the next request.
+  const activeOrgId = resolveActiveOrgId(session)
+
+  const orgPlanRow = activeOrgId
+    ? await organizationRepository.getOrgPlanModules(activeOrgId)
     : null
   const orgEnabledModules = orgPlanRow
     ? deriveOrgEnabledModulesFromRow(orgPlanRow)
@@ -61,10 +68,20 @@ export default async function EmployeeLayout({
     hasMultipleCompanies = memberships.length >= 2
   }
 
+  // Header org name reflects the ACTIVE org (not the home org). For
+  // single-org users this is identical to `session.organizationName`;
+  // for multi-org users after a switch it is the newly-picked
+  // company's name.
+  const activeOrg = activeOrgId
+    ? await organizationRepository.getOrganizationById(activeOrgId)
+    : null
+  const displayOrganizationName =
+    activeOrg?.name ?? session.organizationName
+
   return (
     <EmployeeShell
       user={session}
-      organizationName={session.organizationName}
+      organizationName={displayOrganizationName}
       moduleAccess={moduleAccess}
       hasMultipleCompanies={hasMultipleCompanies}
     >

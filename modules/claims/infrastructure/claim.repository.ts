@@ -725,15 +725,25 @@ const claimInclude = {
 } as const
 
 export const claimRepository = {
-  async getEmployeeWithProfile(email: string): Promise<PortalUser | null> {
+  async getEmployeeWithProfile(
+    email: string,
+    organizationId?: string,
+  ): Promise<PortalUser | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
 
+    // Multi-org: when `organizationId` is provided, filter the
+    // employeeProfiles include so mapUser reads the profile at the
+    // ACTIVE org (mapUser reads `employeeProfiles[0]`). Also override
+    // the org attached to the returned PortalUser so the dashboard,
+    // claim form, and account page all render the ACTIVE company
+    // — not the legacy `User.organizationId` "home org".
     const row = await prisma.user.findFirst({
       where: { email, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
       include: {
         organization: true,
         employeeProfiles: {
+          where: organizationId ? { organizationId } : undefined,
           include: {
             projectAssignments: {
               include: {
@@ -759,7 +769,23 @@ export const claimRepository = {
       },
     })
 
-    return row ? mapUser(row) : null
+    if (!row) return null
+    const mapped = mapUser(row)
+
+    // If we filtered by an active org that isn't the user's legacy
+    // home org, look up that org's name so the returned PortalUser
+    // carries the correct company name / id.
+    if (organizationId && organizationId !== row.organizationId) {
+      const activeOrg = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: { id: true, name: true },
+      })
+      if (activeOrg) {
+        mapped.organizationId = activeOrg.id
+        mapped.organizationName = activeOrg.name
+      }
+    }
+    return mapped
   },
 
   async getAdminProfile(email: string): Promise<AdminProfile | null> {
@@ -787,12 +813,21 @@ export const claimRepository = {
     }
   },
 
-  async getClaimsByEmployee(email: string): Promise<ClaimRecord[]> {
+  async getClaimsByEmployee(
+    email: string,
+    organizationId?: string,
+  ): Promise<ClaimRecord[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
+    // Multi-org: filter by `Claim.organizationId` too so a multi-org
+    // employee's "My Claims" page shows claims for the CURRENT
+    // company only. Every Claim row carries its `organizationId`, so
+    // this is a direct equality filter, not a join hop.
     const rows = await prisma.claim.findMany({
-      where: { employee: { email } },
+      where: organizationId
+        ? { employee: { email }, organizationId }
+        : { employee: { email } },
       include: claimInclude,
       orderBy: { submittedAt: "desc" },
     })
@@ -800,7 +835,10 @@ export const claimRepository = {
     return rows.map((row) => mapClaim(row))
   },
 
-  async getClaimsForSupervisor(email: string): Promise<ClaimRecord[]> {
+  async getClaimsForSupervisor(
+    email: string,
+    organizationId?: string,
+  ): Promise<ClaimRecord[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
@@ -924,8 +962,14 @@ export const claimRepository = {
     ]
     if (finalConditions.length === 0) return []
 
+    // Multi-org: when the supervisor is switched into a specific org,
+    // scope the queue to THAT org's claims only. A user who supervises
+    // at 2 companies would otherwise see both queues mixed together
+    // — after the picker they expect only the picked company.
     const rows = await prisma.claim.findMany({
-      where: { OR: finalConditions },
+      where: organizationId
+        ? { AND: [{ organizationId }, { OR: finalConditions }] }
+        : { OR: finalConditions },
       include: claimInclude,
       orderBy: { submittedAt: "desc" },
     })
@@ -1069,7 +1113,10 @@ export const claimRepository = {
     })
   },
 
-  async countPendingForSupervisor(email: string): Promise<number> {
+  async countPendingForSupervisor(
+    email: string,
+    organizationId?: string,
+  ): Promise<number> {
     const prisma = getPrismaClient()
     if (!prisma) return 0
 
@@ -1153,7 +1200,13 @@ export const claimRepository = {
 
     if (conditions.length === 0) return 0
 
-    return prisma.claim.count({ where: { OR: conditions } })
+    // Multi-org: when a supervisor is switched into a specific org,
+    // the badge count reflects only that org's pending claims.
+    return prisma.claim.count({
+      where: organizationId
+        ? { AND: [{ organizationId }, { OR: conditions }] }
+        : { OR: conditions },
+    })
   },
 
   async getClaimsForOrganization(

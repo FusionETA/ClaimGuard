@@ -606,10 +606,17 @@ export async function listMyApplications(employeeProfileId: string): Promise<Lea
 /// userId → employeeProfileId lookup internally. Pages and actions
 /// should prefer this version so they don't have to touch Prisma to
 /// resolve the profile id from a session.
+///
+/// Multi-org: pass `organizationId` so the applications belong to the
+/// profile at the CURRENT active org.
 export async function listMyApplicationsForUser(
   userId: string,
+  organizationId?: string,
 ): Promise<LeaveApplicationView[]> {
-  const profileId = await leaveRepository.findEmployeeProfileIdByUserId(userId)
+  const profileId = await leaveRepository.findEmployeeProfileIdByUserId(
+    userId,
+    organizationId,
+  )
   if (!profileId) return []
   return leaveRepository.listApplicationsForEmployee(profileId)
 }

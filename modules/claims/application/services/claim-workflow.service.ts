@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto"
 
 import { z } from "zod"
 
+import { resolveActiveOrgId } from "@/lib/auth/session"
 import type { AuthenticatedSession } from "@/lib/auth/types"
 import { isKnownCurrency, SYSTEM_FALLBACK_CURRENCY } from "@/lib/currencies"
 import { computeMileageAmount, resolveMileageRate } from "@/lib/mileage"
@@ -234,12 +235,13 @@ export async function listClaimsForSession({
   session: AuthenticatedSession
   status?: ClaimStatus | "ALL"
 }): Promise<ClaimRecord[]> {
+  const activeOrgId = resolveActiveOrgId(session)
   const claims =
     isAdminRole(session.role)
-      ? session.organizationId
-        ? await claimRepository.getClaimsForOrganization(session.organizationId)
+      ? activeOrgId
+        ? await claimRepository.getClaimsForOrganization(activeOrgId)
         : []
-      : await claimRepository.getClaimsByEmployee(session.email)
+      : await claimRepository.getClaimsByEmployee(session.email, activeOrgId)
 
   return claims.filter((claim) => claimMatchesStatusFilter(claim, status))
 }
@@ -255,15 +257,28 @@ export async function listClaimsForSupervisorReview({
     return []
   }
 
-  const claims = await claimRepository.getClaimsForSupervisor(session.email)
+  // Multi-org: filter the supervisor's queue to the ACTIVE org so a
+  // user who supervises at 2 companies sees only the picked company's
+  // claims after switching.
+  const claims = await claimRepository.getClaimsForSupervisor(
+    session.email,
+    resolveActiveOrgId(session),
+  )
   return claims.filter((claim) => claimMatchesStatusFilter(claim, status))
 }
 
 export async function countPendingClaimsForSupervisor(
-  supervisorEmail: string
+  supervisorEmail: string,
+  organizationId?: string,
 ): Promise<number> {
   // Count-only repo method — no claim hydration, no chain join.
-  return claimRepository.countPendingForSupervisor(supervisorEmail)
+  // Multi-org: pass `organizationId` to scope the count to the
+  // supervisor's active org (so a supervisor at 2 companies sees
+  // only the picked company's badge).
+  return claimRepository.countPendingForSupervisor(
+    supervisorEmail,
+    organizationId,
+  )
 }
 
 /**
