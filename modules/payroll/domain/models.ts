@@ -147,6 +147,14 @@ export const payrollAdjustmentCategories = [
   "deduct_zakat",
   "deduct_zakat_tp1",
   "deduct_tp1",
+  "deduct_tp1_life_insurance",
+  "deduct_tp1_medical_insurance",
+  "deduct_tp1_prs",
+  "deduct_tp1_serious_disease_medical",
+  "deduct_tp1_lifestyle",
+  "deduct_tp1_sports_equipment",
+  "deduct_tp1_other",
+  "deduct_voluntary_pcb",
 ] as const
 export type PayrollAdjustmentCategory =
   (typeof payrollAdjustmentCategories)[number]
@@ -186,7 +194,42 @@ export type PayrollAdjustmentCategoryMeta = {
   /// at the full daily rate (monthlySalary ÷ divisor × unpaid days), so
   /// re-prorating it would under-deduct for a late joiner/leaver.
   skipProration?: boolean
+  /// @deprecated Was intended to mark categories as UI-display-only
+  /// with no calc effect, but nothing ever read this flag. Kept for
+  /// backwards compat with rows that still have it set. New categories
+  /// should not use this — set the actual behaviour flags instead.
   referenceOnly?: boolean
+  /// When true, deducting this line item feeds the LP1 "allowable
+  /// deductions for the current month" bucket in the PCB formula
+  /// (per LHDN MTD Spec 2026 page 10). This lowers annual chargeable
+  /// income (P) → lowers formula-calculated PCB → lowers the payslip
+  /// PCB column and the CP39 standard-PCB field.
+  ///
+  /// Used for the 7 TP1 sub-categories (life insurance, medical
+  /// insurance, PRS, serious disease medical, lifestyle, sports
+  /// equipment, other). All paired with `cashNeutral: true` per
+  /// Borang TP1 mechanics (employee already paid the third party;
+  /// employer just honours the declaration for PCB purposes).
+  feedsLp1Relief?: boolean
+  /// When true, this line item's amount is added to the payslip's
+  /// **standard PCB** scalar (separate from the formula-calculated
+  /// PCB). Feeds the CP39 "Total PCB" field so LHDN receives the
+  /// combined amount. Used for `deduct_voluntary_pcb` (employee
+  /// requesting extra withholding). Note: per LHDN MTD Spec page 14,
+  /// the X (accumulated PCB paid) definition explicitly EXCLUDES
+  /// "additional Monthly Tax Deduction requested by the employee",
+  /// so this bucket is stored on Payslip.voluntaryPcb (NOT
+  /// Payslip.pcb) — the YTD aggregator for next month's calc still
+  /// only picks up the formula-calculated portion.
+  addsToStandardPcb?: boolean
+  /// When true, this line item's amount goes into the payslip's
+  /// **CP38** scalar and is remitted via the CP39 dedicated CP38
+  /// field (positions 43-52 header, 119-126 detail — see
+  /// pcb-txt.ts). LHDN needs this as a separate column so they can
+  /// track which court-ordered arrears were collected. Also
+  /// excluded from ytdPcb for next month's calc (same reason as
+  /// `addsToStandardPcb`). Used for `deduct_cp38`.
+  addsToCp38Field?: boolean
   /// When true, the amount is treated as additional remuneration
   /// under LHDN's PCB MTD spec — a one-off payment (bonus,
   /// commission, arrears, director fee, gratuity, etc.) that should
@@ -714,8 +757,15 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     reducesBase: true,
   },
   deduct_cp38: {
+    // LHDN CP38 arrears order — court-issued instruction to withhold
+    // extra tax from the employee's take-home pay for tax debt
+    // installments. Per LHDN CP38 Guidelines: employer physically
+    // extracts this amount from net pay AND remits it to LHDN via
+    // the CP39 dedicated CP38 field. Doesn't reduce chargeable
+    // income; it's a post-formula addition tracked separately from
+    // the standard PCB column.
     code: "deduct_cp38",
-    label: "CP38 Deduction",
+    label: "CP38 Arrears (LHDN Order)",
     group: "Deductions",
     kind: "DEDUCTION",
     subjectToEpf: false,
@@ -723,7 +773,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: false,
     subjectToHrdf: false,
-    referenceOnly: true,
+    addsToCp38Field: true,
   },
   deduct_zakat: {
     code: "deduct_zakat",
@@ -754,8 +804,14 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     cashNeutral: true,
   },
   deduct_tp1: {
+    // LEGACY generic TP1 category. Kept for backwards compat with any
+    // rows that still reference it — such rows are treated identically
+    // to `deduct_tp1_other` at calc time (feedsLp1Relief, cashNeutral,
+    // no cap). New line items should pick a specific TP1 sub-category
+    // (life insurance / medical insurance / PRS / etc.) so per-item
+    // LHDN caps can be enforced.
     code: "deduct_tp1",
-    label: "TP1/TP3 Deduction",
+    label: "TP1/TP3 Deduction (legacy)",
     group: "Deductions",
     kind: "DEDUCTION",
     subjectToEpf: false,
@@ -763,7 +819,156 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: false,
     subjectToHrdf: false,
-    referenceOnly: true,
+    feedsLp1Relief: true,
+    cashNeutral: true,
+  },
+  // ─── TP1 sub-categories with LHDN 2026 caps ───────────────────────
+  // Employee-declared allowable deductions per Borang TP1. Each reduces
+  // the annual chargeable income (P) via the ∑LP + LP1 bucket in the
+  // PCB formula (LHDN MTD Spec 2026 page 10). All are `cashNeutral`
+  // because Borang TP1 is a DECLARATION — the employee already paid
+  // the third party (insurer, PRS provider, gym, etc.); the employer
+  // just applies the relief to their PCB withholding.
+  deduct_tp1_life_insurance: {
+    code: "deduct_tp1_life_insurance",
+    label: "TP1 · Life Insurance",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+    feedsLp1Relief: true,
+    cashNeutral: true,
+    // Non-civil servants: RM 3,000. (The remaining RM 4,000 of the
+    // total RM 7,000 insurance-bucket is EPF/approved-scheme-only —
+    // enforced separately by the EPF K cap in pcb.ts.)
+    taxExemptLimit: 3000,
+  },
+  deduct_tp1_medical_insurance: {
+    code: "deduct_tp1_medical_insurance",
+    label: "TP1 · Medical / Education Insurance",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+    feedsLp1Relief: true,
+    cashNeutral: true,
+    // Combined education + medical insurance premiums for self,
+    // spouse, or child. 2026 cap raised to RM 4,000 (from RM 3,000).
+    taxExemptLimit: 4000,
+  },
+  deduct_tp1_prs: {
+    code: "deduct_tp1_prs",
+    label: "TP1 · Private Retirement Scheme (PRS)",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+    feedsLp1Relief: true,
+    cashNeutral: true,
+    // Private Retirement Scheme + Deferred Annuity relief.
+    taxExemptLimit: 3000,
+  },
+  deduct_tp1_serious_disease_medical: {
+    code: "deduct_tp1_serious_disease_medical",
+    label: "TP1 · Serious Disease / Fertility / Medical",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+    feedsLp1Relief: true,
+    cashNeutral: true,
+    // Covers serious medical conditions, fertility treatments,
+    // vaccinations, and mental health checkups for self, spouse, or
+    // child. 2026 cap raised to RM 10,000 (from RM 8,000).
+    taxExemptLimit: 10000,
+  },
+  deduct_tp1_lifestyle: {
+    code: "deduct_tp1_lifestyle",
+    label: "TP1 · Lifestyle (Books / PC / Internet)",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+    feedsLp1Relief: true,
+    cashNeutral: true,
+    // Reading materials, computers/smartphones/tablets, and internet
+    // subscription bills.
+    taxExemptLimit: 2500,
+  },
+  deduct_tp1_sports_equipment: {
+    code: "deduct_tp1_sports_equipment",
+    label: "TP1 · Sports Equipment / Gym",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+    feedsLp1Relief: true,
+    cashNeutral: true,
+    // Sports equipment, gym memberships, facility rental fees, and
+    // event registration. 2026 cap raised to RM 1,000 (from RM 500).
+    taxExemptLimit: 1000,
+  },
+  deduct_tp1_other: {
+    code: "deduct_tp1_other",
+    label: "TP1 · Other (Admin-Trusted)",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+    feedsLp1Relief: true,
+    cashNeutral: true,
+    // Catch-all for rare/individualised TP1 relief claims not covered
+    // by the 6 high-volume sub-categories above, e.g. basic
+    // supporting equipment for disabled dependants (RM 6,000), SSPN
+    // net deposits (RM 8,000), alimony to former wife (RM 4,000),
+    // breastfeeding equipment (RM 1,000). Admin-trusted — no
+    // code-enforced cap here; admin must respect the individual
+    // LHDN item cap. Payslip narration should note the specific TP1
+    // item claimed for audit purposes.
+  },
+  deduct_voluntary_pcb: {
+    // Employee-requested additional monthly PCB withholding on top of
+    // the formula-calculated amount. Money physically leaves the
+    // employee's take-home pay (cashNeutral: false) AND is remitted to
+    // LHDN via the CP39 standard "Total PCB" field (addsToStandardPcb).
+    // Distinct from CP38 (which is a court-issued arrears order with
+    // its own dedicated CP39 field).
+    //
+    // Per LHDN MTD Spec 2026 page 14, this amount is NOT included in
+    // X (accumulated PCB paid) for next month's calc — stored on
+    // Payslip.voluntaryPcb separately from Payslip.pcb so the YTD
+    // aggregator only picks up the formula-calculated portion.
+    code: "deduct_voluntary_pcb",
+    label: "Voluntary PCB Top-Up",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+    addsToStandardPcb: true,
   },
 }
 

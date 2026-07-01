@@ -1698,6 +1698,21 @@ model Payslip {
   eisEmployee           Decimal           @default(0.00) @db.Decimal(12, 2)
   eisEmployer           Decimal           @default(0.00) @db.Decimal(12, 2)
   pcb                   Decimal           @default(0.00) @db.Decimal(12, 2)
+  /// LHDN CP38 arrears amount — court-ordered additional withholding
+  /// for tax debt installments. Kept SEPARATE from `pcb` because per
+  /// LHDN MTD Spec 2026 page 14, X (accumulated PCB paid for prior
+  /// months) explicitly excludes "payment of tax installment", so
+  /// this must not compound into next month's ytdPcb baseline. Also
+  /// remitted via the dedicated CP38 column in the CP39 text file
+  /// (see pcb-txt.ts header positions 43-52 + detail 119-126).
+  cp38                  Decimal           @default(0.00) @db.Decimal(12, 2)
+  /// Voluntary PCB top-up requested by the employee. Kept SEPARATE
+  /// from `pcb` for the same reason as `cp38`: LHDN MTD Spec 2026
+  /// page 14 excludes "additional Monthly Tax Deduction requested by
+  /// the employee" from X. Remitted in the STANDARD Total PCB column
+  /// of CP39 (not a dedicated column), summed with `pcb` at render
+  /// time, but not carried into next month's ytdPcb aggregate.
+  voluntaryPcb          Decimal           @default(0.00) @db.Decimal(12, 2)
   hrdf                  Decimal           @default(0.00) @db.Decimal(12, 2)
   zakat                 Decimal           @default(0.00) @db.Decimal(12, 2)
   /// Wage base used for HRDF — may differ from gross.
