@@ -10,7 +10,7 @@
  *   │ Payroll Jan 01 2026 – Jan 31 2026                         │
  *   │                                                           │
  *   │              Employee contributions    Employer contributions │
- *   │ Employee │ GROSS │ PCB EPF SOCSO EIS │ NET │ EPF SOCSO EIS HRDF │ COST │
+ *   │ Employee │ GROSS │ PCB EPF SOCSO EIS SKBBK │ NET │ EPF SOCSO EIS HRDF │ COST │
  *   │  Total   │ 56,k  │ 705 …             │ 49k │ 7.2k …             │ 65k  │
  *   ├───────────┼───────┼───────────────────┼─────┼────────────────────┼──────┤
  *   │ Alan Lau Zi Hong   3,000   …                                     │
@@ -84,6 +84,7 @@ const COL = {
   epfEmp: 1.0,
   socsoEmp: 0.95,
   eisEmp: 0.85,
+  skbbkEmp: 0.85,
   net: 1.1,
   epfEr: 1.0,
   socsoEr: 0.95,
@@ -323,6 +324,7 @@ export function PayrollSummaryPdfDocument({
       acc.epfEmp += p.epfEmployee
       acc.socsoEmp += p.socsoEmployee
       acc.eisEmp += p.eisEmployee
+      acc.skbbkEmp += p.skbbkEmployee
       acc.net += p.netPay
       acc.epfEr += p.epfEmployer
       acc.socsoEr += p.socsoEmployer
@@ -341,6 +343,7 @@ export function PayrollSummaryPdfDocument({
       epfEmp: 0,
       socsoEmp: 0,
       eisEmp: 0,
+      skbbkEmp: 0,
       net: 0,
       epfEr: 0,
       socsoEr: 0,
@@ -372,12 +375,19 @@ export function PayrollSummaryPdfDocument({
           <View
             style={[styles.bandSpacer, { flex: COL.employee + COL.gross }]}
           />
-          {/* Employee contributions band — spans PCB + EPF + SOCSO + EIS */}
+          {/* Employee contributions band — spans PCB + EPF + SOCSO
+              + EIS + SKBBK. SKBBK (Skim LINDUNG 24 Jam) is an
+              employee-only PERKESO scheme effective 1 Jun 2026. */}
           <View
             style={[
               styles.bandEmp,
               {
-                flex: COL.pcb + COL.epfEmp + COL.socsoEmp + COL.eisEmp,
+                flex:
+                  COL.pcb +
+                  COL.epfEmp +
+                  COL.socsoEmp +
+                  COL.eisEmp +
+                  COL.skbbkEmp,
               },
             ]}
           >
@@ -419,6 +429,12 @@ export function PayrollSummaryPdfDocument({
             tint="emp"
           />
           <ColHead label="EIS" total={totals.eisEmp} flex={COL.eisEmp} tint="emp" />
+          <ColHead
+            label="SKBBK"
+            total={totals.skbbkEmp}
+            flex={COL.skbbkEmp}
+            tint="emp"
+          />
           <ColHead label="NET" total={totals.net} flex={COL.net} bold />
           <ColHead label="EPF" total={totals.epfEr} flex={COL.epfEr} tint="er" />
           <ColHead
@@ -465,6 +481,15 @@ export function PayrollSummaryPdfDocument({
             label="Total EIS payment"
             value={fmt(totals.eisEmp + totals.eisEr)}
           />
+          {/* SKBBK (Skim LINDUNG 24 Jam) — employee-only PERKESO
+              scheme, effective 1 Jun 2026. Hidden when 0 so periods
+              before June 2026 don't show a junk RM 0.00 line. */}
+          {totals.skbbkEmp > 0 ? (
+            <SummaryRow
+              label="Total SKBBK payment"
+              value={fmt(totals.skbbkEmp)}
+            />
+          ) : null}
           <SummaryRow label="Total HRDF payment" value={fmt(totals.hrdf)} />
           <SummaryRow label="Total Zakat payment" value={fmt(totals.zakat)} />
           {totals.bik > 0 ? (
@@ -610,6 +635,11 @@ function PayslipBodyRow({ payslip }: { payslip: PayslipRow }) {
       <AmountCell value={payslip.epfEmployee} flex={COL.epfEmp} tint="emp" />
       <AmountCell value={payslip.socsoEmployee} flex={COL.socsoEmp} tint="emp" />
       <AmountCell value={payslip.eisEmployee} flex={COL.eisEmp} tint="emp" />
+      <AmountCell
+        value={payslip.skbbkEmployee}
+        flex={COL.skbbkEmp}
+        tint="emp"
+      />
       <AmountCell value={payslip.netPay} flex={COL.net} bold />
       <AmountCell value={payslip.epfEmployer} flex={COL.epfEr} tint="er" />
       <AmountCell value={payslip.socsoEmployer} flex={COL.socsoEr} tint="er" />
