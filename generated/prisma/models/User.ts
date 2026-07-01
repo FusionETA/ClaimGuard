@@ -223,6 +223,7 @@ export type UserWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   passwordChangedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationListRelationFilter
+  employeeOrganizations?: Prisma.EmployeeOrganizationListRelationFilter
   approvalChainApprovals?: Prisma.ApprovalChainStepListRelationFilter
   approvalChainSteps?: Prisma.ApprovalChainStepListRelationFilter
   approvals?: Prisma.ApprovalRequestListRelationFilter
@@ -260,6 +261,7 @@ export type UserOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   adminOrganizations?: Prisma.AdminOrganizationOrderByRelationAggregateInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationOrderByRelationAggregateInput
   approvalChainApprovals?: Prisma.ApprovalChainStepOrderByRelationAggregateInput
   approvalChainSteps?: Prisma.ApprovalChainStepOrderByRelationAggregateInput
   approvals?: Prisma.ApprovalRequestOrderByRelationAggregateInput
@@ -301,6 +303,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   passwordChangedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationListRelationFilter
+  employeeOrganizations?: Prisma.EmployeeOrganizationListRelationFilter
   approvalChainApprovals?: Prisma.ApprovalChainStepListRelationFilter
   approvalChainSteps?: Prisma.ApprovalChainStepListRelationFilter
   approvals?: Prisma.ApprovalRequestListRelationFilter
@@ -369,6 +372,7 @@ export type UserCreateInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -406,6 +410,7 @@ export type UserUncheckedCreateInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -441,6 +446,7 @@ export type UserUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -478,6 +484,7 @@ export type UserUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -735,6 +742,20 @@ export type UserUpdateOneRequiredWithoutEmployeeProfileNestedInput = {
   upsert?: Prisma.UserUpsertWithoutEmployeeProfileInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEmployeeProfileInput, Prisma.UserUpdateWithoutEmployeeProfileInput>, Prisma.UserUncheckedUpdateWithoutEmployeeProfileInput>
+}
+
+export type UserCreateNestedOneWithoutEmployeeOrganizationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEmployeeOrganizationsInput, Prisma.UserUncheckedCreateWithoutEmployeeOrganizationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmployeeOrganizationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutEmployeeOrganizationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEmployeeOrganizationsInput, Prisma.UserUncheckedCreateWithoutEmployeeOrganizationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmployeeOrganizationsInput
+  upsert?: Prisma.UserUpsertWithoutEmployeeOrganizationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEmployeeOrganizationsInput, Prisma.UserUpdateWithoutEmployeeOrganizationsInput>, Prisma.UserUncheckedUpdateWithoutEmployeeOrganizationsInput>
 }
 
 export type UserCreateNestedOneWithoutClaimsInput = {
@@ -1018,6 +1039,7 @@ export type UserCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1053,6 +1075,7 @@ export type UserUncheckedCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1129,6 +1152,7 @@ export type UserCreateWithoutAdminOrganizationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1165,6 +1189,7 @@ export type UserUncheckedCreateWithoutAdminOrganizationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1215,6 +1240,7 @@ export type UserUpdateWithoutAdminOrganizationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1251,6 +1277,7 @@ export type UserUncheckedUpdateWithoutAdminOrganizationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1286,6 +1313,7 @@ export type UserCreateWithoutPushSubscriptionsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1322,6 +1350,7 @@ export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1372,6 +1401,7 @@ export type UserUpdateWithoutPushSubscriptionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1408,6 +1438,7 @@ export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1442,6 +1473,7 @@ export type UserCreateWithoutNotificationsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1478,6 +1510,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1528,6 +1561,7 @@ export type UserUpdateWithoutNotificationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1564,6 +1598,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1598,6 +1633,7 @@ export type UserCreateWithoutEmployeeImportDraftsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1634,6 +1670,7 @@ export type UserUncheckedCreateWithoutEmployeeImportDraftsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1684,6 +1721,7 @@ export type UserUpdateWithoutEmployeeImportDraftsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1720,6 +1758,7 @@ export type UserUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1754,6 +1793,7 @@ export type UserCreateWithoutEmployeeProfileInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1790,6 +1830,7 @@ export type UserUncheckedCreateWithoutEmployeeProfileInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1840,6 +1881,7 @@ export type UserUpdateWithoutEmployeeProfileInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1876,6 +1918,7 @@ export type UserUncheckedUpdateWithoutEmployeeProfileInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1899,6 +1942,166 @@ export type UserUncheckedUpdateWithoutEmployeeProfileInput = {
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
 }
 
+export type UserCreateWithoutEmployeeOrganizationsInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  passwordChangedAt?: Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
+  approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogCreateNestedManyWithoutEditorInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutUserInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
+  projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  salaryChangesAuthored?: Prisma.SalaryChangeCreateNestedManyWithoutChangedByUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+}
+
+export type UserUncheckedCreateWithoutEmployeeOrganizationsInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  organizationId?: string | null
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  passwordChangedAt?: Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutEditorInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutUserInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
+  projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+}
+
+export type UserCreateOrConnectWithoutEmployeeOrganizationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutEmployeeOrganizationsInput, Prisma.UserUncheckedCreateWithoutEmployeeOrganizationsInput>
+}
+
+export type UserUpsertWithoutEmployeeOrganizationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutEmployeeOrganizationsInput, Prisma.UserUncheckedUpdateWithoutEmployeeOrganizationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutEmployeeOrganizationsInput, Prisma.UserUncheckedCreateWithoutEmployeeOrganizationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutEmployeeOrganizationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutEmployeeOrganizationsInput, Prisma.UserUncheckedUpdateWithoutEmployeeOrganizationsInput>
+}
+
+export type UserUpdateWithoutEmployeeOrganizationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUpdateManyWithoutEditorNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutUserNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
+  projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUpdateManyWithoutChangedByUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutEmployeeOrganizationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutEditorNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutUserNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
+  projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+}
+
 export type UserCreateWithoutClaimsInput = {
   id?: string
   email: string
@@ -1910,6 +2113,7 @@ export type UserCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1946,6 +2150,7 @@ export type UserUncheckedCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1985,6 +2190,7 @@ export type UserCreateWithoutReviewsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2021,6 +2227,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2071,6 +2278,7 @@ export type UserUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2107,6 +2315,7 @@ export type UserUncheckedUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2152,6 +2361,7 @@ export type UserUpdateWithoutReviewsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2188,6 +2398,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2222,6 +2433,7 @@ export type UserCreateWithoutClaimApprovalEntriesInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2258,6 +2470,7 @@ export type UserUncheckedCreateWithoutClaimApprovalEntriesInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2308,6 +2521,7 @@ export type UserUpdateWithoutClaimApprovalEntriesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2344,6 +2558,7 @@ export type UserUncheckedUpdateWithoutClaimApprovalEntriesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2378,6 +2593,7 @@ export type UserCreateWithoutXeroConnectionsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2414,6 +2630,7 @@ export type UserUncheckedCreateWithoutXeroConnectionsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2464,6 +2681,7 @@ export type UserUpdateWithoutXeroConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2500,6 +2718,7 @@ export type UserUncheckedUpdateWithoutXeroConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2534,6 +2753,7 @@ export type UserCreateWithoutManagedProjectsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2570,6 +2790,7 @@ export type UserUncheckedCreateWithoutManagedProjectsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2620,6 +2841,7 @@ export type UserUpdateWithoutManagedProjectsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2656,6 +2878,7 @@ export type UserUncheckedUpdateWithoutManagedProjectsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2690,6 +2913,7 @@ export type UserCreateWithoutProjectManagerOfInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2726,6 +2950,7 @@ export type UserUncheckedCreateWithoutProjectManagerOfInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2776,6 +3001,7 @@ export type UserUpdateWithoutProjectManagerOfInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2812,6 +3038,7 @@ export type UserUncheckedUpdateWithoutProjectManagerOfInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2846,6 +3073,7 @@ export type UserCreateWithoutAttendanceInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2882,6 +3110,7 @@ export type UserUncheckedCreateWithoutAttendanceInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2932,6 +3161,7 @@ export type UserUpdateWithoutAttendanceInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2968,6 +3198,7 @@ export type UserUncheckedUpdateWithoutAttendanceInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -3002,6 +3233,7 @@ export type UserCreateWithoutAttendanceEditsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -3038,6 +3270,7 @@ export type UserUncheckedCreateWithoutAttendanceEditsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -3088,6 +3321,7 @@ export type UserUpdateWithoutAttendanceEditsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -3124,6 +3358,7 @@ export type UserUncheckedUpdateWithoutAttendanceEditsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -3158,6 +3393,7 @@ export type UserCreateWithoutBreakSessionEditsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -3194,6 +3430,7 @@ export type UserUncheckedCreateWithoutBreakSessionEditsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -3244,6 +3481,7 @@ export type UserUpdateWithoutBreakSessionEditsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -3280,6 +3518,7 @@ export type UserUncheckedUpdateWithoutBreakSessionEditsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -3314,6 +3553,7 @@ export type UserCreateWithoutApprovalsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
@@ -3350,6 +3590,7 @@ export type UserUncheckedCreateWithoutApprovalsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
@@ -3389,6 +3630,7 @@ export type UserCreateWithoutApprovalReviewsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -3425,6 +3667,7 @@ export type UserUncheckedCreateWithoutApprovalReviewsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -3475,6 +3718,7 @@ export type UserUpdateWithoutApprovalsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
@@ -3511,6 +3755,7 @@ export type UserUncheckedUpdateWithoutApprovalsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
@@ -3556,6 +3801,7 @@ export type UserUpdateWithoutApprovalReviewsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -3592,6 +3838,7 @@ export type UserUncheckedUpdateWithoutApprovalReviewsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -3626,6 +3873,7 @@ export type UserCreateWithoutApprovalChainApprovalsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
@@ -3662,6 +3910,7 @@ export type UserUncheckedCreateWithoutApprovalChainApprovalsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
@@ -3701,6 +3950,7 @@ export type UserCreateWithoutApprovalChainStepsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
@@ -3737,6 +3987,7 @@ export type UserUncheckedCreateWithoutApprovalChainStepsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
@@ -3787,6 +4038,7 @@ export type UserUpdateWithoutApprovalChainApprovalsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
@@ -3823,6 +4075,7 @@ export type UserUncheckedUpdateWithoutApprovalChainApprovalsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
@@ -3868,6 +4121,7 @@ export type UserUpdateWithoutApprovalChainStepsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
@@ -3904,6 +4158,7 @@ export type UserUncheckedUpdateWithoutApprovalChainStepsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
@@ -3938,6 +4193,7 @@ export type UserCreateWithoutSalaryChangesAuthoredInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -3974,6 +4230,7 @@ export type UserUncheckedCreateWithoutSalaryChangesAuthoredInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -4024,6 +4281,7 @@ export type UserUpdateWithoutSalaryChangesAuthoredInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -4060,6 +4318,7 @@ export type UserUncheckedUpdateWithoutSalaryChangesAuthoredInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -4094,6 +4353,7 @@ export type UserCreateWithoutSubmittedPayrollRunsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -4130,6 +4390,7 @@ export type UserUncheckedCreateWithoutSubmittedPayrollRunsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -4169,6 +4430,7 @@ export type UserCreateWithoutSubmittedForApprovalPayrollRunsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -4205,6 +4467,7 @@ export type UserUncheckedCreateWithoutSubmittedForApprovalPayrollRunsInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -4255,6 +4518,7 @@ export type UserUpdateWithoutSubmittedPayrollRunsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -4291,6 +4555,7 @@ export type UserUncheckedUpdateWithoutSubmittedPayrollRunsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -4336,6 +4601,7 @@ export type UserUpdateWithoutSubmittedForApprovalPayrollRunsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -4372,6 +4638,7 @@ export type UserUncheckedUpdateWithoutSubmittedForApprovalPayrollRunsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -4406,6 +4673,7 @@ export type UserCreateWithoutLeaveApplicationsAppliedByAdminInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -4442,6 +4710,7 @@ export type UserUncheckedCreateWithoutLeaveApplicationsAppliedByAdminInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -4492,6 +4761,7 @@ export type UserUpdateWithoutLeaveApplicationsAppliedByAdminInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -4528,6 +4798,7 @@ export type UserUncheckedUpdateWithoutLeaveApplicationsAppliedByAdminInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -4562,6 +4833,7 @@ export type UserCreateWithoutAuditLogActorInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -4598,6 +4870,7 @@ export type UserUncheckedCreateWithoutAuditLogActorInput = {
   updatedAt?: Date | string
   passwordChangedAt?: Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -4648,6 +4921,7 @@ export type UserUpdateWithoutAuditLogActorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -4684,6 +4958,7 @@ export type UserUncheckedUpdateWithoutAuditLogActorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -4730,6 +5005,7 @@ export type UserUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -4765,6 +5041,7 @@ export type UserUncheckedUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -4808,6 +5085,7 @@ export type UserUncheckedUpdateManyWithoutOrganizationInput = {
 
 export type UserCountOutputType = {
   adminOrganizations: number
+  employeeOrganizations: number
   approvalChainApprovals: number
   approvalChainSteps: number
   approvals: number
@@ -4833,6 +5111,7 @@ export type UserCountOutputType = {
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminOrganizations?: boolean | UserCountOutputTypeCountAdminOrganizationsArgs
+  employeeOrganizations?: boolean | UserCountOutputTypeCountEmployeeOrganizationsArgs
   approvalChainApprovals?: boolean | UserCountOutputTypeCountApprovalChainApprovalsArgs
   approvalChainSteps?: boolean | UserCountOutputTypeCountApprovalChainStepsArgs
   approvals?: boolean | UserCountOutputTypeCountApprovalsArgs
@@ -4871,6 +5150,13 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type UserCountOutputTypeCountAdminOrganizationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AdminOrganizationWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountEmployeeOrganizationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeOrganizationWhereInput
 }
 
 /**
@@ -5033,6 +5319,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   passwordChangedAt?: boolean
   adminOrganizations?: boolean | Prisma.User$adminOrganizationsArgs<ExtArgs>
+  employeeOrganizations?: boolean | Prisma.User$employeeOrganizationsArgs<ExtArgs>
   approvalChainApprovals?: boolean | Prisma.User$approvalChainApprovalsArgs<ExtArgs>
   approvalChainSteps?: boolean | Prisma.User$approvalChainStepsArgs<ExtArgs>
   approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
@@ -5077,6 +5364,7 @@ export type UserSelectScalar = {
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "role" | "organizationId" | "passwordHash" | "avatarUrl" | "createdAt" | "updatedAt" | "passwordChangedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminOrganizations?: boolean | Prisma.User$adminOrganizationsArgs<ExtArgs>
+  employeeOrganizations?: boolean | Prisma.User$employeeOrganizationsArgs<ExtArgs>
   approvalChainApprovals?: boolean | Prisma.User$approvalChainApprovalsArgs<ExtArgs>
   approvalChainSteps?: boolean | Prisma.User$approvalChainStepsArgs<ExtArgs>
   approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
@@ -5107,6 +5395,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     adminOrganizations: Prisma.$AdminOrganizationPayload<ExtArgs>[]
+    employeeOrganizations: Prisma.$EmployeeOrganizationPayload<ExtArgs>[]
     approvalChainApprovals: Prisma.$ApprovalChainStepPayload<ExtArgs>[]
     approvalChainSteps: Prisma.$ApprovalChainStepPayload<ExtArgs>[]
     approvals: Prisma.$ApprovalRequestPayload<ExtArgs>[]
@@ -5492,6 +5781,7 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   adminOrganizations<T extends Prisma.User$adminOrganizationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$adminOrganizationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminOrganizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  employeeOrganizations<T extends Prisma.User$employeeOrganizationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$employeeOrganizationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeOrganizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvalChainApprovals<T extends Prisma.User$approvalChainApprovalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalChainApprovalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalChainStepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvalChainSteps<T extends Prisma.User$approvalChainStepsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalChainStepsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalChainStepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvals<T extends Prisma.User$approvalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -5923,6 +6213,30 @@ export type User$adminOrganizationsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.AdminOrganizationScalarFieldEnum | Prisma.AdminOrganizationScalarFieldEnum[]
+}
+
+/**
+ * User.employeeOrganizations
+ */
+export type User$employeeOrganizationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeOrganization
+   */
+  select?: Prisma.EmployeeOrganizationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeOrganization
+   */
+  omit?: Prisma.EmployeeOrganizationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeOrganizationInclude<ExtArgs> | null
+  where?: Prisma.EmployeeOrganizationWhereInput
+  orderBy?: Prisma.EmployeeOrganizationOrderByWithRelationInput | Prisma.EmployeeOrganizationOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeOrganizationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeOrganizationScalarFieldEnum | Prisma.EmployeeOrganizationScalarFieldEnum[]
 }
 
 /**

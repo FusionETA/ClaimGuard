@@ -63,6 +63,7 @@ export const ModelName = {
   Notification: 'Notification',
   EmployeeImportDraft: 'EmployeeImportDraft',
   EmployeeProfile: 'EmployeeProfile',
+  EmployeeOrganization: 'EmployeeOrganization',
   EmployeeProjectAssignment: 'EmployeeProjectAssignment',
   Claim: 'Claim',
   ClaimSupportingAttachment: 'ClaimSupportingAttachment',
@@ -318,10 +319,23 @@ export const EmployeeProfileScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   otTimeBalanceMin: 'otTimeBalanceMin',
-  policyId: 'policyId'
+  policyId: 'policyId',
+  organizationId: 'organizationId'
 } as const
 
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
+
+
+export const EmployeeOrganizationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  employeeProfileId: 'employeeProfileId',
+  organizationId: 'organizationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeOrganizationScalarFieldEnum = (typeof EmployeeOrganizationScalarFieldEnum)[keyof typeof EmployeeOrganizationScalarFieldEnum]
 
 
 export const EmployeeProjectAssignmentScalarFieldEnum = {
@@ -1351,10 +1365,21 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   employeeId: 'employeeId',
   jobTitle: 'jobTitle',
   preferredCurrency: 'preferredCurrency',
-  policyId: 'policyId'
+  policyId: 'policyId',
+  organizationId: 'organizationId'
 } as const
 
 export type EmployeeProfileOrderByRelevanceFieldEnum = (typeof EmployeeProfileOrderByRelevanceFieldEnum)[keyof typeof EmployeeProfileOrderByRelevanceFieldEnum]
+
+
+export const EmployeeOrganizationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  employeeProfileId: 'employeeProfileId',
+  organizationId: 'organizationId'
+} as const
+
+export type EmployeeOrganizationOrderByRelevanceFieldEnum = (typeof EmployeeOrganizationOrderByRelevanceFieldEnum)[keyof typeof EmployeeOrganizationOrderByRelevanceFieldEnum]
 
 
 export const EmployeeProjectAssignmentOrderByRelevanceFieldEnum = {

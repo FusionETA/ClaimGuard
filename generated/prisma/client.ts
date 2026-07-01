@@ -147,6 +147,23 @@ export type EmployeeImportDraft = Prisma.EmployeeImportDraftModel
  */
 export type EmployeeProfile = Prisma.EmployeeProfileModel
 /**
+ * Model EmployeeOrganization
+ * Join table linking an active User to an Organization for the
+ * employee-portal side. Mirrors `AdminOrganization` but for
+ * employee/supervisor roles instead of admin/owner.
+ * 
+ * Each row represents an active employment membership. Multi-company
+ * employees have multiple rows (one per org). The employee-shell reads
+ * this to render the company-picker dropdown; when there's exactly one
+ * row the shell auto-selects it, no picker shown.
+ * 
+ * Kept 1-to-1 with EmployeeProfile for now (via `@unique` on
+ * employeeProfileId) — a profile always belongs to exactly one
+ * organisation. The join table exists so we can enumerate a User's
+ * active memberships without walking all their EmployeeProfiles.
+ */
+export type EmployeeOrganization = Prisma.EmployeeOrganizationModel
+/**
  * Model EmployeeProjectAssignment
  * 
  */

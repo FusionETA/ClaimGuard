@@ -26,6 +26,7 @@ model User {
   updatedAt                       DateTime               @updatedAt
   passwordChangedAt               DateTime?
   adminOrganizations              AdminOrganization[]    @relation("AdminOrganizations")
+  employeeOrganizations           EmployeeOrganization[] @relation("EmployeeOrganizations")
   approvalChainApprovals          ApprovalChainStep[]    @relation("ApproverChain")
   approvalChainSteps              ApprovalChainStep[]    @relation("EmployeeChain")
   approvals                       ApprovalRequest[]      @relation("EmployeeApprovals")
@@ -104,6 +105,8 @@ model Organization {
   /// FREE | PAID only when plan = DIY. Null for EXPERT (no tier split).
   tier                      OrgPlanTier?
   adminMembers              AdminOrganization[]
+  employeeMembers           EmployeeOrganization[]    @relation("OrganizationEmployees")
+  employeeProfiles          EmployeeProfile[]
   apiIntegrations           ApiIntegration[]
   chartAccounts             ChartOfAccount[]
   claims                    Claim[]
@@ -439,9 +442,20 @@ model EmployeeProfile {
   /// Employee policy assignment. Drives module visibility and is the
   /// admin-facing source of truth for salary type + OT method.
   policyId              String?
+  /// The organisation this employment relationship belongs to. Added
+  /// as part of the multi-org employee rollout — an employee can now
+  /// have distinct EmployeeProfiles across multiple companies (each
+  /// with its own payslips, leave balance, attendance, statutory
+  /// registration numbers, etc.). Nullable during the rollout so the
+  /// backfill script can populate historical rows without blocking
+  /// production; a follow-up migration will make it required after
+  /// the backfill completes AND the singular-relation refactor lands.
+  /// While null, callers should fall back to `user.organizationId`.
+  organizationId        String?
   loans                 EmployeeLoan[]
   policy                EmployeePolicy?             @relation(fields: [policyId], references: [id])
   user                  User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  organization          Organization?               @relation(fields: [organizationId], references: [id])
   projectAssignments    EmployeeProjectAssignment[]
   teamMemberships       EmployeeTeamMembership[]
   leaveApplications     LeaveApplication[]
@@ -451,9 +465,40 @@ model EmployeeProfile {
   payrollRunClaims      PayrollRunClaim[]
   payslips              Payslip[]
   salaryChanges         SalaryChange[]
+  employeeOrganization  EmployeeOrganization?
 
   @@index([policyId])
   @@index([employeeId])
+  @@index([organizationId])
+}
+
+/// Join table linking an active User to an Organization for the
+/// employee-portal side. Mirrors `AdminOrganization` but for
+/// employee/supervisor roles instead of admin/owner.
+///
+/// Each row represents an active employment membership. Multi-company
+/// employees have multiple rows (one per org). The employee-shell reads
+/// this to render the company-picker dropdown; when there's exactly one
+/// row the shell auto-selects it, no picker shown.
+///
+/// Kept 1-to-1 with EmployeeProfile for now (via `@unique` on
+/// employeeProfileId) — a profile always belongs to exactly one
+/// organisation. The join table exists so we can enumerate a User's
+/// active memberships without walking all their EmployeeProfiles.
+model EmployeeOrganization {
+  id                String          @id @default(cuid())
+  userId            String
+  employeeProfileId String          @unique
+  organizationId   String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @default(now()) @updatedAt
+  user              User            @relation("EmployeeOrganizations", fields: [userId], references: [id], onDelete: Cascade)
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  organization      Organization    @relation("OrganizationEmployees", fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
 }
 
 model EmployeeProjectAssignment {
