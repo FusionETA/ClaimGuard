@@ -26,8 +26,18 @@ import { useToastOnAction } from "@/components/ui/toaster"
  *
  * The dialog auto-closes on success (toast surfaces the result via the
  * existing useToastOnAction wiring).
+ *
+ * Multi-org: when `hasMultipleCompanies` is true the dialog surfaces
+ * a small notice explaining that the password change applies across
+ * every company this user works at (there's only one User row / one
+ * password for auth). Without it, an employee at two companies might
+ * expect the change to only affect the currently-picked company.
  */
-export function ChangePasswordButton() {
+export function ChangePasswordButton({
+  hasMultipleCompanies = false,
+}: {
+  hasMultipleCompanies?: boolean
+}) {
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(
     changePasswordAction,
@@ -74,6 +84,15 @@ export function ChangePasswordButton() {
               Enter your current password, then choose a new one.
             </DialogDescription>
           </DialogHeader>
+
+          {hasMultipleCompanies ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+              You&apos;re an active employee at more than one company on
+              AltomateHR. Changing your password here changes it for{" "}
+              <strong>every company</strong> you sign in to — there&apos;s
+              one shared login across all of them.
+            </div>
+          ) : null}
 
           <form action={action} className="space-y-4 pt-2">
             <div className="space-y-1.5">

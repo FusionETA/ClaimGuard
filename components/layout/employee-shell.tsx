@@ -427,7 +427,9 @@ export function EmployeeShell({
                   </div>
                 </Link>
                 {hasMultipleCompanies ? <SwitchCompanyButton /> : null}
-                <ChangePasswordButton />
+                <ChangePasswordButton
+                  hasMultipleCompanies={hasMultipleCompanies}
+                />
                 <LogoutButton />
               </div>
             </div>
