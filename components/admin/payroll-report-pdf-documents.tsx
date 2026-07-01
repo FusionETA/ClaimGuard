@@ -740,8 +740,8 @@ function PcbCalculationDetailsBody({
       {/* ── ΣLP & LP₁ Details ───────────────────────────────────────── */}
       <Text style={lhdnStyles.sectionTitle}>ΣLP & LP₁ Details</Text>
       <LhdnVar
-        abbrev="SOCSO & EIS"
-        description="Employee SOCSO + EIS + SKBBK contributions used as LP relief. ΣLP is the YTD accumulated amount; LP₁ is this month's amount. Capped at RM 350/year per LHDN."
+        abbrev="ΣLP + LP₁"
+        description="Allowable deductions: employee SOCSO + EIS + SKBBK contributions (capped at RM 350/year combined) PLUS any TP1-declared relief line items (life insurance, medical insurance, PRS, serious-disease medical, lifestyle, sports equipment, etc. — each capped per LHDN Public Ruling). ΣLP is the YTD accumulated amount; LP₁ is this month's amount."
         amount={sumLP + LP1}
       />
     </View>
@@ -1116,6 +1116,12 @@ export function EmployeePayslipPdfDocument(
                   subtracted zakat). Zakat is in `totalDeductions`,
                   subtract once when surfacing the catch-all bucket. */}
               <PayRow label="PCB / MTD" amount={p.pcb} />
+              {/* CP38 arrears — LHDN court-ordered additional PCB
+                  withholding. Hidden when 0 so ordinary payslips don't
+                  show a junk RM 0.00 line. */}
+              {(p.cp38 ?? 0) > 0 ? (
+                <PayRow label="CP38 Arrears" amount={p.cp38 ?? 0} />
+              ) : null}
               <PayRow label="Employee SOCSO" amount={p.socsoEmployee} />
               <PayRow label="Employee EIS" amount={p.eisEmployee} />
               {/* SKBBK (Skim LINDUNG 24 Jam) — employee-only contribution,
@@ -1131,7 +1137,13 @@ export function EmployeePayslipPdfDocument(
                 <PayRow label="Zakat" amount={p.zakat} />
               ) : null}
               {(() => {
-                const other = Math.max(0, p.totalDeductions - p.zakat)
+                // Subtract things we've already shown as their own
+                // rows above (zakat + cp38) to avoid double-count in
+                // the catch-all "Other deductions" line.
+                const other = Math.max(
+                  0,
+                  p.totalDeductions - p.zakat - (p.cp38 ?? 0),
+                )
                 return other > 0 ? (
                   <PayRow label="Other deductions" amount={other} />
                 ) : null

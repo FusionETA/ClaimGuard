@@ -919,6 +919,9 @@ export async function previewEmployeeNetForRun(input: {
     ytdPcb: ytdRaw.ytdPcb + (isPrevForSameYear ? e.profile.prevPcb ?? 0 : 0),
     ytdZakat: ytdRaw.ytdZakat + (isPrevForSameYear ? e.profile.prevZakat ?? 0 : 0),
     ytdSocsoEis: ytdRaw.ytdSocsoEis,
+    ytdAllowableDeductions:
+      ytdRaw.ytdAllowableDeductions +
+      (isPrevForSameYear ? e.profile.prevAllowableDeductions ?? 0 : 0),
     ytdAllowanceByCategory: ytdRaw.ytdAllowanceByCategory,
   }
 
@@ -987,6 +990,7 @@ export async function previewEmployeeNetForRun(input: {
     ytdPcb: ytd.ytdPcb,
     ytdZakat: ytd.ytdZakat,
     ytdSocsoEis: ytd.ytdSocsoEis,
+    ytdAllowableDeductions: ytd.ytdAllowableDeductions,
     ytdAllowanceByCategory: ytd.ytdAllowanceByCategory,
   })
 
@@ -1149,6 +1153,16 @@ export async function generatePayrollPayslips(input: {
       const effPrevZakat = subtractThisOrg
         ? Math.max(0, (e.profile.prevZakat ?? 0) - ytd.ytdZakat)
         : (e.profile.prevZakat ?? 0)
+      // Prior-employer TP1 allowable-deduction carryover (ΣLP portion
+      // from Borang TP3 §D). Same rehire-safe subtraction as the
+      // taxable/EPF/PCB/zakat fields above.
+      const effPrevAllowableDeductions = subtractThisOrg
+        ? Math.max(
+            0,
+            (e.profile.prevAllowableDeductions ?? 0) -
+              ytd.ytdAllowableDeductions,
+          )
+        : (e.profile.prevAllowableDeductions ?? 0)
       return {
         empId: e.employeeProfileId,
         // TP3 carryover: add the prev-employer figures to each YTD
@@ -1167,6 +1181,11 @@ export async function generatePayrollPayslips(input: {
         // if needed for early-year joiners, but the PCB delta is
         // typically < RM 5 / month.)
         ytdSocsoEis: ytd.ytdSocsoEis,
+        // TP1 relief accumulated — from this org's prior submitted
+        // payslips PLUS the prior-employer TP3 carryover.
+        ytdAllowableDeductions:
+          ytd.ytdAllowableDeductions +
+          (isPrevForSameYear ? effPrevAllowableDeductions : 0),
         ytdAllowanceByCategory: ytd.ytdAllowanceByCategory,
       }
     }),
@@ -1474,6 +1493,8 @@ export async function generatePayrollPayslips(input: {
       ytdPcb: ytd?.ytdPcb ?? 0,
       ytdZakat: ytd?.ytdZakat ?? 0,
       ytdSocsoEis: ytd?.ytdSocsoEis ?? 0,
+      // YTD TP1 relief — feeds ∑LP in the PCB formula.
+      ytdAllowableDeductions: ytd?.ytdAllowableDeductions ?? 0,
       // YTD per-category allowance totals — drives taxExemptLimit
       // enforcement for parking / childcare / award etc. caps.
       ytdAllowanceByCategory: ytd?.ytdAllowanceByCategory ?? {},
@@ -1523,6 +1544,7 @@ export async function generatePayrollPayslips(input: {
       skbbkEmployee: result.skbbkEmployee,
       skbbkWage: result.skbbkWage,
       pcb: result.pcb,
+      cp38: result.cp38,
       pcbCalculation: result.pcbCalculation,
       hrdf: result.hrdf,
       hrdfWage: result.hrdfWage,

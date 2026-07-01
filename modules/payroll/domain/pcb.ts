@@ -366,6 +366,21 @@ export type CalcPcbInput = {
   /// excluding the current month). Defaults to 0. The actuals-only
   /// relief = `min(RM 350, ytd + thisMonth)`.
   ytdSocsoEis?: number
+  /// This month's TP1-declared allowable deductions (life insurance,
+  /// medical/education insurance, PRS, serious-disease medical,
+  /// lifestyle, sports equipment, other). Summed from line items with
+  /// `feedsLp1Relief: true`, with each item's amount already clamped
+  /// to its per-item LHDN cap by the caller (see calc.ts). Feeds LP1
+  /// in the formula: `P = [income] - (D + S + Du + Su + QC + ∑LP + LP1)`.
+  /// Defaults to 0.
+  thisMonthAllowableDeductions?: number
+  /// YTD TP1 allowable deductions carried over from prior SUBMITTED
+  /// payslips this calendar year (this org), PLUS the prior-employer
+  /// figure from PayrollProfile.prevAllowableDeductions when the
+  /// employee joined mid-year (parallels the existing prev*
+  /// carryover for taxable/EPF/PCB/zakat). Feeds ∑LP in the formula.
+  /// Defaults to 0.
+  ytdAllowableDeductions?: number
   /// Relief data — pulled from PayrollProfile.
   profile: Pick<
     PayrollProfileData,
@@ -901,15 +916,30 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
   const Q = 2000
   const C = QC > 0 ? Math.round((QC / Q) * 100) / 100 : 0
 
-  // ∑LP + LP1 — actuals-only SOCSO+EIS relief (no projection).
-  const sumLP = Math.min(SOCSO_EIS_RELIEF_CAP, Math.max(0, input.ytdSocsoEis ?? 0))
-  const LP1 = Math.max(
+  // ∑LP + LP1 = two components summed:
+  //   (a) SOCSO + EIS + SKBBK actuals-only relief (capped at RM 350
+  //       combined per year — see SOCSO_EIS_RELIEF_CAP).
+  //   (b) TP1-declared allowable deductions (life insurance, medical
+  //       insurance, PRS, etc.) — NO combined cap (each item is
+  //       already clamped to its per-item LHDN cap by the caller).
+  //
+  // Both go into LP1 (current month) + ∑LP (accumulated) as per LHDN
+  // MTD Spec 2026 page 10.
+  const sumLPSocsoEis = Math.min(
+    SOCSO_EIS_RELIEF_CAP,
+    Math.max(0, input.ytdSocsoEis ?? 0),
+  )
+  const LP1SocsoEis = Math.max(
     0,
     Math.min(
       Math.max(0, input.thisMonthSocsoEis ?? 0),
-      Math.max(0, SOCSO_EIS_RELIEF_CAP - sumLP),
+      Math.max(0, SOCSO_EIS_RELIEF_CAP - sumLPSocsoEis),
     ),
   )
+  const sumLPTp1 = Math.max(0, input.ytdAllowableDeductions ?? 0)
+  const LP1Tp1 = Math.max(0, input.thisMonthAllowableDeductions ?? 0)
+  const sumLP = sumLPSocsoEis + sumLPTp1
+  const LP1 = LP1SocsoEis + LP1Tp1
 
   // Annual chargeable income — formula exactly per LHDN.
   // P = [Σ(Y-K) + (Y1-K1) + (Y2-K2×n)] - (D + S + Du + Su + Q×C + ∑LP + LP1)

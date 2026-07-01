@@ -68,6 +68,10 @@ export type CreatePayslipInput = {
   /// wage in current code; persisted separately for forward-compat.
   skbbkWage: number
   pcb: number
+  /// CP38 arrears (LHDN court order) — kept separate from `pcb` per
+  /// LHDN MTD Spec 2026 page 14. Remitted in the dedicated CP38 field
+  /// of CP39. 0 when no CP38 line item exists.
+  cp38: number
   /// LHDN-style PCB formula breakdown. JSON shape matches
   /// `CalcPcbBreakdown` in `modules/payroll/domain/pcb.ts`. Snapshotted
   /// so the Detailed Calculations PDF can show the exact formula that
@@ -160,6 +164,7 @@ export const payslipRepository = {
           skbbkEmployee: p.skbbkEmployee,
           skbbkWage: p.skbbkWage,
           pcb: p.pcb,
+          cp38: p.cp38,
           pcbCalculation: (p.pcbCalculation ?? null) as Prisma.InputJsonValue,
           hrdf: p.hrdf,
           hrdfWage: p.hrdfWage,
@@ -427,8 +432,16 @@ export const payslipRepository = {
     /// enforce `taxExemptLimit` caps (e.g. childcare RM3,000/year).
     /// Only ALLOWANCE-kind rows with a non-null `category` are
     /// counted. Empty record when the employee has no prior YTD or
-    /// when all rows are legacy / uncategorised.
+    /// when all rows are legacy / uncategorised. Also used by the calc
+    /// engine to enforce per-item LHDN TP1 caps against prior TP1
+    /// deductions (life insurance, medical insurance, PRS, etc.).
     ytdAllowanceByCategory: Record<string, number>
+    /// YTD TP1 allowable-deduction total from prior SUBMITTED payslips
+    /// this calendar year (sum of DEDUCTION-kind line items where the
+    /// meta's `feedsLp1Relief` was true). Feeds ∑LP in the PCB
+    /// formula (LHDN MTD Spec 2026 page 10) so the next run's PCB
+    /// correctly reflects the accumulated TP1 relief.
+    ytdAllowableDeductions: number
   }> {
     const prisma = getPrismaClient()
     if (!prisma) {
@@ -439,6 +452,7 @@ export const payslipRepository = {
         ytdZakat: 0,
         ytdSocsoEis: 0,
         ytdAllowanceByCategory: {},
+        ytdAllowableDeductions: 0,
       }
     }
 
@@ -451,7 +465,23 @@ export const payslipRepository = {
       },
     }
 
-    const [agg, pcbAllowanceAgg, byCategory] = await Promise.all([
+    // TP1 categories whose YTD sum feeds ∑LP in next month's PCB
+    // calc. Hardcoded list (matches meta.feedsLp1Relief entries in
+    // domain/models.ts) rather than querying by flag because the
+    // PayslipLineItem row doesn't persist meta flags — it only stores
+    // `category` and `kind`. Keep this list in sync when new TP1
+    // sub-categories are added.
+    const tp1Categories = [
+      "deduct_tp1",
+      "deduct_tp1_life_insurance",
+      "deduct_tp1_medical_insurance",
+      "deduct_tp1_prs",
+      "deduct_tp1_serious_disease_medical",
+      "deduct_tp1_lifestyle",
+      "deduct_tp1_sports_equipment",
+      "deduct_tp1_other",
+    ]
+    const [agg, pcbAllowanceAgg, byCategory, tp1Agg] = await Promise.all([
       prisma.payslip.aggregate({
         where: submittedPayslipFilter,
         _sum: {
@@ -480,11 +510,22 @@ export const payslipRepository = {
         },
         _sum: { amount: true },
       }),
+      // Group ALL non-null-category line items (allowances AND TP1
+      // deductions) by category — used for per-category cap
+      // enforcement (existing childcare cap + new TP1 caps).
       prisma.payslipLineItem.groupBy({
         by: ["category"],
         where: {
-          kind: "ALLOWANCE",
           category: { not: null },
+          payslip: submittedPayslipFilter,
+        },
+        _sum: { amount: true },
+      }),
+      // Sum of TP1 line items across all sub-categories — feeds ∑LP.
+      prisma.payslipLineItem.aggregate({
+        where: {
+          kind: "DEDUCTION",
+          category: { in: tp1Categories },
           payslip: submittedPayslipFilter,
         },
         _sum: { amount: true },
@@ -502,6 +543,11 @@ export const payslipRepository = {
         toNumber(agg._sum.proratedPay, 0) +
         toNumber(pcbAllowanceAgg._sum.amount, 0) +
         toNumber(agg._sum.otPay, 0),
+      // ytdPcb intentionally uses only Payslip.pcb (formula-calculated
+      // portion). Payslip.cp38 + Payslip.voluntaryPcb are EXCLUDED per
+      // LHDN MTD Spec 2026 page 14 X-definition: "shall NOT include
+      // additional Monthly Tax Deduction requested by the employee and
+      // payment of tax installment."
       ytdEpf: toNumber(agg._sum.epfEmployee, 0),
       ytdPcb: toNumber(agg._sum.pcb, 0),
       ytdZakat: toNumber(agg._sum.zakat, 0),
@@ -510,6 +556,7 @@ export const payslipRepository = {
         toNumber(agg._sum.skbbkEmployee, 0) +
         toNumber(agg._sum.eisEmployee, 0),
       ytdAllowanceByCategory,
+      ytdAllowableDeductions: toNumber(tp1Agg._sum.amount, 0),
     }
   },
 
@@ -801,6 +848,9 @@ function mapPayslip(row: any, lineItems: PayslipLineItemData[]): PayslipData {
     skbbkEmployee: toNumber(row.skbbkEmployee, 0),
     skbbkWage: toNumber(row.skbbkWage, 0),
     pcb: toNumber(row.pcb, 0),
+    // CP38 arrears — new column, defaults to 0 on rows written before
+    // the column existed so historical payslips map cleanly.
+    cp38: toNumber(row.cp38, 0),
     // LHDN PCB formula breakdown — null on rows generated before the
     // `pcbCalculation` column existed; the PDF renderer falls back to
     // a single-line summary in that case.

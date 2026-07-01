@@ -154,7 +154,6 @@ export const payrollAdjustmentCategories = [
   "deduct_tp1_lifestyle",
   "deduct_tp1_sports_equipment",
   "deduct_tp1_other",
-  "deduct_voluntary_pcb",
 ] as const
 export type PayrollAdjustmentCategory =
   (typeof payrollAdjustmentCategories)[number]
@@ -211,17 +210,6 @@ export type PayrollAdjustmentCategoryMeta = {
   /// Borang TP1 mechanics (employee already paid the third party;
   /// employer just honours the declaration for PCB purposes).
   feedsLp1Relief?: boolean
-  /// When true, this line item's amount is added to the payslip's
-  /// **standard PCB** scalar (separate from the formula-calculated
-  /// PCB). Feeds the CP39 "Total PCB" field so LHDN receives the
-  /// combined amount. Used for `deduct_voluntary_pcb` (employee
-  /// requesting extra withholding). Note: per LHDN MTD Spec page 14,
-  /// the X (accumulated PCB paid) definition explicitly EXCLUDES
-  /// "additional Monthly Tax Deduction requested by the employee",
-  /// so this bucket is stored on Payslip.voluntaryPcb (NOT
-  /// Payslip.pcb) — the YTD aggregator for next month's calc still
-  /// only picks up the formula-calculated portion.
-  addsToStandardPcb?: boolean
   /// When true, this line item's amount goes into the payslip's
   /// **CP38** scalar and is remitted via the CP39 dedicated CP38
   /// field (positions 43-52 header, 119-126 detail — see
@@ -946,29 +934,6 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // code-enforced cap here; admin must respect the individual
     // LHDN item cap. Payslip narration should note the specific TP1
     // item claimed for audit purposes.
-  },
-  deduct_voluntary_pcb: {
-    // Employee-requested additional monthly PCB withholding on top of
-    // the formula-calculated amount. Money physically leaves the
-    // employee's take-home pay (cashNeutral: false) AND is remitted to
-    // LHDN via the CP39 standard "Total PCB" field (addsToStandardPcb).
-    // Distinct from CP38 (which is a court-issued arrears order with
-    // its own dedicated CP39 field).
-    //
-    // Per LHDN MTD Spec 2026 page 14, this amount is NOT included in
-    // X (accumulated PCB paid) for next month's calc — stored on
-    // Payslip.voluntaryPcb separately from Payslip.pcb so the YTD
-    // aggregator only picks up the formula-calculated portion.
-    code: "deduct_voluntary_pcb",
-    label: "Voluntary PCB Top-Up",
-    group: "Deductions",
-    kind: "DEDUCTION",
-    subjectToEpf: false,
-    subjectToSocso: false,
-    subjectToEis: false,
-    subjectToPcb: false,
-    subjectToHrdf: false,
-    addsToStandardPcb: true,
   },
 }
 

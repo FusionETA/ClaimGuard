@@ -655,6 +655,14 @@ export type CalcPayslipInput = {
   /// Defaults to 0; caller (run service) populates from
   /// `payslipRepository.getYtdForEmployee`.
   ytdSocsoEis?: number
+  /// YTD TP1 allowable-deduction total from prior SUBMITTED payslips
+  /// this calendar year (sum of amounts on line items with
+  /// `feedsLp1Relief: true`, already clamped to per-item LHDN cap at
+  /// their original write time). Feeds ∑LP in the PCB formula.
+  /// Includes prior-employer carryover from
+  /// `PayrollProfile.prevAllowableDeductions` when the employee
+  /// joined mid-year. Defaults to 0.
+  ytdAllowableDeductions?: number
   /// YTD per-category allowance totals (RM) — used to enforce
   /// `taxExemptLimit` caps. Keyed by `PayrollAdjustmentCategory` (e.g.
   /// `allowance_childcare`). Only the over-cap portion of an
@@ -702,6 +710,12 @@ export type CalcPayslipResult = {
   /// historical payslips remain interpretable if the cap ever changes.
   skbbkWage: number
   pcb: number
+  /// CP38 arrears amount — from line items with `addsToCp38Field: true`.
+  /// Reduces net pay AND is remitted via the CP39 dedicated CP38 field
+  /// (positions 43-52 header, 119-126 detail — see pcb-txt.ts).
+  /// Kept SEPARATE from `pcb` so next month's ytdPcb baseline excludes
+  /// it, per LHDN MTD Spec 2026 page 14 X-definition.
+  cp38: number
   hrdf: number
   hrdfWage: number
   zakat: number
@@ -869,6 +883,19 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   /// NOT added to `totalRecurringDeductions` (which would double-count).
   let totalGrossReducingDeductions = 0
   let totalRecurringReimbursements = 0
+  // ─── TP1 / CP38 / voluntary PCB accumulators ────────────────────────
+  // TP1 allowable deductions this month — each category clamped against
+  // its LHDN 2026 cap (meta.taxExemptLimit) using the YTD-per-category
+  // already spent (input.ytdAllowanceByCategory works here too since it
+  // now aggregates all line items, not just allowances). Feeds the LP1
+  // relief bucket in the PCB formula.
+  let thisMonthTp1Relief = 0
+  const tp1UsedByCat: Record<string, number> = {}
+  // CP38 arrears amount for this month (from `deduct_cp38` line items).
+  // Reduces net pay via totalRecurringDeductions (already handled by
+  // the !cashNeutral branch) AND is stored separately for the CP39
+  // dedicated CP38 field.
+  let thisMonthCp38 = 0
   let epfAdjustmentBase = 0
   /// AR (additional remuneration) bucket for EPF — bonus / commission /
   /// arrears lines whose category is `isAdditionalRemuneration: true` AND
@@ -949,6 +976,28 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       }
       if (meta.offsetsPcb) {
         thisMonthZakat += amt
+      }
+      // ─── TP1 allowable deduction — feeds LP1 relief ─────────────────
+      // Cap the amount at (LHDN per-item cap − YTD-per-category), so
+      // over-claims silently clamp instead of under-withholding PCB.
+      // The `deduct_tp1_other` catch-all has no cap (admin-trusted).
+      if (meta.feedsLp1Relief) {
+        if (meta.taxExemptLimit && meta.taxExemptLimit > 0) {
+          const ytdUsed =
+            (ytdByCat[a.category] ?? 0) + (tp1UsedByCat[a.category] ?? 0)
+          const remainingCap = Math.max(0, meta.taxExemptLimit - ytdUsed)
+          const eligible = Math.min(amt, remainingCap)
+          thisMonthTp1Relief += eligible
+          tp1UsedByCat[a.category] =
+            (tp1UsedByCat[a.category] ?? 0) + eligible
+        } else {
+          // No cap (deduct_tp1_other or legacy deduct_tp1).
+          thisMonthTp1Relief += amt
+        }
+      }
+      // ─── CP38 arrears — stored separately for CP39 CP38 field ─────
+      if (meta.addsToCp38Field) {
+        thisMonthCp38 += amt
       }
     } else if (meta.kind === "REIMBURSEMENT") {
       totalRecurringReimbursements += amt
@@ -1059,6 +1108,9 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   // adjustment line (offsetsPcb + cashNeutral), handled in the deduction
   // loop above — no separate profile-level branch needed.
   thisMonthZakat = round2(thisMonthZakat)
+  // Finalize the TP1/CP38 accumulators.
+  thisMonthTp1Relief = round2(thisMonthTp1Relief)
+  thisMonthCp38 = round2(thisMonthCp38)
 
   // 5. Reimbursements (Phase 5 — approved claims). Not wage-like, so
   // not subject to statutory contributions.
@@ -1267,6 +1319,10 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     ytdZakat: input.ytdZakat ?? 0,
     thisMonthSocsoEis,
     ytdSocsoEis: ytdSocsoEisForRelief,
+    // TP1 allowable deductions — LP1 + ∑LP relief in the LHDN formula.
+    // Per-item caps already enforced in the deduction loop above.
+    thisMonthAllowableDeductions: thisMonthTp1Relief,
+    ytdAllowableDeductions: input.ytdAllowableDeductions ?? 0,
     profile: {
       isOku: profile.isOku,
       spouseWorking: profile.spouseWorking,
@@ -1406,6 +1462,10 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     // Persisted separately so historical payslips remain interpretable.
     skbbkWage: socsoWage,
     pcb,
+    // CP38 arrears — persisted separately from `pcb` so next month's
+    // ytdPcb baseline excludes it per LHDN MTD Spec 2026 page 14
+    // X-definition.
+    cp38: thisMonthCp38,
     hrdf,
     hrdfWage,
     /// Zakat actually deducted this month — sourced from

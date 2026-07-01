@@ -550,6 +550,10 @@ function buildImportedPayslipInput(input: {
     skbbkEmployee: 0,
     skbbkWage: 0,
     pcb: a.pcb,
+    // YTD imports don't split out CP38 — historical payroll data
+    // typically already merged it into the PCB total. Leave 0 unless
+    // the template gains a dedicated CP38 column later.
+    cp38: 0,
     pcbCalculation: null,
     hrdf: a.hrdf,
     hrdfWage: a.basicSalary, // approximation — admins can edit later

@@ -91,15 +91,16 @@ export async function renderPcbTxt(input: {
   const detailLines: string[] = []
   let pcbTotalSen = 0
   let pcbCount = 0
-  // CP38 is a court-ordered tax-debt deduction we don't yet capture
-  // in the calc engine — zero everywhere for now.
-  const cp38TotalSen = 0
-  const cp38Count = 0
+  let cp38TotalSen = 0
+  let cp38Count = 0
 
   for (const row of payload.rows) {
-    // LHDN only wants rows with PCB > 0 (CP38 is also relevant but
-    // we don't compute it).
-    if (row.payslip.pcb <= 0) continue
+    // LHDN wants any row with PCB > 0 OR CP38 > 0. A CP38-only row
+    // (no formula-calculated PCB but with a court-ordered arrears
+    // installment) must still be submitted.
+    const rowPcb = row.payslip.pcb
+    const rowCp38 = row.payslip.cp38
+    if (rowPcb <= 0 && rowCp38 <= 0) continue
 
     const employeeCode = row.employeeCode.trim()
     const employeeRef = employeeCode || row.employeeName
@@ -140,9 +141,16 @@ export async function renderPcbTxt(input: {
     // leave blank. Admin can dry-run + we add it if LHDN rejects.
     const countryCode = ""
 
-    const pcbSen = toSen(row.payslip.pcb)
-    pcbTotalSen += pcbSen
-    pcbCount += 1
+    const pcbSen = toSen(rowPcb)
+    if (pcbSen > 0) {
+      pcbTotalSen += pcbSen
+      pcbCount += 1
+    }
+    const cp38Sen = toSen(rowCp38)
+    if (cp38Sen > 0) {
+      cp38TotalSen += cp38Sen
+      cp38Count += 1
+    }
 
     const detail =
       "D" +
@@ -154,7 +162,7 @@ export async function renderPcbTxt(input: {
       padRight(passport, 12) +
       padRight(countryCode, 2) +
       padZero(pcbSen, 8) +
-      padZero(0, 8) + // CP38 amount
+      padZero(cp38Sen, 8) +
       padRight(employeeCode, 10)
 
     if (detail.length !== 136) {

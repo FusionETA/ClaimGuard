@@ -242,6 +242,10 @@ export type PayslipData = {
   /// remain interpretable if PERKESO ever decouples them.
   skbbkWage: number
   pcb: number
+  /// CP38 arrears (LHDN court order) — kept separate from `pcb` per
+  /// LHDN MTD Spec 2026 page 14 X-definition. 0 when no `deduct_cp38`
+  /// line item was on the payslip.
+  cp38: number
   /// LHDN-style PCB formula breakdown — see `CalcPcbBreakdown` in
   /// `modules/payroll/domain/pcb.ts`. Null on payslips generated before
   /// the snapshot column existed; consumers should fall back to the
