@@ -1,5 +1,6 @@
 "use server"
 
+import type { Route } from "next"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { z } from "zod"
@@ -17,6 +18,7 @@ import {
   getCurrentSession,
   getHomePathForRole,
 } from "@/lib/auth/session"
+import { isAdminRole } from "@/lib/auth/types"
 import { rateLimit } from "@/lib/rate-limit"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { pushSubscriptionRepository } from "@/modules/notifications/infrastructure/push-subscription.repository"
@@ -104,6 +106,19 @@ export async function loginAction(
   // under concurrent logins), and the in-memory store is per-Vercel-instance
   // so it was unreliable in multi-instance deployments anyway.
   // Pages lazy-load their own data from the DB on first visit.
+  //
+  // Multi-org employees: authenticate.ts leaves `activeOrganizationId`
+  // undefined when the user has 2+ active EmployeeOrganization
+  // memberships. In that case we route to the company picker instead
+  // of the dashboard — the picker sets the active org, then redirects
+  // to /employee. Single-membership employees skip the picker (their
+  // activeOrganizationId is already set).
+  if (
+    !isAdminRole(result.user.role) &&
+    !result.user.activeOrganizationId
+  ) {
+    redirect("/employee/pick-company" as Route)
+  }
   redirect(getHomePathForRole(result.user.role))
 }
 
