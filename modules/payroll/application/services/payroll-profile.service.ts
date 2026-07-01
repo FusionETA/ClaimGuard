@@ -202,26 +202,29 @@ export async function getPayrollEmployeeDetailPageData(input: {
       id: true,
       email: true,
       name: true,
-      employeeProfile: {
+      employeeProfiles: {
+        where: { organizationId: orgId },
         select: { id: true, employeeId: true, jobTitle: true },
+        take: 1,
       },
     },
   })
-  if (!user || !user.employeeProfile) return null
+  const detailProfile = user?.employeeProfiles[0] ?? null
+  if (!user || !detailProfile) return null
 
   const [profile, settings, salaryHistory] = await Promise.all([
-    payrollProfileRepository.getByEmployeeProfileId(user.employeeProfile.id),
+    payrollProfileRepository.getByEmployeeProfileId(detailProfile.id),
     payrollSettingsRepository.getByOrgId(orgId),
-    salaryChangeRepository.listForEmployee(user.employeeProfile.id),
+    salaryChangeRepository.listForEmployee(detailProfile.id),
   ])
 
   return {
     userId: user.id,
-    employeeProfileId: user.employeeProfile.id,
-    employeeId: user.employeeProfile.employeeId,
+    employeeProfileId: detailProfile.id,
+    employeeId: detailProfile.employeeId,
     name: user.name,
     email: user.email,
-    jobTitle: user.employeeProfile.jobTitle,
+    jobTitle: detailProfile.jobTitle,
     profile,
     defaultEpfEmployerRate: settings?.defaultEpfEmployerRate ?? 13,
     salaryHistory,
@@ -252,26 +255,28 @@ export async function upsertPayrollProfile(input: {
   const user = await prisma.user.findFirst({
     where: { id: input.userId, organizationId: orgId },
     select: {
-      employeeProfile: {
+      employeeProfiles: {
+        where: { organizationId: orgId },
         select: {
           id: true,
           payrollProfile: { select: { joinDate: true } },
         },
+        take: 1,
       },
     },
   })
-  if (!user?.employeeProfile) {
+  const upsertProfile = user?.employeeProfiles[0] ?? null
+  if (!upsertProfile) {
     throw new Error("Employee not found in this organisation.")
   }
 
   // Snapshot the previous joinDate so we can detect changes after
   // the upsert and trigger the PRO_RATED accrual recompute. Compared
   // as ISO date strings to avoid Date-instance equality issues.
-  const previousJoinDate =
-    user.employeeProfile.payrollProfile?.joinDate ?? null
+  const previousJoinDate = upsertProfile.payrollProfile?.joinDate ?? null
 
   const result = await payrollProfileRepository.upsert({
-    employeeProfileId: user.employeeProfile.id,
+    employeeProfileId: upsertProfile.id,
     patch: input.patch,
   })
 
@@ -281,10 +286,10 @@ export async function upsertPayrollProfile(input: {
   // no leave used yet). This closes the "I set joinDate after
   // hiring and the balance didn't move" gap.
   const nextJoinDate = await leaveRepository.getEmployeeJoinDate(
-    user.employeeProfile.id,
+    upsertProfile.id,
   )
   if (!sameDate(previousJoinDate, nextJoinDate)) {
-    await recomputeProRatedAccrualForEmployee(user.employeeProfile.id)
+    await recomputeProRatedAccrualForEmployee(upsertProfile.id)
   }
 
   // Readiness (isComplete) shown on the Manage Employee list lives under
@@ -340,14 +345,21 @@ export async function archivePayrollProfile(input: {
 
   const user = await prisma.user.findFirst({
     where: { id: input.userId, organizationId: orgId },
-    select: { employeeProfile: { select: { id: true } } },
+    select: {
+      employeeProfiles: {
+        where: { organizationId: orgId },
+        select: { id: true },
+        take: 1,
+      },
+    },
   })
-  if (!user?.employeeProfile) {
+  const archiveProfile = user?.employeeProfiles[0]
+  if (!archiveProfile) {
     throw new Error("Employee not found in this organisation.")
   }
 
   await payrollProfileRepository.archive(
-    user.employeeProfile.id,
+    archiveProfile.id,
     input.reason,
     input.leaveDate,
   )
@@ -462,14 +474,21 @@ export async function unarchivePayrollProfile(input: {
 
   const user = await prisma.user.findFirst({
     where: { id: input.userId, organizationId: orgId },
-    select: { employeeProfile: { select: { id: true } } },
+    select: {
+      employeeProfiles: {
+        where: { organizationId: orgId },
+        select: { id: true },
+        take: 1,
+      },
+    },
   })
-  if (!user?.employeeProfile) {
+  const restoreProfile = user?.employeeProfiles[0]
+  if (!restoreProfile) {
     throw new Error("Employee not found in this organisation.")
   }
 
   await payrollProfileRepository.unarchive(
-    user.employeeProfile.id,
+    restoreProfile.id,
     input.rehireCarryover ?? null,
   )
 

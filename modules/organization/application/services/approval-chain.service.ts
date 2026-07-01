@@ -47,7 +47,7 @@ export async function resolveModuleChain(
   const prisma = getOrganizationPrismaClientSafe()
   if (!prisma) return []
 
-  const profile = await prisma.employeeProfile.findUnique({
+  const profile = await prisma.employeeProfile.findFirst({
     where: { userId: employeeId },
     include: {
       teamMemberships: {

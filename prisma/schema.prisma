@@ -38,7 +38,13 @@ model User {
   reviews                         Claim[]                @relation("AdminReviews")
   claimApprovalEntries            ClaimApprovalEntry[]   @relation("UserApprovalEntries")
   employeeImportDrafts            EmployeeImportDraft[]
-  employeeProfile                 EmployeeProfile?       @relation("EmployeeProfileUser")
+  /// N employment relationships across N organisations. Callers that
+  /// need a specific org's profile should use
+  /// `getEmployeeProfileForOrg(profiles, orgId)`; callers that want
+  /// the primary profile (backwards-compat for pre-multi-org code
+  /// paths) should use `getPrimaryEmployeeProfile(profiles)`. Both
+  /// live in lib/auth/employee-profile.ts.
+  employeeProfiles                EmployeeProfile[]      @relation("EmployeeProfileUser")
   leaveApplicationsAppliedByAdmin LeaveApplication[]     @relation("LeaveAppliedByAdmin")
   notifications                   Notification[]
   auditLogActor                   OrganizationAuditLog[] @relation("OrgAuditLogActor")
@@ -431,7 +437,9 @@ model EmployeeImportDraft {
 
 model EmployeeProfile {
   id                    String                      @id @default(cuid())
-  userId                String                      @unique
+  /// No longer @unique — a User can have N EmployeeProfiles, one per
+  /// organisation. Uniqueness enforced by @@unique([userId, organizationId]).
+  userId                String
   employeeId            String
   jobTitle              String
   preferredCurrency     String                      @default("USD")
@@ -467,9 +475,11 @@ model EmployeeProfile {
   salaryChanges         SalaryChange[]
   employeeOrganization  EmployeeOrganization?
 
+  @@unique([userId, organizationId])
   @@index([policyId])
   @@index([employeeId])
   @@index([organizationId])
+  @@index([userId])
 }
 
 /// Join table linking an active User to an Organization for the

@@ -548,7 +548,7 @@ async function computeApprovedOtMinutes(
   // Daily OT threshold lives on the employee's assigned policy now.
   // Defaults to the legacy 8h fallback when no policy is assigned.
   let otThresholdMin = 8 * 60
-  const profile = await prisma.employeeProfile.findUnique({
+  const profile = await prisma.employeeProfile.findFirst({
     where: { userId: employeeId },
     select: { policy: { select: { otDailyThresholdMinutes: true } } },
   })
@@ -721,7 +721,7 @@ export const attendanceRepository = {
           },
         },
       }),
-      prisma.employeeProfile.findUnique({
+      prisma.employeeProfile.findFirst({
         where: { userId: args.employeeId },
         select: {
           policy: { select: { otDailyThresholdMinutes: true } },
@@ -843,7 +843,7 @@ export const attendanceRepository = {
         },
         select: { date: true },
       }),
-      prisma.employeeProfile.findUnique({
+      prisma.employeeProfile.findFirst({
         where: { userId: args.employeeId },
         select: {
           policy: { select: { otDailyThresholdMinutes: true } },
@@ -1128,7 +1128,7 @@ export const attendanceRepository = {
     requireSelfie: boolean
   } | null> {
     const prisma = getClient()
-    const profile = await prisma.employeeProfile.findUnique({
+    const profile = await prisma.employeeProfile.findFirst({
       where: { userId },
       select: {
         otTimeBalanceMin: true,
@@ -1201,7 +1201,7 @@ export const attendanceRepository = {
       where: { id: employeeId },
       select: {
         organizationId: true,
-        employeeProfile: {
+        employeeProfiles: {
           select: {
             projectAssignments: {
               select: {
@@ -1219,13 +1219,14 @@ export const attendanceRepository = {
               orderBy: { createdAt: "asc" },
             },
           },
+          take: 1,
         },
       },
     })
     if (!user) return null
     return {
       organizationId: user.organizationId ?? null,
-      assignments: (user.employeeProfile?.projectAssignments ?? []).map(
+      assignments: (user.employeeProfiles[0]?.projectAssignments ?? []).map(
         (assignment) => assignment.project
       ),
     }
@@ -1781,7 +1782,7 @@ export const attendanceRepository = {
           where: { id: orgId },
           select: { otEnabled: true },
         }),
-        prisma.employeeProfile.findUnique({
+        prisma.employeeProfile.findFirst({
           where: { userId: employeeId },
           select: {
             policy: {
@@ -1802,7 +1803,7 @@ export const attendanceRepository = {
           select: { id: true, status: true },
         })
         if (!existingOt) {
-          const profile = await prisma.employeeProfile.findUnique({
+          const profile = await prisma.employeeProfile.findFirst({
             where: { userId: employeeId },
             select: {
               id: true,
@@ -1841,7 +1842,7 @@ export const attendanceRepository = {
             },
           })
           if (otAutoApprove && payout === "TIME_BANK" && profile) {
-            await prisma.employeeProfile.update({
+            await prisma.employeeProfile.updateMany({
               where: { id: profile.id },
               data: { otTimeBalanceMin: { increment: otMinutes } },
             })
@@ -2267,7 +2268,7 @@ export const attendanceRepository = {
           where: { id: orgId },
           select: { otEnabled: true },
         }),
-        prisma.employeeProfile.findUnique({
+        prisma.employeeProfile.findFirst({
           where: { userId: existing.employeeId },
           select: {
             id: true,
@@ -2329,7 +2330,7 @@ export const attendanceRepository = {
             select: { id: true },
           })
           if (otAutoApprove && payout === "TIME_BANK" && employeeProfile) {
-            await prisma.employeeProfile.update({
+            await prisma.employeeProfile.updateMany({
               where: { id: employeeProfile.id },
               data: { otTimeBalanceMin: { increment: otMinutes } },
             })
@@ -2690,7 +2691,7 @@ export const attendanceRepository = {
         email: true,
         role: true,
         organizationId: true,
-        employeeProfile: {
+        employeeProfiles: {
           select: {
             employeeId: true,
             jobTitle: true,
@@ -2700,6 +2701,7 @@ export const attendanceRepository = {
               take: 1,
             },
           },
+          take: 1,
         },
         approvalChainSteps: {
           where: { step: 1 },
@@ -2709,16 +2711,17 @@ export const attendanceRepository = {
       },
     })
     if (!user) return null
-    const primaryProject = user.employeeProfile?.projectAssignments?.[0]?.project?.name ?? null
+    const profile = user.employeeProfiles[0] ?? null
+    const primaryProject = profile?.projectAssignments?.[0]?.project?.name ?? null
     return {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
       initials: buildInitials(user.name),
-      jobTitle: user.employeeProfile?.jobTitle ?? null,
+      jobTitle: profile?.jobTitle ?? null,
       project: primaryProject,
-      employeeIdRef: user.employeeProfile?.employeeId ?? null,
+      employeeIdRef: profile?.employeeId ?? null,
       organizationId: user.organizationId,
       supervisorName: user.approvalChainSteps?.[0]?.approver.name ?? null,
     }
@@ -2752,7 +2755,7 @@ export const attendanceRepository = {
         organizationId: orgId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
         ...(policyIdScope && policyIdScope.length > 0
-          ? { employeeProfile: { policyId: { in: policyIdScope } } }
+          ? { employeeProfiles: { some: { policyId: { in: policyIdScope } } } }
           : {}),
       },
       orderBy: [{ role: "asc" }, { name: "asc" }],
@@ -2761,7 +2764,7 @@ export const attendanceRepository = {
         name: true,
         email: true,
         role: true,
-        employeeProfile: {
+        employeeProfiles: {
           select: {
             id: true,
             jobTitle: true,
@@ -2819,9 +2822,10 @@ export const attendanceRepository = {
 
     return Promise.all(users.map(async (u) => {
       const today = byUser.get(u.id)
-      const primary = u.employeeProfile?.projectAssignments?.[0]?.project ?? null
+      const profile = u.employeeProfiles[0] ?? null
+      const primary = profile?.projectAssignments?.[0]?.project ?? null
       const projectName =
-        u.employeeProfile?.projectAssignments
+        profile?.projectAssignments
           ?.map((a) => a.project.name)
           .join(", ") || null
       const start = primary?.workingHoursStart ?? org?.workingHoursStart ?? "09:00"
@@ -2835,8 +2839,8 @@ export const attendanceRepository = {
         workingDays,
         standardDailyMin,
       })
-      const leaveDeduction = u.employeeProfile?.id
-        ? await paidLeaveMinutes(u.employeeProfile.id, monthFrom, monthTo, standardDailyMin)
+      const leaveDeduction = profile?.id
+        ? await paidLeaveMinutes(profile.id, monthFrom, monthTo, standardDailyMin)
         : 0
       const monthExpectedMin = Math.max(0, scheduledMin - leaveDeduction)
       return {
@@ -2845,7 +2849,7 @@ export const attendanceRepository = {
         email: u.email,
         role: u.role,
         initials: buildInitials(u.name),
-        jobTitle: u.employeeProfile?.jobTitle ?? null,
+        jobTitle: u.employeeProfiles[0]?.jobTitle ?? null,
         project: projectName,
         todayStatus: (today?.status as AttendanceStatus | undefined) ?? null,
         todayTimeIn: today?.timeIn?.toISOString() ?? null,
@@ -2908,14 +2912,14 @@ export const attendanceRepository = {
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
         ...(employeeIds ? { id: { in: employeeIds } } : {}),
         ...(policyIdScope && policyIdScope.length > 0
-          ? { employeeProfile: { policyId: { in: policyIdScope } } }
+          ? { employeeProfiles: { some: { policyId: { in: policyIdScope } } } }
           : {}),
       },
       orderBy: [{ name: "asc" }],
       select: {
         id: true,
         name: true,
-        employeeProfile: {
+        employeeProfiles: {
           select: {
             jobTitle: true,
             projectAssignments: {
@@ -2985,7 +2989,7 @@ export const attendanceRepository = {
       .map((u) => {
       const rec = byUser.get(u.id)
       const projectName =
-        u.employeeProfile?.projectAssignments
+        u.employeeProfiles[0]?.projectAssignments
           ?.map((a) => a.project.name)
           .join(", ") || null
 
@@ -3031,7 +3035,7 @@ export const attendanceRepository = {
       return {
         id: u.id,
         name: u.name,
-        jobTitle: u.employeeProfile?.jobTitle ?? null,
+        jobTitle: u.employeeProfiles[0]?.jobTitle ?? null,
         project: projectName,
         timeIn: rec?.timeIn?.toISOString() ?? null,
         timeOut: rec?.timeOut?.toISOString() ?? null,
@@ -3094,7 +3098,7 @@ export const attendanceRepository = {
         employee: {
           organizationId: orgId,
           ...(policyIdScope && policyIdScope.length > 0
-            ? { employeeProfile: { policyId: { in: policyIdScope } } }
+            ? { employeeProfiles: { some: { policyId: { in: policyIdScope } } } }
             : {}),
         },
       },
@@ -3380,7 +3384,7 @@ export const attendanceRepository = {
     // wins if present (locks treatment); otherwise fall back to the
     // employee's current policy setting.
     if (finalStatus === "APPROVED" && request.kind === "OT") {
-      const profile = await prisma.employeeProfile.findUnique({
+      const profile = await prisma.employeeProfile.findFirst({
         where: { userId: request.employeeId },
         select: {
           id: true,
@@ -3399,7 +3403,7 @@ export const attendanceRepository = {
           request.date,
         )
         if (otMinutes > 0) {
-          await prisma.employeeProfile.update({
+          await prisma.employeeProfile.updateMany({
             where: { id: profile.id },
             data: { otTimeBalanceMin: { increment: otMinutes } },
           })
@@ -3428,7 +3432,7 @@ export const attendanceRepository = {
     const employeeFilter = {
       ...(orgId ? { organizationId: orgId } : {}),
       ...(policyIdScope && policyIdScope.length > 0
-        ? { employeeProfile: { policyId: { in: policyIdScope } } }
+        ? { employeeProfiles: { some: { policyId: { in: policyIdScope } } } }
         : {}),
     }
     const where =
@@ -3476,7 +3480,7 @@ export const attendanceRepository = {
 
     const policyEmployeeFilter =
       policyIdScope && policyIdScope.length > 0
-        ? { employeeProfile: { policyId: { in: policyIdScope } } }
+        ? { employeeProfiles: { some: { policyId: { in: policyIdScope } } } }
         : {}
 
     const userWhere = orgId ? { organizationId: orgId } : {}
@@ -3580,7 +3584,7 @@ export const attendanceRepository = {
     }
     const policyEmployeeFilter =
       policyIdScope && policyIdScope.length > 0
-        ? { employeeProfile: { policyId: { in: policyIdScope } } }
+        ? { employeeProfiles: { some: { policyId: { in: policyIdScope } } } }
         : {}
     const employeeFilter = {
       ...(orgId ? { organizationId: orgId } : {}),
@@ -3651,7 +3655,7 @@ export const attendanceRepository = {
 
     const policyEmployeeFilter =
       policyIdScope && policyIdScope.length > 0
-        ? { employeeProfile: { policyId: { in: policyIdScope } } }
+        ? { employeeProfiles: { some: { policyId: { in: policyIdScope } } } }
         : {}
 
     const userWhere = orgId ? { organizationId: orgId } : {}
@@ -3667,7 +3671,7 @@ export const attendanceRepository = {
         select: {
           id: true,
           name: true,
-          employeeProfile: {
+          employeeProfiles: {
             select: {
               employeeId: true,
               jobTitle: true,
@@ -3707,10 +3711,10 @@ export const attendanceRepository = {
     ): RollCallPerson => ({
       id: e.id,
       name: e.name,
-      employeeId: e.employeeProfile?.employeeId ?? "",
-      jobTitle: e.employeeProfile?.jobTitle ?? "",
+      employeeId: e.employeeProfiles[0]?.employeeId ?? "",
+      jobTitle: e.employeeProfiles[0]?.jobTitle ?? "",
       project:
-        e.employeeProfile?.projectAssignments
+        e.employeeProfiles[0]?.projectAssignments
           ?.map((a) => a.project.name)
           .join(", ") ?? "",
       lateByMin: record?.lateByMin ?? undefined,
@@ -3884,7 +3888,7 @@ export const attendanceRepository = {
       where: { id: { in: employeeIds } },
       select: {
         id: true,
-        employeeProfile: {
+        employeeProfiles: {
           select: {
             projectAssignments: {
               select: {
@@ -3910,7 +3914,7 @@ export const attendanceRepository = {
     }
     const scheduleByEmployee = new Map<string, EmpSchedule>()
     for (const u of profilesWithProjects) {
-      const proj = u.employeeProfile?.projectAssignments?.[0]?.project ?? null
+      const proj = u.employeeProfiles[0]?.projectAssignments?.[0]?.project ?? null
       const orgId = employeeOrgId.get(u.id) ?? null
       const orgSched = orgId ? orgScheduleById.get(orgId) : null
       const start = proj?.workingHoursStart ?? orgSched?.start ?? "09:00"
@@ -4124,7 +4128,7 @@ export const attendanceRepository = {
         organization: {
           select: { workingHoursStart: true, workingHoursEnd: true },
         },
-        employeeProfile: {
+        employeeProfiles: {
           select: {
             projectAssignments: {
               select: {
@@ -4146,7 +4150,7 @@ export const attendanceRepository = {
     })
     if (!user) return { actualMin: 0, expectedMin: 0 }
 
-    const proj = user.employeeProfile?.projectAssignments?.[0]?.project ?? null
+    const proj = user.employeeProfiles[0]?.projectAssignments?.[0]?.project ?? null
     const start = proj?.workingHoursStart ?? user.organization?.workingHoursStart ?? "09:00"
     const end = proj?.workingHoursEnd ?? user.organization?.workingHoursEnd ?? "18:00"
     const lunch = proj?.lunchBreakMinutes ?? DEFAULT_LUNCH_BREAK_MIN
@@ -4196,8 +4200,8 @@ export const attendanceRepository = {
       where: {
         organizationId: orgId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-        employeeProfile: {
-          projectAssignments: { some: { projectId } },
+        employeeProfiles: {
+          some: { projectAssignments: { some: { projectId } } },
         },
       },
       select: { id: true },
@@ -4228,12 +4232,12 @@ export const attendanceRepository = {
     const conditions: Record<string, unknown>[] = []
     if (projectId) {
       conditions.push({
-        employeeProfile: { projectAssignments: { some: { projectId } } },
+        employeeProfiles: { some: { projectAssignments: { some: { projectId } } } },
       })
     }
     if (teamId) {
       conditions.push({
-        employeeProfile: { teamMemberships: { some: { teamId } } },
+        employeeProfiles: { some: { teamMemberships: { some: { teamId } } } },
       })
     }
     if (q) {

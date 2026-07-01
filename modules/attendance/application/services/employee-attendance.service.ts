@@ -44,7 +44,7 @@ async function resolveGeofenceRadius(orgId: string | null): Promise<number> {
 async function policyEnforcesGeofence(employeeId: string): Promise<boolean> {
   const prisma = getAttendancePrismaClientSafe()
   if (!prisma) return true
-  const row = await prisma.employeeProfile.findUnique({
+  const row = await prisma.employeeProfile.findFirst({
     where: { userId: employeeId },
     select: { policy: { select: { requireGeofence: true } } },
   })
@@ -102,7 +102,7 @@ async function uploadSelfieToXero({
   const prisma = getAttendancePrismaClientSafe()
   if (!prisma) { console.warn("[uploadSelfieToXero] no prisma client"); return }
 
-  const profile = await prisma.employeeProfile.findUnique({
+  const profile = await prisma.employeeProfile.findFirst({
     where: { userId: employeeId },
     select: {
       employeeId: true,

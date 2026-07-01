@@ -173,13 +173,15 @@ export async function loadEmployeeFormPayload(input: {
         id: true,
         name: true,
         email: true,
-        employeeProfile: {
+        employeeProfiles: {
+          where: { organizationId: input.organizationId },
           select: {
             id: true,
             employeeId: true,
             jobTitle: true,
             payrollProfile: true,
           },
+          take: 1,
         },
       },
     }),
@@ -216,8 +218,8 @@ export async function loadEmployeeFormPayload(input: {
     }),
   ])
 
-  if (!user || !user.employeeProfile) return null
-  const ep = user.employeeProfile
+  const ep = user?.employeeProfiles[0]
+  if (!user || !ep) return null
   const pp = ep.payrollProfile
 
   // Compute child-relief aggregates from the JSON column. Mirrors the

@@ -212,8 +212,11 @@ async function loadAdminExecutiveOverview(
     // Match the detail dialog's resolution order: claim's own
     // `projectId` → employee's primary project assignment → "Unassigned".
     const assignedProjects = (
-      c.employee?.employeeProfile?.projectAssignments ?? []
-    ).map((a) => ({ id: a.project.id, name: a.project.name }))
+      c.employee?.employeeProfiles[0]?.projectAssignments ?? []
+    ).map((a: { project: { id: string; name: string } }) => ({
+      id: a.project.id,
+      name: a.project.name,
+    }))
     const primaryAssigned = resolveAssignedProjects(assignedProjects)[0]
     const project =
       c.project?.name?.trim() || primaryAssigned?.name?.trim() || "Unassigned"

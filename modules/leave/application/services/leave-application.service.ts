@@ -54,7 +54,7 @@ async function effectiveAvailableDaysFor(args: {
   if (!prisma) {
     return { available: balance.availableDays, forecasted: false, asOf: startDate }
   }
-  const profile = await prisma.employeeProfile.findUnique({
+  const profile = await prisma.employeeProfile.findFirst({
     where: { id: args.employeeProfileId },
     select: {
       user: {
@@ -107,7 +107,7 @@ export type SubmitLeaveResult =
 async function bustLeaveForProfile(employeeProfileId: string): Promise<void> {
   const prisma = getLeavePrismaClientSafe()
   if (!prisma) return
-  const row = await prisma.employeeProfile.findUnique({
+  const row = await prisma.employeeProfile.findFirst({
     where: { id: employeeProfileId },
     select: { user: { select: { organizationId: true } } },
   })
@@ -121,7 +121,7 @@ async function workingDaysForEmployee(employeeProfileId: string): Promise<Set<nu
   // Prefer the employee's primary team/project working-days CSV; fall back
   // to a sensible default. Keep it simple — leave is org-wide so we don't
   // need project-scoped resolution like attendance.
-  const profile = await prisma.employeeProfile.findUnique({
+  const profile = await prisma.employeeProfile.findFirst({
     where: { id: employeeProfileId },
     include: {
       user: { select: { organization: { select: { id: true } } } },
@@ -716,7 +716,7 @@ function formatIsoDate(d: Date): string {
 
 async function userIdFromProfile(profileId: string): Promise<string> {
   const prisma = getLeavePrismaClient()
-  const profile = await prisma.employeeProfile.findUnique({
+  const profile = await prisma.employeeProfile.findFirst({
     where: { id: profileId },
     select: { userId: true },
   })

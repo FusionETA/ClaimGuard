@@ -51,7 +51,7 @@ export const payrollProfileRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return null
 
-    const profile = await prisma.employeeProfile.findUnique({
+    const profile = await prisma.employeeProfile.findFirst({
       where: { userId },
       select: { id: true },
     })
@@ -170,31 +170,37 @@ export const payrollProfileRepository = {
       where: {
         organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-        employeeProfile:
-          policyIdScope && policyIdScope.length > 0
-            ? { is: { policyId: { in: policyIdScope } } }
-            : { isNot: null },
+        employeeProfiles: {
+          some: {
+            organizationId,
+            ...(policyIdScope && policyIdScope.length > 0
+              ? { policyId: { in: policyIdScope } }
+              : {}),
+          },
+        },
       },
       select: {
         id: true,
         email: true,
         name: true,
-        employeeProfile: {
+        employeeProfiles: {
+          where: { organizationId },
           select: {
             id: true,
             employeeId: true,
             jobTitle: true,
             payrollProfile: true, // full row when present, null otherwise
           },
+          take: 1,
         },
       },
       orderBy: { name: "asc" },
     })
 
     return users
-      .filter((u) => u.employeeProfile !== null)
+      .filter((u) => u.employeeProfiles[0] !== undefined)
       .map((u) => {
-        const ep = u.employeeProfile!
+        const ep = u.employeeProfiles[0]!
         const pp = ep.payrollProfile
         const projected = pp ? mapPayrollProfile(pp) : null
         return {
@@ -251,17 +257,19 @@ export const payrollProfileRepository = {
       where: {
         organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-        employeeProfile: { isNot: null },
+        employeeProfiles: { some: { organizationId } },
       },
       select: {
         name: true,
-        employeeProfile: {
+        employeeProfiles: {
+          where: { organizationId },
           select: {
             id: true,
             employeeId: true,
             jobTitle: true,
             payrollProfile: true,
           },
+          take: 1,
         },
       },
       orderBy: { name: "asc" },
@@ -280,7 +288,7 @@ export const payrollProfileRepository = {
       jobTitle: string | null
     }> = []
     for (const u of users) {
-      const ep = u.employeeProfile
+      const ep = u.employeeProfiles[0]
       if (!ep) continue
       const pp = ep.payrollProfile
       const projected = pp ? mapPayrollProfile(pp) : null
@@ -333,21 +341,23 @@ export const payrollProfileRepository = {
       where: {
         organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-        employeeProfile: { isNot: null },
+        employeeProfiles: { some: { organizationId } },
       },
       select: {
         name: true,
-        employeeProfile: {
+        employeeProfiles: {
+          where: { organizationId },
           select: {
             payrollProfile: { select: { idType: true, idNumber: true } },
           },
+          take: 1,
         },
       },
       orderBy: { name: "asc" },
     })
 
     return users.map((u) => {
-      const pp = u.employeeProfile?.payrollProfile
+      const pp = u.employeeProfiles[0]?.payrollProfile
       // Prisma's generated enum type doesn't widen — narrow to the
       // strings our template renderer expects. Unknown values fall
       // back to "OTHER" so the prefix on the template reads "Other:".
@@ -425,16 +435,21 @@ export const payrollProfileRepository = {
       where: {
         organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-        employeeProfile:
-          policyIdScope && policyIdScope.length > 0
-            ? { is: { policyId: { in: policyIdScope } } }
-            : { isNot: null },
+        employeeProfiles: {
+          some: {
+            organizationId,
+            ...(policyIdScope && policyIdScope.length > 0
+              ? { policyId: { in: policyIdScope } }
+              : {}),
+          },
+        },
       },
       select: {
         id: true,
         email: true,
         name: true,
-        employeeProfile: {
+        employeeProfiles: {
+          where: { organizationId },
           select: {
             id: true,
             employeeId: true,
@@ -456,6 +471,7 @@ export const payrollProfileRepository = {
               take: 1,
             },
           },
+          take: 1,
         },
       },
       orderBy: { name: "asc" },
@@ -490,7 +506,7 @@ export const payrollProfileRepository = {
       : null
 
     for (const u of users) {
-      const ep = u.employeeProfile
+      const ep = u.employeeProfiles[0]
       if (!ep || !ep.payrollProfile) continue
       const profile = mapPayrollProfile(ep.payrollProfile)
       if (profile.isArchived) continue

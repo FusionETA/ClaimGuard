@@ -118,10 +118,11 @@ async function countActiveMalaysianEmployees(
     where: {
       organizationId,
       role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-      employeeProfile: { isNot: null },
+      employeeProfiles: { some: { organizationId } },
     },
     select: {
-      employeeProfile: {
+      employeeProfiles: {
+        where: { organizationId },
         select: {
           payrollProfile: {
             select: {
@@ -130,13 +131,14 @@ async function countActiveMalaysianEmployees(
             },
           },
         },
+        take: 1,
       },
     },
   })
 
   let count = 0
   for (const u of users) {
-    const pp = u.employeeProfile?.payrollProfile
+    const pp = u.employeeProfiles[0]?.payrollProfile
     if (!pp) continue
     if (pp.isArchived) continue
     if (isMalaysianNationality(pp.nationality)) count++

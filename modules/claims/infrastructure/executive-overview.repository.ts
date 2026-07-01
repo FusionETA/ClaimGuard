@@ -16,11 +16,13 @@ export type ExecMonthClaimRow = {
   /// `EmployeeProjectAssignment`. Used as a fallback for the Project
   /// claims breakdown when the claim's own `projectId` is null, so the
   /// card agrees with the detail dialog (which derives the same value
-  /// via `resolvePrimaryProjectName`).
+  /// via `resolvePrimaryProjectName`). Multi-org rollout: the repo
+  /// query scopes to the current org, so `employeeProfiles` here has
+  /// at most one entry — the mapper reads `[0]`.
   employee: {
-    employeeProfile: {
+    employeeProfiles: Array<{
       projectAssignments: Array<{ project: { id: string; name: string } }>
-    } | null
+    }>
   } | null
 }
 
@@ -103,7 +105,8 @@ export const executiveOverviewRepository = {
         project: { select: { name: true } },
         employee: {
           select: {
-            employeeProfile: {
+            employeeProfiles: {
+              where: { organizationId: orgId },
               select: {
                 projectAssignments: {
                   select: {
@@ -111,6 +114,7 @@ export const executiveOverviewRepository = {
                   },
                 },
               },
+              take: 1,
             },
           },
         },

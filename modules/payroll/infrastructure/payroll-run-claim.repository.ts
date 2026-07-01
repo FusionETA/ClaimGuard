@@ -178,8 +178,10 @@ export const payrollRunClaimRepository = {
           select: {
             id: true,
             name: true,
-            employeeProfile: {
+            employeeProfiles: {
+              where: { organizationId: input.organizationId },
               select: { id: true, employeeId: true },
+              take: 1,
             },
           },
         },
@@ -196,7 +198,7 @@ export const payrollRunClaimRepository = {
 
     const result: AttachableClaimRow[] = []
     for (const r of rows) {
-      const ep = r.employee.employeeProfile
+      const ep = r.employee.employeeProfiles[0]
       if (!ep) continue // claim author needs an EmployeeProfile
       result.push({
         claimId: r.id,
@@ -261,7 +263,11 @@ export const payrollRunClaimRepository = {
         paymentType: true,
         employee: {
           select: {
-            employeeProfile: { select: { id: true } },
+            employeeProfiles: {
+              where: { organizationId: input.organizationId },
+              select: { id: true },
+              take: 1,
+            },
           },
         },
         payrollRunAttachment: { select: { payrollRunId: true } },
@@ -280,7 +286,7 @@ export const payrollRunClaimRepository = {
       xeroBillId: row.xeroBillId,
       xeroSpendMoneyId: row.xeroSpendMoneyId,
       paymentType: row.paymentType,
-      employeeProfileId: row.employee.employeeProfile?.id ?? null,
+      employeeProfileId: row.employee.employeeProfiles[0]?.id ?? null,
       alreadyAttachedRunId: row.payrollRunAttachment?.payrollRunId ?? null,
     }
   },

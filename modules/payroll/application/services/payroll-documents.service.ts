@@ -51,18 +51,21 @@ export async function uploadPayrollDocument(input: {
   const employee = await prisma.user.findFirst({
     where: { id: input.userId, organizationId: orgId },
     select: {
-      employeeProfile: {
+      employeeProfiles: {
+        where: { organizationId: orgId },
         select: {
           id: true,
           payrollProfile: { select: { id: true, payrollDocuments: true } },
         },
+        take: 1,
       },
     },
   })
-  if (!employee?.employeeProfile) {
+  const uploadedProfile = employee?.employeeProfiles[0]
+  if (!uploadedProfile) {
     throw new Error("Employee not found in this organisation.")
   }
-  const employeeProfileId = employee.employeeProfile.id
+  const employeeProfileId = uploadedProfile.id
 
   const file = input.file
   if (!file || file.size <= 0) {
@@ -137,12 +140,19 @@ export async function deletePayrollDocument(input: {
 
   const employee = await prisma.user.findFirst({
     where: { id: input.userId, organizationId: orgId },
-    select: { employeeProfile: { select: { id: true } } },
+    select: {
+      employeeProfiles: {
+        where: { organizationId: orgId },
+        select: { id: true },
+        take: 1,
+      },
+    },
   })
-  if (!employee?.employeeProfile) {
+  const deleteProfile = employee?.employeeProfiles[0]
+  if (!deleteProfile) {
     throw new Error("Employee not found in this organisation.")
   }
-  const employeeProfileId = employee.employeeProfile.id
+  const employeeProfileId = deleteProfile.id
 
   const existing = await payrollProfileRepository.getByEmployeeProfileId(
     employeeProfileId,

@@ -2,6 +2,7 @@ import "server-only"
 
 import { getPrismaClient } from "@/lib/prisma"
 import { verifyPassword } from "@/lib/auth/password"
+import { getPrimaryEmployeeProfile } from "@/lib/auth/employee-profile"
 import type {
   SessionUser,
 } from "@/lib/auth/types"
@@ -52,12 +53,20 @@ export async function authenticateUser({
     where: {
       email: normalizedEmail,
       OR: [
-        { employeeProfile: null },
-        { employeeProfile: { payrollProfile: null } },
-        { employeeProfile: { payrollProfile: { isArchived: false } } },
+        { employeeProfiles: { none: {} } },
+        {
+          employeeProfiles: {
+            some: {
+              OR: [
+                { payrollProfile: null },
+                { payrollProfile: { isArchived: false } },
+              ],
+            },
+          },
+        },
       ],
     },
-    include: { employeeProfile: true, organization: true },
+    include: { employeeProfiles: true, organization: true },
   })
 
   if (!user) {
@@ -87,6 +96,7 @@ export async function authenticateUser({
     activeXeroConnectionId = firstConnection?.id ?? undefined
   }
 
+  const primaryProfile = getPrimaryEmployeeProfile(user.employeeProfiles)
   return {
     success: true as const,
     user: {
@@ -95,7 +105,7 @@ export async function authenticateUser({
       name: user.name,
       role: user.role,
       initials: buildInitials(user.name),
-      subtitle: buildSubtitle(user.role, user.employeeProfile),
+      subtitle: buildSubtitle(user.role, primaryProfile),
       organizationId: user.organizationId ?? undefined,
       organizationName: user.organization?.name ?? undefined,
       activeOrganizationId: user.organizationId ?? undefined,
@@ -139,12 +149,20 @@ export async function buildSessionUserForEmail(
     where: {
       email: normalizedEmail,
       OR: [
-        { employeeProfile: null },
-        { employeeProfile: { payrollProfile: null } },
-        { employeeProfile: { payrollProfile: { isArchived: false } } },
+        { employeeProfiles: { none: {} } },
+        {
+          employeeProfiles: {
+            some: {
+              OR: [
+                { payrollProfile: null },
+                { payrollProfile: { isArchived: false } },
+              ],
+            },
+          },
+        },
       ],
     },
-    include: { employeeProfile: true, organization: true },
+    include: { employeeProfiles: true, organization: true },
   })
   if (!user) return { ok: false, reason: "not-found" }
   if (!isAdminRole(user.role)) return { ok: false, reason: "not-admin" }
@@ -177,6 +195,7 @@ export async function buildSessionUserForEmail(
     activeXeroConnectionId = firstConnection?.id ?? undefined
   }
 
+  const ssoPrimaryProfile = getPrimaryEmployeeProfile(user.employeeProfiles)
   return {
     ok: true,
     user: {
@@ -185,7 +204,7 @@ export async function buildSessionUserForEmail(
       name: user.name,
       role: user.role,
       initials: buildInitials(user.name),
-      subtitle: buildSubtitle(user.role, user.employeeProfile),
+      subtitle: buildSubtitle(user.role, ssoPrimaryProfile),
       organizationId: user.organizationId ?? undefined,
       organizationName: user.organization?.name ?? undefined,
       activeOrganizationId,

@@ -394,7 +394,7 @@ async function loadClaimsReportPage(
             id: true,
             name: true,
             email: true,
-            employeeProfile: {
+            employeeProfiles: {
               select: {
                 teamMemberships: { select: { teamId: true } },
               },
@@ -436,7 +436,7 @@ async function loadClaimsReportPage(
         name: u.name,
         email: u.email,
         teamIds:
-          u.employeeProfile?.teamMemberships.map((m) => m.teamId) ?? [],
+          u.employeeProfiles[0]?.teamMemberships.map((m) => m.teamId) ?? [],
       })),
     },
   }

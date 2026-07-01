@@ -50,7 +50,11 @@ type PrismaUser = {
     name: string
     claimCutoffDay: number
   } | null
-  employeeProfile: {
+  /// N employment relationships across N orgs (multi-org rollout).
+  /// mapUser reads the FIRST entry to preserve the pre-multi-org
+  /// single-profile UI shape until callers migrate to org-scoped
+  /// lookups. Empty array = user has no employee profile (pure admin).
+  employeeProfiles: Array<{
     employeeId: string
     jobTitle: string
     projectAssignments?: Array<{
@@ -63,7 +67,7 @@ type PrismaUser = {
       salaryType: string
     } | null
     preferredCurrency: string
-  } | null
+  }>
   approvalChainSteps?: Array<{
     step: number
     approver: { name: string; email: string }
@@ -515,7 +519,7 @@ export type ClaimForXeroSync = {
 
 function mapUser(user: PrismaUser): PortalUser {
   const assignedProjects = resolveAssignedProjects(
-    user.employeeProfile?.projectAssignments?.map((assignment) => assignment.project) ?? [],
+    user.employeeProfiles[0]?.projectAssignments?.map((assignment) => assignment.project) ?? [],
   )
 
   // Derive the visible "Reports to" supervisor from the first step of the
@@ -528,25 +532,25 @@ function mapUser(user: PrismaUser): PortalUser {
   return {
     name: user.name,
     email: user.email,
-    employeeId: user.employeeProfile?.employeeId ?? "N/A",
+    employeeId: user.employeeProfiles[0]?.employeeId ?? "N/A",
     role: user.role as PortalUser["role"],
     organizationId: user.organizationId ?? undefined,
     organizationName: user.organization?.name ?? undefined,
     project: resolvePrimaryProjectName(
-      user.employeeProfile?.projectAssignments?.map((assignment) => assignment.project) ?? [],
+      user.employeeProfiles[0]?.projectAssignments?.map((assignment) => assignment.project) ?? [],
     ),
     projects: assignedProjects.map((project) => project.name),
-    jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
+    jobTitle: user.employeeProfiles[0]?.jobTitle ?? "Employee",
     initials: buildInitials(user.name),
     supervisorEmail: firstApprover?.email ?? undefined,
     supervisorName: firstApprover?.name ?? undefined,
     payoutMethod:
       user.role === "SUPERVISOR"
         ? "MONTHLY_BASED"
-        : user.employeeProfile?.policy?.salaryType === "MONTHLY_BASED"
+        : user.employeeProfiles[0]?.policy?.salaryType === "MONTHLY_BASED"
           ? "MONTHLY_BASED"
           : "HOURLY",
-    preferredCurrency: user.employeeProfile?.preferredCurrency ?? "USD",
+    preferredCurrency: user.employeeProfiles[0]?.preferredCurrency ?? "USD",
     // Xero org is fixed per organization, not per employee — the
     // selectable-account lookups now scope by org, so the portal user no
     // longer needs to carry a connection id.
@@ -686,7 +690,7 @@ const claimInclude = {
   employee: {
     include: {
       organization: true,
-      employeeProfile: {
+      employeeProfiles: {
         include: {
           projectAssignments: {
             include: {
@@ -729,7 +733,7 @@ export const claimRepository = {
       where: { email, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
       include: {
         organization: true,
-        employeeProfile: {
+        employeeProfiles: {
           include: {
             projectAssignments: {
               include: {
@@ -1057,7 +1061,7 @@ export const claimRepository = {
         ...(policyIdScope && policyIdScope.length > 0
           ? {
               employee: {
-                employeeProfile: { policyId: { in: policyIdScope } },
+                employeeProfiles: { some: { policyId: { in: policyIdScope } } },
               },
             }
           : {}),
@@ -1188,8 +1192,8 @@ export const claimRepository = {
         ...(policyIdScope && policyIdScope.length > 0
           ? {
               employee: {
-                employeeProfile: {
-                  policyId: { in: policyIdScope },
+                employeeProfiles: {
+                  some: { policyId: { in: policyIdScope } },
                 },
               },
             }
@@ -1293,7 +1297,7 @@ export const claimRepository = {
         ...(policyIdScope && policyIdScope.length > 0
           ? {
               employee: {
-                employeeProfile: { policyId: { in: policyIdScope } },
+                employeeProfiles: { some: { policyId: { in: policyIdScope } } },
               },
             }
           : {}),

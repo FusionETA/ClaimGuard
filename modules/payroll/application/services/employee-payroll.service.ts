@@ -118,7 +118,7 @@ async function loadPayslipDetail(
 async function resolveEmployeeProfileId(userId: string): Promise<string | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
-  const row = await prisma.employeeProfile.findUnique({
+  const row = await prisma.employeeProfile.findFirst({
     where: { userId },
     select: { id: true },
   })

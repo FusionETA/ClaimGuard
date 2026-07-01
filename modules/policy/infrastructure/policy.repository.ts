@@ -341,7 +341,7 @@ export const policyRepository = {
   async findForUserId(userId: string): Promise<EmployeePolicy | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
-    const row = await prisma.employeeProfile.findUnique({
+    const row = await prisma.employeeProfile.findFirst({
       where: { userId },
       select: { policy: true },
     })

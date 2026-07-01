@@ -30,7 +30,7 @@ export async function resolveDefaultEntitledDays(
   if (!prisma) return 0
   const [type, employee] = await Promise.all([
     prisma.leaveType.findUnique({ where: { id: leaveTypeId } }),
-    prisma.employeeProfile.findUnique({
+    prisma.employeeProfile.findFirst({
       where: { id: employeeId },
       select: { policyId: true },
     }),
@@ -77,7 +77,7 @@ export async function resolveAccrualMethod(
       where: { id: leaveTypeId },
       select: { accrualMethod: true, code: true },
     }),
-    prisma.employeeProfile.findUnique({
+    prisma.employeeProfile.findFirst({
       where: { id: employeeId },
       select: { policyId: true },
     }),
@@ -124,7 +124,7 @@ async function resolveAccrualMethodWithoutRow(
       where: { id: leaveTypeId },
       select: { accrualMethod: true, code: true },
     }),
-    prisma.employeeProfile.findUnique({
+    prisma.employeeProfile.findFirst({
       where: { id: employeeId },
       select: { policyId: true },
     }),
@@ -293,7 +293,7 @@ export async function listEmployeeBalances(
   const types = await prisma.leaveType.findMany({
     where: {
       archivedAt: null,
-      organization: { users: { some: { employeeProfile: { id: employeeId } } } },
+      organization: { users: { some: { employeeProfiles: { some: { id: employeeId } } } } },
     },
     select: { id: true },
   })
@@ -449,7 +449,7 @@ export async function seedEmployeeLeaveEntitlements(args: {
 
   // Scope leave types to the employee's organisation. An employee's
   // org is reachable via `employeeProfile.user.organizationId`.
-  const employee = await prisma.employeeProfile.findUnique({
+  const employee = await prisma.employeeProfile.findFirst({
     where: { id: args.employeeProfileId },
     select: { user: { select: { organizationId: true } } },
   })

@@ -113,7 +113,7 @@ export async function storeLeaveAttachment(
 async function resolveXeroConnectionId(employeeProfileId: string): Promise<string | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
-  const profile = await prisma.employeeProfile.findUnique({
+  const profile = await prisma.employeeProfile.findFirst({
     where: { id: employeeProfileId },
     select: {
       user: { select: { organizationId: true } },

@@ -23,9 +23,17 @@ export const pushSubscriptionRepository = {
       where: {
         email: data.email,
         OR: [
-          { employeeProfile: null },
-          { employeeProfile: { payrollProfile: null } },
-          { employeeProfile: { payrollProfile: { isArchived: false } } },
+          { employeeProfiles: { none: {} } },
+          {
+            employeeProfiles: {
+              some: {
+                OR: [
+                  { payrollProfile: null },
+                  { payrollProfile: { isArchived: false } },
+                ],
+              },
+            },
+          },
         ],
       },
       select: { id: true },

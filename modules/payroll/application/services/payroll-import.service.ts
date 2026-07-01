@@ -873,7 +873,7 @@ async function findImportConflicts(input: {
         name: true,
         organizationId: true,
         organization: { select: { name: true } },
-        employeeProfile: { select: { employeeId: true } },
+        employeeProfiles: { select: { employeeId: true }, take: 1 },
       },
     })
     const userByEmail = new Map(
@@ -885,7 +885,7 @@ async function findImportConflicts(input: {
       const existing = userByEmail.get(email)
       if (!existing) return
       if (existing.organizationId === organizationId) return
-      const existingEmployeeId = existing.employeeProfile?.employeeId
+      const existingEmployeeId = existing.employeeProfiles[0]?.employeeId
       const existingOrg = existing.organization?.name ?? "another company"
       pushRowError(
         rowNumberFor(row, idx),
@@ -1244,13 +1244,13 @@ export async function bulkImportPayrollEmployees(input: {
       }
 
       // EmployeeProfile — match by userId, since EmployeeProfile.userId is unique.
-      const epExisting = await tx.employeeProfile.findUnique({
+      const epExisting = await tx.employeeProfile.findFirst({
         where: { userId },
         select: { id: true },
       })
       let employeeProfileId: string
       if (epExisting) {
-        await tx.employeeProfile.update({
+        await tx.employeeProfile.updateMany({
           where: { id: epExisting.id },
           data: { employeeId: row.employeeId, jobTitle: row.jobTitle },
         })
@@ -1285,7 +1285,7 @@ export async function bulkImportPayrollEmployees(input: {
             `Policy "${row.policyName}" not found in this organisation.`,
           )
         }
-        await tx.employeeProfile.update({
+        await tx.employeeProfile.updateMany({
           where: { id: employeeProfileId },
           data: { policyId },
         })
@@ -2236,13 +2236,13 @@ export async function importMappedCsv(input: {
         outcome = "created"
       }
 
-      const epExisting = await tx.employeeProfile.findUnique({
+      const epExisting = await tx.employeeProfile.findFirst({
         where: { userId },
         select: { id: true },
       })
       let employeeProfileId: string
       if (epExisting) {
-        await tx.employeeProfile.update({
+        await tx.employeeProfile.updateMany({
           where: { id: epExisting.id },
           data: { employeeId: row.employeeId, jobTitle: row.jobTitle },
         })
@@ -2283,7 +2283,7 @@ export async function importMappedCsv(input: {
             `Policy "${row.policyName ?? "(unset)"}" not found. Pick or create it in the preview picker.`,
           )
         }
-        await tx.employeeProfile.update({
+        await tx.employeeProfile.updateMany({
           where: { id: employeeProfileId },
           data: { policyId: resolvedPolicyId },
         })

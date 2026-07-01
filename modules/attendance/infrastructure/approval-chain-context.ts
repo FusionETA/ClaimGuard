@@ -127,7 +127,7 @@ async function isAttendanceApprovalRequired(args: {
   if (args.kind === "OT") return true
   const prisma = getPrismaClient()
   if (!prisma) return true
-  const profile = await prisma.employeeProfile.findUnique({
+  const profile = await prisma.employeeProfile.findFirst({
     where: { userId: args.employeeId },
     select: {
       teamMemberships: {

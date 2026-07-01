@@ -960,9 +960,17 @@ export const organizationRepository = {
       where: {
         email: email.trim().toLowerCase(),
         OR: [
-          { employeeProfile: null },
-          { employeeProfile: { payrollProfile: null } },
-          { employeeProfile: { payrollProfile: { isArchived: false } } },
+          { employeeProfiles: { none: {} } },
+          {
+            employeeProfiles: {
+              some: {
+                OR: [
+                  { payrollProfile: null },
+                  { payrollProfile: { isArchived: false } },
+                ],
+              },
+            },
+          },
         ],
       },
       select: { id: true, name: true, email: true, role: true },
@@ -1001,9 +1009,17 @@ export const organizationRepository = {
       where: {
         email: email.trim().toLowerCase(),
         OR: [
-          { employeeProfile: null },
-          { employeeProfile: { payrollProfile: null } },
-          { employeeProfile: { payrollProfile: { isArchived: false } } },
+          { employeeProfiles: { none: {} } },
+          {
+            employeeProfiles: {
+              some: {
+                OR: [
+                  { payrollProfile: null },
+                  { payrollProfile: { isArchived: false } },
+                ],
+              },
+            },
+          },
         ],
       },
       select: {
@@ -1013,15 +1029,18 @@ export const organizationRepository = {
         role: true,
         // Phone lives on PayrollProfile, NOT EmployeeProfile — chain
         // through both relations. Returns null when the employee
-        // isn't enrolled in payroll yet.
-        employeeProfile: {
+        // isn't enrolled in payroll yet. Multi-org: pick the first
+        // profile's phone; a follow-up rollout will route this by
+        // active org.
+        employeeProfiles: {
           select: { payrollProfile: { select: { phone: true } } },
+          take: 1,
         },
       },
     })
     if (!user) return null
     const rawPhone =
-      user.employeeProfile?.payrollProfile?.phone?.trim() ?? ""
+      user.employeeProfiles?.[0]?.payrollProfile?.phone?.trim() ?? ""
     return {
       id: user.id,
       name: user.name,
@@ -1645,15 +1664,15 @@ export const organizationRepository = {
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
         ...(policyIdScope && policyIdScope.length > 0
           ? {
-              employeeProfile: {
-                policyId: { in: policyIdScope },
+              employeeProfiles: {
+                some: { policyId: { in: policyIdScope } },
               },
             }
           : {}),
       },
       include: {
         organization: true,
-        employeeProfile: {
+        employeeProfiles: {
           include: {
             projectAssignments: {
               include: {
@@ -1691,8 +1710,11 @@ export const organizationRepository = {
     })
 
     return rows.map((user) => {
+      // Multi-org: pick the first EmployeeProfile for this org listing.
+      // A future refactor will scope this to the active org id.
+      const employeeProfile = user.employeeProfiles[0] ?? null
       const assignedProjects = mapAssignedProjects(
-        user.employeeProfile?.projectAssignments ?? [],
+        employeeProfile?.projectAssignments ?? [],
       )
 
       // Build per-team chain map, grouped by step (multi-approver).
@@ -1713,7 +1735,7 @@ export const organizationRepository = {
         chainsByTeam.set(s.teamId, stepMap)
       }
 
-      const teams = (user.employeeProfile?.teamMemberships ?? []).map(
+      const teams = (employeeProfile?.teamMemberships ?? []).map(
         (membership) => {
           const stepMap = chainsByTeam.get(membership.teamId) ?? new Map()
           const stepNumbers = Array.from(stepMap.keys()).sort((a, b) => a - b)
@@ -1738,33 +1760,33 @@ export const organizationRepository = {
         // Surface the EmployeeProfile id so external API consumers can
         // pass it to `POST /api/v1/teams/[id]/members`. UI consumers
         // ignore this field.
-        employeeProfileId: user.employeeProfile?.id,
+        employeeProfileId: employeeProfile?.id,
         name: user.name,
         email: user.email,
         role: user.role as OrganizationMember["role"],
         organizationId: user.organizationId ?? undefined,
         organizationName: user.organization?.name ?? undefined,
-        employeeId: user.employeeProfile?.employeeId ?? "N/A",
+        employeeId: employeeProfile?.employeeId ?? "N/A",
         projects: assignedProjects,
-        jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
+        jobTitle: employeeProfile?.jobTitle ?? "Employee",
         payoutMethod: resolveEmployeePayoutMethod(
           user.role as OrganizationMember["role"],
-          user.employeeProfile?.policy?.salaryType,
+          employeeProfile?.policy?.salaryType,
         ),
         otPayoutMethod:
-          user.employeeProfile?.policy?.otEnabled &&
-          user.employeeProfile.policy.otMethod === "TIME_BANK" &&
+          employeeProfile?.policy?.otEnabled &&
+          employeeProfile.policy.otMethod === "TIME_BANK" &&
           resolveEmployeePayoutMethod(
             user.role as OrganizationMember["role"],
-            user.employeeProfile.policy.salaryType,
+            employeeProfile.policy.salaryType,
           ) === "MONTHLY_BASED"
             ? "TIME_BANK"
             : "CASH",
-        otTimeBalanceMin: user.employeeProfile?.otTimeBalanceMin ?? 0,
+        otTimeBalanceMin: employeeProfile?.otTimeBalanceMin ?? 0,
         xeroConnectionId: orgConnection?.id ?? undefined,
         xeroConnectionName: orgConnection?.tenantName ?? undefined,
-        policyId: user.employeeProfile?.policy?.id ?? undefined,
-        policyName: user.employeeProfile?.policy?.name ?? undefined,
+        policyId: employeeProfile?.policy?.id ?? undefined,
+        policyName: employeeProfile?.policy?.name ?? undefined,
         teams,
       }
     })
@@ -1917,7 +1939,7 @@ export const organizationRepository = {
       }
     }
 
-    const profile = await prisma.employeeProfile.findUnique({
+    const profile = await prisma.employeeProfile.findFirst({
       where: { userId: data.userId },
       select: { id: true },
     })
@@ -1936,7 +1958,7 @@ export const organizationRepository = {
         where: { id: data.userId },
         data: { role: data.role, organizationId: data.organizationId },
       })
-      await tx.employeeProfile.update({
+      await tx.employeeProfile.updateMany({
         where: { userId: data.userId },
         data: {
           jobTitle: data.jobTitle,
@@ -1949,7 +1971,7 @@ export const organizationRepository = {
       for (const projectId of data.projectIds) {
         await tx.employeeProjectAssignment.create({
           data: {
-            employeeProfile: { connect: { userId: data.userId } },
+            employeeProfile: { connect: { id: profile.id } },
             project: { connect: { id: projectId } },
           },
         })
@@ -2119,8 +2141,8 @@ export const organizationRepository = {
         organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
         NOT: {
-          employeeProfile: {
-            payrollProfile: { isArchived: true },
+          employeeProfiles: {
+            some: { payrollProfile: { isArchived: true } },
           },
         },
       },
@@ -2438,15 +2460,17 @@ export const organizationRepository = {
           },
         },
       },
-      select: { id: true, employeeProfile: { select: { id: true } } },
+      select: { id: true, employeeProfiles: { select: { id: true } } },
     })
+
+    const newEmployeeProfile = user.employeeProfiles[0] ?? null
 
     // Apply the optional extra PayrollProfile fields (v1 create API). Done as a
     // follow-up update so the nested create above stays minimal; joinDate is
     // already set in the create so leave seeding below still sees it.
-    if (data.payroll && user.employeeProfile?.id) {
+    if (data.payroll && newEmployeeProfile?.id) {
       await prisma.payrollProfile.update({
-        where: { employeeProfileId: user.employeeProfile.id },
+        where: { employeeProfileId: newEmployeeProfile.id },
         data: data.payroll,
       })
     }
@@ -2483,9 +2507,9 @@ export const organizationRepository = {
     // `leaveSeed` defaults to DEFAULT so existing non-dialog callers
     // (partner API, payroll XLSX import) get the same eager seeding
     // without code changes on their side.
-    if (user.employeeProfile?.id) {
+    if (newEmployeeProfile?.id) {
       await seedEmployeeLeaveEntitlements({
-        employeeProfileId: user.employeeProfile.id,
+        employeeProfileId: newEmployeeProfile.id,
         leaveSeed: data.leaveSeed ?? { method: "DEFAULT" },
       })
     }
@@ -3735,7 +3759,7 @@ export const organizationRepository = {
 
     // Verify both rows belong to the org before mutating.
     const [profile, project] = await Promise.all([
-      prisma.employeeProfile.findUnique({
+      prisma.employeeProfile.findFirst({
         where: { id: data.employeeProfileId },
         select: {
           id: true,
@@ -3808,7 +3832,7 @@ export const organizationRepository = {
     if (!prisma) throw new Error("Database is not configured.")
 
     const [profile, project] = await Promise.all([
-      prisma.employeeProfile.findUnique({
+      prisma.employeeProfile.findFirst({
         where: { id: data.employeeProfileId },
         select: { id: true, user: { select: { organizationId: true } } },
       }),
@@ -4031,7 +4055,7 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
-    const profile = await prisma.employeeProfile.findUnique({
+    const profile = await prisma.employeeProfile.findFirst({
       where: { userId: employeeUserId },
       select: {
         id: true,
@@ -4396,7 +4420,7 @@ export const organizationRepository = {
       )
     }
 
-    const profile = await prisma.employeeProfile.findUnique({
+    const profile = await prisma.employeeProfile.findFirst({
       where: { id: data.employeeProfileId },
       include: {
         user: { select: { id: true, name: true, role: true, organizationId: true } },
@@ -4790,19 +4814,25 @@ export const organizationRepository = {
         role: "SUPERVISOR",
         OR: [
           {
-            employeeProfile: {
-              projectAssignments: { some: { projectId: project.id } },
+            employeeProfiles: {
+              some: {
+                projectAssignments: {
+                  some: { projectId: project.id },
+                },
+              },
             },
           },
           {
-            employeeProfile: { project: project.name },
+            employeeProfiles: {
+              some: { project: project.name },
+            },
           },
         ],
       },
       select: {
         id: true,
         name: true,
-        employeeProfile: {
+        employeeProfiles: {
           select: {
             teamMemberships: {
               where: { team: { projectId: project.id } },
@@ -4815,7 +4845,7 @@ export const organizationRepository = {
     })
 
     return supervisors.map((s) => {
-      const membership = s.employeeProfile?.teamMemberships?.[0]
+      const membership = s.employeeProfiles[0]?.teamMemberships?.[0]
       return {
         id: s.id,
         name: s.name,

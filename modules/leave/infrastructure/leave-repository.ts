@@ -90,7 +90,7 @@ export const leaveRepository = {
   async findEmployeeProfileIdByUserId(userId: string): Promise<string | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
-    const row = await prisma.employeeProfile.findUnique({
+    const row = await prisma.employeeProfile.findFirst({
       where: { userId },
       select: { id: true },
     })
@@ -105,7 +105,7 @@ export const leaveRepository = {
   async getEmployeeJoinDate(employeeProfileId: string): Promise<Date | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
-    const row = await prisma.employeeProfile.findUnique({
+    const row = await prisma.employeeProfile.findFirst({
       where: { id: employeeProfileId },
       select: { payrollProfile: { select: { joinDate: true } } },
     })
@@ -175,7 +175,7 @@ export const leaveRepository = {
   async getEmployeeOrgId(profileId: string): Promise<string | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
-    const row = await prisma.employeeProfile.findUnique({
+    const row = await prisma.employeeProfile.findFirst({
       where: { id: profileId },
       select: { user: { select: { organizationId: true } } },
     })
@@ -506,7 +506,7 @@ export const leaveRepository = {
         where: { employeeId, year },
         include: { leaveType: true },
       }),
-      prisma.employeeProfile.findUnique({
+      prisma.employeeProfile.findFirst({
         where: { id: employeeId },
         select: { policyId: true },
       }),
