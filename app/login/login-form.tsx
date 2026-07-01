@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useActionState, useRef } from "react"
+import { useActionState } from "react"
 import { LoaderCircle } from "lucide-react"
 
 import {
@@ -12,18 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-const QUICK_LOGINS = [
-  { label: "Admin", email: "admin@example.com", password: "ChangeMe123!" },
-  { label: "Supervisor", email: "supervisor@gmail.com", password: "ChangeMe123!" },
-  { label: "Rachel (Employee)", email: "rachel@test.com", password: "qwertyasd" },
-  { label: "ZR Chen (Employee)", email: "zrchen2004@gmail.com", password: "qwertyasd" },
-  { label: "Attendance PM", email: "atdnpm@test.com", password: "11111111" },
-  { label: "Attendance SPV", email: "atdnspv@test.com", password: "11111111" },
-  { label: "Attendance EMP", email: "atdnemp@test.com", password: "11111111" },
-]
-
 export function LoginForm() {
-  const formRef = useRef<HTMLFormElement>(null)
   const initialValues = {
     email: initialLoginFormState.values.email,
   }
@@ -45,16 +34,8 @@ export function LoginForm() {
     },
   }
 
-  function quickLogin(account: (typeof QUICK_LOGINS)[number]) {
-    const form = formRef.current
-    if (!form) return
-    ;(form.elements.namedItem("email") as HTMLInputElement).value = account.email
-    ;(form.elements.namedItem("password") as HTMLInputElement).value = account.password
-    form.requestSubmit()
-  }
-
   return (
-    <form ref={formRef} action={formAction} className="space-y-5" suppressHydrationWarning>
+    <form action={formAction} className="space-y-5" suppressHydrationWarning>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -116,26 +97,6 @@ export function LoginForm() {
         </Link>
       </div>
 
-      <div className="space-y-2 border-t pt-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Quick login (test only)
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {QUICK_LOGINS.map((account) => (
-            <Button
-              key={account.email}
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-xl"
-              disabled={pending}
-              onClick={() => quickLogin(account)}
-            >
-              {account.label}
-            </Button>
-          ))}
-        </div>
-      </div>
     </form>
   )
 }
