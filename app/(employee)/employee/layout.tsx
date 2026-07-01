@@ -1,6 +1,8 @@
 import { EmployeeShell } from "@/components/layout/employee-shell"
 import { requirePortalSession } from "@/lib/auth/session"
+import { getPrismaClient } from "@/lib/prisma"
 import { deriveOrgEnabledModulesFromRow } from "@/modules/organization/domain/plan"
+import { employeeOrganizationRepository } from "@/modules/organization/infrastructure/employee-organization.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import {
   DEFAULT_MODULE_ACCESS,
@@ -44,11 +46,27 @@ export default async function EmployeeLayout({
       }
     : policyAccess
 
+  // Multi-org employee: count this user's ACTIVE EmployeeOrganization
+  // memberships. If >= 2, the shell renders the "Switch Company"
+  // header button. We check the count (not just isMulti > 0) so a
+  // legacy single-org employee never sees the button.
+  const prisma = getPrismaClient()
+  let hasMultipleCompanies = false
+  if (prisma) {
+    const memberships =
+      await employeeOrganizationRepository.listActiveMembershipsForUser(
+        prisma,
+        session.userId,
+      )
+    hasMultipleCompanies = memberships.length >= 2
+  }
+
   return (
     <EmployeeShell
       user={session}
       organizationName={session.organizationName}
       moduleAccess={moduleAccess}
+      hasMultipleCompanies={hasMultipleCompanies}
     >
       {children}
     </EmployeeShell>

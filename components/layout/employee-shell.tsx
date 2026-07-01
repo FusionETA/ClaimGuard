@@ -17,6 +17,7 @@ import { ChangePasswordButton } from "@/components/layout/change-password-button
 import { LogoutButton } from "@/components/layout/logout-button"
 import { NotificationBell } from "@/components/layout/notification-bell"
 import { RealtimeListener } from "@/components/layout/realtime-listener"
+import { SwitchCompanyButton } from "@/components/layout/switch-company-button"
 import { PushNotificationPrompt } from "@/components/pwa/push-notification-prompt"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -134,6 +135,10 @@ type EmployeeShellProps = {
     claims: boolean
     leave: boolean
   }
+  /// True when the signed-in user holds 2+ active EmployeeOrganization
+  /// memberships. Drives whether the "Switch Company" header button is
+  /// rendered — single-org employees never see it.
+  hasMultipleCompanies?: boolean
 }
 
 const APPROVALS_HREF = "/employee/attendance/approvals"
@@ -166,6 +171,7 @@ export function EmployeeShell({
   user,
   organizationName,
   moduleAccess,
+  hasMultipleCompanies,
 }: EmployeeShellProps) {
   const pathname = usePathname()
   const [displayOrganizationName, setDisplayOrganizationName] = useState(
@@ -409,6 +415,7 @@ export function EmployeeShell({
                     <p className="text-xs text-muted-foreground">{user.subtitle}</p>
                   </div>
                 </Link>
+                {hasMultipleCompanies ? <SwitchCompanyButton /> : null}
                 <ChangePasswordButton />
                 <LogoutButton />
               </div>

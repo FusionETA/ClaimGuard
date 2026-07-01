@@ -51,3 +51,23 @@ export async function selectCompanyAction(formData: FormData): Promise<void> {
   await updateCurrentSession({ activeOrganizationId: orgId })
   redirect("/employee")
 }
+
+/**
+ * Clear the session's activeOrganizationId and route back to the
+ * picker. Called by the "Switch Company" button in the employee shell
+ * header. The picker page rehydrates the list of active memberships
+ * so the user always sees the current option set (a company they were
+ * archived from mid-session won't appear).
+ */
+export async function switchCompanyAction(): Promise<void> {
+  const session = await getCurrentSession()
+  if (!session) redirect("/login")
+  if (isAdminRole(session.role)) redirect("/admin")
+
+  // Clear activeOrganizationId — the picker page's guards then read
+  // `session.activeOrganizationId` as undefined and let the user pick
+  // again. `updateCurrentSession` merges the patch via object spread,
+  // so `undefined` overwrites the current org id.
+  await updateCurrentSession({ activeOrganizationId: undefined })
+  redirect("/employee/pick-company" as Route)
+}
