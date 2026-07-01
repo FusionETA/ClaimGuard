@@ -396,8 +396,9 @@ export async function createHierarchyMemberAction(
     }
   }
 
+  let linkedExistingUser = false
   try {
-    await organizationRepository.createOrganizationMember({
+    const result = await organizationRepository.createOrganizationMember({
       name: parsed.data.name,
       email: parsed.data.email,
       password: parsed.data.password,
@@ -413,6 +414,7 @@ export async function createHierarchyMemberAction(
       leaveSeed,
       dob: parsed.data.dob,
     })
+    linkedExistingUser = result.linkedExistingUser === true
   } catch (error) {
     return {
       ...createInitialAddHierarchyMemberFormState(values),
@@ -430,9 +432,11 @@ export async function createHierarchyMemberAction(
       name: session.name,
       role: session.role,
     },
-    action: "employee.create",
+    action: linkedExistingUser ? "employee.link" : "employee.create",
     status: "SUCCESS",
-    summary: `Added ${parsed.data.role.toLowerCase()} ${parsed.data.name} (${parsed.data.email})`,
+    summary: linkedExistingUser
+      ? `Linked existing user ${parsed.data.name} (${parsed.data.email}) as ${parsed.data.role.toLowerCase()} at this org`
+      : `Added ${parsed.data.role.toLowerCase()} ${parsed.data.name} (${parsed.data.email})`,
     targetType: "user",
     metadata: {
       employeeId: parsed.data.employeeId,
@@ -441,6 +445,7 @@ export async function createHierarchyMemberAction(
       name: parsed.data.name,
       jobTitle: parsed.data.jobTitle,
       policyId: parsed.data.policyId,
+      ...(linkedExistingUser ? { linkedExistingUser: true } : {}),
     },
   })
 
@@ -455,6 +460,12 @@ export async function createHierarchyMemberAction(
   return {
     ...createInitialAddHierarchyMemberFormState(),
     status: "success",
-    message: "Employee added successfully.",
+    // When the email matched an existing user (a portal employee at
+    // another company), the admin gets a specific message so they know
+    // the password they typed was IGNORED — the linked user keeps
+    // their existing password and will sign in with that.
+    message: linkedExistingUser
+      ? `${parsed.data.name} was linked from an existing account at another company. They'll sign in with their existing password.`
+      : "Employee added successfully.",
   }
 }

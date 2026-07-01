@@ -300,7 +300,7 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
       : {}),
   }
 
-  let created: { id: string }
+  let created: { id: string; linkedExistingUser?: boolean }
   try {
     created = await organizationRepository.createOrganizationMember({
       name: d.name,
@@ -338,7 +338,14 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
   const member = all.find((m) => m.id === created.id)
 
   return NextResponse.json(
-    { data: member ? toExternalEmployee(member) : { id: created.id } },
+    {
+      data: member ? toExternalEmployee(member) : { id: created.id },
+      // Signal to the caller when we linked an existing user instead
+      // of creating one. Partners can surface a different confirmation
+      // message and skip mailing the password they submitted (which
+      // was ignored — the linked user keeps their existing password).
+      ...(created.linkedExistingUser ? { linkedExistingUser: true } : {}),
+    },
     {
       status: 201,
       headers: {

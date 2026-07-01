@@ -194,6 +194,72 @@ export function getOrganizationPrismaClientSafe() {
   return getPrismaClient()
 }
 
+/**
+ * Multi-org linking probe used by `createOrganizationMember`.
+ *
+ * Returns the existing `User` id when the incoming email belongs to an
+ * ACTIVE portal user (EMPLOYEE / SUPERVISOR) who does NOT already have
+ * an `EmployeeProfile` at `organizationId` — i.e. the "same person, new
+ * company" case. Returns `null` otherwise:
+ *   - No user has this email → NEW-user path (create fresh).
+ *   - User exists but is an admin/owner → NEW-user path (they use SSO
+ *     auth; portal linking here would confuse things).
+ *   - User exists AND already has a profile at this org → NEW-user
+ *     path so `assertEmailAvailableForNewUser` throws the normal
+ *     "email in use" error the admin expects.
+ *
+ * The active/archived rule here matches `lib/auth/email-uniqueness.ts`:
+ * a user is active when they have no PayrollProfile, or when their
+ * PayrollProfile.isArchived is false.
+ */
+async function findLinkableExistingUserForOrgInternal(input: {
+  prisma: NonNullable<ReturnType<typeof getPrismaClient>>
+  email: string
+  organizationId: string
+}): Promise<{ id: string; name: string; role: string } | null> {
+  const { prisma, email, organizationId } = input
+  const normalised = email.trim().toLowerCase()
+  const candidates = await prisma.user.findMany({
+    where: { email: normalised },
+    take: 5,
+    select: {
+      id: true,
+      name: true,
+      role: true,
+      employeeProfiles: {
+        select: {
+          organizationId: true,
+          payrollProfile: { select: { isArchived: true } },
+        },
+      },
+    },
+  })
+  for (const c of candidates) {
+    // Only link portal users. Admins/owners have their own onboarding
+    // path (createAdminForOrganization / createOwnerForOrganization).
+    if (c.role !== "EMPLOYEE" && c.role !== "SUPERVISOR") continue
+
+    // Skip if any of this user's existing profiles at ANY org is
+    // archived — matches the "IN_USE_ACTIVE" definition. An archived
+    // user isn't a link candidate; they should be Restored on the
+    // original org, not re-linked here.
+    const anyArchived = c.employeeProfiles.some(
+      (p) => p.payrollProfile?.isArchived === true,
+    )
+    if (anyArchived) continue
+
+    // Already a member of this org → NOT linkable; let the normal
+    // duplicate-email guard fire.
+    const alreadyAtOrg = c.employeeProfiles.some(
+      (p) => p.organizationId === organizationId,
+    )
+    if (alreadyAtOrg) continue
+
+    return { id: c.id, name: c.name, role: c.role }
+  }
+  return null
+}
+
 export const organizationRepository = {
   async getOrganizationById(organizationId: string): Promise<OrganizationSummary | null> {
     const prisma = getPrismaClient()
@@ -2246,35 +2312,58 @@ export const organizationRepository = {
     /// Used by the v1 create-employee API. Excludes phone/salaryType/joinDate/
     /// dateOfBirth which are set from the dedicated params above.
     payroll?: Prisma.PayrollProfileUpdateInput
-  }): Promise<{ id: string }> {
+  }): Promise<{ id: string; linkedExistingUser?: boolean }> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
-    // Email-uniqueness now enforced by the validator (active row +
-    // same-org archive rules). Pre-empts the user.create below; same
-    // behaviour as the old findUnique block, just with the global
-    // "one active per email" guarantee instead of strict DB uniqueness.
-    // Will throw further down via assertEmailAvailableForNewUser.
-
-    const existingEmployeeProfile = await prisma.employeeProfile.findFirst({
-      where: {
-        employeeId: data.employeeId,
-        user: { organizationId: data.organizationId },
-      },
-      select: { id: true },
+    // Multi-org linking: before we validate email-uniqueness the
+    // strict way (which would reject a rejoin), check whether the
+    // email belongs to an ACTIVE portal user who does NOT already have
+    // an EmployeeProfile at this org. If so, we link them into this
+    // org — same auth (email + existing password), new profile at
+    // this company. This is what makes a "same person at 2 companies"
+    // flow work: Company B's admin fills the Add Employee form as
+    // usual, and the system quietly links instead of duplicating.
+    //
+    // We keep the existing User's name/role/password untouched. If
+    // Company B's admin picked a different role from Company A's,
+    // Company A's role wins — role is currently a User-level scalar,
+    // so it can't diverge per-org. Surface this in the audit trail.
+    const linkable = await findLinkableExistingUserForOrgInternal({
+      prisma,
+      email: data.email,
+      organizationId: data.organizationId,
     })
+
+    const existingEmployeeProfile = linkable
+      ? // For the link path, employeeId collisions still matter — the
+        // admin might reuse an ID that's already taken at THIS org.
+        await prisma.employeeProfile.findFirst({
+          where: { employeeId: data.employeeId, organizationId: data.organizationId },
+          select: { id: true },
+        })
+      : await prisma.employeeProfile.findFirst({
+          where: {
+            employeeId: data.employeeId,
+            user: { organizationId: data.organizationId },
+          },
+          select: { id: true },
+        })
 
     if (existingEmployeeProfile) {
       throw new Error("That employee ID is already assigned to another user.")
     }
 
     // Email-uniqueness gate — replaces the dropped @unique on User.email.
-    // Throws EmailNotAvailableError with a code; the action layer
-    // surfaces the message to the admin's add-employee dialog.
-    await assertEmailAvailableForNewUser({
-      email: data.email,
-      orgId: data.organizationId,
-    })
+    // Only runs for the NEW-user path. When we're linking an existing
+    // user, this check would (correctly) throw IN_USE_ACTIVE — but
+    // that's precisely the case we want to handle by linking.
+    if (!linkable) {
+      await assertEmailAvailableForNewUser({
+        email: data.email,
+        orgId: data.organizationId,
+      })
+    }
 
     const assignedProjects = data.projectIds.length
       ? await prisma.xeroProject.findMany({
@@ -2405,65 +2494,107 @@ export const organizationRepository = {
     // by WhatsApp, by design.
     const phoneRaw = data.phone.trim()
     const phoneTrimmed = phoneRaw.length > 0 ? phoneRaw : null
-    const user = await prisma.user.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        passwordHash: hashPassword(data.password),
-        role: data.role,
-        organizationId: data.organizationId,
-        employeeProfile: {
-          create: {
-            employeeId: data.employeeId,
-            jobTitle: data.jobTitle,
-            preferredCurrency: "USD",
-            policyId: data.policyId,
-            projectAssignments: {
-              create: data.projectIds.map((projectId) => ({
-                project: { connect: { id: projectId } },
+
+    // Shared payload for the EmployeeProfile — same shape whether we
+    // nest it under a fresh User.create or create it directly under
+    // an existing user (link path).
+    const employeeProfileCreatePayload = {
+      organizationId: data.organizationId,
+      employeeId: data.employeeId,
+      jobTitle: data.jobTitle,
+      preferredCurrency: "USD",
+      policyId: data.policyId,
+      projectAssignments: {
+        create: data.projectIds.map((projectId) => ({
+          project: { connect: { id: projectId } },
+        })),
+      },
+      ...(validatedAssignments.length > 0
+        ? {
+            teamMemberships: {
+              create: validatedAssignments.map((a) => ({
+                teamId: a.teamId,
+                layer: a.layer,
               })),
             },
-            ...(validatedAssignments.length > 0
-              ? {
-                  teamMemberships: {
-                    create: validatedAssignments.map((a) => ({
-                      teamId: a.teamId,
-                      layer: a.layer,
-                    })),
-                  },
-                }
-              : {}),
-            payrollProfile: {
-              create: {
-                phone: phoneTrimmed,
-                // PayrollProfile requires `salaryType` and
-                // `payrollDocuments` on first create. Seed `salaryType`
-                // from the chosen policy so it matches what the admin
-                // selected; `payrollDocuments` is an empty JSON array
-                // until the admin uploads contracts during payroll
-                // onboarding. `monthlySalary` / `hourlyRate` stay null
-                // — the payroll-readiness service treats that as "not
-                // yet enrolled in payroll".
-                // EmployeePolicy.salaryType is the PayoutMethod enum
-                // (HOURLY | MONTHLY_BASED), while PayrollProfile.salaryType
-                // is the SalaryType enum (HOURLY | MONTHLY). Translate.
-                salaryType: policy.salaryType === "HOURLY" ? "HOURLY" : "MONTHLY",
-                // joinDate landed here (before seedEmployeeLeaveEntitlements
-                // runs) so the PRO_RATED seed path can read it via
-                // `leaveRepository.getEmployeeJoinDate` and compute the
-                // initial accrual against the actual hire date.
-                joinDate: data.joinDate ?? null,
-                dateOfBirth: data.dob ? new Date(data.dob) : null,
-                payrollDocuments: [],
-              },
-            },
-          },
+          }
+        : {}),
+      payrollProfile: {
+        create: {
+          phone: phoneTrimmed,
+          // PayrollProfile requires `salaryType` and
+          // `payrollDocuments` on first create. Seed `salaryType`
+          // from the chosen policy so it matches what the admin
+          // selected; `payrollDocuments` is an empty JSON array
+          // until the admin uploads contracts during payroll
+          // onboarding. `monthlySalary` / `hourlyRate` stay null
+          // — the payroll-readiness service treats that as "not
+          // yet enrolled in payroll".
+          // EmployeePolicy.salaryType is the PayoutMethod enum
+          // (HOURLY | MONTHLY_BASED), while PayrollProfile.salaryType
+          // is the SalaryType enum (HOURLY | MONTHLY). Translate.
+          salaryType: policy.salaryType === "HOURLY" ? "HOURLY" : "MONTHLY",
+          // joinDate landed here (before seedEmployeeLeaveEntitlements
+          // runs) so the PRO_RATED seed path can read it via
+          // `leaveRepository.getEmployeeJoinDate` and compute the
+          // initial accrual against the actual hire date.
+          joinDate: data.joinDate ?? null,
+          dateOfBirth: data.dob ? new Date(data.dob) : null,
+          payrollDocuments: [],
         },
       },
-      select: { id: true, employeeProfiles: { select: { id: true } } },
-    })
+    } as const
+
+    let user: { id: string; employeeProfiles: Array<{ id: string }> }
+    if (linkable) {
+      // LINK PATH: reuse the existing User, add a fresh EmployeeProfile
+      // at THIS org. Password / role / name stay whatever they are on
+      // the existing User. The @@unique([userId, organizationId])
+      // on EmployeeProfile makes this create safe under concurrent
+      // add-employee attempts.
+      const profile = await prisma.employeeProfile.create({
+        data: {
+          userId: linkable.id,
+          ...employeeProfileCreatePayload,
+        },
+        select: { id: true, userId: true },
+      })
+      user = { id: linkable.id, employeeProfiles: [{ id: profile.id }] }
+    } else {
+      // NEW-USER PATH: same as before. `organizationId` on the User
+      // becomes the "home org" — kept for legacy call-sites (see the
+      // repo-wide multi-org rollout notes).
+      user = await prisma.user.create({
+        data: {
+          name: data.name,
+          email: data.email,
+          passwordHash: hashPassword(data.password),
+          role: data.role,
+          organizationId: data.organizationId,
+          employeeProfiles: {
+            create: employeeProfileCreatePayload,
+          },
+        },
+        select: { id: true, employeeProfiles: { select: { id: true } } },
+      })
+    }
 
     const newEmployeeProfile = user.employeeProfiles[0] ?? null
+
+    // ALWAYS create the EmployeeOrganization membership row — this is
+    // the source of truth for the multi-org login picker + the
+    // employee shell's "Switch Company" button. Pre-multi-org callers
+    // never wrote this row; the Phase 1a backfill covered historical
+    // rows, and this line covers everyone created from here on.
+    if (newEmployeeProfile?.id) {
+      await prisma.employeeOrganization.create({
+        data: {
+          userId: user.id,
+          employeeProfileId: newEmployeeProfile.id,
+          organizationId: data.organizationId,
+        },
+      })
+    }
 
     // Apply the optional extra PayrollProfile fields (v1 create API). Done as a
     // follow-up update so the nested create above stays minimal; joinDate is
@@ -2514,7 +2645,10 @@ export const organizationRepository = {
       })
     }
 
-    return { id: user.id }
+    return {
+      id: user.id,
+      ...(linkable ? { linkedExistingUser: true as const } : {}),
+    }
   },
 
   async setApprovalChain(data: {
