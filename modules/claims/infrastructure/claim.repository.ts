@@ -1734,6 +1734,12 @@ export const claimRepository = {
     projectIds?: string[]
     teamIds?: string[]
     memberIds?: string[]
+    /// Payment source filter. "PERSONAL" = employee paid out of
+    /// pocket (needs reimbursement); "COMPANY" = paid from a
+    /// company account (card / petty cash / eWallet-under-company)
+    /// so no reimbursement. `undefined` = both types included
+    /// (default).
+    paymentType?: "PERSONAL" | "COMPANY"
     /// Zero-based offset. Defaults to 0.
     skip?: number
     /// Page size. Defaults to 20.
@@ -1799,6 +1805,10 @@ export const claimRepository = {
         ? { projectId: { in: input.projectIds } }
         : {}),
       ...(memberIdSet ? { employeeId: { in: Array.from(memberIdSet) } } : {}),
+      // Payment source: only add the filter when the admin explicitly
+      // picked one side. `undefined` means "both" so the where clause
+      // stays open.
+      ...(input.paymentType ? { paymentType: input.paymentType } : {}),
     }
 
     const [rows, total, sumRow] = await Promise.all([

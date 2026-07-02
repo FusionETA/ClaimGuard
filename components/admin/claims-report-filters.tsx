@@ -67,6 +67,9 @@ export type ClaimsReportFiltersProps = {
   initialProjectIds: string[]
   initialTeamIds: string[]
   initialMemberIds: string[]
+  /// `undefined` = both. "PERSONAL" = out-of-pocket claims that need
+  /// reimbursement. "COMPANY" = paid from a company account.
+  initialPaymentType?: "PERSONAL" | "COMPANY"
   projectOptions: FilterOption[]
   /// Already scoped to the currently-picked projects by the server.
   teamOptions: FilterOption[]
@@ -86,6 +89,9 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
   const [projectIds, setProjectIds] = useState<string[]>(props.initialProjectIds)
   const [teamIds, setTeamIds] = useState<string[]>(props.initialTeamIds)
   const [memberIds, setMemberIds] = useState<string[]>(props.initialMemberIds)
+  const [paymentType, setPaymentType] = useState<
+    "ALL" | "PERSONAL" | "COMPANY"
+  >(props.initialPaymentType ?? "ALL")
 
   // Re-seed local state whenever the URL changes (e.g. back/forward,
   // export link, manual edits). The page passes us the resolved values
@@ -97,6 +103,7 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
     setProjectIds(props.initialProjectIds)
     setTeamIds(props.initialTeamIds)
     setMemberIds(props.initialMemberIds)
+    setPaymentType(props.initialPaymentType ?? "ALL")
   }, [
     props.initialFrom,
     props.initialTo,
@@ -104,6 +111,7 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
     props.initialProjectIds,
     props.initialTeamIds,
     props.initialMemberIds,
+    props.initialPaymentType,
   ])
 
   function applyFilters() {
@@ -116,11 +124,13 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
     if (projectIds.length > 0) params.set("projects", projectIds.join(","))
     if (teamIds.length > 0) params.set("teams", teamIds.join(","))
     if (memberIds.length > 0) params.set("members", memberIds.join(","))
+    if (paymentType !== "ALL") params.set("paymentType", paymentType)
     // Preserve any other params (e.g. page) that the page might use,
     // EXCEPT page itself — changing filters always resets to page 1.
     for (const [k, v] of searchParams.entries()) {
       if (k === "from" || k === "to" || k === "dateField") continue
       if (k === "projects" || k === "teams" || k === "members") continue
+      if (k === "paymentType") continue
       if (k === "page") continue
       params.set(k, v)
     }
@@ -138,7 +148,8 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
     memberIds.length > 0 ||
     from !== props.initialFrom ||
     to !== props.initialTo ||
-    dateField !== props.initialDateField
+    dateField !== props.initialDateField ||
+    paymentType !== (props.initialPaymentType ?? "ALL")
 
   // LIVE cascade — narrow the visible options based on the IN-STATE
   // parent selection, not the URL. This is what makes the Teams
@@ -166,7 +177,11 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
 
   return (
     <div className="space-y-3 rounded-2xl border border-border/70 bg-card/94 p-4 shadow-ambient">
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+      {/* Two-row grid on wide screens: row 1 is the "when + what money"
+          scope (dates + payment source), row 2 is the "who + which
+          work" scope (project → team → member cascade + Apply). Each
+          row holds 4 slots on `xl` so nothing gets squeezed. */}
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-1.5">
           <Label htmlFor="report-from" className="text-xs uppercase tracking-wide text-muted-foreground">
             From
@@ -218,6 +233,38 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
             <SelectContent>
               <SelectItem value="spent">Spent date</SelectItem>
               <SelectItem value="submitted">Submitted date</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="report-payment-type"
+            className="text-xs uppercase tracking-wide text-muted-foreground"
+          >
+            Payment source
+          </Label>
+          {/* PERSONAL = employee paid out of pocket → shows up in the
+              reimbursement queue. COMPANY = paid from a company
+              account (card, petty cash, e-wallet held by the org) →
+              already settled, just needs to land in the right Xero
+              account. `All` = default, shows both. */}
+          <Select
+            value={paymentType}
+            onValueChange={(v) => {
+              if (v === "PERSONAL" || v === "COMPANY") {
+                setPaymentType(v)
+              } else {
+                setPaymentType("ALL")
+              }
+            }}
+          >
+            <SelectTrigger id="report-payment-type">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All sources</SelectItem>
+              <SelectItem value="PERSONAL">Personal (reimbursable)</SelectItem>
+              <SelectItem value="COMPANY">Company account</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -44,6 +44,11 @@ export async function GET(request: NextRequest) {
   const projectIds = csv(url.searchParams.get("projects"))
   const teamIds = csv(url.searchParams.get("teams"))
   const memberIds = csv(url.searchParams.get("members"))
+  const paymentTypeRaw = url.searchParams.get("paymentType")
+  const paymentType: "PERSONAL" | "COMPANY" | undefined =
+    paymentTypeRaw === "PERSONAL" || paymentTypeRaw === "COMPANY"
+      ? paymentTypeRaw
+      : undefined
 
   // Same date logic the page uses: parse yyyy-mm-dd → UTC bounds; on
   // any parse failure fall back to the current month.
@@ -60,6 +65,7 @@ export async function GET(request: NextRequest) {
     projectIds: projectIds.length > 0 ? projectIds : undefined,
     teamIds: teamIds.length > 0 ? teamIds : undefined,
     memberIds: memberIds.length > 0 ? memberIds : undefined,
+    paymentType,
     skip: 0,
     take: 10000,
   })

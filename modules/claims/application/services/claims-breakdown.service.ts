@@ -227,6 +227,11 @@ export type ClaimsReportFilters = {
   teams?: string[]
   /// Multi-select; cascades on `projects` ∩ `teams`.
   members?: string[]
+  /// Payment source slice. `undefined` = both. "PERSONAL" =
+  /// employee-out-of-pocket claims that need reimbursement.
+  /// "COMPANY" = paid from a company account (card / petty cash /
+  /// e-wallet-under-company), no reimbursement needed.
+  paymentType?: "PERSONAL" | "COMPANY"
 }
 
 export type ClaimsReportPage = {
@@ -354,6 +359,7 @@ export async function getClaimsReportPageData(input: {
     (f.projects ?? []).slice().sort().join(","),
     (f.teams ?? []).slice().sort().join(","),
     (f.members ?? []).slice().sort().join(","),
+    f.paymentType ?? "",
     page,
     pageSize,
   ].join("|")
@@ -411,6 +417,7 @@ async function loadClaimsReportPage(
       projectIds: nonEmpty(input.filters.projects),
       teamIds: nonEmpty(input.filters.teams),
       memberIds: nonEmpty(input.filters.members),
+      paymentType: input.filters.paymentType,
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),

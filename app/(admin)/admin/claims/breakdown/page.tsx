@@ -37,11 +37,21 @@ type SearchParams = {
   projects?: string
   teams?: string
   members?: string
+  /// Optional payment-source slice — "PERSONAL" | "COMPANY".
+  /// Absent = both, which is the default view.
+  paymentType?: string
   page?: string
 }
 
 function parseDateField(value: string | undefined): "spent" | "submitted" {
   return value === "submitted" ? "submitted" : "spent"
+}
+
+function parsePaymentType(
+  value: string | undefined,
+): "PERSONAL" | "COMPANY" | undefined {
+  if (value === "PERSONAL" || value === "COMPANY") return value
+  return undefined
 }
 
 function parseCsvIds(value: string | undefined): string[] {
@@ -66,6 +76,7 @@ export default async function AdminClaimsReportsPage({
   const teamIds = parseCsvIds(params.teams)
   const memberIds = parseCsvIds(params.members)
   const dateField = parseDateField(params.dateField)
+  const paymentType = parsePaymentType(params.paymentType)
   const page = Math.max(1, Number(params.page) || 1)
 
   const data = await getClaimsReportPageData({
@@ -76,6 +87,7 @@ export default async function AdminClaimsReportsPage({
       projects: projectIds,
       teams: teamIds,
       members: memberIds,
+      paymentType,
     },
     page,
   })
@@ -101,6 +113,7 @@ export default async function AdminClaimsReportsPage({
   if (projectIds.length > 0) exportParams.set("projects", projectIds.join(","))
   if (teamIds.length > 0) exportParams.set("teams", teamIds.join(","))
   if (memberIds.length > 0) exportParams.set("members", memberIds.join(","))
+  if (paymentType) exportParams.set("paymentType", paymentType)
   const exportHref =
     (`/api/admin/claims/breakdown/export?${exportParams.toString()}` as unknown) as Route
 
@@ -130,6 +143,7 @@ export default async function AdminClaimsReportsPage({
         initialProjectIds={projectIds}
         initialTeamIds={teamIds}
         initialMemberIds={memberIds}
+        initialPaymentType={paymentType}
         projectOptions={data.filterOptions.projects.map((p) => ({
           id: p.id,
           name: p.name,
