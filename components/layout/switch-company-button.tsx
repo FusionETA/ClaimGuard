@@ -1,6 +1,6 @@
 "use client"
 
-import { Building2, LoaderCircle } from "lucide-react"
+import { ArrowLeftRight, LoaderCircle } from "lucide-react"
 import { useTransition } from "react"
 
 import { switchCompanyAction } from "@/app/pick-company/actions"
@@ -15,6 +15,12 @@ import { Button } from "@/components/ui/button"
  * Only rendered when the employee has 2+ active EmployeeOrganization
  * memberships — single-org employees don't need this button and
  * wouldn't have a meaningful destination on the picker either.
+ *
+ * Icon + inline label chosen deliberately: the previous Building2
+ * icon-only version was mistaken for "org info". `ArrowLeftRight`
+ * reads as "swap" and pairs with the "Switch" label (hidden on
+ * mobile to keep the header pill compact) so the affordance is
+ * obvious at a glance.
  */
 export function SwitchCompanyButton() {
   const [isPending, startTransition] = useTransition()
@@ -31,14 +37,15 @@ export function SwitchCompanyButton() {
       }
       disabled={isPending}
       title="Switch company"
-      className="h-9 w-9 shrink-0 rounded-full p-0"
+      className="shrink-0 rounded-full"
       aria-label="Switch company"
     >
       {isPending ? (
         <LoaderCircle className="h-4 w-4 animate-spin" />
       ) : (
-        <Building2 className="h-4 w-4" />
+        <ArrowLeftRight className="h-4 w-4" />
       )}
+      <span className="hidden sm:inline">Switch</span>
     </Button>
   )
 }
