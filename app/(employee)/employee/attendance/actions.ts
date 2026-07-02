@@ -211,6 +211,47 @@ export async function updateTodayRemarkAction(
   return { ok: true }
 }
 
+export type SubmitOtResult = { ok?: boolean; error?: string }
+
+export async function submitOtAction(
+  formData: FormData,
+): Promise<SubmitOtResult> {
+  const session = await requirePortalSession("EMPLOYEE")
+  const dateStr = String(formData.get("date") ?? "")
+  const startTimeStr = String(formData.get("otStartTime") ?? "")
+  const endTimeStr = String(formData.get("otEndTime") ?? "")
+  const otProjectId = String(formData.get("otProjectId") ?? "").trim() || null
+  const notes = String(formData.get("notes") ?? "").trim() || undefined
+
+  if (!dateStr || !startTimeStr || !endTimeStr) {
+    return { error: "Date, start time, and end time are required." }
+  }
+  const date = new Date(`${dateStr}T00:00:00.000Z`)
+  const otStartAt = new Date(`${dateStr}T${startTimeStr}:00.000Z`)
+  const otEndAt = new Date(`${dateStr}T${endTimeStr}:00.000Z`)
+  if (isNaN(date.getTime()) || isNaN(otStartAt.getTime()) || isNaN(otEndAt.getTime())) {
+    return { error: "Invalid date or time values." }
+  }
+
+  try {
+    await employeeAttendanceService.submitOtApplication({
+      employeeId: session.userId,
+      date,
+      otStartAt,
+      otEndAt,
+      otProjectId,
+      notes,
+    })
+  } catch (err) {
+    return { error: safeErrorMessage(err, "Could not submit OT.") }
+  }
+  await revalidateAll({
+    userId: session.userId,
+    organizationId: session.organizationId,
+  })
+  return { ok: true }
+}
+
 /**
  * Check whether today is a public holiday for the given project.
  * Returns the holiday name if it is, null otherwise.

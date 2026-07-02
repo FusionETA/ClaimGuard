@@ -599,6 +599,26 @@ export const employeeAttendanceService = {
     })
   },
 
+  async submitOtApplication(args: {
+    employeeId: string
+    date: Date
+    otStartAt: Date
+    otEndAt: Date
+    otProjectId: string | null
+    notes?: string
+  }): Promise<{ approvalId: string; status: "PENDING" | "APPROVED" }> {
+    if (args.otEndAt <= args.otStartAt) {
+      throw new Error("OT end time must be after start time.")
+    }
+    const durationMin = Math.round(
+      (args.otEndAt.getTime() - args.otStartAt.getTime()) / 60_000,
+    )
+    if (durationMin > 24 * 60) {
+      throw new Error("OT submission cannot span more than 24 hours.")
+    }
+    return attendanceRepository.createOtSubmission(args)
+  },
+
   async sendOtWarningNotifications({ orgId }: { orgId: string }): Promise<number> {
     const openRecords = await attendanceRepository.findOpenRecordsForOtWarning({ orgId })
     let notified = 0

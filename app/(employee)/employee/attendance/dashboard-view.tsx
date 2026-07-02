@@ -10,6 +10,7 @@ import type {
 import { cn } from "@/lib/utils"
 
 import { ClockCard } from "./clock-card"
+import { OtSubmitButton } from "./ot-submit-dialog"
 import { TodayRemarkCard } from "./today-remark-card"
 
 type Props = {
@@ -199,6 +200,8 @@ export function EmployeeAttendanceDashboardView({
           </CardContent>
         </Card>
       ) : null}
+
+      <OtSubmitButton projects={projects} />
 
       <div>
         <p className="mb-2 text-sm font-bold text-foreground">Recent shifts</p>
