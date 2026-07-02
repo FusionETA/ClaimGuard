@@ -7,6 +7,13 @@ import { Check, ChevronDown, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
 /**
@@ -192,18 +199,27 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
           {/* Spent = accounting view ("money spent in this period",
               based on the receipt's purchase date). Submitted = audit
               view ("claims filed in this period", which surfaces
-              late-filed receipts from earlier months). */}
-          <select
-            id="report-date-field"
+              late-filed receipts from earlier months).
+
+              Uses the design-system Select (Radix-backed) instead of
+              a raw HTML <select> so the trigger + popover match the
+              rest of the filter row visually (rounded-2xl, h-12,
+              purple focus ring) instead of falling back to the
+              browser's native styling. */}
+          <Select
             value={dateField}
-            onChange={(e) =>
-              setDateField(e.target.value === "submitted" ? "submitted" : "spent")
+            onValueChange={(v) =>
+              setDateField(v === "submitted" ? "submitted" : "spent")
             }
-            className="h-12 w-full rounded-2xl border border-border/80 bg-card px-4 text-sm text-foreground shadow-sm transition-colors hover:bg-surface-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background"
           >
-            <option value="spent">Spent date</option>
-            <option value="submitted">Submitted date</option>
-          </select>
+            <SelectTrigger id="report-date-field">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="spent">Spent date</SelectItem>
+              <SelectItem value="submitted">Submitted date</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <MultiSelect
           label="Projects"
