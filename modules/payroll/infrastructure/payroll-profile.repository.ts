@@ -166,9 +166,15 @@ export const payrollProfileRepository = {
 
     // Pull all employees in the org with their EmployeeProfile +
     // optional PayrollProfile in one query.
+    //
+    // Multi-org: scope by `EmployeeProfile.organizationId` only. The
+    // previous also-filter on `User.organizationId` was redundant AND
+    // buggy for the link path — a user linked from Company A to
+    // Company B keeps `User.organizationId = Company A` (their home
+    // org) but gets a fresh EmployeeProfile at Company B. The User-
+    // level filter would then hide them from Company B's payroll.
     const users = await prisma.user.findMany({
       where: {
-        organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
         employeeProfiles: {
           some: {
@@ -253,9 +259,11 @@ export const payrollProfileRepository = {
   > {
     const prisma = getPrismaClient()
     if (!prisma) return []
+    // Multi-org: filter by EmployeeProfile.organizationId only, not
+    // User.organizationId — linked employees have User.organizationId
+    // pointing at their FIRST company, not this one.
     const users = await prisma.user.findMany({
       where: {
-        organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
         employeeProfiles: { some: { organizationId } },
       },
@@ -337,9 +345,11 @@ export const payrollProfileRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
+    // Multi-org: same as the two lookups above — profile-scoped, not
+    // User-scoped, so linked employees appear at every org they hold
+    // an EmployeeProfile in.
     const users = await prisma.user.findMany({
       where: {
-        organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
         employeeProfiles: { some: { organizationId } },
       },

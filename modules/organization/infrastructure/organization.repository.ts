@@ -1724,21 +1724,34 @@ export const organizationRepository = {
       select: { id: true, tenantName: true },
     })
 
+    // Multi-org: filter by `EmployeeProfile.organizationId`, NOT
+    // `User.organizationId`. When an existing user (from Company A) is
+    // linked into Company B via the Add-Employee flow, we create a
+    // NEW `EmployeeProfile` under Company B but leave `User.organizationId`
+    // pointing at Company A (their legacy home org). Filtering on the
+    // User's home org would therefore miss them entirely from Company B's
+    // employee list — the exact bug this fixes.
+    //
+    // The include's `employeeProfiles.where` mirrors the same clause so
+    // a linked user's Company A profile doesn't leak into Company B's
+    // row (mapUser reads `employeeProfiles[0]` — without the scoped
+    // include, the wrong-org profile could be picked).
     const rows = await prisma.user.findMany({
       where: {
-        organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-        ...(policyIdScope && policyIdScope.length > 0
-          ? {
-              employeeProfiles: {
-                some: { policyId: { in: policyIdScope } },
-              },
-            }
-          : {}),
+        employeeProfiles: {
+          some: {
+            organizationId,
+            ...(policyIdScope && policyIdScope.length > 0
+              ? { policyId: { in: policyIdScope } }
+              : {}),
+          },
+        },
       },
       include: {
         organization: true,
         employeeProfiles: {
+          where: { organizationId },
           include: {
             projectAssignments: {
               include: {
@@ -2202,13 +2215,19 @@ export const organizationRepository = {
   async countActiveEmployees(organizationId: string): Promise<number> {
     const prisma = getPrismaClient()
     if (!prisma) return 0
+    // Multi-org: count users who hold at least one non-archived
+    // EmployeeProfile at THIS org. Filtering on `User.organizationId`
+    // would miss linked users (their home org is a different one).
     return prisma.user.count({
       where: {
-        organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-        NOT: {
-          employeeProfiles: {
-            some: { payrollProfile: { isArchived: true } },
+        employeeProfiles: {
+          some: {
+            organizationId,
+            OR: [
+              { payrollProfile: null },
+              { payrollProfile: { isArchived: false } },
+            ],
           },
         },
       },
