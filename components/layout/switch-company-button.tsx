@@ -3,7 +3,7 @@
 import { Building2, LoaderCircle } from "lucide-react"
 import { useTransition } from "react"
 
-import { switchCompanyAction } from "@/app/(employee)/employee/pick-company/actions"
+import { switchCompanyAction } from "@/app/pick-company/actions"
 import { Button } from "@/components/ui/button"
 
 /**

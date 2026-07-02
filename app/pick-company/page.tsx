@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation"
 
+import { LogoutButton } from "@/components/layout/logout-button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCurrentSession } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
 import { getPrismaClient } from "@/lib/prisma"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { employeeOrganizationRepository } from "@/modules/organization/infrastructure/employee-organization.repository"
 import { PickCompanyGrid } from "./pick-company-grid"
 
@@ -49,8 +50,8 @@ export default async function PickCompanyPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[80vh] max-w-4xl flex-col justify-center py-12">
-      <Card className="border-border/60 shadow-panel">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      <Card className="w-full max-w-xl border-border/60 shadow-panel">
         <CardHeader className="space-y-2 pb-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
             Welcome, {session.name}
@@ -64,8 +65,11 @@ export default async function PickCompanyPage() {
             continue — you can switch anytime from the header.
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <PickCompanyGrid memberships={memberships} />
+          <div className="flex justify-end border-t border-border/50 pt-3">
+            <LogoutButton />
+          </div>
         </CardContent>
       </Card>
     </div>

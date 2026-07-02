@@ -117,7 +117,7 @@ export async function loginAction(
     !isAdminRole(result.user.role) &&
     !result.user.activeOrganizationId
   ) {
-    redirect("/employee/pick-company" as Route)
+    redirect("/pick-company" as Route)
   }
   redirect(getHomePathForRole(result.user.role))
 }

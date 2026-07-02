@@ -21,7 +21,7 @@ import { employeeOrganizationRepository } from "@/modules/organization/infrastru
  */
 export async function selectCompanyAction(formData: FormData): Promise<void> {
   const orgId = String(formData.get("organizationId") ?? "").trim()
-  if (!orgId) redirect("/employee/pick-company" as Route)
+  if (!orgId) redirect("/pick-company" as Route)
 
   const session = await getCurrentSession()
   if (!session) redirect("/login")
@@ -40,12 +40,12 @@ export async function selectCompanyAction(formData: FormData): Promise<void> {
   if (!membership) {
     // Not a real membership for this user — send them back to the
     // picker to see their actual options.
-    redirect("/employee/pick-company" as Route)
+    redirect("/pick-company" as Route)
   }
   if (membership.isArchived === true) {
     // Archived at this org — shouldn't have shown in the picker, but
     // guard defensively.
-    redirect("/employee/pick-company" as Route)
+    redirect("/pick-company" as Route)
   }
 
   await updateCurrentSession({ activeOrganizationId: orgId })
@@ -69,5 +69,5 @@ export async function switchCompanyAction(): Promise<void> {
   // again. `updateCurrentSession` merges the patch via object spread,
   // so `undefined` overwrites the current org id.
   await updateCurrentSession({ activeOrganizationId: undefined })
-  redirect("/employee/pick-company" as Route)
+  redirect("/pick-company" as Route)
 }
