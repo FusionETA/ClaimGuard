@@ -71,6 +71,7 @@ export const ModelName = {
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
   XeroProject: 'XeroProject',
+  Shift: 'Shift',
   ProjectHoliday: 'ProjectHoliday',
   ProjectManager: 'ProjectManager',
   AttendanceRecord: 'AttendanceRecord',
@@ -190,7 +191,9 @@ export const EmployeePolicyScalarFieldEnum = {
   captureLocationOnBreakStart: 'captureLocationOnBreakStart',
   captureLocationOnClockIn: 'captureLocationOnClockIn',
   captureLocationOnClockOut: 'captureLocationOnClockOut',
-  geolocationEnabled: 'geolocationEnabled'
+  geolocationEnabled: 'geolocationEnabled',
+  autoClockOutEnabled: 'autoClockOutEnabled',
+  autoClockOutAfterMin: 'autoClockOutAfterMin'
 } as const
 
 export type EmployeePolicyScalarFieldEnum = (typeof EmployeePolicyScalarFieldEnum)[keyof typeof EmployeePolicyScalarFieldEnum]
@@ -500,6 +503,23 @@ export const XeroProjectScalarFieldEnum = {
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
 
 
+export const ShiftScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  projectId: 'projectId',
+  name: 'name',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  workingDays: 'workingDays',
+  lunchBreakMin: 'lunchBreakMin',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShiftScalarFieldEnum = (typeof ShiftScalarFieldEnum)[keyof typeof ShiftScalarFieldEnum]
+
+
 export const ProjectHolidayScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -613,6 +633,7 @@ export const AttendanceSessionScalarFieldEnum = {
   projectId: 'projectId',
   clockInApprovalRequestId: 'clockInApprovalRequestId',
   clockOutApprovalRequestId: 'clockOutApprovalRequestId',
+  isAutoClockOut: 'isAutoClockOut',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -659,7 +680,10 @@ export const ApprovalRequestScalarFieldEnum = {
   updatedAt: 'updatedAt',
   project: 'project',
   chainHistory: 'chainHistory',
-  otPayoutMethod: 'otPayoutMethod'
+  otPayoutMethod: 'otPayoutMethod',
+  otStartAt: 'otStartAt',
+  otEndAt: 'otEndAt',
+  otProjectId: 'otProjectId'
 } as const
 
 export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldEnum)[keyof typeof ApprovalRequestScalarFieldEnum]
@@ -701,6 +725,7 @@ export const EmployeeTeamMembershipScalarFieldEnum = {
   employeeProfileId: 'employeeProfileId',
   teamId: 'teamId',
   layer: 'layer',
+  shiftId: 'shiftId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1494,6 +1519,19 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
 
 
+export const ShiftOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  projectId: 'projectId',
+  name: 'name',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  workingDays: 'workingDays'
+} as const
+
+export type ShiftOrderByRelevanceFieldEnum = (typeof ShiftOrderByRelevanceFieldEnum)[keyof typeof ShiftOrderByRelevanceFieldEnum]
+
+
 export const ProjectHolidayOrderByRelevanceFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -1587,7 +1625,8 @@ export const ApprovalRequestOrderByRelevanceFieldEnum = {
   location: 'location',
   offsetRef: 'offsetRef',
   reviewNotes: 'reviewNotes',
-  project: 'project'
+  project: 'project',
+  otProjectId: 'otProjectId'
 } as const
 
 export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOrderByRelevanceFieldEnum)[keyof typeof ApprovalRequestOrderByRelevanceFieldEnum]
@@ -1615,7 +1654,8 @@ export type TeamOrderByRelevanceFieldEnum = (typeof TeamOrderByRelevanceFieldEnu
 export const EmployeeTeamMembershipOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeProfileId: 'employeeProfileId',
-  teamId: 'teamId'
+  teamId: 'teamId',
+  shiftId: 'shiftId'
 } as const
 
 export type EmployeeTeamMembershipOrderByRelevanceFieldEnum = (typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum)[keyof typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum]

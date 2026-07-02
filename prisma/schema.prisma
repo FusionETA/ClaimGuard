@@ -128,6 +128,7 @@ model Organization {
   users                     User[]
   xeroConnection            XeroConnection?
   projects                  XeroProject[]
+  shifts                    Shift[]
 }
 
 /// Admin-defined classification for an employee. Replaces the previous
@@ -209,6 +210,13 @@ model EmployeePolicy {
   /// Auto-flipped to true on the server when `requireGeofence` is
   /// turned on (geofence enforcement needs GPS to work).
   geolocationEnabled          Boolean                  @default(true)
+  /// When true, the system automatically clocks out employees after
+  /// `autoClockOutAfterMin` net working minutes (excluding break time).
+  /// A cron fires every 15 min and checks open sessions.
+  autoClockOutEnabled         Boolean                  @default(false)
+  /// Net working minutes after clock-in before auto clock-out fires.
+  /// Only consulted when autoClockOutEnabled = true. Null disables it.
+  autoClockOutAfterMin        Int?
   organization                Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employees                   EmployeeProfile[]
   leaveDefaults               PolicyLeaveEntitlement[]
@@ -811,6 +819,8 @@ model XeroProject {
   holidays               ProjectHoliday[]
   projectManagers        ProjectManager[]            @relation("ProjectManagers")
   teams                  Team[]
+  otSubmissions          ApprovalRequest[]           @relation("OtSubmissionProject")
+  shifts                 Shift[]
   organization           Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   projectManager         User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
 
@@ -819,6 +829,38 @@ model XeroProject {
   @@index([organizationId, name])
   @@index([organizationId, xeroTrackingCategoryId])
   @@index([projectManagerId])
+}
+
+/// A named working schedule under a project. Admin creates shifts like
+/// "Day 8am–5pm" or "Night 10pm–7am". One shift per project is marked
+/// isDefault; supervisors can override per team member via
+/// EmployeeTeamMembership.shiftId.
+model Shift {
+  id             String                   @id @default(cuid())
+  organizationId String
+  projectId      String
+  name           String
+  /// Clock-in expected at or before this time (HH:MM 24h). Used for
+  /// late detection: clock-in after startTime → LATE.
+  startTime      String
+  /// Expected shift end (HH:MM 24h). Used to compute expected daily minutes.
+  endTime        String
+  /// Comma-separated ISO weekday numbers (1=Mon … 7=Sun) that are
+  /// working days for this shift. Null = inherit from project/org default.
+  workingDays    String?
+  /// Lunch break minutes deducted when computing expected daily hours.
+  lunchBreakMin  Int                      @default(60)
+  /// Exactly one shift per project must be the default. Used as the
+  /// fallback when no per-member shift is assigned.
+  isDefault      Boolean                  @default(false)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        XeroProject              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  memberships    EmployeeTeamMembership[]
+
+  @@index([projectId, isDefault])
+  @@index([organizationId])
 }
 
 model ProjectHoliday {
@@ -1003,6 +1045,9 @@ model AttendanceSession {
   clockInApprovalRequestId  String?          @unique
   /// Approval request created at clock-out for this session.
   clockOutApprovalRequestId String?          @unique
+  /// True when this clock-out was generated automatically by the
+  /// auto-clock-out cron (policy.autoClockOutEnabled), not by the employee.
+  isAutoClockOut            Boolean          @default(false)
   createdAt                 DateTime         @default(now())
   updatedAt                 DateTime         @updatedAt
   attendanceRecord          AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
@@ -1073,8 +1118,17 @@ model ApprovalRequest {
   /// Locks payout treatment so a later profile change cannot rewrite
   /// already-submitted history. Null for non-OT requests.
   otPayoutMethod OtPayoutMethod?
+  /// Employee-submitted OT time range. Populated only on OT requests
+  /// created via the employee OT submission form (kind = "OT"). Null on
+  /// legacy auto-created OT rows and on all non-OT request kinds.
+  otStartAt      DateTime?
+  otEndAt        DateTime?
+  /// FK to XeroProject. Set on new OT submissions to enable proper
+  /// rest-day / public-holiday bucketing in payroll. Null on legacy rows.
+  otProjectId    String?
   employee       User            @relation("EmployeeApprovals", fields: [employeeId], references: [id], onDelete: Cascade)
   reviewer       User?           @relation("ReviewerApprovals", fields: [reviewerId], references: [id])
+  otProject      XeroProject?    @relation("OtSubmissionProject", fields: [otProjectId], references: [id])
 
   @@index([employeeId, date])
   @@index([status, date])
@@ -1146,13 +1200,18 @@ model EmployeeTeamMembership {
   employeeProfileId String
   teamId            String
   layer             Int
+  /// Shift assigned to this employee within this team. Null = use the
+  /// team's project default shift (or org working hours as fallback).
+  shiftId           String?
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
   employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
   team              Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  shift             Shift?          @relation(fields: [shiftId], references: [id])
 
   @@unique([employeeProfileId, teamId])
   @@index([teamId, layer])
+  @@index([shiftId])
 }
 
 /// One row per employee. Stores all Malaysia-payroll-specific data that

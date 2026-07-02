@@ -484,14 +484,6 @@ export type ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput 
   deleteMany?: Prisma.ClaimSupportingAttachmentScalarWhereInput | Prisma.ClaimSupportingAttachmentScalarWhereInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type ClaimSupportingAttachmentCreateWithoutClaimInput = {
   id?: string
   fileName: string

@@ -41,6 +41,7 @@ export type EmployeeTeamMembershipMinAggregateOutputType = {
   employeeProfileId: string | null
   teamId: string | null
   layer: number | null
+  shiftId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +51,7 @@ export type EmployeeTeamMembershipMaxAggregateOutputType = {
   employeeProfileId: string | null
   teamId: string | null
   layer: number | null
+  shiftId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -59,6 +61,7 @@ export type EmployeeTeamMembershipCountAggregateOutputType = {
   employeeProfileId: number
   teamId: number
   layer: number
+  shiftId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -78,6 +81,7 @@ export type EmployeeTeamMembershipMinAggregateInputType = {
   employeeProfileId?: true
   teamId?: true
   layer?: true
+  shiftId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -87,6 +91,7 @@ export type EmployeeTeamMembershipMaxAggregateInputType = {
   employeeProfileId?: true
   teamId?: true
   layer?: true
+  shiftId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -96,6 +101,7 @@ export type EmployeeTeamMembershipCountAggregateInputType = {
   employeeProfileId?: true
   teamId?: true
   layer?: true
+  shiftId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -192,6 +198,7 @@ export type EmployeeTeamMembershipGroupByOutputType = {
   employeeProfileId: string
   teamId: string
   layer: number
+  shiftId: string | null
   createdAt: Date
   updatedAt: Date
   _count: EmployeeTeamMembershipCountAggregateOutputType | null
@@ -224,10 +231,12 @@ export type EmployeeTeamMembershipWhereInput = {
   employeeProfileId?: Prisma.StringFilter<"EmployeeTeamMembership"> | string
   teamId?: Prisma.StringFilter<"EmployeeTeamMembership"> | string
   layer?: Prisma.IntFilter<"EmployeeTeamMembership"> | number
+  shiftId?: Prisma.StringNullableFilter<"EmployeeTeamMembership"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeTeamMembership"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeTeamMembership"> | Date | string
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   team?: Prisma.XOR<Prisma.TeamScalarRelationFilter, Prisma.TeamWhereInput>
+  shift?: Prisma.XOR<Prisma.ShiftNullableScalarRelationFilter, Prisma.ShiftWhereInput> | null
 }
 
 export type EmployeeTeamMembershipOrderByWithRelationInput = {
@@ -235,10 +244,12 @@ export type EmployeeTeamMembershipOrderByWithRelationInput = {
   employeeProfileId?: Prisma.SortOrder
   teamId?: Prisma.SortOrder
   layer?: Prisma.SortOrder
+  shiftId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
   team?: Prisma.TeamOrderByWithRelationInput
+  shift?: Prisma.ShiftOrderByWithRelationInput
   _relevance?: Prisma.EmployeeTeamMembershipOrderByRelevanceInput
 }
 
@@ -251,10 +262,12 @@ export type EmployeeTeamMembershipWhereUniqueInput = Prisma.AtLeast<{
   employeeProfileId?: Prisma.StringFilter<"EmployeeTeamMembership"> | string
   teamId?: Prisma.StringFilter<"EmployeeTeamMembership"> | string
   layer?: Prisma.IntFilter<"EmployeeTeamMembership"> | number
+  shiftId?: Prisma.StringNullableFilter<"EmployeeTeamMembership"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeTeamMembership"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeTeamMembership"> | Date | string
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   team?: Prisma.XOR<Prisma.TeamScalarRelationFilter, Prisma.TeamWhereInput>
+  shift?: Prisma.XOR<Prisma.ShiftNullableScalarRelationFilter, Prisma.ShiftWhereInput> | null
 }, "id" | "employeeProfileId_teamId">
 
 export type EmployeeTeamMembershipOrderByWithAggregationInput = {
@@ -262,6 +275,7 @@ export type EmployeeTeamMembershipOrderByWithAggregationInput = {
   employeeProfileId?: Prisma.SortOrder
   teamId?: Prisma.SortOrder
   layer?: Prisma.SortOrder
+  shiftId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.EmployeeTeamMembershipCountOrderByAggregateInput
@@ -279,6 +293,7 @@ export type EmployeeTeamMembershipScalarWhereWithAggregatesInput = {
   employeeProfileId?: Prisma.StringWithAggregatesFilter<"EmployeeTeamMembership"> | string
   teamId?: Prisma.StringWithAggregatesFilter<"EmployeeTeamMembership"> | string
   layer?: Prisma.IntWithAggregatesFilter<"EmployeeTeamMembership"> | number
+  shiftId?: Prisma.StringNullableWithAggregatesFilter<"EmployeeTeamMembership"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeeTeamMembership"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeeTeamMembership"> | Date | string
 }
@@ -290,6 +305,7 @@ export type EmployeeTeamMembershipCreateInput = {
   updatedAt?: Date | string
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutTeamMembershipsInput
   team: Prisma.TeamCreateNestedOneWithoutMembershipsInput
+  shift?: Prisma.ShiftCreateNestedOneWithoutMembershipsInput
 }
 
 export type EmployeeTeamMembershipUncheckedCreateInput = {
@@ -297,6 +313,7 @@ export type EmployeeTeamMembershipUncheckedCreateInput = {
   employeeProfileId: string
   teamId: string
   layer: number
+  shiftId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -308,6 +325,7 @@ export type EmployeeTeamMembershipUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutTeamMembershipsNestedInput
   team?: Prisma.TeamUpdateOneRequiredWithoutMembershipsNestedInput
+  shift?: Prisma.ShiftUpdateOneWithoutMembershipsNestedInput
 }
 
 export type EmployeeTeamMembershipUncheckedUpdateInput = {
@@ -315,6 +333,7 @@ export type EmployeeTeamMembershipUncheckedUpdateInput = {
   employeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
   teamId?: Prisma.StringFieldUpdateOperationsInput | string
   layer?: Prisma.IntFieldUpdateOperationsInput | number
+  shiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -324,6 +343,7 @@ export type EmployeeTeamMembershipCreateManyInput = {
   employeeProfileId: string
   teamId: string
   layer: number
+  shiftId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -340,6 +360,7 @@ export type EmployeeTeamMembershipUncheckedUpdateManyInput = {
   employeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
   teamId?: Prisma.StringFieldUpdateOperationsInput | string
   layer?: Prisma.IntFieldUpdateOperationsInput | number
+  shiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -370,6 +391,7 @@ export type EmployeeTeamMembershipCountOrderByAggregateInput = {
   employeeProfileId?: Prisma.SortOrder
   teamId?: Prisma.SortOrder
   layer?: Prisma.SortOrder
+  shiftId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -383,6 +405,7 @@ export type EmployeeTeamMembershipMaxOrderByAggregateInput = {
   employeeProfileId?: Prisma.SortOrder
   teamId?: Prisma.SortOrder
   layer?: Prisma.SortOrder
+  shiftId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -392,6 +415,7 @@ export type EmployeeTeamMembershipMinOrderByAggregateInput = {
   employeeProfileId?: Prisma.SortOrder
   teamId?: Prisma.SortOrder
   layer?: Prisma.SortOrder
+  shiftId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -439,6 +463,48 @@ export type EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNeste
   connect?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
   update?: Prisma.EmployeeTeamMembershipUpdateWithWhereUniqueWithoutEmployeeProfileInput | Prisma.EmployeeTeamMembershipUpdateWithWhereUniqueWithoutEmployeeProfileInput[]
   updateMany?: Prisma.EmployeeTeamMembershipUpdateManyWithWhereWithoutEmployeeProfileInput | Prisma.EmployeeTeamMembershipUpdateManyWithWhereWithoutEmployeeProfileInput[]
+  deleteMany?: Prisma.EmployeeTeamMembershipScalarWhereInput | Prisma.EmployeeTeamMembershipScalarWhereInput[]
+}
+
+export type EmployeeTeamMembershipCreateNestedManyWithoutShiftInput = {
+  create?: Prisma.XOR<Prisma.EmployeeTeamMembershipCreateWithoutShiftInput, Prisma.EmployeeTeamMembershipUncheckedCreateWithoutShiftInput> | Prisma.EmployeeTeamMembershipCreateWithoutShiftInput[] | Prisma.EmployeeTeamMembershipUncheckedCreateWithoutShiftInput[]
+  connectOrCreate?: Prisma.EmployeeTeamMembershipCreateOrConnectWithoutShiftInput | Prisma.EmployeeTeamMembershipCreateOrConnectWithoutShiftInput[]
+  createMany?: Prisma.EmployeeTeamMembershipCreateManyShiftInputEnvelope
+  connect?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
+}
+
+export type EmployeeTeamMembershipUncheckedCreateNestedManyWithoutShiftInput = {
+  create?: Prisma.XOR<Prisma.EmployeeTeamMembershipCreateWithoutShiftInput, Prisma.EmployeeTeamMembershipUncheckedCreateWithoutShiftInput> | Prisma.EmployeeTeamMembershipCreateWithoutShiftInput[] | Prisma.EmployeeTeamMembershipUncheckedCreateWithoutShiftInput[]
+  connectOrCreate?: Prisma.EmployeeTeamMembershipCreateOrConnectWithoutShiftInput | Prisma.EmployeeTeamMembershipCreateOrConnectWithoutShiftInput[]
+  createMany?: Prisma.EmployeeTeamMembershipCreateManyShiftInputEnvelope
+  connect?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
+}
+
+export type EmployeeTeamMembershipUpdateManyWithoutShiftNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeTeamMembershipCreateWithoutShiftInput, Prisma.EmployeeTeamMembershipUncheckedCreateWithoutShiftInput> | Prisma.EmployeeTeamMembershipCreateWithoutShiftInput[] | Prisma.EmployeeTeamMembershipUncheckedCreateWithoutShiftInput[]
+  connectOrCreate?: Prisma.EmployeeTeamMembershipCreateOrConnectWithoutShiftInput | Prisma.EmployeeTeamMembershipCreateOrConnectWithoutShiftInput[]
+  upsert?: Prisma.EmployeeTeamMembershipUpsertWithWhereUniqueWithoutShiftInput | Prisma.EmployeeTeamMembershipUpsertWithWhereUniqueWithoutShiftInput[]
+  createMany?: Prisma.EmployeeTeamMembershipCreateManyShiftInputEnvelope
+  set?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
+  disconnect?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
+  delete?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
+  connect?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
+  update?: Prisma.EmployeeTeamMembershipUpdateWithWhereUniqueWithoutShiftInput | Prisma.EmployeeTeamMembershipUpdateWithWhereUniqueWithoutShiftInput[]
+  updateMany?: Prisma.EmployeeTeamMembershipUpdateManyWithWhereWithoutShiftInput | Prisma.EmployeeTeamMembershipUpdateManyWithWhereWithoutShiftInput[]
+  deleteMany?: Prisma.EmployeeTeamMembershipScalarWhereInput | Prisma.EmployeeTeamMembershipScalarWhereInput[]
+}
+
+export type EmployeeTeamMembershipUncheckedUpdateManyWithoutShiftNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeTeamMembershipCreateWithoutShiftInput, Prisma.EmployeeTeamMembershipUncheckedCreateWithoutShiftInput> | Prisma.EmployeeTeamMembershipCreateWithoutShiftInput[] | Prisma.EmployeeTeamMembershipUncheckedCreateWithoutShiftInput[]
+  connectOrCreate?: Prisma.EmployeeTeamMembershipCreateOrConnectWithoutShiftInput | Prisma.EmployeeTeamMembershipCreateOrConnectWithoutShiftInput[]
+  upsert?: Prisma.EmployeeTeamMembershipUpsertWithWhereUniqueWithoutShiftInput | Prisma.EmployeeTeamMembershipUpsertWithWhereUniqueWithoutShiftInput[]
+  createMany?: Prisma.EmployeeTeamMembershipCreateManyShiftInputEnvelope
+  set?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
+  disconnect?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
+  delete?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
+  connect?: Prisma.EmployeeTeamMembershipWhereUniqueInput | Prisma.EmployeeTeamMembershipWhereUniqueInput[]
+  update?: Prisma.EmployeeTeamMembershipUpdateWithWhereUniqueWithoutShiftInput | Prisma.EmployeeTeamMembershipUpdateWithWhereUniqueWithoutShiftInput[]
+  updateMany?: Prisma.EmployeeTeamMembershipUpdateManyWithWhereWithoutShiftInput | Prisma.EmployeeTeamMembershipUpdateManyWithWhereWithoutShiftInput[]
   deleteMany?: Prisma.EmployeeTeamMembershipScalarWhereInput | Prisma.EmployeeTeamMembershipScalarWhereInput[]
 }
 
@@ -490,12 +556,14 @@ export type EmployeeTeamMembershipCreateWithoutEmployeeProfileInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   team: Prisma.TeamCreateNestedOneWithoutMembershipsInput
+  shift?: Prisma.ShiftCreateNestedOneWithoutMembershipsInput
 }
 
 export type EmployeeTeamMembershipUncheckedCreateWithoutEmployeeProfileInput = {
   id?: string
   teamId: string
   layer: number
+  shiftId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -534,8 +602,53 @@ export type EmployeeTeamMembershipScalarWhereInput = {
   employeeProfileId?: Prisma.StringFilter<"EmployeeTeamMembership"> | string
   teamId?: Prisma.StringFilter<"EmployeeTeamMembership"> | string
   layer?: Prisma.IntFilter<"EmployeeTeamMembership"> | number
+  shiftId?: Prisma.StringNullableFilter<"EmployeeTeamMembership"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeTeamMembership"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeTeamMembership"> | Date | string
+}
+
+export type EmployeeTeamMembershipCreateWithoutShiftInput = {
+  id?: string
+  layer: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutTeamMembershipsInput
+  team: Prisma.TeamCreateNestedOneWithoutMembershipsInput
+}
+
+export type EmployeeTeamMembershipUncheckedCreateWithoutShiftInput = {
+  id?: string
+  employeeProfileId: string
+  teamId: string
+  layer: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type EmployeeTeamMembershipCreateOrConnectWithoutShiftInput = {
+  where: Prisma.EmployeeTeamMembershipWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeTeamMembershipCreateWithoutShiftInput, Prisma.EmployeeTeamMembershipUncheckedCreateWithoutShiftInput>
+}
+
+export type EmployeeTeamMembershipCreateManyShiftInputEnvelope = {
+  data: Prisma.EmployeeTeamMembershipCreateManyShiftInput | Prisma.EmployeeTeamMembershipCreateManyShiftInput[]
+  skipDuplicates?: boolean
+}
+
+export type EmployeeTeamMembershipUpsertWithWhereUniqueWithoutShiftInput = {
+  where: Prisma.EmployeeTeamMembershipWhereUniqueInput
+  update: Prisma.XOR<Prisma.EmployeeTeamMembershipUpdateWithoutShiftInput, Prisma.EmployeeTeamMembershipUncheckedUpdateWithoutShiftInput>
+  create: Prisma.XOR<Prisma.EmployeeTeamMembershipCreateWithoutShiftInput, Prisma.EmployeeTeamMembershipUncheckedCreateWithoutShiftInput>
+}
+
+export type EmployeeTeamMembershipUpdateWithWhereUniqueWithoutShiftInput = {
+  where: Prisma.EmployeeTeamMembershipWhereUniqueInput
+  data: Prisma.XOR<Prisma.EmployeeTeamMembershipUpdateWithoutShiftInput, Prisma.EmployeeTeamMembershipUncheckedUpdateWithoutShiftInput>
+}
+
+export type EmployeeTeamMembershipUpdateManyWithWhereWithoutShiftInput = {
+  where: Prisma.EmployeeTeamMembershipScalarWhereInput
+  data: Prisma.XOR<Prisma.EmployeeTeamMembershipUpdateManyMutationInput, Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutShiftInput>
 }
 
 export type EmployeeTeamMembershipCreateWithoutTeamInput = {
@@ -544,12 +657,14 @@ export type EmployeeTeamMembershipCreateWithoutTeamInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutTeamMembershipsInput
+  shift?: Prisma.ShiftCreateNestedOneWithoutMembershipsInput
 }
 
 export type EmployeeTeamMembershipUncheckedCreateWithoutTeamInput = {
   id?: string
   employeeProfileId: string
   layer: number
+  shiftId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -584,6 +699,7 @@ export type EmployeeTeamMembershipCreateManyEmployeeProfileInput = {
   id?: string
   teamId: string
   layer: number
+  shiftId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -594,18 +710,57 @@ export type EmployeeTeamMembershipUpdateWithoutEmployeeProfileInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   team?: Prisma.TeamUpdateOneRequiredWithoutMembershipsNestedInput
+  shift?: Prisma.ShiftUpdateOneWithoutMembershipsNestedInput
 }
 
 export type EmployeeTeamMembershipUncheckedUpdateWithoutEmployeeProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   teamId?: Prisma.StringFieldUpdateOperationsInput | string
   layer?: Prisma.IntFieldUpdateOperationsInput | number
+  shiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamId?: Prisma.StringFieldUpdateOperationsInput | string
+  layer?: Prisma.IntFieldUpdateOperationsInput | number
+  shiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type EmployeeTeamMembershipCreateManyShiftInput = {
+  id?: string
+  employeeProfileId: string
+  teamId: string
+  layer: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type EmployeeTeamMembershipUpdateWithoutShiftInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  layer?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutTeamMembershipsNestedInput
+  team?: Prisma.TeamUpdateOneRequiredWithoutMembershipsNestedInput
+}
+
+export type EmployeeTeamMembershipUncheckedUpdateWithoutShiftInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
+  teamId?: Prisma.StringFieldUpdateOperationsInput | string
+  layer?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type EmployeeTeamMembershipUncheckedUpdateManyWithoutShiftInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
   teamId?: Prisma.StringFieldUpdateOperationsInput | string
   layer?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -616,6 +771,7 @@ export type EmployeeTeamMembershipCreateManyTeamInput = {
   id?: string
   employeeProfileId: string
   layer: number
+  shiftId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -626,12 +782,14 @@ export type EmployeeTeamMembershipUpdateWithoutTeamInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutTeamMembershipsNestedInput
+  shift?: Prisma.ShiftUpdateOneWithoutMembershipsNestedInput
 }
 
 export type EmployeeTeamMembershipUncheckedUpdateWithoutTeamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   employeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
   layer?: Prisma.IntFieldUpdateOperationsInput | number
+  shiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -640,6 +798,7 @@ export type EmployeeTeamMembershipUncheckedUpdateManyWithoutTeamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   employeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
   layer?: Prisma.IntFieldUpdateOperationsInput | number
+  shiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -651,10 +810,12 @@ export type EmployeeTeamMembershipSelect<ExtArgs extends runtime.Types.Extension
   employeeProfileId?: boolean
   teamId?: boolean
   layer?: boolean
+  shiftId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  shift?: boolean | Prisma.EmployeeTeamMembership$shiftArgs<ExtArgs>
 }, ExtArgs["result"]["employeeTeamMembership"]>
 
 
@@ -664,14 +825,16 @@ export type EmployeeTeamMembershipSelectScalar = {
   employeeProfileId?: boolean
   teamId?: boolean
   layer?: boolean
+  shiftId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EmployeeTeamMembershipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "teamId" | "layer" | "createdAt" | "updatedAt", ExtArgs["result"]["employeeTeamMembership"]>
+export type EmployeeTeamMembershipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "teamId" | "layer" | "shiftId" | "createdAt" | "updatedAt", ExtArgs["result"]["employeeTeamMembership"]>
 export type EmployeeTeamMembershipInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  shift?: boolean | Prisma.EmployeeTeamMembership$shiftArgs<ExtArgs>
 }
 
 export type $EmployeeTeamMembershipPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -679,12 +842,18 @@ export type $EmployeeTeamMembershipPayload<ExtArgs extends runtime.Types.Extensi
   objects: {
     employeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs>
     team: Prisma.$TeamPayload<ExtArgs>
+    shift: Prisma.$ShiftPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     employeeProfileId: string
     teamId: string
     layer: number
+    /**
+     * Shift assigned to this employee within this team. Null = use the
+     * team's project default shift (or org working hours as fallback).
+     */
+    shiftId: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["employeeTeamMembership"]>
@@ -1029,6 +1198,7 @@ export interface Prisma__EmployeeTeamMembershipClient<T, Null = never, ExtArgs e
   readonly [Symbol.toStringTag]: "PrismaPromise"
   employeeProfile<T extends Prisma.EmployeeProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   team<T extends Prisma.TeamDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeamDefaultArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  shift<T extends Prisma.EmployeeTeamMembership$shiftArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeTeamMembership$shiftArgs<ExtArgs>>): Prisma.Prisma__ShiftClient<runtime.Types.Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1062,6 +1232,7 @@ export interface EmployeeTeamMembershipFieldRefs {
   readonly employeeProfileId: Prisma.FieldRef<"EmployeeTeamMembership", 'String'>
   readonly teamId: Prisma.FieldRef<"EmployeeTeamMembership", 'String'>
   readonly layer: Prisma.FieldRef<"EmployeeTeamMembership", 'Int'>
+  readonly shiftId: Prisma.FieldRef<"EmployeeTeamMembership", 'String'>
   readonly createdAt: Prisma.FieldRef<"EmployeeTeamMembership", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EmployeeTeamMembership", 'DateTime'>
 }
@@ -1409,6 +1580,25 @@ export type EmployeeTeamMembershipDeleteManyArgs<ExtArgs extends runtime.Types.E
    * Limit how many EmployeeTeamMemberships to delete.
    */
   limit?: number
+}
+
+/**
+ * EmployeeTeamMembership.shift
+ */
+export type EmployeeTeamMembership$shiftArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Shift
+   */
+  select?: Prisma.ShiftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Shift
+   */
+  omit?: Prisma.ShiftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShiftInclude<ExtArgs> | null
+  where?: Prisma.ShiftWhereInput
 }
 
 /**

@@ -4,17 +4,11 @@ export type HoursBuckets = {
   restDayMin: number
   publicHolidayMin: number
   totalMin: number
-  /// Status sub-totals of the OT-eligible minutes (which is
-  /// `otMin + restDayMin + publicHolidayMin`), split by the underlying
-  /// day's OT `ApprovalRequest` status. These are filled in by the
-  /// aggregator (the per-record `bucketRecord` itself doesn't know the
-  /// approval status — it only categorises by day type and threshold).
-  ///
-  /// Invariant when every OT day has a matching request:
-  ///   otApprovedMin + otPendingMin + otRejectedMin
-  ///       === otMin + restDayMin + publicHolidayMin
-  /// Days with NO OT request (legacy / never-auto-created) sit in
-  /// none of the three sub-totals — the difference accounts for them.
+  /// Status sub-totals from employee OT submissions (ApprovalRequest
+  /// kind="OT"), split by approval status. Filled in by the aggregator
+  /// that joins OT requests to attendance records.
+  /// `otMin` from bucketRecord is always 0 for working-day records —
+  /// OT is submission-driven, not derived from clock-in/out duration.
   otApprovedMin: number
   otPendingMin: number
   otRejectedMin: number
@@ -187,18 +181,15 @@ export function bucketRecord(input: BucketInputs): HoursBuckets {
     }
   }
 
-  // Always cap "normal" at the threshold — anything beyond is OT, even if
-  // the OT request is still PENDING or has been REJECTED. Approval status
-  // is the payroll gate (only APPROVED OT contributes to OT pay), not a
-  // display-time bucket gate. Without this cap, an over-threshold day
-  // would silently inflate normal hours and underreport OT in the admin's
-  // hours summary.
-  //
-  // `hasApprovedOT` is kept on the input shape for backwards-compatibility
-  // with existing callers but is intentionally not consulted here.
+  // OT is now entirely submission-driven — employees submit OT as an
+  // explicit time range which goes through approval. Clock-in/out duration
+  // never auto-generates OT. All worked minutes on a working day go to
+  // normalMin regardless of threshold.
+  // `hasApprovedOT` and `otThresholdMin` are kept on the input shape for
+  // backwards-compatible call sites but are not consulted here.
   return {
-    normalMin: threshold,
-    otMin: dur - threshold,
+    normalMin: dur,
+    otMin: 0,
     restDayMin: 0,
     publicHolidayMin: 0,
     totalMin: dur,
