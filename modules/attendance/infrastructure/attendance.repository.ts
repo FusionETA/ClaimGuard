@@ -4764,6 +4764,75 @@ export const attendanceRepository = {
     return rows.map((r) => r.id)
   },
 
+  async createOtSubmission(args: {
+    employeeId: string
+    date: Date
+    otStartAt: Date
+    otEndAt: Date
+    otProjectId: string | null
+    notes?: string
+  }): Promise<{ approvalId: string; status: "PENDING" | "APPROVED" }> {
+    const prisma = getClient()
+    const now = new Date()
+    const [employee, employeeProfile] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: args.employeeId },
+        select: { role: true },
+      }),
+      prisma.employeeProfile.findFirst({
+        where: { userId: args.employeeId },
+        select: { policy: { select: { otMethod: true } } },
+      }),
+    ])
+    const payout =
+      employeeProfile?.policy?.otMethod === "TIME_BANK" ? "TIME_BANK" : "CASH"
+    const autoApprove = await shouldAutoApprove({
+      employeeId: args.employeeId,
+      role: employee?.role,
+      projectId: args.otProjectId,
+      kind: "OT",
+    })
+    const durationMin = Math.round(
+      (args.otEndAt.getTime() - args.otStartAt.getTime()) / 60_000,
+    )
+    const approval = await prisma.approvalRequest.create({
+      data: {
+        employeeId: args.employeeId,
+        kind: "OT",
+        status: autoApprove ? "APPROVED" : "PENDING",
+        date: args.date,
+        eventAt: now,
+        title: `OT submission • ${formatHm(durationMin)}`,
+        detail: args.notes
+          ? `${args.notes}`
+          : `OT submitted for ${formatHm(durationMin)}.`,
+        otStartAt: args.otStartAt,
+        otEndAt: args.otEndAt,
+        otProjectId: args.otProjectId ?? null,
+        otSubtype: null,
+        otPayoutMethod: payout,
+        ...(autoApprove
+          ? {
+              reviewerId: args.employeeId,
+              reviewedAt: now,
+              reviewNotes: "Auto-approved (supervisor self-attendance)",
+            }
+          : {}),
+      },
+      select: { id: true, status: true },
+    })
+    if (autoApprove && payout === "TIME_BANK" && employeeProfile) {
+      await prisma.employeeProfile.updateMany({
+        where: { userId: args.employeeId },
+        data: { otTimeBalanceMin: { increment: durationMin } },
+      })
+    }
+    return {
+      approvalId: approval.id,
+      status: autoApprove ? "APPROVED" : "PENDING",
+    }
+  },
+
   async findOpenRecordsForOtWarning({
     orgId,
   }: {
