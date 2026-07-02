@@ -26,6 +26,7 @@ import {
   type LeaveSeedInput,
   seedEmployeeLeaveEntitlements,
 } from "@/modules/leave/application/services/leave-entitlements.service"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import {
   CATEGORICAL_TARGETS,
   getCategoricalTargetSpec,
@@ -896,42 +897,16 @@ async function findImportConflicts(input: {
     }
   }
 
-  // 2a. DB conflicts: User.email is globally unique. Rows with an
-  //     email that already belongs to a different organization cannot
-  //     be imported into this org, so flag the exact CSV row before
-  //     Prisma throws a generic P2002.
-  const importEmailList = Array.from(emailGroups.keys())
-  if (importEmailList.length > 0) {
-    const existingUsers = await prisma.user.findMany({
-      where: { email: { in: importEmailList } },
-      select: {
-        email: true,
-        name: true,
-        organizationId: true,
-        organization: { select: { name: true } },
-        employeeProfiles: { select: { employeeId: true }, take: 1 },
-      },
-    })
-    const userByEmail = new Map(
-      existingUsers.map((u) => [u.email.toLowerCase(), u]),
-    )
-
-    rows.forEach((row, idx) => {
-      const email = row.email.toLowerCase()
-      const existing = userByEmail.get(email)
-      if (!existing) return
-      if (existing.organizationId === organizationId) return
-      const existingEmployeeId = existing.employeeProfiles[0]?.employeeId
-      const existingOrg = existing.organization?.name ?? "another company"
-      pushRowError(
-        rowNumberFor(row, idx),
-        "email",
-        `Email "${row.email}" is already used by ${existing.name}${
-          existingEmployeeId ? ` (${existingEmployeeId})` : ""
-        } in ${existingOrg}. This row will be skipped; use a different email or update that existing employee instead.`,
-      )
-    })
-  }
+  // 2a. Multi-org: no cross-org email pre-check. Previously any row
+  //     whose email belonged to a user at a DIFFERENT org was rejected
+  //     outright. That was the pre-multi-org guard for
+  //     `User.email @unique`. Since Phase 1a dropped that constraint
+  //     and Phase 6 taught the admin Add-Employee flow to LINK an
+  //     existing user into a second company, the importer follows the
+  //     same policy — the per-row create loop below checks
+  //     `findLinkableExistingUserForOrg` and either links or creates.
+  //     Same-org email uniqueness is still enforced (by
+  //     `assertEmailAvailableForNewUser` inside the create branch).
 
   // 2b. DB conflicts: any EmployeeProfile in this org with one of our
   //    employeeIds, attached to a user whose email is NOT in our
@@ -1229,24 +1204,23 @@ export async function bulkImportPayrollEmployees(input: {
   for (const { rowNumber, row } of importRows) {
     try {
       const outcome = await prisma.$transaction(async (tx) => {
-      // Match by email (chosen as the only unique key per user
-      // decision). If a user exists with this email in this org,
-      // update them; otherwise create.
+      // Match by email at THIS org first. If a user exists here,
+      // this is a same-org update — reuse them.
       const existing = await tx.user.findFirst({
         where: { email: row.email, organizationId: orgId },
         select: {
           id: true,
           role: true,
-          employeeProfile: {
+          employeeProfiles: {
+            where: { organizationId: orgId },
             select: { id: true, payrollProfile: { select: { id: true } } },
+            take: 1,
           },
         },
       })
 
-      const passwordHash = hashPassword(defaultPassword(row.email, row.dateOfBirth))
-
       let userId: string
-      let outcome: "created" | "updated"
+      let outcome: "created" | "updated" | "linked"
       if (existing) {
         // ADMIN/OWNER roles are never overwritten by a CSV import —
         // admin assignment is an admin-UI-only operation and owner is
@@ -1263,25 +1237,48 @@ export async function bulkImportPayrollEmployees(input: {
         userId = existing.id
         outcome = "updated"
       } else {
-        // New row — validate the email isn't claimed by an active
-        // user globally, or by an archived one in THIS org.
-        await assertEmailAvailableForNewUser({ email: row.email, orgId })
-        const u = await tx.user.create({
-          data: {
-            email: row.email,
-            name: row.name,
-            role: row.employeeType,
-            passwordHash,
-            organizationId: orgId,
-          },
+        // Not at this org. Multi-org: check whether this email is an
+        // ACTIVE portal user at ANOTHER org. If so, LINK them here
+        // (reuse the existing userId, skip the password write so
+        // Company A's password stays valid). Otherwise create fresh.
+        const linkable = await organizationRepository.findLinkableExistingUserForOrg({
+          email: row.email,
+          organizationId: orgId,
         })
-        userId = u.id
-        outcome = "created"
+        if (linkable) {
+          userId = linkable.id
+          outcome = "linked"
+          // Intentionally do NOT rewrite `name`, `role`, or password
+          // on the existing User. Password stays whatever they set at
+          // their first company — the whole point of the link path.
+          // Name / role would silently overwrite Company A's copy
+          // (single-scalar columns), so we leave them too.
+        } else {
+          // New row — validate the email isn't claimed by an active
+          // user globally, or by an archived one in THIS org.
+          await assertEmailAvailableForNewUser({ email: row.email, orgId })
+          const passwordHash = hashPassword(
+            defaultPassword(row.email, row.dateOfBirth),
+          )
+          const u = await tx.user.create({
+            data: {
+              email: row.email,
+              name: row.name,
+              role: row.employeeType,
+              passwordHash,
+              organizationId: orgId,
+            },
+          })
+          userId = u.id
+          outcome = "created"
+        }
       }
 
-      // EmployeeProfile — match by userId, since EmployeeProfile.userId is unique.
+      // EmployeeProfile — scoped to (userId, organizationId).
+      // For linked users this creates the FIRST profile at this org;
+      // for same-org updates this hits the existing row.
       const epExisting = await tx.employeeProfile.findFirst({
-        where: { userId },
+        where: { userId, organizationId: orgId },
         select: { id: true },
       })
       let employeeProfileId: string
@@ -1295,11 +1292,22 @@ export async function bulkImportPayrollEmployees(input: {
         const ep = await tx.employeeProfile.create({
           data: {
             userId,
+            organizationId: orgId,
             employeeId: row.employeeId,
             jobTitle: row.jobTitle,
           },
         })
         employeeProfileId = ep.id
+        // Always create the EmployeeOrganization membership row when
+        // we're creating a fresh profile — this is what makes the
+        // multi-org picker + switcher see them at this org.
+        await tx.employeeOrganization.create({
+          data: {
+            userId,
+            employeeProfileId: ep.id,
+            organizationId: orgId,
+          },
+        })
       }
 
       // PayrollProfile — upsert by employeeProfileId.
@@ -1379,7 +1387,12 @@ export async function bulkImportPayrollEmployees(input: {
         timeout: 120_000,
       })
 
-      if (outcome.outcome === "created") {
+      if (outcome.outcome === "created" || outcome.outcome === "linked") {
+        // "linked" (existing user from another org) counts as a
+        // fresh addition at THIS org — the admin sees them for the
+        // first time in this org's employee list. Leave-entitlement
+        // seeding runs on both paths because Company B needs its
+        // own LeaveEntitlement rows regardless.
         created += 1
         try {
           await seedEmployeeLeaveEntitlements({
@@ -2231,16 +2244,16 @@ export async function importMappedCsv(input: {
         select: {
           id: true,
           role: true,
-          employeeProfile: { select: { id: true } },
+          employeeProfiles: {
+            where: { organizationId: orgId },
+            select: { id: true },
+            take: 1,
+          },
         },
       })
 
-      const passwordHash = hashPassword(
-        defaultPassword(row.email, row.dateOfBirth),
-      )
-
       let userId: string
-      let outcome: "created" | "updated"
+      let outcome: "created" | "updated" | "linked"
       if (existing) {
         // Update name + role. Role updates are skipped when the
         // existing user is an ADMIN — the CSV can't demote an admin
@@ -2256,24 +2269,40 @@ export async function importMappedCsv(input: {
         userId = existing.id
         outcome = "updated"
       } else {
-        // New row — validate the email isn't claimed by an active
-        // user globally, or by an archived one in THIS org.
-        await assertEmailAvailableForNewUser({ email: row.email, orgId })
-        const u = await tx.user.create({
-          data: {
-            email: row.email,
-            name: row.name,
-            role: row.employeeType,
-            passwordHash,
-            organizationId: orgId,
-          },
+        // Multi-org: probe for a linkable existing user across ANY
+        // org. If found, reuse them WITHOUT rewriting name / role /
+        // password. Otherwise create fresh — same as the plain-XLSX
+        // importer above.
+        const linkable = await organizationRepository.findLinkableExistingUserForOrg({
+          email: row.email,
+          organizationId: orgId,
         })
-        userId = u.id
-        outcome = "created"
+        if (linkable) {
+          userId = linkable.id
+          outcome = "linked"
+        } else {
+          await assertEmailAvailableForNewUser({ email: row.email, orgId })
+          const passwordHash = hashPassword(
+            defaultPassword(row.email, row.dateOfBirth),
+          )
+          const u = await tx.user.create({
+            data: {
+              email: row.email,
+              name: row.name,
+              role: row.employeeType,
+              passwordHash,
+              organizationId: orgId,
+            },
+          })
+          userId = u.id
+          outcome = "created"
+        }
       }
 
+      // Scope EmployeeProfile lookup to (userId, organizationId) so
+      // linked users get a fresh profile at this org.
       const epExisting = await tx.employeeProfile.findFirst({
-        where: { userId },
+        where: { userId, organizationId: orgId },
         select: { id: true },
       })
       let employeeProfileId: string
@@ -2287,11 +2316,21 @@ export async function importMappedCsv(input: {
         const ep = await tx.employeeProfile.create({
           data: {
             userId,
+            organizationId: orgId,
             employeeId: row.employeeId,
             jobTitle: row.jobTitle,
           },
         })
         employeeProfileId = ep.id
+        // EmployeeOrganization membership row — required for the
+        // multi-org picker + Switch Company button to see them.
+        await tx.employeeOrganization.create({
+          data: {
+            userId,
+            employeeProfileId: ep.id,
+            organizationId: orgId,
+          },
+        })
       }
 
       await tx.payrollProfile.upsert({
@@ -2407,7 +2446,10 @@ export async function importMappedCsv(input: {
         timeout: 120_000,
       })
 
-      if (outcome.outcome === "created") {
+      if (outcome.outcome === "created" || outcome.outcome === "linked") {
+        // "linked" employees (existing user from another org) get
+        // treated as fresh at THIS org — new EmployeeProfile, new
+        // leave entitlements — so seed accordingly.
         created += 1
         // Seed leave entitlements for the freshly-created employee.
         // Updated employees are skipped — they already have rows from

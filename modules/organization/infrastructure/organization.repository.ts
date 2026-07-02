@@ -261,6 +261,27 @@ async function findLinkableExistingUserForOrgInternal(input: {
 }
 
 export const organizationRepository = {
+  /**
+   * Public wrapper around `findLinkableExistingUserForOrgInternal` so
+   * the payroll XLSX importer + any other create-employee entry point
+   * can share the same "should we link an existing user" classifier as
+   * `createOrganizationMember`. Returns `null` when the row should
+   * follow the fresh-create path (no user, admin/owner, or already at
+   * this org). Returns `{ id, name, role }` when the row should link.
+   */
+  async findLinkableExistingUserForOrg(input: {
+    email: string
+    organizationId: string
+  }): Promise<{ id: string; name: string; role: string } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    return findLinkableExistingUserForOrgInternal({
+      prisma,
+      email: input.email,
+      organizationId: input.organizationId,
+    })
+  },
+
   async getOrganizationById(organizationId: string): Promise<OrganizationSummary | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
