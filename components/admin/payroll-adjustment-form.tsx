@@ -498,7 +498,15 @@ export function PayrollAdjustmentForm(props: {
                             ? "Reimbursement"
                             : "Earning"}
                         {" · "}
-                        Statutory:{" "}
+                        {/* On a DEDUCTION row the same subject-to
+                            flags mean "this deduction REDUCES the
+                            base for those contributions" — not
+                            "this line is subject to them". Label
+                            accordingly so admins don't misread it
+                            as an added contribution. */}
+                        {meta.kind === "DEDUCTION" && meta.reducesBase
+                          ? "Reduces base for: "
+                          : "Statutory: "}
                         {statutory.length > 0 ? statutory.join(", ") : "none"}
                         {" · "}
                         Profile baseline: RM
@@ -943,7 +951,14 @@ function LineRow(props: {
             : "Earning"}
         </span>
         <span>
-          Statutory: {statutory.length > 0 ? statutory.join(", ") : "none"}
+          {/* Same wording adjustment as the fixed-adjustments row
+              above: for a DEDUCTION with `reducesBase: true` the
+              flags mean the deduction lowers those bases, not that
+              the line item itself is subject to them. */}
+          {category.kind === "DEDUCTION" && category.reducesBase
+            ? "Reduces base for: "
+            : "Statutory: "}
+          {statutory.length > 0 ? statutory.join(", ") : "none"}
         </span>
         {category.taxExemptLimit ? (
           <span>
