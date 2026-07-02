@@ -42,6 +42,7 @@ export type EmployeePolicyAvgAggregateOutputType = {
   otRateRestDay: runtime.Decimal | null
   otRateRestDayInShift: runtime.Decimal | null
   otSalaryThreshold: runtime.Decimal | null
+  autoClockOutAfterMin: number | null
 }
 
 export type EmployeePolicySumAggregateOutputType = {
@@ -52,6 +53,7 @@ export type EmployeePolicySumAggregateOutputType = {
   otRateRestDay: runtime.Decimal | null
   otRateRestDayInShift: runtime.Decimal | null
   otSalaryThreshold: runtime.Decimal | null
+  autoClockOutAfterMin: number | null
 }
 
 export type EmployeePolicyMinAggregateOutputType = {
@@ -85,6 +87,8 @@ export type EmployeePolicyMinAggregateOutputType = {
   captureLocationOnClockIn: boolean | null
   captureLocationOnClockOut: boolean | null
   geolocationEnabled: boolean | null
+  autoClockOutEnabled: boolean | null
+  autoClockOutAfterMin: number | null
 }
 
 export type EmployeePolicyMaxAggregateOutputType = {
@@ -118,6 +122,8 @@ export type EmployeePolicyMaxAggregateOutputType = {
   captureLocationOnClockIn: boolean | null
   captureLocationOnClockOut: boolean | null
   geolocationEnabled: boolean | null
+  autoClockOutEnabled: boolean | null
+  autoClockOutAfterMin: number | null
 }
 
 export type EmployeePolicyCountAggregateOutputType = {
@@ -151,6 +157,8 @@ export type EmployeePolicyCountAggregateOutputType = {
   captureLocationOnClockIn: number
   captureLocationOnClockOut: number
   geolocationEnabled: number
+  autoClockOutEnabled: number
+  autoClockOutAfterMin: number
   _all: number
 }
 
@@ -163,6 +171,7 @@ export type EmployeePolicyAvgAggregateInputType = {
   otRateRestDay?: true
   otRateRestDayInShift?: true
   otSalaryThreshold?: true
+  autoClockOutAfterMin?: true
 }
 
 export type EmployeePolicySumAggregateInputType = {
@@ -173,6 +182,7 @@ export type EmployeePolicySumAggregateInputType = {
   otRateRestDay?: true
   otRateRestDayInShift?: true
   otSalaryThreshold?: true
+  autoClockOutAfterMin?: true
 }
 
 export type EmployeePolicyMinAggregateInputType = {
@@ -206,6 +216,8 @@ export type EmployeePolicyMinAggregateInputType = {
   captureLocationOnClockIn?: true
   captureLocationOnClockOut?: true
   geolocationEnabled?: true
+  autoClockOutEnabled?: true
+  autoClockOutAfterMin?: true
 }
 
 export type EmployeePolicyMaxAggregateInputType = {
@@ -239,6 +251,8 @@ export type EmployeePolicyMaxAggregateInputType = {
   captureLocationOnClockIn?: true
   captureLocationOnClockOut?: true
   geolocationEnabled?: true
+  autoClockOutEnabled?: true
+  autoClockOutAfterMin?: true
 }
 
 export type EmployeePolicyCountAggregateInputType = {
@@ -272,6 +286,8 @@ export type EmployeePolicyCountAggregateInputType = {
   captureLocationOnClockIn?: true
   captureLocationOnClockOut?: true
   geolocationEnabled?: true
+  autoClockOutEnabled?: true
+  autoClockOutAfterMin?: true
   _all?: true
 }
 
@@ -392,6 +408,8 @@ export type EmployeePolicyGroupByOutputType = {
   captureLocationOnClockIn: boolean
   captureLocationOnClockOut: boolean
   geolocationEnabled: boolean
+  autoClockOutEnabled: boolean
+  autoClockOutAfterMin: number | null
   _count: EmployeePolicyCountAggregateOutputType | null
   _avg: EmployeePolicyAvgAggregateOutputType | null
   _sum: EmployeePolicySumAggregateOutputType | null
@@ -448,6 +466,8 @@ export type EmployeePolicyWhereInput = {
   captureLocationOnClockIn?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   captureLocationOnClockOut?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   geolocationEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  autoClockOutEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  autoClockOutAfterMin?: Prisma.IntNullableFilter<"EmployeePolicy"> | number | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   employees?: Prisma.EmployeeProfileListRelationFilter
   leaveDefaults?: Prisma.PolicyLeaveEntitlementListRelationFilter
@@ -484,6 +504,8 @@ export type EmployeePolicyOrderByWithRelationInput = {
   captureLocationOnClockIn?: Prisma.SortOrder
   captureLocationOnClockOut?: Prisma.SortOrder
   geolocationEnabled?: Prisma.SortOrder
+  autoClockOutEnabled?: Prisma.SortOrder
+  autoClockOutAfterMin?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   employees?: Prisma.EmployeeProfileOrderByRelationAggregateInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementOrderByRelationAggregateInput
@@ -525,6 +547,8 @@ export type EmployeePolicyWhereUniqueInput = Prisma.AtLeast<{
   captureLocationOnClockIn?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   captureLocationOnClockOut?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   geolocationEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  autoClockOutEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  autoClockOutAfterMin?: Prisma.IntNullableFilter<"EmployeePolicy"> | number | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   employees?: Prisma.EmployeeProfileListRelationFilter
   leaveDefaults?: Prisma.PolicyLeaveEntitlementListRelationFilter
@@ -561,6 +585,8 @@ export type EmployeePolicyOrderByWithAggregationInput = {
   captureLocationOnClockIn?: Prisma.SortOrder
   captureLocationOnClockOut?: Prisma.SortOrder
   geolocationEnabled?: Prisma.SortOrder
+  autoClockOutEnabled?: Prisma.SortOrder
+  autoClockOutAfterMin?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.EmployeePolicyCountOrderByAggregateInput
   _avg?: Prisma.EmployeePolicyAvgOrderByAggregateInput
   _max?: Prisma.EmployeePolicyMaxOrderByAggregateInput
@@ -602,6 +628,8 @@ export type EmployeePolicyScalarWhereWithAggregatesInput = {
   captureLocationOnClockIn?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   captureLocationOnClockOut?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   geolocationEnabled?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
+  autoClockOutEnabled?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
+  autoClockOutAfterMin?: Prisma.IntNullableWithAggregatesFilter<"EmployeePolicy"> | number | null
 }
 
 export type EmployeePolicyCreateInput = {
@@ -634,6 +662,8 @@ export type EmployeePolicyCreateInput = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
   employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementCreateNestedManyWithoutPolicyInput
@@ -670,6 +700,8 @@ export type EmployeePolicyUncheckedCreateInput = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedCreateNestedManyWithoutPolicyInput
 }
@@ -704,6 +736,8 @@ export type EmployeePolicyUpdateInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
   employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementUpdateManyWithoutPolicyNestedInput
@@ -740,6 +774,8 @@ export type EmployeePolicyUncheckedUpdateInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedUpdateManyWithoutPolicyNestedInput
 }
@@ -775,6 +811,8 @@ export type EmployeePolicyCreateManyInput = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
 }
 
 export type EmployeePolicyUpdateManyMutationInput = {
@@ -807,6 +845,8 @@ export type EmployeePolicyUpdateManyMutationInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type EmployeePolicyUncheckedUpdateManyInput = {
@@ -840,6 +880,8 @@ export type EmployeePolicyUncheckedUpdateManyInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type EmployeePolicyListRelationFilter = {
@@ -894,6 +936,8 @@ export type EmployeePolicyCountOrderByAggregateInput = {
   captureLocationOnClockIn?: Prisma.SortOrder
   captureLocationOnClockOut?: Prisma.SortOrder
   geolocationEnabled?: Prisma.SortOrder
+  autoClockOutEnabled?: Prisma.SortOrder
+  autoClockOutAfterMin?: Prisma.SortOrder
 }
 
 export type EmployeePolicyAvgOrderByAggregateInput = {
@@ -904,6 +948,7 @@ export type EmployeePolicyAvgOrderByAggregateInput = {
   otRateRestDay?: Prisma.SortOrder
   otRateRestDayInShift?: Prisma.SortOrder
   otSalaryThreshold?: Prisma.SortOrder
+  autoClockOutAfterMin?: Prisma.SortOrder
 }
 
 export type EmployeePolicyMaxOrderByAggregateInput = {
@@ -937,6 +982,8 @@ export type EmployeePolicyMaxOrderByAggregateInput = {
   captureLocationOnClockIn?: Prisma.SortOrder
   captureLocationOnClockOut?: Prisma.SortOrder
   geolocationEnabled?: Prisma.SortOrder
+  autoClockOutEnabled?: Prisma.SortOrder
+  autoClockOutAfterMin?: Prisma.SortOrder
 }
 
 export type EmployeePolicyMinOrderByAggregateInput = {
@@ -970,6 +1017,8 @@ export type EmployeePolicyMinOrderByAggregateInput = {
   captureLocationOnClockIn?: Prisma.SortOrder
   captureLocationOnClockOut?: Prisma.SortOrder
   geolocationEnabled?: Prisma.SortOrder
+  autoClockOutEnabled?: Prisma.SortOrder
+  autoClockOutAfterMin?: Prisma.SortOrder
 }
 
 export type EmployeePolicySumOrderByAggregateInput = {
@@ -980,6 +1029,7 @@ export type EmployeePolicySumOrderByAggregateInput = {
   otRateRestDay?: Prisma.SortOrder
   otRateRestDayInShift?: Prisma.SortOrder
   otSalaryThreshold?: Prisma.SortOrder
+  autoClockOutAfterMin?: Prisma.SortOrder
 }
 
 export type EmployeePolicyNullableScalarRelationFilter = {
@@ -1050,6 +1100,14 @@ export type DecimalFieldUpdateOperationsInput = {
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type EmployeePolicyCreateNestedOneWithoutEmployeesInput = {
   create?: Prisma.XOR<Prisma.EmployeePolicyCreateWithoutEmployeesInput, Prisma.EmployeePolicyUncheckedCreateWithoutEmployeesInput>
   connectOrCreate?: Prisma.EmployeePolicyCreateOrConnectWithoutEmployeesInput
@@ -1110,6 +1168,8 @@ export type EmployeePolicyCreateWithoutOrganizationInput = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
   employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementCreateNestedManyWithoutPolicyInput
 }
@@ -1144,6 +1204,8 @@ export type EmployeePolicyUncheckedCreateWithoutOrganizationInput = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedCreateNestedManyWithoutPolicyInput
 }
@@ -1208,6 +1270,8 @@ export type EmployeePolicyScalarWhereInput = {
   captureLocationOnClockIn?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   captureLocationOnClockOut?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   geolocationEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  autoClockOutEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  autoClockOutAfterMin?: Prisma.IntNullableFilter<"EmployeePolicy"> | number | null
 }
 
 export type EmployeePolicyCreateWithoutEmployeesInput = {
@@ -1240,6 +1304,8 @@ export type EmployeePolicyCreateWithoutEmployeesInput = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementCreateNestedManyWithoutPolicyInput
 }
@@ -1275,6 +1341,8 @@ export type EmployeePolicyUncheckedCreateWithoutEmployeesInput = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
   leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedCreateNestedManyWithoutPolicyInput
 }
 
@@ -1324,6 +1392,8 @@ export type EmployeePolicyUpdateWithoutEmployeesInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementUpdateManyWithoutPolicyNestedInput
 }
@@ -1359,6 +1429,8 @@ export type EmployeePolicyUncheckedUpdateWithoutEmployeesInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
@@ -1392,6 +1464,8 @@ export type EmployeePolicyCreateWithoutLeaveDefaultsInput = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
   employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
 }
@@ -1427,6 +1501,8 @@ export type EmployeePolicyUncheckedCreateWithoutLeaveDefaultsInput = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
 }
 
@@ -1476,6 +1552,8 @@ export type EmployeePolicyUpdateWithoutLeaveDefaultsInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
   employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
 }
@@ -1511,6 +1589,8 @@ export type EmployeePolicyUncheckedUpdateWithoutLeaveDefaultsInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
@@ -1544,6 +1624,8 @@ export type EmployeePolicyCreateManyOrganizationInput = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
 }
 
 export type EmployeePolicyUpdateWithoutOrganizationInput = {
@@ -1576,6 +1658,8 @@ export type EmployeePolicyUpdateWithoutOrganizationInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementUpdateManyWithoutPolicyNestedInput
 }
@@ -1610,6 +1694,8 @@ export type EmployeePolicyUncheckedUpdateWithoutOrganizationInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
   leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedUpdateManyWithoutPolicyNestedInput
 }
@@ -1644,6 +1730,8 @@ export type EmployeePolicyUncheckedUpdateManyWithoutOrganizationInput = {
   captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoClockOutAfterMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -1717,6 +1805,8 @@ export type EmployeePolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   employees?: boolean | Prisma.EmployeePolicy$employeesArgs<ExtArgs>
   leaveDefaults?: boolean | Prisma.EmployeePolicy$leaveDefaultsArgs<ExtArgs>
@@ -1756,9 +1846,11 @@ export type EmployeePolicySelectScalar = {
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
   geolocationEnabled?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: boolean
 }
 
-export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otMethod" | "createdAt" | "updatedAt" | "otEnabled" | "requireGeofence" | "requireSelfie" | "requireClockOutSelfie" | "otDailyThresholdMinutes" | "otRateNormalDay" | "otRatePublicHoliday" | "otRatePublicHolidayInShift" | "otRateRestDay" | "otRateRestDayInShift" | "otSalaryThreshold" | "temporary" | "captureLocationOnBreakEnd" | "captureLocationOnBreakStart" | "captureLocationOnClockIn" | "captureLocationOnClockOut" | "geolocationEnabled", ExtArgs["result"]["employeePolicy"]>
+export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otMethod" | "createdAt" | "updatedAt" | "otEnabled" | "requireGeofence" | "requireSelfie" | "requireClockOutSelfie" | "otDailyThresholdMinutes" | "otRateNormalDay" | "otRatePublicHoliday" | "otRatePublicHolidayInShift" | "otRateRestDay" | "otRateRestDayInShift" | "otSalaryThreshold" | "temporary" | "captureLocationOnBreakEnd" | "captureLocationOnBreakStart" | "captureLocationOnClockIn" | "captureLocationOnClockOut" | "geolocationEnabled" | "autoClockOutEnabled" | "autoClockOutAfterMin", ExtArgs["result"]["employeePolicy"]>
 export type EmployeePolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   employees?: boolean | Prisma.EmployeePolicy$employeesArgs<ExtArgs>
@@ -1869,6 +1961,17 @@ export type $EmployeePolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
      * turned on (geofence enforcement needs GPS to work).
      */
     geolocationEnabled: boolean
+    /**
+     * When true, the system automatically clocks out employees after
+     * `autoClockOutAfterMin` net working minutes (excluding break time).
+     * A cron fires every 15 min and checks open sessions.
+     */
+    autoClockOutEnabled: boolean
+    /**
+     * Net working minutes after clock-in before auto clock-out fires.
+     * Only consulted when autoClockOutEnabled = true. Null disables it.
+     */
+    autoClockOutAfterMin: number | null
   }, ExtArgs["result"]["employeePolicy"]>
   composites: {}
 }
@@ -2271,6 +2374,8 @@ export interface EmployeePolicyFieldRefs {
   readonly captureLocationOnClockIn: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly captureLocationOnClockOut: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly geolocationEnabled: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
+  readonly autoClockOutEnabled: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
+  readonly autoClockOutAfterMin: Prisma.FieldRef<"EmployeePolicy", 'Int'>
 }
     
 

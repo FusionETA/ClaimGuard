@@ -404,6 +404,7 @@ export const ModelName = {
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
   XeroProject: 'XeroProject',
+  Shift: 'Shift',
   ProjectHoliday: 'ProjectHoliday',
   ProjectManager: 'ProjectManager',
   AttendanceRecord: 'AttendanceRecord',
@@ -448,7 +449,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "shift" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1769,6 +1770,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.XeroProjectCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.XeroProjectCountAggregateOutputType> | number
+        }
+      }
+    }
+    Shift: {
+      payload: Prisma.$ShiftPayload<ExtArgs>
+      fields: Prisma.ShiftFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShiftFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShiftFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftPayload>
+        }
+        findFirst: {
+          args: Prisma.ShiftFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShiftFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftPayload>
+        }
+        findMany: {
+          args: Prisma.ShiftFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftPayload>[]
+        }
+        create: {
+          args: Prisma.ShiftCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftPayload>
+        }
+        createMany: {
+          args: Prisma.ShiftCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ShiftDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftPayload>
+        }
+        update: {
+          args: Prisma.ShiftUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShiftDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShiftUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ShiftUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftPayload>
+        }
+        aggregate: {
+          args: Prisma.ShiftAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShift>
+        }
+        groupBy: {
+          args: Prisma.ShiftGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShiftGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShiftCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShiftCountAggregateOutputType> | number
         }
       }
     }
@@ -3797,7 +3864,9 @@ export const EmployeePolicyScalarFieldEnum = {
   captureLocationOnBreakStart: 'captureLocationOnBreakStart',
   captureLocationOnClockIn: 'captureLocationOnClockIn',
   captureLocationOnClockOut: 'captureLocationOnClockOut',
-  geolocationEnabled: 'geolocationEnabled'
+  geolocationEnabled: 'geolocationEnabled',
+  autoClockOutEnabled: 'autoClockOutEnabled',
+  autoClockOutAfterMin: 'autoClockOutAfterMin'
 } as const
 
 export type EmployeePolicyScalarFieldEnum = (typeof EmployeePolicyScalarFieldEnum)[keyof typeof EmployeePolicyScalarFieldEnum]
@@ -4107,6 +4176,23 @@ export const XeroProjectScalarFieldEnum = {
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
 
 
+export const ShiftScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  projectId: 'projectId',
+  name: 'name',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  workingDays: 'workingDays',
+  lunchBreakMin: 'lunchBreakMin',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShiftScalarFieldEnum = (typeof ShiftScalarFieldEnum)[keyof typeof ShiftScalarFieldEnum]
+
+
 export const ProjectHolidayScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -4220,6 +4306,7 @@ export const AttendanceSessionScalarFieldEnum = {
   projectId: 'projectId',
   clockInApprovalRequestId: 'clockInApprovalRequestId',
   clockOutApprovalRequestId: 'clockOutApprovalRequestId',
+  isAutoClockOut: 'isAutoClockOut',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -4266,7 +4353,10 @@ export const ApprovalRequestScalarFieldEnum = {
   updatedAt: 'updatedAt',
   project: 'project',
   chainHistory: 'chainHistory',
-  otPayoutMethod: 'otPayoutMethod'
+  otPayoutMethod: 'otPayoutMethod',
+  otStartAt: 'otStartAt',
+  otEndAt: 'otEndAt',
+  otProjectId: 'otProjectId'
 } as const
 
 export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldEnum)[keyof typeof ApprovalRequestScalarFieldEnum]
@@ -4308,6 +4398,7 @@ export const EmployeeTeamMembershipScalarFieldEnum = {
   employeeProfileId: 'employeeProfileId',
   teamId: 'teamId',
   layer: 'layer',
+  shiftId: 'shiftId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -5101,6 +5192,19 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
 
 
+export const ShiftOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  projectId: 'projectId',
+  name: 'name',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  workingDays: 'workingDays'
+} as const
+
+export type ShiftOrderByRelevanceFieldEnum = (typeof ShiftOrderByRelevanceFieldEnum)[keyof typeof ShiftOrderByRelevanceFieldEnum]
+
+
 export const ProjectHolidayOrderByRelevanceFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -5194,7 +5298,8 @@ export const ApprovalRequestOrderByRelevanceFieldEnum = {
   location: 'location',
   offsetRef: 'offsetRef',
   reviewNotes: 'reviewNotes',
-  project: 'project'
+  project: 'project',
+  otProjectId: 'otProjectId'
 } as const
 
 export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOrderByRelevanceFieldEnum)[keyof typeof ApprovalRequestOrderByRelevanceFieldEnum]
@@ -5222,7 +5327,8 @@ export type TeamOrderByRelevanceFieldEnum = (typeof TeamOrderByRelevanceFieldEnu
 export const EmployeeTeamMembershipOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeProfileId: 'employeeProfileId',
-  teamId: 'teamId'
+  teamId: 'teamId',
+  shiftId: 'shiftId'
 } as const
 
 export type EmployeeTeamMembershipOrderByRelevanceFieldEnum = (typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum)[keyof typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum]
@@ -5959,6 +6065,7 @@ export type GlobalOmitConfig = {
   chartOfAccount?: Prisma.ChartOfAccountOmit
   xeroConnection?: Prisma.XeroConnectionOmit
   xeroProject?: Prisma.XeroProjectOmit
+  shift?: Prisma.ShiftOmit
   projectHoliday?: Prisma.ProjectHolidayOmit
   projectManager?: Prisma.ProjectManagerOmit
   attendanceRecord?: Prisma.AttendanceRecordOmit

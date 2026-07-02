@@ -813,60 +813,32 @@ export const attendanceRepository = {
     const prisma = getClient()
     if (!prisma) return { normalOtMin: 0, restMin: 0, publicMin: 0 }
 
-    const [records, approvedOt, profile] = await Promise.all([
-      prisma.attendanceRecord.findMany({
-        where: {
-          employeeId: args.employeeId,
-          date: { gte: args.from, lte: args.to },
-          durationMin: { not: null, gt: 0 },
-        },
-        select: {
-          date: true,
-          durationMin: true,
-          projectId: true,
-          projectRef: {
-            select: {
-              workingHoursStart: true,
-              workingHoursEnd: true,
-              workingDays: true,
-              lunchBreakMinutes: true,
-            },
-          },
-        },
-      }),
-      prisma.approvalRequest.findMany({
-        where: {
-          employeeId: args.employeeId,
-          kind: "OT",
-          status: "APPROVED",
-          date: { gte: args.from, lte: args.to },
-        },
-        select: { date: true },
-      }),
-      prisma.employeeProfile.findFirst({
-        where: { userId: args.employeeId },
-        select: {
-          policy: { select: { otDailyThresholdMinutes: true } },
-        },
-      }),
-    ])
+    // OT is now submission-driven: minutes come from the employee's
+    // submitted time range (otStartAt → otEndAt), not from worked duration.
+    const approvedOt = await prisma.approvalRequest.findMany({
+      where: {
+        employeeId: args.employeeId,
+        kind: "OT",
+        status: "APPROVED",
+        date: { gte: args.from, lte: args.to },
+        otStartAt: { not: null },
+        otEndAt: { not: null },
+      },
+      select: {
+        date: true,
+        otStartAt: true,
+        otEndAt: true,
+        otProjectId: true,
+      },
+    })
 
     if (approvedOt.length === 0) {
       return { normalOtMin: 0, restMin: 0, publicMin: 0 }
     }
 
-    const approvedDateKeys = new Set(
-      approvedOt.map((a) => a.date.toISOString().slice(0, 10)),
-    )
-
-    // Public-holiday lookup for any project the employee actually clocked
-    // into in the period (a record may have null projectId on legacy rows).
+    // Public-holiday lookup scoped to the projects referenced on the requests.
     const projectIds = Array.from(
-      new Set(
-        records
-          .map((r) => r.projectId)
-          .filter((id): id is string => Boolean(id)),
-      ),
+      new Set(approvedOt.map((r) => r.otProjectId).filter((id): id is string => Boolean(id))),
     )
     const holidayKeys = new Set<string>()
     if (projectIds.length > 0) {
@@ -882,39 +854,46 @@ export const attendanceRepository = {
       }
     }
 
-    const otThresholdMin = profile?.policy?.otDailyThresholdMinutes ?? 480
+    // Fetch working-days config for referenced projects so rest-day OT
+    // can be bucketed correctly.
+    const projects =
+      projectIds.length > 0
+        ? await prisma.xeroProject.findMany({
+            where: { id: { in: projectIds } },
+            select: { id: true, workingDays: true },
+          })
+        : []
+    const workingDaysByProject = new Map(
+      projects.map((p) => [p.id, parseWorkingDays(p.workingDays ?? null)]),
+    )
 
     let normalOtMin = 0
     let restMin = 0
     let publicMin = 0
-    for (const rec of records) {
-      const dateKey = rec.date.toISOString().slice(0, 10)
-      // Only days with an APPROVED OT request count toward payroll.
-      if (!approvedDateKeys.has(dateKey)) continue
-
-      const isPH = rec.projectId
-        ? holidayKeys.has(`${rec.projectId}:${dateKey}`)
-        : false
-      const workingDays = parseWorkingDays(rec.projectRef?.workingDays ?? null)
-      const standardDailyMin = standardDailyMinutesFrom(
-        rec.projectRef?.workingHoursStart ?? null,
-        rec.projectRef?.workingHoursEnd ?? null,
-        rec.projectRef?.lunchBreakMinutes ?? null,
+    for (const req of approvedOt) {
+      if (!req.otStartAt || !req.otEndAt) continue
+      const submittedMin = Math.round(
+        (req.otEndAt.getTime() - req.otStartAt.getTime()) / 60_000,
       )
-      const bucket = bucketRecord({
-        durationMin: rec.durationMin ?? 0,
-        date: rec.date,
-        isPublicHoliday: isPH,
-        workingDays,
-        standardDailyMin,
-        otThresholdMin,
-        // No longer consulted by bucketRecord (always-split semantics),
-        // but kept for backwards-compatible call signature.
-        hasApprovedOT: true,
-      })
-      normalOtMin += bucket.otMin
-      restMin += bucket.restDayMin
-      publicMin += bucket.publicHolidayMin
+      if (submittedMin <= 0) continue
+
+      const dateKey = req.date.toISOString().slice(0, 10)
+      const isPH = req.otProjectId
+        ? holidayKeys.has(`${req.otProjectId}:${dateKey}`)
+        : false
+
+      if (isPH) {
+        publicMin += submittedMin
+      } else {
+        const workingDays = req.otProjectId
+          ? (workingDaysByProject.get(req.otProjectId) ?? parseWorkingDays(null))
+          : parseWorkingDays(null)
+        if (workingDays.has(isoWeekday(req.date))) {
+          normalOtMin += submittedMin
+        } else {
+          restMin += submittedMin
+        }
+      }
     }
 
     return { normalOtMin, restMin, publicMin }
@@ -1781,94 +1760,6 @@ export const attendanceRepository = {
       data: { clockOutApprovalRequestId: approval.id },
     })
 
-    // Auto-create an OT ApprovalRequest when the day's worked minutes
-    // exceed the org's daily OT threshold. Routed through the team's
-    // multi-layer chain (filtered by Team.moduleConfig.OT) — the work
-    // only buckets as OT once the chain reaches APPROVED.
-    let otPendingApproverIds: string[] = []
-    if (durationMin && orgId) {
-      const [org, employeeProfile] = await Promise.all([
-        prisma.organization.findUnique({
-          where: { id: orgId },
-          select: { otEnabled: true },
-        }),
-        prisma.employeeProfile.findFirst({
-          where: { userId: employeeId },
-          select: {
-            policy: {
-              select: {
-                otEnabled: true,
-                otDailyThresholdMinutes: true,
-              },
-            },
-          },
-        }),
-      ])
-      const policyOtEnabled = employeeProfile?.policy?.otEnabled ?? true
-      const threshold = employeeProfile?.policy?.otDailyThresholdMinutes ?? 480
-      if (org?.otEnabled && policyOtEnabled && durationMin > threshold) {
-        const otMinutes = durationMin - threshold
-        const existingOt = await prisma.approvalRequest.findFirst({
-          where: { employeeId, date: today, kind: "OT" },
-          select: { id: true, status: true },
-        })
-        if (!existingOt) {
-          const profile = await prisma.employeeProfile.findFirst({
-            where: { userId: employeeId },
-            select: {
-              id: true,
-              policy: { select: { otEnabled: true, otMethod: true } },
-            },
-          })
-          const payout =
-            profile?.policy?.otEnabled && profile.policy.otMethod === "TIME_BANK"
-              ? "TIME_BANK"
-              : "CASH"
-          const otAutoApprove = await shouldAutoApprove({
-            employeeId,
-            role: employee?.role,
-            projectId: existing?.projectId ?? null,
-            kind: "OT",
-          })
-          const otApproval = await prisma.approvalRequest.create({
-            data: {
-              employeeId,
-              kind: "OT",
-              status: otAutoApprove ? "APPROVED" : "PENDING",
-              date: today,
-              eventAt: now,
-              title: `OT • ${formatHm(otMinutes)}`,
-              detail: `Worked ${formatHm(durationMin)} (threshold ${formatHm(threshold)}). Excess of ${formatHm(otMinutes)} requested as OT.`,
-              project: existing?.project ?? null,
-              otSubtype: null,
-              otPayoutMethod: payout,
-              ...(otAutoApprove
-                ? {
-                    reviewerId: employeeId,
-                    reviewedAt: now,
-                    reviewNotes: "Auto-approved (supervisor self-attendance)",
-                  }
-                : {}),
-            },
-          })
-          if (otAutoApprove && payout === "TIME_BANK" && profile) {
-            await prisma.employeeProfile.updateMany({
-              where: { id: profile.id },
-              data: { otTimeBalanceMin: { increment: otMinutes } },
-            })
-          }
-          if (!otAutoApprove) {
-            otPendingApproverIds = await resolveCurrentApproverIds(
-              otApproval.id,
-              employeeId,
-              "OT",
-              existing?.projectId ?? null,
-            )
-          }
-        }
-      }
-    }
-
     const clockOutApproverIds = autoApprove
       ? []
       : await resolveCurrentApproverIds(
@@ -1880,9 +1771,7 @@ export const attendanceRepository = {
     return {
       recordId: record.id,
       approvalId: approval.id,
-      pendingApproverIds: Array.from(
-        new Set([...clockOutApproverIds, ...otPendingApproverIds]),
-      ),
+      pendingApproverIds: clockOutApproverIds,
     }
   },
 

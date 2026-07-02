@@ -195,6 +195,14 @@ export type XeroConnection = Prisma.XeroConnectionModel
  */
 export type XeroProject = Prisma.XeroProjectModel
 /**
+ * Model Shift
+ * A named working schedule under a project. Admin creates shifts like
+ * "Day 8am–5pm" or "Night 10pm–7am". One shift per project is marked
+ * isDefault; supervisors can override per team member via
+ * EmployeeTeamMembership.shiftId.
+ */
+export type Shift = Prisma.ShiftModel
+/**
  * Model ProjectHoliday
  * 
  */

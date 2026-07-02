@@ -71,6 +71,7 @@ export type AttendanceSessionMinAggregateOutputType = {
   projectId: string | null
   clockInApprovalRequestId: string | null
   clockOutApprovalRequestId: string | null
+  isAutoClockOut: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -96,6 +97,7 @@ export type AttendanceSessionMaxAggregateOutputType = {
   projectId: string | null
   clockInApprovalRequestId: string | null
   clockOutApprovalRequestId: string | null
+  isAutoClockOut: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -121,6 +123,7 @@ export type AttendanceSessionCountAggregateOutputType = {
   projectId: number
   clockInApprovalRequestId: number
   clockOutApprovalRequestId: number
+  isAutoClockOut: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -168,6 +171,7 @@ export type AttendanceSessionMinAggregateInputType = {
   projectId?: true
   clockInApprovalRequestId?: true
   clockOutApprovalRequestId?: true
+  isAutoClockOut?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -193,6 +197,7 @@ export type AttendanceSessionMaxAggregateInputType = {
   projectId?: true
   clockInApprovalRequestId?: true
   clockOutApprovalRequestId?: true
+  isAutoClockOut?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -218,6 +223,7 @@ export type AttendanceSessionCountAggregateInputType = {
   projectId?: true
   clockInApprovalRequestId?: true
   clockOutApprovalRequestId?: true
+  isAutoClockOut?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -330,6 +336,7 @@ export type AttendanceSessionGroupByOutputType = {
   projectId: string | null
   clockInApprovalRequestId: string | null
   clockOutApprovalRequestId: string | null
+  isAutoClockOut: boolean
   createdAt: Date
   updatedAt: Date
   _count: AttendanceSessionCountAggregateOutputType | null
@@ -378,6 +385,7 @@ export type AttendanceSessionWhereInput = {
   projectId?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
   clockInApprovalRequestId?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
   clockOutApprovalRequestId?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
+  isAutoClockOut?: Prisma.BoolFilter<"AttendanceSession"> | boolean
   createdAt?: Prisma.DateTimeFilter<"AttendanceSession"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceSession"> | Date | string
   attendanceRecord?: Prisma.XOR<Prisma.AttendanceRecordScalarRelationFilter, Prisma.AttendanceRecordWhereInput>
@@ -405,6 +413,7 @@ export type AttendanceSessionOrderByWithRelationInput = {
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   clockInApprovalRequestId?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutApprovalRequestId?: Prisma.SortOrderInput | Prisma.SortOrder
+  isAutoClockOut?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   attendanceRecord?: Prisma.AttendanceRecordOrderByWithRelationInput
@@ -436,6 +445,7 @@ export type AttendanceSessionWhereUniqueInput = Prisma.AtLeast<{
   selfieUploadedAt?: Prisma.DateTimeNullableFilter<"AttendanceSession"> | Date | string | null
   project?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
   projectId?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
+  isAutoClockOut?: Prisma.BoolFilter<"AttendanceSession"> | boolean
   createdAt?: Prisma.DateTimeFilter<"AttendanceSession"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceSession"> | Date | string
   attendanceRecord?: Prisma.XOR<Prisma.AttendanceRecordScalarRelationFilter, Prisma.AttendanceRecordWhereInput>
@@ -463,6 +473,7 @@ export type AttendanceSessionOrderByWithAggregationInput = {
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   clockInApprovalRequestId?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutApprovalRequestId?: Prisma.SortOrderInput | Prisma.SortOrder
+  isAutoClockOut?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AttendanceSessionCountOrderByAggregateInput
@@ -496,6 +507,7 @@ export type AttendanceSessionScalarWhereWithAggregatesInput = {
   projectId?: Prisma.StringNullableWithAggregatesFilter<"AttendanceSession"> | string | null
   clockInApprovalRequestId?: Prisma.StringNullableWithAggregatesFilter<"AttendanceSession"> | string | null
   clockOutApprovalRequestId?: Prisma.StringNullableWithAggregatesFilter<"AttendanceSession"> | string | null
+  isAutoClockOut?: Prisma.BoolWithAggregatesFilter<"AttendanceSession"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AttendanceSession"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AttendanceSession"> | Date | string
 }
@@ -520,6 +532,7 @@ export type AttendanceSessionCreateInput = {
   projectId?: string | null
   clockInApprovalRequestId?: string | null
   clockOutApprovalRequestId?: string | null
+  isAutoClockOut?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   attendanceRecord: Prisma.AttendanceRecordCreateNestedOneWithoutSessionsInput
@@ -547,6 +560,7 @@ export type AttendanceSessionUncheckedCreateInput = {
   projectId?: string | null
   clockInApprovalRequestId?: string | null
   clockOutApprovalRequestId?: string | null
+  isAutoClockOut?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceSessionInput
@@ -572,6 +586,7 @@ export type AttendanceSessionUpdateInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockInApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockOutApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAutoClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attendanceRecord?: Prisma.AttendanceRecordUpdateOneRequiredWithoutSessionsNestedInput
@@ -599,6 +614,7 @@ export type AttendanceSessionUncheckedUpdateInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockInApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockOutApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAutoClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceSessionNestedInput
@@ -625,6 +641,7 @@ export type AttendanceSessionCreateManyInput = {
   projectId?: string | null
   clockInApprovalRequestId?: string | null
   clockOutApprovalRequestId?: string | null
+  isAutoClockOut?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -649,6 +666,7 @@ export type AttendanceSessionUpdateManyMutationInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockInApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockOutApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAutoClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -674,6 +692,7 @@ export type AttendanceSessionUncheckedUpdateManyInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockInApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockOutApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAutoClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -720,6 +739,7 @@ export type AttendanceSessionCountOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   clockInApprovalRequestId?: Prisma.SortOrder
   clockOutApprovalRequestId?: Prisma.SortOrder
+  isAutoClockOut?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -755,6 +775,7 @@ export type AttendanceSessionMaxOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   clockInApprovalRequestId?: Prisma.SortOrder
   clockOutApprovalRequestId?: Prisma.SortOrder
+  isAutoClockOut?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -780,6 +801,7 @@ export type AttendanceSessionMinOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   clockInApprovalRequestId?: Prisma.SortOrder
   clockOutApprovalRequestId?: Prisma.SortOrder
+  isAutoClockOut?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -872,6 +894,7 @@ export type AttendanceSessionCreateWithoutAttendanceRecordInput = {
   projectId?: string | null
   clockInApprovalRequestId?: string | null
   clockOutApprovalRequestId?: string | null
+  isAutoClockOut?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceSessionInput
@@ -897,6 +920,7 @@ export type AttendanceSessionUncheckedCreateWithoutAttendanceRecordInput = {
   projectId?: string | null
   clockInApprovalRequestId?: string | null
   clockOutApprovalRequestId?: string | null
+  isAutoClockOut?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceSessionInput
@@ -952,6 +976,7 @@ export type AttendanceSessionScalarWhereInput = {
   projectId?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
   clockInApprovalRequestId?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
   clockOutApprovalRequestId?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
+  isAutoClockOut?: Prisma.BoolFilter<"AttendanceSession"> | boolean
   createdAt?: Prisma.DateTimeFilter<"AttendanceSession"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceSession"> | Date | string
 }
@@ -976,6 +1001,7 @@ export type AttendanceSessionCreateWithoutBreaksInput = {
   projectId?: string | null
   clockInApprovalRequestId?: string | null
   clockOutApprovalRequestId?: string | null
+  isAutoClockOut?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   attendanceRecord: Prisma.AttendanceRecordCreateNestedOneWithoutSessionsInput
@@ -1002,6 +1028,7 @@ export type AttendanceSessionUncheckedCreateWithoutBreaksInput = {
   projectId?: string | null
   clockInApprovalRequestId?: string | null
   clockOutApprovalRequestId?: string | null
+  isAutoClockOut?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1042,6 +1069,7 @@ export type AttendanceSessionUpdateWithoutBreaksInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockInApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockOutApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAutoClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attendanceRecord?: Prisma.AttendanceRecordUpdateOneRequiredWithoutSessionsNestedInput
@@ -1068,6 +1096,7 @@ export type AttendanceSessionUncheckedUpdateWithoutBreaksInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockInApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockOutApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAutoClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1092,6 +1121,7 @@ export type AttendanceSessionCreateManyAttendanceRecordInput = {
   projectId?: string | null
   clockInApprovalRequestId?: string | null
   clockOutApprovalRequestId?: string | null
+  isAutoClockOut?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1116,6 +1146,7 @@ export type AttendanceSessionUpdateWithoutAttendanceRecordInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockInApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockOutApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAutoClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceSessionNestedInput
@@ -1141,6 +1172,7 @@ export type AttendanceSessionUncheckedUpdateWithoutAttendanceRecordInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockInApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockOutApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAutoClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceSessionNestedInput
@@ -1166,6 +1198,7 @@ export type AttendanceSessionUncheckedUpdateManyWithoutAttendanceRecordInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockInApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clockOutApprovalRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAutoClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1222,6 +1255,7 @@ export type AttendanceSessionSelect<ExtArgs extends runtime.Types.Extensions.Int
   projectId?: boolean
   clockInApprovalRequestId?: boolean
   clockOutApprovalRequestId?: boolean
+  isAutoClockOut?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   attendanceRecord?: boolean | Prisma.AttendanceRecordDefaultArgs<ExtArgs>
@@ -1252,11 +1286,12 @@ export type AttendanceSessionSelectScalar = {
   projectId?: boolean
   clockInApprovalRequestId?: boolean
   clockOutApprovalRequestId?: boolean
+  isAutoClockOut?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AttendanceSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "attendanceRecordId" | "startedAt" | "endedAt" | "durationMin" | "status" | "clockInLat" | "clockInLng" | "clockInDistanceMeters" | "clockOutLat" | "clockOutLng" | "clockOutDistanceMeters" | "clockInNotes" | "clockOutNotes" | "xeroSelfieFileId" | "selfieUploadedAt" | "project" | "projectId" | "clockInApprovalRequestId" | "clockOutApprovalRequestId" | "createdAt" | "updatedAt", ExtArgs["result"]["attendanceSession"]>
+export type AttendanceSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "attendanceRecordId" | "startedAt" | "endedAt" | "durationMin" | "status" | "clockInLat" | "clockInLng" | "clockInDistanceMeters" | "clockOutLat" | "clockOutLng" | "clockOutDistanceMeters" | "clockInNotes" | "clockOutNotes" | "xeroSelfieFileId" | "selfieUploadedAt" | "project" | "projectId" | "clockInApprovalRequestId" | "clockOutApprovalRequestId" | "isAutoClockOut" | "createdAt" | "updatedAt", ExtArgs["result"]["attendanceSession"]>
 export type AttendanceSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attendanceRecord?: boolean | Prisma.AttendanceRecordDefaultArgs<ExtArgs>
   breaks?: boolean | Prisma.AttendanceSession$breaksArgs<ExtArgs>
@@ -1304,6 +1339,11 @@ export type $AttendanceSessionPayload<ExtArgs extends runtime.Types.Extensions.I
      * Approval request created at clock-out for this session.
      */
     clockOutApprovalRequestId: string | null
+    /**
+     * True when this clock-out was generated automatically by the
+     * auto-clock-out cron (policy.autoClockOutEnabled), not by the employee.
+     */
+    isAutoClockOut: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["attendanceSession"]>
@@ -1697,6 +1737,7 @@ export interface AttendanceSessionFieldRefs {
   readonly projectId: Prisma.FieldRef<"AttendanceSession", 'String'>
   readonly clockInApprovalRequestId: Prisma.FieldRef<"AttendanceSession", 'String'>
   readonly clockOutApprovalRequestId: Prisma.FieldRef<"AttendanceSession", 'String'>
+  readonly isAutoClockOut: Prisma.FieldRef<"AttendanceSession", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"AttendanceSession", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AttendanceSession", 'DateTime'>
 }
