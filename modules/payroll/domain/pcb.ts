@@ -532,6 +532,25 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
     ytdSocsoEis + thisMonthSocsoEis,
   )
 
+  // TP1 declared allowable deductions (life insurance, medical
+  // insurance, PRS, serious-disease medical, lifestyle, sports
+  // equipment, other). These feed ∑LP + LP1 in the LHDN formula,
+  // same bucket as SOCSO+EIS but with NO combined cap — each item
+  // was already clamped to its per-item LHDN cap by the caller
+  // (see `feedsLp1Relief` handling in calc.ts). Matches
+  // `calcPcbBreakdown` below.
+  //
+  // Previously `calcPcb` silently ignored these two inputs, so
+  // `Payslip.pcb` (which is written from calcPcb's result) never
+  // reflected TP1 relief — even though `Payslip.pcbCalculation`
+  // (from `calcPcbBreakdown`) did. Admins would add a TP1
+  // adjustment, re-run payroll, and see the PCB column unchanged
+  // while the detailed LHDN breakdown PDF showed a different,
+  // correctly-relieved number.
+  const sumLPTp1 = Math.max(0, input.ytdAllowableDeductions ?? 0)
+  const LP1Tp1 = Math.max(0, input.thisMonthAllowableDeductions ?? 0)
+  const annualAllowableDeductions = sumLPTp1 + LP1Tp1
+
   // LHDN individual rebate doubles to RM 800 when the spouse has no
   // income (Category 2). Same gate as the RM 4,000 S relief, applied
   // both here (rebate) and in calcResidentReliefs (deduction).
@@ -542,7 +561,11 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   // personal/family reliefs.
   const chargeableNormal = Math.max(
     0,
-    annualTaxable - annualEpfNormal - annualSocsoEisRelief - reliefs,
+    annualTaxable -
+      annualEpfNormal -
+      annualSocsoEisRelief -
+      annualAllowableDeductions -
+      reliefs,
   )
   const chargeableWithAr = Math.max(
     0,
@@ -550,6 +573,7 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
       arTaxable -
       annualEpfWithAr -
       annualSocsoEisRelief -
+      annualAllowableDeductions -
       reliefs,
   )
 
