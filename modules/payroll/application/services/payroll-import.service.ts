@@ -482,6 +482,37 @@ function resolveSocsoSchemeForImport(
   })
 }
 
+/**
+ * When an import row supplies a `leaveDate` in the PAST, treat the
+ * employee as already-archived so they don't sit in the active roster
+ * needing a manual click. Otherwise the "Last working day" warning
+ * banner nags the admin forever after every historical rehire /
+ * bulk-migration import. Returns the archive fields to spread into
+ * the create/update payload, or an empty object when no auto-archive
+ * applies.
+ *
+ * Historical (leaveDate is provided AND already before today)
+ *   → isArchived: true, archivedAt: now, archiveReason: admin's value
+ *     if supplied, else a stock "Imported with past leave date" note.
+ * Future / no leaveDate → nothing changes.
+ */
+function autoArchiveFieldsForImport(row: RowWithChildren): {
+  isArchived?: true
+  archivedAt?: Date
+  archiveReason?: string
+} {
+  if (!row.leaveDate) return {}
+  const leaveDate = new Date(row.leaveDate)
+  const now = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  if (leaveDate.getTime() >= todayStart.getTime()) return {}
+  return {
+    isArchived: true,
+    archivedAt: now,
+    archiveReason: row.archiveReason ?? "Imported with past leave date",
+  }
+}
+
 function buildPayrollProfileCreate(
   row: RowWithChildren,
   employeeProfileId: string,
@@ -496,6 +527,7 @@ function buildPayrollProfileCreate(
     dateOfBirth: new Date(row.dateOfBirth),
     leaveDate: row.leaveDate ? new Date(row.leaveDate) : null,
     archiveReason: row.archiveReason,
+    ...autoArchiveFieldsForImport(row),
     reportedToLhdn: row.reportedToLhdn ?? false,
     gender: row.gender,
     race: row.race,
@@ -562,6 +594,10 @@ function buildPayrollProfileUpdate(row: RowWithChildren) {
     nationality: row.nationality,
     dateOfBirth: new Date(row.dateOfBirth),
     ...(row.leaveDate !== null ? { leaveDate: new Date(row.leaveDate) } : {}),
+    // Auto-archive if the (import-supplied) leaveDate is already in
+    // the past. Same rule as the create path — see
+    // autoArchiveFieldsForImport.
+    ...autoArchiveFieldsForImport(row),
     ...(row.archiveReason !== null
       ? { archiveReason: row.archiveReason }
       : {}),
