@@ -35,8 +35,14 @@ import { useToastOnAction } from "@/components/ui/toaster"
  */
 export function ChangePasswordButton({
   hasMultipleCompanies = false,
+  /// Force a "Change password" text label next to the icon. Default
+  /// `false` keeps the icon-only round button used inline in the
+  /// header pill. Set to `true` inside the mobile popover menu so the
+  /// row reads as a full-width labelled action.
+  showLabel = false,
 }: {
   hasMultipleCompanies?: boolean
+  showLabel?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(
@@ -67,10 +73,15 @@ export function ChangePasswordButton({
         size="sm"
         onClick={() => setOpen(true)}
         title="Change password"
-        className="h-9 w-9 shrink-0 rounded-full p-0"
+        className={
+          showLabel
+            ? "shrink-0 rounded-full"
+            : "h-9 w-9 shrink-0 rounded-full p-0"
+        }
         aria-label="Change password"
       >
         <KeyRound className="h-4 w-4" />
+        {showLabel ? <span>Change password</span> : null}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -15,6 +15,7 @@ import {
 
 import { ChangePasswordButton } from "@/components/layout/change-password-button"
 import { LogoutButton } from "@/components/layout/logout-button"
+import { MobileUserActions } from "@/components/layout/mobile-user-actions"
 import { NotificationBell } from "@/components/layout/notification-bell"
 import { RealtimeListener } from "@/components/layout/realtime-listener"
 import { SwitchCompanyButton } from "@/components/layout/switch-company-button"
@@ -426,11 +427,20 @@ export function EmployeeShell({
                     <p className="text-xs text-muted-foreground">{user.subtitle}</p>
                   </div>
                 </Link>
-                {hasMultipleCompanies ? <SwitchCompanyButton /> : null}
-                <ChangePasswordButton
+                {/* Desktop (`sm+`): three inline round icon buttons.
+                    Mobile (`<sm`): collapsed into a single 3-dot menu
+                    (below) to keep the header pill compact. Both
+                    paths reuse the same button components. */}
+                <div className="hidden items-center gap-3 sm:flex">
+                  {hasMultipleCompanies ? <SwitchCompanyButton /> : null}
+                  <ChangePasswordButton
+                    hasMultipleCompanies={hasMultipleCompanies}
+                  />
+                  <LogoutButton />
+                </div>
+                <MobileUserActions
                   hasMultipleCompanies={hasMultipleCompanies}
                 />
-                <LogoutButton />
               </div>
             </div>
           </div>

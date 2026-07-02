@@ -22,7 +22,16 @@ import { Button } from "@/components/ui/button"
  * mobile to keep the header pill compact) so the affordance is
  * obvious at a glance.
  */
-export function SwitchCompanyButton() {
+export function SwitchCompanyButton({
+  /// Force the "Switch" text label to show at every breakpoint. The
+  /// default (`false`) keeps the mobile-friendly icon-only rendering
+  /// via `hidden sm:inline`, which the top-right pill needs. Set to
+  /// `true` when placing this button inside a mobile popover menu
+  /// where every row is meant to have a full text label.
+  showLabel = false,
+}: {
+  showLabel?: boolean
+} = {}) {
   const [isPending, startTransition] = useTransition()
 
   return (
@@ -45,7 +54,7 @@ export function SwitchCompanyButton() {
       ) : (
         <ArrowLeftRight className="h-4 w-4" />
       )}
-      <span className="hidden sm:inline">Switch</span>
+      <span className={showLabel ? "inline" : "hidden sm:inline"}>Switch</span>
     </Button>
   )
 }

@@ -20,7 +20,15 @@ import { unsubscribeFromPushNotifications } from "@/lib/push-notifications"
  * client-side unsubscribe — the server action also wipes the DB row
  * as a belt-and-braces fallback.
  */
-export function LogoutButton() {
+export function LogoutButton({
+  /// Force the "Log out" text label to show at every breakpoint.
+  /// Default `false` keeps the header's icon-only rendering. Set to
+  /// `true` inside the mobile popover menu so the row reads as a
+  /// full-width labelled action.
+  showLabel = false,
+}: {
+  showLabel?: boolean
+} = {}) {
   const [pending, startTransition] = useTransition()
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -47,7 +55,7 @@ export function LogoutButton() {
         disabled={pending}
       >
         <LogOut className="h-4 w-4" />
-        <span className="hidden sm:inline">
+        <span className={showLabel ? "inline" : "hidden sm:inline"}>
           {pending ? "Signing out…" : "Log out"}
         </span>
       </Button>
