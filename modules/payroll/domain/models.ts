@@ -283,6 +283,24 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     taxExemptLimit: 6000,
   },
   allowance_travel_private: {
+    // Home-to-work / work-to-home commuting or private-use petrol
+    // allowance. PCB-exempt up to RM 2,400/year per LHDN Public
+    // Ruling No. 1/2006 (Perquisites from Employment) — Second
+    // Addendum §3.2.1(i), dated 25 Feb 2009. The sunset in that
+    // addendum ("YA 2008 to YA 2010") has been extended by
+    // subsequent Finance Acts and restated in LHDN PR 5/2019 —
+    // the exemption is still in force for current YAs.
+    //
+    // Overflow past RM 2,400/year becomes PCB-taxable via the
+    // shared `taxExemptLimit` mechanism (same code path as
+    // childcare and official-duty travel).
+    //
+    // EPF / SOCSO / EIS remain fully subject — a fixed monthly
+    // commuting allowance is "wages" per KWSP and PERKESO's
+    // definitions (the statutory exclusion for travelling
+    // allowance is narrowly read as reimbursement of business
+    // travel, not a fixed home-to-work perk). Aligns with how
+    // Payroll Panda / BrioHR / Talenox treat this category.
     code: "allowance_travel_private",
     label: "Travel/Petrol Allowance (Private Use/Commuting)",
     group: "Allowances / Recurring Monthly",
@@ -292,6 +310,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: true,
     subjectToPcb: true,
     subjectToHrdf: false,
+    taxExemptLimit: 2400,
   },
   allowance_parking: {
     // Parking rate or parking allowance — fully PCB-exempt per LHDN
