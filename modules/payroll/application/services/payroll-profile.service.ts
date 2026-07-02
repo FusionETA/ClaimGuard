@@ -388,12 +388,23 @@ export async function archivePayrollProfile(input: {
 }
 
 /// Update the employee's primary (login) email. Validates that the new
-/// address is well-formed and unique across users — Prisma's unique
-/// constraint on `User.email` raises P2002 on collision, which we map
-/// to a friendly "Already in use" message so the form action can surface
-/// it as a toast. Same admin/org guard as the other helpers in this file.
-/// Returns `{ changed }` so the caller (the personal-tab action) can
-/// decide whether to revalidate aggressively.
+/// address is well-formed and NOT already used by another active portal
+/// user anywhere on the platform. Same admin/org guard as the other
+/// helpers in this file. Returns `{ changed }` so the caller (the
+/// personal-tab action) can decide whether to revalidate aggressively.
+///
+/// Multi-org note: Phase 1a dropped the `@unique` constraint on
+/// `User.email`, so Prisma's P2002 no longer fires on collision.
+/// Uniqueness is now enforced application-side — a manual walk of
+/// candidate rows. If the admin's intent was to LINK an existing
+/// user (same person, another company), the correct path is to
+/// archive this employee here and use "Add Employee" — the
+/// createOrganizationMember flow detects the email match and links
+/// without changing the existing user's password. Silently letting
+/// the email rewrite through would create two User rows sharing an
+/// email but with different password hashes; login (which walks
+/// candidate rows) would then land on whichever came back first
+/// from the DB.
 export async function updateEmployeeEmail(input: {
   userId: string
   newEmail: string
@@ -430,18 +441,40 @@ export async function updateEmployeeEmail(input: {
     return { changed: false }
   }
 
-  try {
-    await prisma.user.update({
-      where: { id: target.id },
-      data: { email: next },
-    })
-  } catch (err) {
-    const code = (err as { code?: string }).code
-    if (code === "P2002") {
-      throw new Error("That email is already used by another user.")
-    }
-    throw err
+  // Multi-org uniqueness guard — walks every User row for this email
+  // and rejects the rewrite if ANY of them is a different user AND
+  // has a portal role AND is not archived. Same "active" definition
+  // as findActiveUserByEmail / assertEmailAvailableForNewUser so the
+  // three code paths agree on what "already in use" means.
+  const candidates = await prisma.user.findMany({
+    where: { email: next },
+    select: {
+      id: true,
+      role: true,
+      employeeProfiles: {
+        select: { payrollProfile: { select: { isArchived: true } } },
+      },
+    },
+  })
+  for (const c of candidates) {
+    if (c.id === target.id) continue // that's us — skip
+    if (c.role !== "EMPLOYEE" && c.role !== "SUPERVISOR") continue
+    const anyActive = c.employeeProfiles.some(
+      (p) => p.payrollProfile?.isArchived !== true,
+    )
+    if (!anyActive) continue
+    throw new Error(
+      "That email is already used by an active employee. If it's the " +
+        "same person and they should work at both companies, archive " +
+        "this employee here and use \"Add Employee\" with that email " +
+        "— the system will link them and keep their existing password.",
+    )
   }
+
+  await prisma.user.update({
+    where: { id: target.id },
+    data: { email: next },
+  })
 
   await bustOrgConfigCaches({ organizationId: orgId })
   return { changed: true }
