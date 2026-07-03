@@ -3,11 +3,14 @@ import "server-only"
 import { getOrSetCache } from "@/lib/cache"
 import { key } from "@/lib/redis"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import { shiftRepository } from "@/modules/attendance/infrastructure/shift.repository"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import type {
   AdminOrgOverview,
   ApprovalRequestView,
+  ShiftView,
   TodayRollCall,
 } from "@/modules/attendance/domain/models"
 import {
@@ -314,6 +317,111 @@ export const adminAttendanceService = {
     return attendanceRepository.getOrgAttendanceHistory({
       ...args,
       pageSize: 50,
+    })
+  },
+
+  // ─── Shift management (Phase 4) ────────────────────────────────────
+  // Admin-facing CRUD for the `Shift` model. The bindings live here
+  // rather than the (shorter) attendance repository file so callers
+  // can reach shifts + everything else through the same service
+  // object. All methods take `orgId` explicitly; auth + org resolution
+  // sit in the calling action/page layer, mirroring the rest of this
+  // service.
+
+  /**
+   * Every shift in the org, joined with project name and current
+   * assigned-member count. The admin page groups them by project on
+   * the client — a single flat list keeps this method boring.
+   */
+  async listShiftsForOrg(orgId: string): Promise<ShiftView[]> {
+    return shiftRepository.listForOrganization(orgId)
+  },
+
+  /**
+   * Every project the admin can filter by (for the shifts page's
+   * project filter). Returns the minimal id + name shape; consumers
+   * that need connection metadata can call the org repo directly.
+   */
+  async listProjectsForOrg(
+    orgId: string,
+  ): Promise<Array<{ id: string; name: string }>> {
+    const rows = await organizationRepository.getProjectsForOrganization(orgId)
+    return rows.map((p) => ({ id: p.id, name: p.name }))
+  },
+
+  async createShift(input: {
+    orgId: string
+    projectId: string
+    name: string
+    startTime: string
+    endTime: string
+    workingDays: string | null
+    lunchBreakMin: number
+    isDefault: boolean
+  }): Promise<ShiftView> {
+    // Confirm the target project belongs to the admin's org — prevents
+    // a tampered form from adding a shift to another org's project.
+    const projects =
+      await organizationRepository.getProjectsForOrganization(input.orgId)
+    const belongs = projects.some((p) => p.id === input.projectId)
+    if (!belongs) {
+      throw new Error("Selected project does not belong to this organisation.")
+    }
+    return shiftRepository.create({
+      organizationId: input.orgId,
+      projectId: input.projectId,
+      name: input.name,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      workingDays: input.workingDays,
+      lunchBreakMin: input.lunchBreakMin,
+      isDefault: input.isDefault,
+    })
+  },
+
+  async updateShift(input: {
+    orgId: string
+    id: string
+    name?: string
+    startTime?: string
+    endTime?: string
+    workingDays?: string | null
+    lunchBreakMin?: number
+    isDefault?: boolean
+  }): Promise<ShiftView> {
+    return shiftRepository.update({
+      organizationId: input.orgId,
+      id: input.id,
+      name: input.name,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      workingDays: input.workingDays,
+      lunchBreakMin: input.lunchBreakMin,
+      isDefault: input.isDefault,
+    })
+  },
+
+  async deleteShift(input: {
+    orgId: string
+    id: string
+  }): Promise<
+    | { ok: true }
+    | { ok: false; code: "IN_USE"; assignedMemberCount: number }
+    | { ok: false; code: "NOT_FOUND" }
+  > {
+    return shiftRepository.delete({
+      organizationId: input.orgId,
+      id: input.id,
+    })
+  },
+
+  async setDefaultShift(input: {
+    orgId: string
+    id: string
+  }): Promise<ShiftView> {
+    return shiftRepository.setDefault({
+      organizationId: input.orgId,
+      id: input.id,
     })
   },
 }

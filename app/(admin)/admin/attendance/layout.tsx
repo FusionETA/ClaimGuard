@@ -6,6 +6,7 @@ const items: ReadonlyArray<{ href: Route; label: string }> = [
   { href: "/admin/attendance", label: "Overview" },
   { href: "/admin/attendance/employees", label: "Employees" },
   { href: "/admin/attendance/ot", label: "Overtime" },
+  { href: "/admin/attendance/shifts" as Route, label: "Shifts" },
 ]
 
 export default function AdminAttendanceLayout({

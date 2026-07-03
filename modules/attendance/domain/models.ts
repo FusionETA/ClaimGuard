@@ -237,3 +237,49 @@ export type EmployeeDetailData = {
   history: AttendanceRecordView[]
   otRecords: ApprovalRequestView[]
 }
+
+// ─── Shifts ────────────────────────────────────────────────────────────
+
+/**
+ * Shift view-model used by the admin shift-management screen.
+ * Mirrors the `Shift` Prisma model with the Decimal-free client-safe
+ * shape — no Decimals or Dates on this model (times are HH:MM strings
+ * to match the schema; workingDays is a comma-separated ISO-weekday
+ * string).
+ */
+export type ShiftView = {
+  id: string
+  organizationId: string
+  projectId: string
+  projectName: string
+  name: string
+  /// HH:MM (24-hour). Clock-in after this time → LATE detection.
+  startTime: string
+  /// HH:MM (24-hour). Used to compute expected daily minutes.
+  endTime: string
+  /// Comma-separated ISO weekday numbers (1=Mon … 7=Sun). Null =
+  /// inherit from project/org default working-day config.
+  workingDays: string | null
+  /// Deducted from expected daily minutes.
+  lunchBreakMin: number
+  /// Exactly one shift per project is the default (used when a team
+  /// member has no per-member `EmployeeTeamMembership.shiftId`).
+  isDefault: boolean
+  /// Number of `EmployeeTeamMembership` rows currently pointing at
+  /// this shift. Surfaced so the admin sees "3 employees assigned"
+  /// before they try to delete.
+  assignedMemberCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * Grouping shape returned by the admin shifts page — one entry per
+ * project the admin can see, with the project's shifts listed under
+ * it. Empty shifts array is legal (project has no shifts yet).
+ */
+export type ShiftsByProject = {
+  projectId: string
+  projectName: string
+  shifts: ShiftView[]
+}
