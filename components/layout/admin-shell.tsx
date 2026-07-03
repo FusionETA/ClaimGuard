@@ -94,6 +94,7 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
       { href: "/admin/attendance", label: "Overview" },
       { href: "/admin/attendance/employees", label: "Employees" },
       { href: "/admin/attendance/ot" as Route, label: "Overtime" },
+      { href: "/admin/attendance/shifts" as Route, label: "Shifts" },
     ],
   },
   {
