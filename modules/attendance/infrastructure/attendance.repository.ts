@@ -4556,6 +4556,71 @@ export const attendanceRepository = {
     })
   },
 
+  async getOtSubmissionsForOrg(args: {
+    orgId: string
+    from: Date
+    to: Date
+    statuses?: Array<"APPROVED" | "REJECTED" | "PENDING">
+    policyIdScope?: string[] | null
+  }): Promise<
+    Array<{
+      id: string
+      employeeId: string
+      employeeName: string
+      project: string | null
+      date: string
+      otStartAt: string | null
+      otEndAt: string | null
+      status: "PENDING" | "APPROVED" | "REJECTED"
+      otSubtype: string | null
+      detail: string
+      submittedAt: string
+      reviewerName: string | null
+      reviewedAt: string | null
+    }>
+  > {
+    const prisma = getClient()
+    const statuses = args.statuses ?? ["PENDING", "APPROVED", "REJECTED"]
+    const policyIdScope = args.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+
+    const employeeFilter: Record<string, unknown> = { organizationId: args.orgId }
+    if (policyIdScope && policyIdScope.length > 0) {
+      employeeFilter.employeeProfile = { policyId: { in: policyIdScope } }
+    }
+
+    const rows = await prisma.approvalRequest.findMany({
+      where: {
+        kind: "OT",
+        status: { in: statuses },
+        date: { gte: startOfDay(args.from), lte: endOfDay(args.to) },
+        employee: employeeFilter,
+      },
+      orderBy: { date: "desc" },
+      take: 500,
+      include: {
+        employee: { select: { name: true } },
+        reviewer: { select: { name: true } },
+      },
+    })
+
+    return rows.map((r) => ({
+      id: r.id,
+      employeeId: r.employeeId,
+      employeeName: r.employee?.name ?? r.employeeId,
+      project: r.project,
+      date: r.date.toISOString().slice(0, 10),
+      otStartAt: r.otStartAt?.toISOString() ?? null,
+      otEndAt: r.otEndAt?.toISOString() ?? null,
+      status: r.status as "PENDING" | "APPROVED" | "REJECTED",
+      otSubtype: r.otSubtype,
+      detail: r.detail,
+      submittedAt: r.submittedAt.toISOString(),
+      reviewerName: r.reviewer?.name ?? null,
+      reviewedAt: r.reviewedAt?.toISOString() ?? null,
+    }))
+  },
+
   /**
    * Worked / scheduled / paid-leave minutes per employee profile for a
    * payroll period. Used by the payroll run service to default the HRS

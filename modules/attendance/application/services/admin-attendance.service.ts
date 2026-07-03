@@ -287,6 +287,19 @@ export const adminAttendanceService = {
     })
   },
 
+  async getOtSubmissionsForOrg(args: {
+    orgId: string
+    from: Date
+    to: Date
+    statuses?: Array<"APPROVED" | "REJECTED" | "PENDING">
+  }) {
+    const policyIdScope = await getActiveAdminPolicyScope()
+    return attendanceRepository.getOtSubmissionsForOrg({
+      ...args,
+      policyIdScope,
+    })
+  },
+
   async getOrgHistory(args: {
     orgId: string | null
     from: Date

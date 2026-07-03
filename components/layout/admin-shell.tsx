@@ -93,6 +93,7 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     children: [
       { href: "/admin/attendance", label: "Overview" },
       { href: "/admin/attendance/employees", label: "Employees" },
+      { href: "/admin/attendance/ot" as Route, label: "Overtime" },
     ],
   },
   {
@@ -266,6 +267,10 @@ function getTitle(pathname: string) {
 
   if (pathname.startsWith("/admin/attendance/employees")) {
     return "Employees"
+  }
+
+  if (pathname.startsWith("/admin/attendance/ot")) {
+    return "Overtime"
   }
 
   if (pathname.startsWith("/admin/attendance")) {
