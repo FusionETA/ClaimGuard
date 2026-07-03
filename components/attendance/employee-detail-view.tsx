@@ -48,6 +48,16 @@ function fmtTime(iso: string | null, tz: string) {
     : "—"
 }
 
+function fmtOtDuration(startIso: string, endIso: string): string {
+  const diffMin = Math.round(
+    (new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000,
+  )
+  if (diffMin <= 0) return ""
+  const h = Math.floor(diffMin / 60)
+  const m = diffMin % 60
+  return m === 0 ? `${h}h` : `${h}h ${m}m`
+}
+
 // EmployeeDetailData moved to modules/attendance/domain/models.ts so the
 // service that builds it doesn't have to import this view file.
 export type { EmployeeDetailData } from "@/modules/attendance/domain/models"
@@ -355,6 +365,11 @@ export function EmployeeDetailView({
                     <p className="text-xs text-muted-foreground">
                       {r.otSubtype ? otSubtypeMeta[r.otSubtype].label : "OT"} • {r.date}
                     </p>
+                    {r.otStartAt && r.otEndAt ? (
+                      <p className="text-xs font-medium text-foreground">
+                        {fmtTime(r.otStartAt, timezone)} – {fmtTime(r.otEndAt, timezone)} · {fmtOtDuration(r.otStartAt, r.otEndAt)}
+                      </p>
+                    ) : null}
                     <p className="mt-1 text-xs text-muted-foreground">{r.detail}</p>
                   </div>
                   <Badge variant={APPROVAL_VARIANT[r.status] as never}>

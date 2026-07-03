@@ -95,9 +95,11 @@ function OtSubmitDialog({
     e.preventDefault()
     setMessage(null)
     const fd = new FormData()
+    // Convert local date+time to UTC ISO in the browser where the timezone is known.
+    // new Date("YYYY-MM-DDTHH:MM:SS") without Z is treated as local time by browsers.
     fd.set("date", date)
-    fd.set("otStartTime", startTime)
-    fd.set("otEndTime", endTime)
+    fd.set("otStartAtUtc", new Date(`${date}T${startTime}:00`).toISOString())
+    fd.set("otEndAtUtc", new Date(`${date}T${endTime}:00`).toISOString())
     if (projectId) fd.set("otProjectId", projectId)
     if (notes.trim()) fd.set("notes", notes.trim())
     startTransition(async () => {

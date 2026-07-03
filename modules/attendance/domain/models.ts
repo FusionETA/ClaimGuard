@@ -92,6 +92,9 @@ export type ApprovalRequestView = {
   /// CASH or TIME_BANK snapshot for OT requests. Null for non-OT or legacy
   /// rows submitted before the snapshot was added.
   otPayoutMethod: "CASH" | "TIME_BANK" | null
+  /// Submitted OT time range. Null for non-OT or legacy rows.
+  otStartAt: string | null
+  otEndAt: string | null
   /// AttendanceRecord id whose selfie can be fetched via
   /// /api/attendance/selfie/{id}. Null when there's no selfie attached
   /// (Office Workers, Hourly Workers whose upload failed, or non-CLOCK_IN

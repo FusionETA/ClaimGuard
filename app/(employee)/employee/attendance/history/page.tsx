@@ -43,6 +43,16 @@ function fmtTime(iso: string | null, tz: string) {
     : "—"
 }
 
+function fmtOtDuration(startIso: string, endIso: string): string {
+  const diffMin = Math.round(
+    (new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000,
+  )
+  if (diffMin <= 0) return ""
+  const h = Math.floor(diffMin / 60)
+  const m = diffMin % 60
+  return m === 0 ? `${h}h` : `${h}h ${m}m`
+}
+
 function summarise(records: AttendanceRecordView[]) {
   const totalMin = records.reduce((acc, r) => acc + (r.durationMin ?? 0), 0)
   return {
@@ -239,6 +249,11 @@ export default async function EmployeeHistoryPage() {
                       <p className="text-xs text-muted-foreground">
                         {r.otSubtype ? otSubtypeMeta[r.otSubtype].label : "OT"} • {r.date}
                       </p>
+                      {r.otStartAt && r.otEndAt ? (
+                        <p className="text-xs font-medium text-foreground">
+                          {fmtTime(r.otStartAt, tz)} – {fmtTime(r.otEndAt, tz)} · {fmtOtDuration(r.otStartAt, r.otEndAt)}
+                        </p>
+                      ) : null}
                       <p className="mt-1 text-xs text-muted-foreground">{r.detail}</p>
                     </div>
                     <Badge variant={APPROVAL_VARIANT[r.status] as never}>

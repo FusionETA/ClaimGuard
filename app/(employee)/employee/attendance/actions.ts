@@ -218,17 +218,17 @@ export async function submitOtAction(
 ): Promise<SubmitOtResult> {
   const session = await requirePortalSession("EMPLOYEE")
   const dateStr = String(formData.get("date") ?? "")
-  const startTimeStr = String(formData.get("otStartTime") ?? "")
-  const endTimeStr = String(formData.get("otEndTime") ?? "")
+  const otStartAtIso = String(formData.get("otStartAtUtc") ?? "")
+  const otEndAtIso = String(formData.get("otEndAtUtc") ?? "")
   const otProjectId = String(formData.get("otProjectId") ?? "").trim() || null
   const notes = String(formData.get("notes") ?? "").trim() || undefined
 
-  if (!dateStr || !startTimeStr || !endTimeStr) {
+  if (!dateStr || !otStartAtIso || !otEndAtIso) {
     return { error: "Date, start time, and end time are required." }
   }
   const date = new Date(`${dateStr}T00:00:00.000Z`)
-  const otStartAt = new Date(`${dateStr}T${startTimeStr}:00.000Z`)
-  const otEndAt = new Date(`${dateStr}T${endTimeStr}:00.000Z`)
+  const otStartAt = new Date(otStartAtIso)
+  const otEndAt = new Date(otEndAtIso)
   if (isNaN(date.getTime()) || isNaN(otStartAt.getTime()) || isNaN(otEndAt.getTime())) {
     return { error: "Invalid date or time values." }
   }

@@ -14,6 +14,7 @@ const reviewSchema = z.object({
   // treated as "no override" so existing UIs keep working unchanged.
   overrideEventAt: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
+  otSubtype: z.enum(["LATE_REPLACEMENT", "OT_OFFSET", "UNRESOLVED"]).optional().nullable(),
 })
 
 export type ReviewApprovalState = {
@@ -32,6 +33,7 @@ export async function reviewApprovalAction(
     status: formData.get("status"),
     overrideEventAt: formData.get("overrideEventAt"),
     notes: formData.get("notes"),
+    otSubtype: formData.get("otSubtype") || null,
   })
 
   if (!parsed.success) {
@@ -51,6 +53,7 @@ export async function reviewApprovalAction(
     {
       notes: parsed.data.notes ?? null,
       overrideEventAt,
+      otSubtype: parsed.data.otSubtype ?? null,
     },
   )
 
