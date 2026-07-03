@@ -144,6 +144,7 @@ export const payrollAdjustmentCategories = [
   "deduct_salary_adjustment",
   "deduct_advance",
   "deduct_loan_repayment",
+  "deduct_miscellaneous",
   "deduct_cp38",
   "deduct_zakat",
   "deduct_zakat_tp1",
@@ -744,6 +745,35 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     reducesBase: true,
+  },
+  deduct_miscellaneous: {
+    // Generic post-tax deduction — fines, uniform deposits, canteen
+    // bills, misc payroll settlements, etc. The catch-all for anything
+    // that isn't a genuine wage reduction.
+    //
+    // Per EPF Act 1991 §2 ("wages" = remuneration *due to* the
+    // employee) and LHDN PCB spec, deductions from earned wages do NOT
+    // shrink the statutory base — the wage earned is what matters, not
+    // what actually lands in the bank. So this category deliberately
+    // leaves EPF/SOCSO/EIS/PCB/HRDF untouched and does NOT reduce
+    // displayed gross.
+    //
+    // If the deduction is really a wage reduction (contract change,
+    // salary cut mid-cycle), use `deduct_salary_adjustment` instead —
+    // that one drops both gross AND statutory base, per the KWSP
+    // "earnings didn't happen" carve-out.
+    //
+    // Matches AutoCount / PayrollPanda / HReasily's default handling
+    // of a bottom-line "Other Deduction" row.
+    code: "deduct_miscellaneous",
+    label: "Miscellaneous / Other Deduction",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
   },
   deduct_loan_repayment: {
     // Repayment of a personal loan the employer made to the employee
