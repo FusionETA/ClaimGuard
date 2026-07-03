@@ -567,6 +567,48 @@ export const payrollProfileRepository = {
    * `archivedAt` is separately set to `now()` — it's the audit
    * timestamp for "when did admin click archive", not the leave date.
    */
+  /**
+   * Find every non-archived PayrollProfile whose leaveDate is strictly
+   * before `today`. Used by the daily auto-archive cron to sweep up
+   * planned leavers whose leaveDate has since become past — the
+   * on-save auto-archive fixes profiles the admin opens; this fills
+   * the gap for the ones nobody visited.
+   *
+   * Returns `employeeProfileId + leaveDate + existing archiveReason`
+   * (so the cron can preserve the admin's original reason if they
+   * had set one). Ordered by leaveDate ASC so cron log reads
+   * chronologically.
+   */
+  async listPastLeaveDateActiveProfiles(today: Date): Promise<
+    Array<{
+      employeeProfileId: string
+      leaveDate: Date
+      archiveReason: string | null
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const rows = await prisma.payrollProfile.findMany({
+      where: {
+        isArchived: false,
+        leaveDate: { lt: today, not: null },
+      },
+      select: {
+        employeeProfileId: true,
+        leaveDate: true,
+        archiveReason: true,
+      },
+      orderBy: { leaveDate: "asc" },
+    })
+    return rows
+      .filter((r): r is typeof r & { leaveDate: Date } => r.leaveDate !== null)
+      .map((r) => ({
+        employeeProfileId: r.employeeProfileId,
+        leaveDate: r.leaveDate,
+        archiveReason: r.archiveReason,
+      }))
+  },
+
   async archive(
     employeeProfileId: string,
     reason: string,
