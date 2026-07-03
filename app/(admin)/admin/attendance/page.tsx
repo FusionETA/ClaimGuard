@@ -6,12 +6,10 @@ import {
 } from "lucide-react"
 
 import { AdminOverviewTabs } from "@/components/attendance/admin-overview-tabs"
-import { ApprovalAuditLog } from "@/components/attendance/approval-audit-log"
 import { DailyActivityTable } from "@/components/attendance/daily-activity-table"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
 import { OffSiteLogCard } from "@/components/attendance/off-site-log-card"
 import { OrgHistoryPanel } from "@/components/attendance/org-history-panel"
-import { SupervisorPerformanceCard } from "@/components/attendance/supervisor-performance-card"
 import {
   TableFilterBar,
   type TableFilterValue,
@@ -27,14 +25,8 @@ import {
 } from "@/modules/organization/application/services/admin-access.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
-import { loadSelfieStorageStatsAction } from "./actions"
 import { loadOrgHistoryAction } from "./history-actions"
-import {
-  loadApprovalAuditLogForFiltersAction,
-  loadOrgHoursSummaryForFiltersAction,
-  loadPendingRejectedAuditLogForFiltersAction,
-} from "./hours-summary-actions"
-import { SelfieStorageCard } from "./selfie-storage-card"
+import { loadOrgHoursSummaryForFiltersAction } from "./hours-summary-actions"
 
 function startOfMonthIso(): string {
   const d = new Date()
@@ -66,16 +58,6 @@ function readFilter(
   }
 }
 
-async function getOrgSupervisorSettings(
-  orgId: string | null,
-): Promise<{ enabled: boolean; slaMinutes: number }> {
-  if (!orgId) return { enabled: true, slaMinutes: 60 }
-  const org = await organizationRepository.getOrganizationById(orgId)
-  return {
-    enabled: org?.supervisorReportEnabled ?? true,
-    slaMinutes: org?.supervisorSlaMinutes ?? 60,
-  }
-}
 
 export default async function AdminAttendancePage({
   searchParams,
@@ -90,15 +72,11 @@ export default async function AdminAttendancePage({
   const daFilter = readFilter(params, "da")
   const rcFilter = readFilter(params, "rc")
   const hsFilter = readFilter(params, "hs")
-  const auFilter = readFilter(params, "au")
-  const prFilter = readFilter(params, "pr")
-  const supFilter = readFilter(params, "sup")
   const osFilter = readFilter(params, "os")
 
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
 
-  const supervisorSettings = await getOrgSupervisorSettings(orgId)
   const policyIdScope = await getActiveAdminPolicyScope()
 
   const [
@@ -108,12 +86,8 @@ export default async function AdminAttendancePage({
     initialHoursSummary,
     projects,
     teams,
-    initialAudit,
-    selfieStats,
     dailyActivity,
-    supervisorPerformance,
     timezone,
-    initialPendingRejected,
     offSiteRows,
     initialHistory,
   ] = await Promise.all([
@@ -144,43 +118,13 @@ export default async function AdminAttendancePage({
     orgId
       ? organizationRepository.listTeamsForOrganization(orgId)
       : Promise.resolve([]),
-    adminAttendanceService.getApprovalAuditLog(
-      orgId,
-      new Date(initialFrom),
-      new Date(initialTo),
-      auFilter.projectId,
-      auFilter.teamId,
-      auFilter.q,
-      ["APPROVED"],
-    ),
-    loadSelfieStorageStatsAction(),
     adminAttendanceService.getDailyActivity(
       orgId,
       daFilter.projectId,
       daFilter.teamId,
       daFilter.q,
     ),
-    supervisorSettings.enabled
-      ? adminAttendanceService.getSupervisorPerformance({
-          orgId,
-          from: new Date(initialFrom),
-          to: new Date(initialTo),
-          slaMinutes: supervisorSettings.slaMinutes,
-          projectId: supFilter.projectId,
-          teamId: supFilter.teamId,
-          q: supFilter.q,
-        })
-      : Promise.resolve([]),
     attendanceRepository.getOrgTimezone(orgId),
-    adminAttendanceService.getApprovalAuditLog(
-      orgId,
-      new Date(initialFrom),
-      new Date(initialTo),
-      prFilter.projectId,
-      prFilter.teamId,
-      prFilter.q,
-      ["PENDING", "REJECTED"],
-    ),
     adminAttendanceService.getOffSiteClockIns(
       orgId,
       osFilter.projectId,
@@ -217,11 +161,6 @@ export default async function AdminAttendancePage({
   )
 
   const hoursAction = loadOrgHoursSummaryForFiltersAction.bind(null, hsFilter)
-  const auditAction = loadApprovalAuditLogForFiltersAction.bind(null, auFilter)
-  const pendingRejectedAction = loadPendingRejectedAuditLogForFiltersAction.bind(
-    null,
-    prFilter,
-  )
 
   const todayContent = (
     <>
@@ -320,65 +259,11 @@ export default async function AdminAttendancePage({
     </>
   )
 
-  const performanceContent = (
-    <>
-      <ApprovalAuditLog
-        initialFrom={initialFrom}
-        initialTo={initialTo}
-        initialRows={initialAudit}
-        loadAction={auditAction}
-        projectId={auFilter.projectId}
-        mode="APPROVED"
-        filterBar={{
-          prefix: "au",
-          projects: projectOptions,
-          teams: teamOptions,
-          value: auFilter,
-        }}
-      />
-
-      <ApprovalAuditLog
-        initialFrom={initialFrom}
-        initialTo={initialTo}
-        initialRows={initialPendingRejected}
-        loadAction={pendingRejectedAction}
-        projectId={prFilter.projectId}
-        mode="PENDING_REJECTED"
-        filterBar={{
-          prefix: "pr",
-          projects: projectOptions,
-          teams: teamOptions,
-          value: prFilter,
-        }}
-      />
-
-      {supervisorSettings.enabled ? (
-        <SupervisorPerformanceCard
-          rows={supervisorPerformance}
-          slaMinutes={supervisorSettings.slaMinutes}
-          filterBar={{
-            prefix: "sup",
-            projects: projectOptions,
-            teams: teamOptions,
-            value: supFilter,
-          }}
-        />
-      ) : null}
-
-      <SelfieStorageCard
-        initialStats={selfieStats}
-        defaultFrom={initialFrom}
-        defaultTo={initialTo}
-      />
-    </>
-  )
-
   return (
     <div className="space-y-6">
       <AdminOverviewTabs
         today={todayContent}
         analytics={analyticsContent}
-        performance={performanceContent}
         history={historyContent}
       />
     </div>

@@ -73,6 +73,7 @@ export const ModelName = {
   XeroProject: 'XeroProject',
   Shift: 'Shift',
   ProjectHoliday: 'ProjectHoliday',
+  OrgHoliday: 'OrgHoliday',
   ProjectManager: 'ProjectManager',
   AttendanceRecord: 'AttendanceRecord',
   AttendanceEditLog: 'AttendanceEditLog',
@@ -155,7 +156,8 @@ export const OrganizationScalarFieldEnum = {
   allowForecastedLeaveApply: 'allowForecastedLeaveApply',
   addons: 'addons',
   plan: 'plan',
-  tier: 'tier'
+  tier: 'tier',
+  workingDays: 'workingDays'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -529,6 +531,17 @@ export const ProjectHolidayScalarFieldEnum = {
 } as const
 
 export type ProjectHolidayScalarFieldEnum = (typeof ProjectHolidayScalarFieldEnum)[keyof typeof ProjectHolidayScalarFieldEnum]
+
+
+export const OrgHolidayScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  date: 'date',
+  name: 'name',
+  createdAt: 'createdAt'
+} as const
+
+export type OrgHolidayScalarFieldEnum = (typeof OrgHolidayScalarFieldEnum)[keyof typeof OrgHolidayScalarFieldEnum]
 
 
 export const ProjectManagerScalarFieldEnum = {
@@ -1277,7 +1290,8 @@ export const OrganizationOrderByRelevanceFieldEnum = {
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
   timezone: 'timezone',
-  defaultCurrency: 'defaultCurrency'
+  defaultCurrency: 'defaultCurrency',
+  workingDays: 'workingDays'
 } as const
 
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
@@ -1539,6 +1553,15 @@ export const ProjectHolidayOrderByRelevanceFieldEnum = {
 } as const
 
 export type ProjectHolidayOrderByRelevanceFieldEnum = (typeof ProjectHolidayOrderByRelevanceFieldEnum)[keyof typeof ProjectHolidayOrderByRelevanceFieldEnum]
+
+
+export const OrgHolidayOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name'
+} as const
+
+export type OrgHolidayOrderByRelevanceFieldEnum = (typeof OrgHolidayOrderByRelevanceFieldEnum)[keyof typeof OrgHolidayOrderByRelevanceFieldEnum]
 
 
 export const ProjectManagerOrderByRelevanceFieldEnum = {

@@ -129,6 +129,11 @@ model Organization {
   xeroConnection            XeroConnection?
   projects                  XeroProject[]
   shifts                    Shift[]
+  orgHolidays               OrgHoliday[]
+  /// Org-wide default working days as a CSV of weekday numbers 1–7
+  /// (Mon = 1 … Sun = 7). Null means Mon–Fri (1,2,3,4,5). Projects can
+  /// override via XeroProject.workingDays.
+  workingDays               String?
 }
 
 /// Admin-defined classification for an employee. Replaces the previous
@@ -873,6 +878,18 @@ model ProjectHoliday {
 
   @@unique([projectId, date])
   @@index([projectId])
+}
+
+model OrgHoliday {
+  id             String       @id @default(cuid())
+  organizationId String
+  date           DateTime     @db.Date
+  name           String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, date])
+  @@index([organizationId])
 }
 
 /// Many-to-many between XeroProject and User for project managers. Replaces

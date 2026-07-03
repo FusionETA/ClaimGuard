@@ -1695,6 +1695,73 @@ export const organizationRepository = {
     return true
   },
 
+  async getOrgWorkingDays(organizationId: string): Promise<string | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { workingDays: true },
+    })
+    return row?.workingDays ?? null
+  },
+
+  async setOrgWorkingDays(organizationId: string, workingDays: string): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { workingDays },
+    })
+  },
+
+  async getOrgHolidays(
+    organizationId: string,
+  ): Promise<Array<{ id: string; date: string; name: string }>> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const rows = await prisma.orgHoliday.findMany({
+      where: { organizationId },
+      orderBy: { date: "asc" },
+      select: { id: true, date: true, name: true },
+    })
+    return rows.map((r) => ({
+      id: r.id,
+      date: r.date.toISOString().slice(0, 10),
+      name: r.name,
+    }))
+  },
+
+  async upsertOrgHoliday(input: {
+    organizationId: string
+    date: Date
+    name: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.orgHoliday.upsert({
+      where: {
+        organizationId_date: {
+          organizationId: input.organizationId,
+          date: input.date,
+        },
+      },
+      create: input,
+      update: { name: input.name },
+    })
+  },
+
+  async deleteOrgHoliday(holidayId: string, organizationId: string): Promise<boolean> {
+    const prisma = getPrismaClient()
+    if (!prisma) return false
+    const row = await prisma.orgHoliday.findUnique({
+      where: { id: holidayId },
+      select: { organizationId: true },
+    })
+    if (!row || row.organizationId !== organizationId) return false
+    await prisma.orgHoliday.delete({ where: { id: holidayId } })
+    return true
+  },
+
   /**
    * Persist the org-level currency policy. Caller is expected to have
    * already validated that every code is in the curated catalogue and

@@ -2150,6 +2150,163 @@ export async function deleteProjectHolidayAction(
 }
 
 // ----------------------------------------------------------------------------
+// Org-level working days
+// ----------------------------------------------------------------------------
+
+export async function saveOrgWorkingDaysAction(
+  workingDays: string,
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return { ok: false, message: "No organization found." }
+
+  const days = workingDays
+    .split(",")
+    .map((d) => parseInt(d.trim(), 10))
+    .filter((d) => d >= 1 && d <= 7)
+  if (days.length === 0 || days.length > 7) {
+    return { ok: false, message: "Select between 1 and 7 working days." }
+  }
+
+  try {
+    await organizationRepository.setOrgWorkingDays(organizationId, days.join(","))
+  } catch (error) {
+    return { ok: false, message: safeErrorMessage(error, "Unable to save working days.") }
+  }
+
+  await revalidateAdminSurfaces(organizationId)
+  return { ok: true, message: "Working days saved." }
+}
+
+// ----------------------------------------------------------------------------
+// Org-level public holidays
+// ----------------------------------------------------------------------------
+
+export async function addOrgHolidayAction(
+  date: string,
+  name: string,
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return { ok: false, message: "No organization found." }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { ok: false, message: "Date must be YYYY-MM-DD." }
+  }
+  const trimmed = name.trim()
+  if (!trimmed) return { ok: false, message: "Holiday name is required." }
+
+  try {
+    await organizationRepository.upsertOrgHoliday({
+      organizationId,
+      date: new Date(date),
+      name: trimmed,
+    })
+  } catch (error) {
+    return { ok: false, message: safeErrorMessage(error, "Unable to add holiday.") }
+  }
+
+  await revalidateAdminSurfaces(organizationId)
+  return { ok: true, message: "Holiday added." }
+}
+
+export async function deleteOrgHolidayAction(
+  holidayId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return { ok: false, message: "No organization found." }
+
+  try {
+    const removed = await organizationRepository.deleteOrgHoliday(holidayId, organizationId)
+    if (!removed) return { ok: false, message: "Holiday not found." }
+  } catch (error) {
+    return { ok: false, message: safeErrorMessage(error, "Unable to delete holiday.") }
+  }
+
+  await revalidateAdminSurfaces(organizationId)
+  return { ok: true, message: "Holiday removed." }
+}
+
+export async function importOrgHolidaysAction(
+  year: number,
+  countryCode: string,
+): Promise<{ ok: boolean; message: string; imported?: number }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return { ok: false, message: "No organization found." }
+
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+    return { ok: false, message: "Year must be between 2000 and 2100." }
+  }
+  if (!/^[A-Z]{2}$/.test(countryCode)) {
+    return { ok: false, message: "Country code must be 2 uppercase letters (e.g. MY)." }
+  }
+
+  let usedSource: HolidayApiSource = "nager"
+  let result = process.env.CALENDARIFIC_API_KEY
+    ? await fetchCalendarificHolidays(year, countryCode)
+    : await fetchNagerHolidays(year, countryCode)
+  if (result.ok && process.env.CALENDARIFIC_API_KEY) usedSource = "calendarific"
+
+  if (!result.ok) {
+    if (usedSource === "calendarific") {
+      const fallback = await fetchNagerHolidays(year, countryCode)
+      if (fallback.ok) {
+        result = fallback
+        usedSource = "nager"
+      } else {
+        return { ok: false, message: result.message }
+      }
+    } else {
+      return { ok: false, message: result.message }
+    }
+  }
+  if (result.holidays.length === 0) {
+    return { ok: false, message: "No holidays returned for that year." }
+  }
+
+  const dedupedByDate = new Map<string, string>()
+  for (const h of result.holidays) {
+    if (!dedupedByDate.has(h.date)) dedupedByDate.set(h.date, h.name)
+  }
+
+  let imported = 0
+  for (const [date, name] of dedupedByDate) {
+    try {
+      await organizationRepository.upsertOrgHoliday({
+        organizationId,
+        date: new Date(date),
+        name,
+      })
+      imported += 1
+    } catch {
+      // skip individual failures
+    }
+  }
+
+  const sourceLabel = usedSource === "calendarific" ? "Calendarific" : "date.nager.at"
+  await revalidateAdminSurfaces(organizationId)
+  return {
+    ok: true,
+    message: `Imported ${imported} holidays for ${countryCode} ${year} (${sourceLabel}).`,
+    imported,
+  }
+}
+
+// ----------------------------------------------------------------------------
 // Multi-admin: create another admin for the active organization
 // ----------------------------------------------------------------------------
 

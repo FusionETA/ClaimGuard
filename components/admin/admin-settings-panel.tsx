@@ -32,10 +32,14 @@ import {
   saveGeofenceRadiusAction,
   saveOrgTimezoneAction,
   saveOrgWorkingHoursAction,
+  saveOrgWorkingDaysAction,
   saveProjectCalendarAction,
   addProjectHolidayAction,
   deleteProjectHolidayAction,
   importProjectHolidaysAction,
+  addOrgHolidayAction,
+  deleteOrgHolidayAction,
+  importOrgHolidaysAction,
   saveSelectableAccountsAction,
   saveSelectedBankAccountsAction,
   selectXeroTenantAction,
@@ -103,7 +107,6 @@ export type SettingsTabKey =
   | "leave"
   | "policies"
   | "api"
-type WorkScheduleSection = "ot-rates" | "calendar" | "attendance"
 
 /**
  * Bulk-toggle every checkbox with a given `name` inside a form. Used by
@@ -578,6 +581,8 @@ export function AdminSettingsPanel({
   takenTenantIds = [],
   workingHours,
   timezone,
+  orgWorkingDays = null,
+  orgHolidays = [],
   initialTab,
   initialSection,
   visibleTabs,
@@ -618,6 +623,8 @@ export function AdminSettingsPanel({
   takenTenantIds?: string[]
   workingHours: { start: string; end: string }
   timezone: string
+  orgWorkingDays?: string | null
+  orgHolidays?: Array<{ id: string; date: string; name: string }>
   initialTab?: string
   initialSection?: string
   visibleTabs?: SettingsTabKey[]
@@ -681,9 +688,6 @@ export function AdminSettingsPanel({
   const [accountsSubTab, setAccountsSubTab] = useState<AccountsSubTab>(
     initialResolved.accountsSub
   )
-  const [workScheduleSection, setWorkScheduleSection] = useState<WorkScheduleSection>(
-    initialSection === "attendance" ? "attendance" : "calendar"
-  )
 
   useEffect(() => {
     if (!initialTab) return
@@ -693,11 +697,7 @@ export function AdminSettingsPanel({
     if (resolved.tab === "accounts" && resolved.accountsSub !== accountsSubTab) {
       setAccountsSubTab(resolved.accountsSub)
     }
-    if (resolved.tab === "work-schedule") {
-      const next: WorkScheduleSection =
-        initialSection === "attendance" ? "attendance" : "calendar"
-      if (next !== workScheduleSection) setWorkScheduleSection(next)
-    }
+    // work-schedule has no sub-sections anymore — nothing to sync
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTab, initialSection])
   const [accountTypeFilter, setAccountTypeFilter] = useState<string>("all")
@@ -2554,40 +2554,11 @@ export function AdminSettingsPanel({
 
       {activeTab === "work-schedule" ? (
         <div className="space-y-6">
-          <nav className="flex flex-wrap gap-2">
-            {(
-              [
-                ["calendar", "Calendar"],
-                ["attendance", "Attendance"],
-              ] as const
-            ).map(([value, label]) => (
-              <Link
-                key={value}
-                href={`/admin/settings?tab=work-schedule&section=${value}`}
-                onClick={() => setWorkScheduleSection(value)}
-                className={cn(
-                  "rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
-                  workScheduleSection === value
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-
-          {workScheduleSection === "calendar" ? (
-            <>
-              <OrgWorkingHoursCard initial={workingHours} />
-              <OrgTimezoneCard initial={timezone} />
-              <ProjectCalendarPanel projects={projects} orgWorkingHours={workingHours} />
-            </>
-          ) : (
-            <>
-              <SupervisorReportCard organization={organization} />
-            </>
-          )}
+          <OrgDefaultsCard initialHours={workingHours} initialDays={orgWorkingDays} />
+          <OrgTimezoneCard initial={timezone} />
+          <OrgHolidaysCard initial={orgHolidays} />
+          <OrgCalendarView orgWorkingDays={orgWorkingDays} orgHolidays={orgHolidays} />
+          <ProjectWorkingDaysCard projects={projects} />
         </div>
       ) : null}
 
@@ -2667,6 +2638,140 @@ function OrgWorkingHoursCard({ initial }: { initial: { start: string; end: strin
               disabled={pending || !dirty}
             >
               {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function OrgDefaultsCard({
+  initialHours,
+  initialDays,
+}: {
+  initialHours: { start: string; end: string }
+  initialDays: string | null
+}) {
+  const { toast } = useToast()
+  const [hoursPending, startHoursTransition] = useTransition()
+  const [daysPending, startDaysTransition] = useTransition()
+  const [start, setStart] = useState(initialHours.start)
+  const [end, setEnd] = useState(initialHours.end)
+  const DEFAULT_DAYS = new Set([1, 2, 3, 4, 5])
+  const [days, setDays] = useState<Set<number>>(() =>
+    initialDays ? parseWorkingDays(initialDays) : new Set(DEFAULT_DAYS)
+  )
+
+  useEffect(() => {
+    setStart(initialHours.start)
+    setEnd(initialHours.end)
+  }, [initialHours.start, initialHours.end])
+
+  useEffect(() => {
+    setDays(initialDays ? parseWorkingDays(initialDays) : new Set(DEFAULT_DAYS))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialDays])
+
+  const hoursDirty = start !== initialHours.start || end !== initialHours.end
+
+  function toggleDay(value: number) {
+    setDays((prev) => {
+      const next = new Set(prev)
+      if (next.has(value)) next.delete(value)
+      else next.add(value)
+      return next
+    })
+  }
+
+  function handleSaveHours() {
+    startHoursTransition(async () => {
+      const result = await saveOrgWorkingHoursAction(start, end)
+      toast({ title: result.message, variant: result.ok ? "success" : "error" })
+    })
+  }
+
+  function handleSaveDays() {
+    if (days.size === 0) {
+      toast({ title: "Select at least one working day.", variant: "error" })
+      return
+    }
+    startDaysTransition(async () => {
+      const result = await saveOrgWorkingDaysAction(Array.from(days).sort().join(","))
+      toast({ title: result.message, variant: result.ok ? "success" : "error" })
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Org defaults</CardTitle>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Default working hours and days for the organisation. Projects can override working days.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div>
+          <p className="text-sm font-semibold text-foreground">Working hours</p>
+          <div className="mt-2 grid gap-3 sm:grid-cols-[8rem_8rem_1fr] sm:items-end">
+            <TimeField
+              label="Start"
+              value={start}
+              onChange={(v) => setStart(v || initialHours.start)}
+              disabled={hoursPending}
+            />
+            <TimeField
+              label="End"
+              value={end}
+              onChange={(v) => setEnd(v || initialHours.end)}
+              disabled={hoursPending}
+            />
+            <div className="flex items-center justify-end">
+              <Button
+                type="button"
+                size="sm"
+                className="rounded-lg"
+                onClick={handleSaveHours}
+                disabled={hoursPending || !hoursDirty}
+              >
+                {hoursPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold text-foreground">Working days</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {WEEKDAYS.map((d) => {
+              const active = days.has(d.value)
+              return (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => toggleDay(d.value)}
+                  disabled={daysPending}
+                  className={cn(
+                    "rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {d.label}
+                </button>
+              )
+            })}
+          </div>
+          <div className="mt-3 flex justify-end">
+            <Button
+              type="button"
+              size="sm"
+              className="rounded-lg"
+              onClick={handleSaveDays}
+              disabled={daysPending}
+            >
+              {daysPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
             </Button>
           </div>
         </div>
@@ -3765,6 +3870,447 @@ function ProjectHolidaysCard({ project }: { project: OrganizationProjectOption }
             ) : null}
           </div>
         )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function OrgHolidaysCard({
+  initial,
+}: {
+  initial?: Array<{ id: string; date: string; name: string }>
+}) {
+  const holidays = initial ?? []
+  const { toast } = useToast()
+  const [pending, startTransition] = useTransition()
+  const [date, setDate] = useState("")
+  const [name, setName] = useState("")
+  const [importYear, setImportYear] = useState<string>(String(new Date().getFullYear()))
+  const [importCountry, setImportCountry] = useState<string>("MY")
+  const [showList, setShowList] = useState(false)
+
+  function handleImport() {
+    const yearNum = Number(importYear)
+    if (!Number.isInteger(yearNum)) {
+      toast({ title: "Year must be a whole number.", variant: "error" })
+      return
+    }
+    startTransition(async () => {
+      const result = await importOrgHolidaysAction(yearNum, importCountry.trim().toUpperCase())
+      toast({ title: result.message, variant: result.ok ? "success" : "error" })
+    })
+  }
+
+  function handleAdd() {
+    if (!date || !name.trim()) {
+      toast({ title: "Date and name are required.", variant: "error" })
+      return
+    }
+    startTransition(async () => {
+      const result = await addOrgHolidayAction(date, name)
+      toast({ title: result.message, variant: result.ok ? "success" : "error" })
+      if (result.ok) {
+        setDate("")
+        setName("")
+      }
+    })
+  }
+
+  function handleDelete(id: string) {
+    startTransition(async () => {
+      const result = await deleteOrgHolidayAction(id)
+      toast({ title: result.message, variant: result.ok ? "success" : "error" })
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Public holidays</CardTitle>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          Org-wide public holidays. These influence OT rate selection for hours worked on that day.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="rounded-2xl border border-border/60 bg-surface-low p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Import from public holiday API
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-[6rem_5rem_auto] sm:items-end">
+            <label className="space-y-1 text-xs font-semibold text-muted-foreground">
+              <span>Year</span>
+              <Input
+                type="number"
+                min="2000"
+                max="2100"
+                value={importYear}
+                onChange={(e) => setImportYear(e.target.value)}
+                disabled={pending}
+              />
+            </label>
+            <label className="space-y-1 text-xs font-semibold text-muted-foreground">
+              <span>Country</span>
+              <Input
+                type="text"
+                maxLength={2}
+                value={importCountry}
+                onChange={(e) => setImportCountry(e.target.value.toUpperCase())}
+                placeholder="MY"
+                disabled={pending}
+              />
+            </label>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-xl"
+              onClick={handleImport}
+              disabled={pending}
+            >
+              <Download className="mr-2 h-4 w-4" />Import
+            </Button>
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            ISO-3166 country code (MY, SG, US, GB, …). Existing entries on the same date are overwritten.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-end">
+          <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+            <span>Date</span>
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              disabled={pending}
+            />
+          </label>
+          <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+            <span>Name</span>
+            <Input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Hari Raya"
+              disabled={pending}
+            />
+          </label>
+          <Button
+            type="button"
+            className="rounded-xl"
+            onClick={handleAdd}
+            disabled={pending}
+          >
+            <Plus className="mr-2 h-4 w-4" />Add
+          </Button>
+        </div>
+
+        {holidays.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No holidays configured.</p>
+        ) : (
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowList((v) => !v)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+            >
+              <span>{showList ? "Hide" : "Show"} holiday list ({holidays.length})</span>
+              <span className="text-[10px]">{showList ? "▲" : "▼"}</span>
+            </button>
+            {showList ? (
+              <ul className="mt-2 divide-y divide-border/60">
+                {holidays.map((h) => (
+                  <li key={h.id} className="flex items-center justify-between gap-4 py-2">
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-sm font-semibold text-foreground">{h.date}</span>
+                      <span className="text-sm text-muted-foreground">{h.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(h.id)}
+                      disabled={pending}
+                      className="text-muted-foreground hover:text-destructive transition-colors"
+                      aria-label={`Delete ${h.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function OrgCalendarView({
+  orgWorkingDays,
+  orgHolidays,
+}: {
+  orgWorkingDays: string | null
+  orgHolidays?: Array<{ id: string; date: string; name: string }>
+}) {
+  const today = new Date()
+  const [viewYear, setViewYear] = useState(today.getFullYear())
+  const [viewMonth, setViewMonth] = useState(today.getMonth())
+
+  const workingDays = orgWorkingDays ? parseWorkingDays(orgWorkingDays) : new Set([1, 2, 3, 4, 5])
+  const holidayMap = new Map((orgHolidays ?? []).map((h) => [h.date, h.name] as const))
+
+  const firstOfMonth = new Date(viewYear, viewMonth, 1)
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
+  const firstWeekdayIso = ((firstOfMonth.getDay() + 6) % 7) + 1
+  const leadingBlanks = firstWeekdayIso - 1
+
+  const cells: Array<{ day: number; iso: string; weekday: number } | null> = []
+  for (let i = 0; i < leadingBlanks; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(viewYear, viewMonth, d)
+    const iso = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`
+    const weekday = ((date.getDay() + 6) % 7) + 1
+    cells.push({ day: d, iso, weekday })
+  }
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  function shift(delta: number) {
+    const next = new Date(viewYear, viewMonth + delta, 1)
+    setViewYear(next.getFullYear())
+    setViewMonth(next.getMonth())
+  }
+
+  const monthLabel = firstOfMonth.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+  })
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-semibold tabular-nums">{monthLabel}</span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => shift(-1)}
+              className="rounded-md px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
+              aria-label="Previous month"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={() => shift(1)}
+              className="rounded-md px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
+              aria-label="Next month"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-1 grid grid-cols-7 text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+          {WEEKDAYS.map((d) => (
+            <div key={d.value} className="py-1">{d.label.charAt(0)}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-px rounded-md bg-border/40 overflow-hidden">
+          {cells.map((cell, idx) => {
+            if (!cell) {
+              return <div key={`blank-${idx}`} className="min-h-[60px] bg-card" />
+            }
+            const isWorking = workingDays.has(cell.weekday)
+            const holidayName = holidayMap.get(cell.iso)
+            const isHoliday = !!holidayName
+            const isToday =
+              cell.iso ===
+              `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
+
+            return (
+              <div
+                key={cell.iso}
+                className={cn(
+                  "min-h-[60px] p-1.5 transition-colors",
+                  isHoliday
+                    ? "bg-primary/5"
+                    : isWorking
+                      ? "bg-card"
+                      : "bg-surface-low"
+                )}
+                title={holidayName ?? undefined}
+              >
+                <span
+                  className={cn(
+                    "inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] tabular-nums",
+                    isToday
+                      ? "bg-primary text-primary-foreground font-bold"
+                      : isHoliday
+                        ? "text-primary font-semibold"
+                        : isWorking
+                          ? "text-foreground"
+                          : "text-muted-foreground/60"
+                  )}
+                >
+                  {cell.day}
+                </span>
+                {isHoliday ? (
+                  <p className="mt-0.5 line-clamp-2 text-[10px] font-medium leading-tight text-primary/80">
+                    {holidayName}
+                  </p>
+                ) : null}
+              </div>
+            )
+          })}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-card border border-border/60" />
+            Working day
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-surface-low border border-border/60" />
+            Rest / off
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-primary/10 border border-primary/20" />
+            Public holiday
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+            Today
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ProjectWorkingDaysCard({ projects }: { projects: OrganizationProjectOption[] }) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialId = searchParams.get("projectId") ?? projects[0]?.id ?? ""
+  const [selectedId, setSelectedId] = useState<string>(initialId)
+  const { toast } = useToast()
+  const [pending, startTransition] = useTransition()
+
+  useEffect(() => {
+    const fromUrl = searchParams.get("projectId")
+    if (fromUrl && fromUrl !== selectedId) setSelectedId(fromUrl)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+
+  const project = projects.find((p) => p.id === selectedId) ?? projects[0]
+  const [days, setDays] = useState<Set<number>>(parseWorkingDays(project?.workingDays))
+
+  useEffect(() => {
+    setDays(parseWorkingDays(project?.workingDays))
+  }, [project?.id, project?.workingDays])
+
+  function handlePick(id: string) {
+    setSelectedId(id)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("tab", "work-schedule")
+    params.delete("section")
+    params.set("projectId", id)
+    router.replace(`/admin/settings?${params.toString()}`)
+  }
+
+  function toggleDay(value: number) {
+    setDays((prev) => {
+      const next = new Set(prev)
+      if (next.has(value)) next.delete(value)
+      else next.add(value)
+      return next
+    })
+  }
+
+  function handleSave() {
+    if (!project) return
+    startTransition(async () => {
+      const result = await saveProjectCalendarAction(project.id, {
+        workingHoursStart: null,
+        workingHoursEnd: null,
+        workingDays: days.size === 0 ? null : Array.from(days).sort().join(","),
+        lunchBreakMinutes: null,
+      })
+      toast({ title: result.message, variant: result.ok ? "success" : "error" })
+    })
+  }
+
+  if (projects.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Project</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Add a project first to configure its working days.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Project</CardTitle>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          Override the default working days for a specific project.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Select value={selectedId} onValueChange={handlePick}>
+          <SelectTrigger className="h-10 text-sm">
+            <SelectValue placeholder="Pick a project" />
+          </SelectTrigger>
+          <SelectContent>
+            {projects.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {project ? (
+          <>
+            <div className="flex flex-wrap gap-2">
+              {WEEKDAYS.map((d) => {
+                const active = days.has(d.value)
+                return (
+                  <button
+                    key={d.value}
+                    type="button"
+                    onClick={() => toggleDay(d.value)}
+                    disabled={pending}
+                    className={cn(
+                      "rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                      active
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {d.label}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                size="sm"
+                className="rounded-lg"
+                onClick={handleSave}
+                disabled={pending}
+              >
+                {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+              </Button>
+            </div>
+          </>
+        ) : null}
       </CardContent>
     </Card>
   )

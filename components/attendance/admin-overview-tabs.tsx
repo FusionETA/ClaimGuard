@@ -4,24 +4,21 @@ import { useState, type ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
 
-type TabKey = "today" | "analytics" | "performance" | "history"
+type TabKey = "today" | "analytics" | "history"
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "today", label: "Today" },
   { key: "analytics", label: "Analytics" },
-  { key: "performance", label: "Performance" },
   { key: "history", label: "History" },
 ]
 
 export function AdminOverviewTabs({
   today,
   analytics,
-  performance,
   history,
 }: {
   today: ReactNode
   analytics: ReactNode
-  performance: ReactNode
   history: ReactNode
 }) {
   const [active, setActive] = useState<TabKey>("today")
@@ -55,9 +52,6 @@ export function AdminOverviewTabs({
       </div>
       <div className={active === "analytics" ? "block space-y-6" : "hidden"}>
         {analytics}
-      </div>
-      <div className={active === "performance" ? "block space-y-6" : "hidden"}>
-        {performance}
       </div>
       <div className={active === "history" ? "block space-y-6" : "hidden"}>
         {history}

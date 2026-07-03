@@ -232,6 +232,11 @@ export type Shift = Prisma.ShiftModel
  */
 export type ProjectHoliday = Prisma.ProjectHolidayModel
 /**
+ * Model OrgHoliday
+ * 
+ */
+export type OrgHoliday = Prisma.OrgHolidayModel
+/**
  * Model ProjectManager
  * Many-to-many between XeroProject and User for project managers. Replaces
  * the legacy single XeroProject.projectManagerId column (which is kept

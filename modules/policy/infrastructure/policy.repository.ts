@@ -30,6 +30,8 @@ type PolicyRow = {
   requireSelfie: boolean
   requireClockOutSelfie: boolean
   temporary: boolean
+  autoClockOutEnabled: boolean
+  autoClockOutAfterMin: number | null
   otRateNormalDay: unknown
   otRateRestDay: unknown
   otRatePublicHoliday: unknown
@@ -62,6 +64,8 @@ function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
     requireSelfie: row.requireSelfie,
     requireClockOutSelfie: row.requireClockOutSelfie,
     temporary: row.temporary,
+    autoClockOutEnabled: row.autoClockOutEnabled,
+    autoClockOutAfterMin: row.autoClockOutAfterMin,
     otRateNormalDay: toNumber(row.otRateNormalDay, 1.5),
     otRateRestDay: toNumber(row.otRateRestDay, 2.0),
     otRatePublicHoliday: toNumber(row.otRatePublicHoliday, 3.0),
@@ -104,6 +108,8 @@ export type PolicyCreateInput = {
   requireSelfie: boolean
   requireClockOutSelfie?: boolean
   temporary: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
   isDefault?: boolean
 } & PolicyOtRateInput
 
@@ -127,6 +133,8 @@ export type PolicyUpdateInput = {
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   temporary?: boolean
+  autoClockOutEnabled?: boolean
+  autoClockOutAfterMin?: number | null
 } & Partial<PolicyOtRateInput>
 
 export const policyRepository = {
@@ -212,6 +220,8 @@ export const policyRepository = {
           requireSelfie: input.requireSelfie,
           requireClockOutSelfie: input.requireClockOutSelfie ?? false,
           temporary: input.temporary,
+          autoClockOutEnabled: input.autoClockOutEnabled ?? false,
+          autoClockOutAfterMin: input.autoClockOutAfterMin ?? null,
           otRateNormalDay: input.otRateNormalDay,
           otRateRestDay: input.otRateRestDay,
           otRatePublicHoliday: input.otRatePublicHoliday,
@@ -274,6 +284,8 @@ export const policyRepository = {
           requireSelfie: input.requireSelfie ?? undefined,
           requireClockOutSelfie: input.requireClockOutSelfie ?? undefined,
           temporary: input.temporary ?? undefined,
+          autoClockOutEnabled: input.autoClockOutEnabled ?? undefined,
+          autoClockOutAfterMin: input.autoClockOutAfterMin,
           otRateNormalDay: input.otRateNormalDay ?? undefined,
           otRateRestDay: input.otRateRestDay ?? undefined,
           otRatePublicHoliday: input.otRatePublicHoliday ?? undefined,

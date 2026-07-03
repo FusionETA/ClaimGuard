@@ -46,6 +46,12 @@ export type EmployeePolicy = {
   /// fixed-term). Enables the per-employee `temporaryReviewDate` field
   /// and the admin review reminder.
   temporary: boolean
+  /// When true, open attendance sessions are automatically closed by the
+  /// cron sweep once the employee has been clocked in for `autoClockOutAfterMin`
+  /// minutes. Null threshold = feature on but no time limit (not useful; the
+  /// admin should always set a threshold when enabling).
+  autoClockOutEnabled: boolean
+  autoClockOutAfterMin: number | null
   /// OT multipliers, salary cap, and daily threshold. Applied only when
   /// `otEnabled && otMethod === "CASH"`. Always present in the DB row;
   /// the calc engine ignores them outside CASH mode.

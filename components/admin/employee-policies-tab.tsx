@@ -321,6 +321,12 @@ function PolicyEditorCard({
   const [captureBreakEnd, setCaptureBreakEnd] = useState<boolean>(
     policy?.captureLocationOnBreakEnd ?? true,
   )
+  const [autoClockOutEnabled, setAutoClockOutEnabled] = useState<boolean>(
+    policy?.autoClockOutEnabled ?? false,
+  )
+  const [autoClockOutAfterMin, setAutoClockOutAfterMin] = useState<string>(
+    policy?.autoClockOutAfterMin != null ? String(policy.autoClockOutAfterMin) : "",
+  )
 
   // Auto-flip the master + clock-in capture when geofence is turned on.
   function handleRequireGeofenceChange(next: boolean) {
@@ -673,6 +679,46 @@ function PolicyEditorCard({
                   Temporary
                 </span>
               </label>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-foreground">Auto clock-out</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Automatically clock out employees who have been clocked in longer
+              than the configured time limit.
+            </p>
+            <div className="mt-3 space-y-2">
+              <input type="hidden" name="autoClockOutEnabled" value={autoClockOutEnabled ? "1" : "0"} />
+              <label className="flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="checkbox"
+                  checked={autoClockOutEnabled}
+                  onChange={(e) => setAutoClockOutEnabled(e.target.checked)}
+                  disabled={pending}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="font-medium text-foreground">Enable auto clock-out</span>
+              </label>
+              {autoClockOutEnabled ? (
+                <div className="flex items-center gap-2 pl-1">
+                  <label className="text-sm text-muted-foreground">Clock out after</label>
+                  <Input
+                    name="autoClockOutAfterMin"
+                    type="number"
+                    min={1}
+                    max={1440}
+                    value={autoClockOutAfterMin}
+                    onChange={(e) => setAutoClockOutAfterMin(e.target.value)}
+                    placeholder="e.g. 540"
+                    disabled={pending}
+                    className="w-28"
+                  />
+                  <label className="text-sm text-muted-foreground">minutes</label>
+                </div>
+              ) : (
+                <input type="hidden" name="autoClockOutAfterMin" value="" />
+              )}
             </div>
           </div>
 

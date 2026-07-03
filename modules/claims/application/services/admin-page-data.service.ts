@@ -186,6 +186,8 @@ export type AdminSettingsPageData = {
   members: OrganizationMember[]
   workingHours: { start: string; end: string }
   timezone: string
+  orgWorkingDays: string | null
+  orgHolidays: Array<{ id: string; date: string; name: string }>
   activeXeroConnectionId?: string
 }
 
@@ -249,7 +251,7 @@ async function loadAdminSettingsPageData(input: {
     ? await organizationRepository.getOrganizationById(input.organizationId)
     : null
 
-  const [chartAccounts, projects, customAccounts, members, workingHours, timezone] =
+  const [chartAccounts, projects, customAccounts, members, workingHours, timezone, orgWorkingDays, orgHolidays] =
     await Promise.all([
       // Org-level chart-of-accounts (not connection-scoped). One active
       // Xero connection per org + custom accounts disabled on connect
@@ -272,6 +274,12 @@ async function loadAdminSettingsPageData(input: {
         : Promise.resolve([]),
       adminAttendanceService.getWorkingHours(input.organizationId ?? null),
       adminAttendanceService.getOrgTimezone(input.organizationId ?? null),
+      input.organizationId
+        ? organizationRepository.getOrgWorkingDays(input.organizationId)
+        : Promise.resolve(null),
+      input.organizationId
+        ? organizationRepository.getOrgHolidays(input.organizationId)
+        : Promise.resolve([]),
     ])
 
   return {
@@ -283,6 +291,8 @@ async function loadAdminSettingsPageData(input: {
     members,
     workingHours,
     timezone,
+    orgWorkingDays,
+    orgHolidays,
   }
 }
 

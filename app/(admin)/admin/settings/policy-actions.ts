@@ -34,6 +34,8 @@ const baseSchema = z.object({
   requireSelfie: z.boolean(),
   requireClockOutSelfie: z.boolean(),
   temporary: z.boolean(),
+  autoClockOutEnabled: z.boolean(),
+  autoClockOutAfterMin: z.coerce.number().int().min(1).max(1440).nullable(),
   otRateNormalDay: z.coerce.number().nonnegative().max(20),
   otRateRestDay: z.coerce.number().nonnegative().max(20),
   otRatePublicHoliday: z.coerce.number().nonnegative().max(20),
@@ -159,6 +161,10 @@ export async function createPolicyAction(
     requireSelfie: parseBoolFlag(formData, "requireSelfie"),
     requireClockOutSelfie: parseBoolFlag(formData, "requireClockOutSelfie"),
     temporary: parseBoolFlag(formData, "temporary"),
+    autoClockOutEnabled: parseBoolFlag(formData, "autoClockOutEnabled"),
+    autoClockOutAfterMin: formData.get("autoClockOutAfterMin")
+      ? Number(formData.get("autoClockOutAfterMin"))
+      : null,
     ...readOtRates(formData),
   })
 
@@ -187,6 +193,8 @@ export async function createPolicyAction(
       requireSelfie: parsed.data.requireSelfie,
       requireClockOutSelfie: parsed.data.requireClockOutSelfie,
       temporary: parsed.data.temporary,
+      autoClockOutEnabled: parsed.data.autoClockOutEnabled,
+      autoClockOutAfterMin: parsed.data.autoClockOutAfterMin,
       otRateNormalDay: parsed.data.otRateNormalDay,
       otRateRestDay: parsed.data.otRateRestDay,
       otRatePublicHoliday: parsed.data.otRatePublicHoliday,
@@ -254,6 +262,10 @@ export async function updatePolicyAction(
     requireSelfie: parseBoolFlag(formData, "requireSelfie"),
     requireClockOutSelfie: parseBoolFlag(formData, "requireClockOutSelfie"),
     temporary: parseBoolFlag(formData, "temporary"),
+    autoClockOutEnabled: parseBoolFlag(formData, "autoClockOutEnabled"),
+    autoClockOutAfterMin: formData.get("autoClockOutAfterMin")
+      ? Number(formData.get("autoClockOutAfterMin"))
+      : null,
     ...readOtRates(formData),
   })
 
@@ -283,6 +295,8 @@ export async function updatePolicyAction(
       requireSelfie: parsed.data.requireSelfie,
       requireClockOutSelfie: parsed.data.requireClockOutSelfie,
       temporary: parsed.data.temporary,
+      autoClockOutEnabled: parsed.data.autoClockOutEnabled,
+      autoClockOutAfterMin: parsed.data.autoClockOutAfterMin,
       otRateNormalDay: parsed.data.otRateNormalDay,
       otRateRestDay: parsed.data.otRateRestDay,
       otRatePublicHoliday: parsed.data.otRatePublicHoliday,

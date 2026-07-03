@@ -154,6 +154,8 @@ export async function AdminSettingsPanelPage({
       takenTenantIds={takenTenantIds}
       workingHours={data.workingHours}
       timezone={data.timezone}
+      orgWorkingDays={data.orgWorkingDays}
+      orgHolidays={data.orgHolidays}
       initialTab={
         initialTab ??
         (typeof searchParams.tab === "string" ? searchParams.tab : "organization")

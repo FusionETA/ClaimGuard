@@ -59,6 +59,7 @@ export type OrganizationMinAggregateOutputType = {
   allowForecastedLeaveApply: boolean | null
   plan: $Enums.OrgPlan | null
   tier: $Enums.OrgPlanTier | null
+  workingDays: string | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -80,6 +81,7 @@ export type OrganizationMaxAggregateOutputType = {
   allowForecastedLeaveApply: boolean | null
   plan: $Enums.OrgPlan | null
   tier: $Enums.OrgPlanTier | null
+  workingDays: string | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -103,6 +105,7 @@ export type OrganizationCountAggregateOutputType = {
   addons: number
   plan: number
   tier: number
+  workingDays: number
   _all: number
 }
 
@@ -140,6 +143,7 @@ export type OrganizationMinAggregateInputType = {
   allowForecastedLeaveApply?: true
   plan?: true
   tier?: true
+  workingDays?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -161,6 +165,7 @@ export type OrganizationMaxAggregateInputType = {
   allowForecastedLeaveApply?: true
   plan?: true
   tier?: true
+  workingDays?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -184,6 +189,7 @@ export type OrganizationCountAggregateInputType = {
   addons?: true
   plan?: true
   tier?: true
+  workingDays?: true
   _all?: true
 }
 
@@ -294,6 +300,7 @@ export type OrganizationGroupByOutputType = {
   addons: runtime.JsonValue | null
   plan: $Enums.OrgPlan
   tier: $Enums.OrgPlanTier | null
+  workingDays: string | null
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
   _sum: OrganizationSumAggregateOutputType | null
@@ -340,6 +347,7 @@ export type OrganizationWhereInput = {
   addons?: Prisma.JsonNullableFilter<"Organization">
   plan?: Prisma.EnumOrgPlanFilter<"Organization"> | $Enums.OrgPlan
   tier?: Prisma.EnumOrgPlanTierNullableFilter<"Organization"> | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.StringNullableFilter<"Organization"> | string | null
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   employeeMembers?: Prisma.EmployeeOrganizationListRelationFilter
   employeeProfiles?: Prisma.EmployeeProfileListRelationFilter
@@ -359,6 +367,7 @@ export type OrganizationWhereInput = {
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   projects?: Prisma.XeroProjectListRelationFilter
   shifts?: Prisma.ShiftListRelationFilter
+  orgHolidays?: Prisma.OrgHolidayListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -382,6 +391,7 @@ export type OrganizationOrderByWithRelationInput = {
   addons?: Prisma.SortOrderInput | Prisma.SortOrder
   plan?: Prisma.SortOrder
   tier?: Prisma.SortOrderInput | Prisma.SortOrder
+  workingDays?: Prisma.SortOrderInput | Prisma.SortOrder
   adminMembers?: Prisma.AdminOrganizationOrderByRelationAggregateInput
   employeeMembers?: Prisma.EmployeeOrganizationOrderByRelationAggregateInput
   employeeProfiles?: Prisma.EmployeeProfileOrderByRelationAggregateInput
@@ -401,6 +411,7 @@ export type OrganizationOrderByWithRelationInput = {
   xeroConnection?: Prisma.XeroConnectionOrderByWithRelationInput
   projects?: Prisma.XeroProjectOrderByRelationAggregateInput
   shifts?: Prisma.ShiftOrderByRelationAggregateInput
+  orgHolidays?: Prisma.OrgHolidayOrderByRelationAggregateInput
   _relevance?: Prisma.OrganizationOrderByRelevanceInput
 }
 
@@ -428,6 +439,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   addons?: Prisma.JsonNullableFilter<"Organization">
   plan?: Prisma.EnumOrgPlanFilter<"Organization"> | $Enums.OrgPlan
   tier?: Prisma.EnumOrgPlanTierNullableFilter<"Organization"> | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.StringNullableFilter<"Organization"> | string | null
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   employeeMembers?: Prisma.EmployeeOrganizationListRelationFilter
   employeeProfiles?: Prisma.EmployeeProfileListRelationFilter
@@ -447,6 +459,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   projects?: Prisma.XeroProjectListRelationFilter
   shifts?: Prisma.ShiftListRelationFilter
+  orgHolidays?: Prisma.OrgHolidayListRelationFilter
 }, "id" | "name">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -470,6 +483,7 @@ export type OrganizationOrderByWithAggregationInput = {
   addons?: Prisma.SortOrderInput | Prisma.SortOrder
   plan?: Prisma.SortOrder
   tier?: Prisma.SortOrderInput | Prisma.SortOrder
+  workingDays?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
@@ -501,6 +515,7 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   addons?: Prisma.JsonNullableWithAggregatesFilter<"Organization">
   plan?: Prisma.EnumOrgPlanWithAggregatesFilter<"Organization"> | $Enums.OrgPlan
   tier?: Prisma.EnumOrgPlanTierNullableWithAggregatesFilter<"Organization"> | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
 }
 
 export type OrganizationCreateInput = {
@@ -524,6 +539,7 @@ export type OrganizationCreateInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -543,6 +559,7 @@ export type OrganizationCreateInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -566,6 +583,7 @@ export type OrganizationUncheckedCreateInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -585,6 +603,7 @@ export type OrganizationUncheckedCreateInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -608,6 +627,7 @@ export type OrganizationUpdateInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -627,6 +647,7 @@ export type OrganizationUpdateInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -650,6 +671,7 @@ export type OrganizationUncheckedUpdateInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -669,6 +691,7 @@ export type OrganizationUncheckedUpdateInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -692,6 +715,7 @@ export type OrganizationCreateManyInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -715,6 +739,7 @@ export type OrganizationUpdateManyMutationInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -738,6 +763,7 @@ export type OrganizationUncheckedUpdateManyInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrganizationNullableScalarRelationFilter = {
@@ -772,6 +798,7 @@ export type OrganizationCountOrderByAggregateInput = {
   addons?: Prisma.SortOrder
   plan?: Prisma.SortOrder
   tier?: Prisma.SortOrder
+  workingDays?: Prisma.SortOrder
 }
 
 export type OrganizationAvgOrderByAggregateInput = {
@@ -800,6 +827,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   allowForecastedLeaveApply?: Prisma.SortOrder
   plan?: Prisma.SortOrder
   tier?: Prisma.SortOrder
+  workingDays?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -821,6 +849,7 @@ export type OrganizationMinOrderByAggregateInput = {
   allowForecastedLeaveApply?: Prisma.SortOrder
   plan?: Prisma.SortOrder
   tier?: Prisma.SortOrder
+  workingDays?: Prisma.SortOrder
 }
 
 export type OrganizationSumOrderByAggregateInput = {
@@ -1041,6 +1070,20 @@ export type OrganizationUpdateOneRequiredWithoutShiftsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutShiftsInput, Prisma.OrganizationUpdateWithoutShiftsInput>, Prisma.OrganizationUncheckedUpdateWithoutShiftsInput>
 }
 
+export type OrganizationCreateNestedOneWithoutOrgHolidaysInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutOrgHolidaysInput, Prisma.OrganizationUncheckedCreateWithoutOrgHolidaysInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutOrgHolidaysInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutOrgHolidaysNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutOrgHolidaysInput, Prisma.OrganizationUncheckedCreateWithoutOrgHolidaysInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutOrgHolidaysInput
+  upsert?: Prisma.OrganizationUpsertWithoutOrgHolidaysInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutOrgHolidaysInput, Prisma.OrganizationUpdateWithoutOrgHolidaysInput>, Prisma.OrganizationUncheckedUpdateWithoutOrgHolidaysInput>
+}
+
 export type OrganizationCreateNestedOneWithoutPayrollSettingsInput = {
   create?: Prisma.XOR<Prisma.OrganizationCreateWithoutPayrollSettingsInput, Prisma.OrganizationUncheckedCreateWithoutPayrollSettingsInput>
   connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutPayrollSettingsInput
@@ -1160,6 +1203,7 @@ export type OrganizationCreateWithoutUsersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -1178,6 +1222,7 @@ export type OrganizationCreateWithoutUsersInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -1201,6 +1246,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1219,6 +1265,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -1258,6 +1305,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -1276,6 +1324,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -1299,6 +1348,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1317,6 +1367,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutEmployeePoliciesInput = {
@@ -1340,6 +1391,7 @@ export type OrganizationCreateWithoutEmployeePoliciesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -1358,6 +1410,7 @@ export type OrganizationCreateWithoutEmployeePoliciesInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
@@ -1381,6 +1434,7 @@ export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1399,6 +1453,7 @@ export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeePoliciesInput = {
@@ -1438,6 +1493,7 @@ export type OrganizationUpdateWithoutEmployeePoliciesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -1456,6 +1512,7 @@ export type OrganizationUpdateWithoutEmployeePoliciesInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
@@ -1479,6 +1536,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1497,6 +1555,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutApiIntegrationsInput = {
@@ -1520,6 +1579,7 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -1538,6 +1598,7 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
@@ -1561,6 +1622,7 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1579,6 +1641,7 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutApiIntegrationsInput = {
@@ -1618,6 +1681,7 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -1636,6 +1700,7 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
@@ -1659,6 +1724,7 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1677,6 +1743,7 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAdminMembersInput = {
@@ -1700,6 +1767,7 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
@@ -1718,6 +1786,7 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
@@ -1741,6 +1810,7 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1759,6 +1829,7 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAdminMembersInput = {
@@ -1798,6 +1869,7 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
@@ -1816,6 +1888,7 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
@@ -1839,6 +1912,7 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1857,6 +1931,7 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutEmployeeImportDraftsInput = {
@@ -1880,6 +1955,7 @@ export type OrganizationCreateWithoutEmployeeImportDraftsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -1898,6 +1974,7 @@ export type OrganizationCreateWithoutEmployeeImportDraftsInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeeImportDraftsInput = {
@@ -1921,6 +1998,7 @@ export type OrganizationUncheckedCreateWithoutEmployeeImportDraftsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1939,6 +2017,7 @@ export type OrganizationUncheckedCreateWithoutEmployeeImportDraftsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeeImportDraftsInput = {
@@ -1978,6 +2057,7 @@ export type OrganizationUpdateWithoutEmployeeImportDraftsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -1996,6 +2076,7 @@ export type OrganizationUpdateWithoutEmployeeImportDraftsInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeeImportDraftsInput = {
@@ -2019,6 +2100,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2037,6 +2119,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutEmployeeProfilesInput = {
@@ -2060,6 +2143,7 @@ export type OrganizationCreateWithoutEmployeeProfilesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
@@ -2078,6 +2162,7 @@ export type OrganizationCreateWithoutEmployeeProfilesInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeeProfilesInput = {
@@ -2101,6 +2186,7 @@ export type OrganizationUncheckedCreateWithoutEmployeeProfilesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2119,6 +2205,7 @@ export type OrganizationUncheckedCreateWithoutEmployeeProfilesInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeeProfilesInput = {
@@ -2158,6 +2245,7 @@ export type OrganizationUpdateWithoutEmployeeProfilesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
@@ -2176,6 +2264,7 @@ export type OrganizationUpdateWithoutEmployeeProfilesInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeeProfilesInput = {
@@ -2199,6 +2288,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeeProfilesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2217,6 +2307,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeeProfilesInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutEmployeeMembersInput = {
@@ -2240,6 +2331,7 @@ export type OrganizationCreateWithoutEmployeeMembersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
@@ -2258,6 +2350,7 @@ export type OrganizationCreateWithoutEmployeeMembersInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeeMembersInput = {
@@ -2281,6 +2374,7 @@ export type OrganizationUncheckedCreateWithoutEmployeeMembersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2299,6 +2393,7 @@ export type OrganizationUncheckedCreateWithoutEmployeeMembersInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeeMembersInput = {
@@ -2338,6 +2433,7 @@ export type OrganizationUpdateWithoutEmployeeMembersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
@@ -2356,6 +2452,7 @@ export type OrganizationUpdateWithoutEmployeeMembersInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeeMembersInput = {
@@ -2379,6 +2476,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeeMembersInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2397,6 +2495,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeeMembersInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutClaimsInput = {
@@ -2420,6 +2519,7 @@ export type OrganizationCreateWithoutClaimsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -2438,6 +2538,7 @@ export type OrganizationCreateWithoutClaimsInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutClaimsInput = {
@@ -2461,6 +2562,7 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2479,6 +2581,7 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutClaimsInput = {
@@ -2518,6 +2621,7 @@ export type OrganizationUpdateWithoutClaimsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -2536,6 +2640,7 @@ export type OrganizationUpdateWithoutClaimsInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutClaimsInput = {
@@ -2559,6 +2664,7 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2577,6 +2683,7 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutChartAccountsInput = {
@@ -2600,6 +2707,7 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -2618,6 +2726,7 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
@@ -2641,6 +2750,7 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2659,6 +2769,7 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutChartAccountsInput = {
@@ -2698,6 +2809,7 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -2716,6 +2828,7 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
@@ -2739,6 +2852,7 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2757,6 +2871,7 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutXeroConnectionInput = {
@@ -2780,6 +2895,7 @@ export type OrganizationCreateWithoutXeroConnectionInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -2798,6 +2914,7 @@ export type OrganizationCreateWithoutXeroConnectionInput = {
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutXeroConnectionInput = {
@@ -2821,6 +2938,7 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2839,6 +2957,7 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionInput = {
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutXeroConnectionInput = {
@@ -2878,6 +2997,7 @@ export type OrganizationUpdateWithoutXeroConnectionInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -2896,6 +3016,7 @@ export type OrganizationUpdateWithoutXeroConnectionInput = {
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutXeroConnectionInput = {
@@ -2919,6 +3040,7 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2937,6 +3059,7 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutProjectsInput = {
@@ -2960,6 +3083,7 @@ export type OrganizationCreateWithoutProjectsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -2978,6 +3102,7 @@ export type OrganizationCreateWithoutProjectsInput = {
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProjectsInput = {
@@ -3001,6 +3126,7 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -3019,6 +3145,7 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProjectsInput = {
@@ -3058,6 +3185,7 @@ export type OrganizationUpdateWithoutProjectsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -3076,6 +3204,7 @@ export type OrganizationUpdateWithoutProjectsInput = {
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProjectsInput = {
@@ -3099,6 +3228,7 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -3117,6 +3247,7 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutShiftsInput = {
@@ -3140,6 +3271,7 @@ export type OrganizationCreateWithoutShiftsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -3158,6 +3290,7 @@ export type OrganizationCreateWithoutShiftsInput = {
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutShiftsInput = {
@@ -3181,6 +3314,7 @@ export type OrganizationUncheckedCreateWithoutShiftsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -3199,6 +3333,7 @@ export type OrganizationUncheckedCreateWithoutShiftsInput = {
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutShiftsInput = {
@@ -3238,6 +3373,7 @@ export type OrganizationUpdateWithoutShiftsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -3256,6 +3392,7 @@ export type OrganizationUpdateWithoutShiftsInput = {
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutShiftsInput = {
@@ -3279,6 +3416,7 @@ export type OrganizationUncheckedUpdateWithoutShiftsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -3297,6 +3435,195 @@ export type OrganizationUncheckedUpdateWithoutShiftsInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutOrgHolidaysInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
+  otEnabled?: boolean
+  timezone?: string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
+  adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
+  employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
+  employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialCreateNestedManyWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
+  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutOrgHolidaysInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
+  otEnabled?: boolean
+  timezone?: string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
+  adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
+  employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
+  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutOrgHolidaysInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutOrgHolidaysInput, Prisma.OrganizationUncheckedCreateWithoutOrgHolidaysInput>
+}
+
+export type OrganizationUpsertWithoutOrgHolidaysInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutOrgHolidaysInput, Prisma.OrganizationUncheckedUpdateWithoutOrgHolidaysInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutOrgHolidaysInput, Prisma.OrganizationUncheckedCreateWithoutOrgHolidaysInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutOrgHolidaysInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutOrgHolidaysInput, Prisma.OrganizationUncheckedUpdateWithoutOrgHolidaysInput>
+}
+
+export type OrganizationUpdateWithoutOrgHolidaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
+  employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
+  employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialUpdateManyWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutOrgHolidaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollSettingsInput = {
@@ -3320,6 +3647,7 @@ export type OrganizationCreateWithoutPayrollSettingsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -3338,6 +3666,7 @@ export type OrganizationCreateWithoutPayrollSettingsInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
@@ -3361,6 +3690,7 @@ export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -3379,6 +3709,7 @@ export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollSettingsInput = {
@@ -3418,6 +3749,7 @@ export type OrganizationUpdateWithoutPayrollSettingsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -3436,6 +3768,7 @@ export type OrganizationUpdateWithoutPayrollSettingsInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
@@ -3459,6 +3792,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -3477,6 +3811,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
@@ -3500,6 +3835,7 @@ export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -3518,6 +3854,7 @@ export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
@@ -3541,6 +3878,7 @@ export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -3559,6 +3897,7 @@ export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollCompanyInfoInput = {
@@ -3598,6 +3937,7 @@ export type OrganizationUpdateWithoutPayrollCompanyInfoInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -3616,6 +3956,7 @@ export type OrganizationUpdateWithoutPayrollCompanyInfoInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
@@ -3639,6 +3980,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -3657,6 +3999,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollPortalCredentialsInput = {
@@ -3680,6 +4023,7 @@ export type OrganizationCreateWithoutPayrollPortalCredentialsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -3698,6 +4042,7 @@ export type OrganizationCreateWithoutPayrollPortalCredentialsInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollPortalCredentialsInput = {
@@ -3721,6 +4066,7 @@ export type OrganizationUncheckedCreateWithoutPayrollPortalCredentialsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -3739,6 +4085,7 @@ export type OrganizationUncheckedCreateWithoutPayrollPortalCredentialsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollPortalCredentialsInput = {
@@ -3778,6 +4125,7 @@ export type OrganizationUpdateWithoutPayrollPortalCredentialsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -3796,6 +4144,7 @@ export type OrganizationUpdateWithoutPayrollPortalCredentialsInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollPortalCredentialsInput = {
@@ -3819,6 +4168,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollPortalCredentialsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -3837,6 +4187,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollPortalCredentialsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollRunsInput = {
@@ -3860,6 +4211,7 @@ export type OrganizationCreateWithoutPayrollRunsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -3878,6 +4230,7 @@ export type OrganizationCreateWithoutPayrollRunsInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
@@ -3901,6 +4254,7 @@ export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -3919,6 +4273,7 @@ export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollRunsInput = {
@@ -3958,6 +4313,7 @@ export type OrganizationUpdateWithoutPayrollRunsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -3976,6 +4332,7 @@ export type OrganizationUpdateWithoutPayrollRunsInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
@@ -3999,6 +4356,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -4017,6 +4375,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollAnnualReportsInput = {
@@ -4040,6 +4399,7 @@ export type OrganizationCreateWithoutPayrollAnnualReportsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -4058,6 +4418,7 @@ export type OrganizationCreateWithoutPayrollAnnualReportsInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollAnnualReportsInput = {
@@ -4081,6 +4442,7 @@ export type OrganizationUncheckedCreateWithoutPayrollAnnualReportsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -4099,6 +4461,7 @@ export type OrganizationUncheckedCreateWithoutPayrollAnnualReportsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollAnnualReportsInput = {
@@ -4138,6 +4501,7 @@ export type OrganizationUpdateWithoutPayrollAnnualReportsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -4156,6 +4520,7 @@ export type OrganizationUpdateWithoutPayrollAnnualReportsInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollAnnualReportsInput = {
@@ -4179,6 +4544,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollAnnualReportsInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -4197,6 +4563,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollAnnualReportsInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutLeaveTypesInput = {
@@ -4220,6 +4587,7 @@ export type OrganizationCreateWithoutLeaveTypesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -4238,6 +4606,7 @@ export type OrganizationCreateWithoutLeaveTypesInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutLeaveTypesInput = {
@@ -4261,6 +4630,7 @@ export type OrganizationUncheckedCreateWithoutLeaveTypesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -4279,6 +4649,7 @@ export type OrganizationUncheckedCreateWithoutLeaveTypesInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutLeaveTypesInput = {
@@ -4318,6 +4689,7 @@ export type OrganizationUpdateWithoutLeaveTypesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -4336,6 +4708,7 @@ export type OrganizationUpdateWithoutLeaveTypesInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutLeaveTypesInput = {
@@ -4359,6 +4732,7 @@ export type OrganizationUncheckedUpdateWithoutLeaveTypesInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -4377,6 +4751,7 @@ export type OrganizationUncheckedUpdateWithoutLeaveTypesInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAuditLogInput = {
@@ -4400,6 +4775,7 @@ export type OrganizationCreateWithoutAuditLogInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
@@ -4418,6 +4794,7 @@ export type OrganizationCreateWithoutAuditLogInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAuditLogInput = {
@@ -4441,6 +4818,7 @@ export type OrganizationUncheckedCreateWithoutAuditLogInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: $Enums.OrgPlan
   tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
@@ -4459,6 +4837,7 @@ export type OrganizationUncheckedCreateWithoutAuditLogInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAuditLogInput = {
@@ -4498,6 +4877,7 @@ export type OrganizationUpdateWithoutAuditLogInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
@@ -4516,6 +4896,7 @@ export type OrganizationUpdateWithoutAuditLogInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAuditLogInput = {
@@ -4539,6 +4920,7 @@ export type OrganizationUncheckedUpdateWithoutAuditLogInput = {
   addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
   tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -4557,6 +4939,7 @@ export type OrganizationUncheckedUpdateWithoutAuditLogInput = {
   xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -4581,6 +4964,7 @@ export type OrganizationCountOutputType = {
   users: number
   projects: number
   shifts: number
+  orgHolidays: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4600,6 +4984,7 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   users?: boolean | OrganizationCountOutputTypeCountUsersArgs
   projects?: boolean | OrganizationCountOutputTypeCountProjectsArgs
   shifts?: boolean | OrganizationCountOutputTypeCountShiftsArgs
+  orgHolidays?: boolean | OrganizationCountOutputTypeCountOrgHolidaysArgs
 }
 
 /**
@@ -4724,6 +5109,13 @@ export type OrganizationCountOutputTypeCountShiftsArgs<ExtArgs extends runtime.T
   where?: Prisma.ShiftWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountOrgHolidaysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrgHolidayWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -4746,6 +5138,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   addons?: boolean
   plan?: boolean
   tier?: boolean
+  workingDays?: boolean
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   employeeMembers?: boolean | Prisma.Organization$employeeMembersArgs<ExtArgs>
   employeeProfiles?: boolean | Prisma.Organization$employeeProfilesArgs<ExtArgs>
@@ -4765,6 +5158,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   xeroConnection?: boolean | Prisma.Organization$xeroConnectionArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
   shifts?: boolean | Prisma.Organization$shiftsArgs<ExtArgs>
+  orgHolidays?: boolean | Prisma.Organization$orgHolidaysArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -4791,9 +5185,10 @@ export type OrganizationSelectScalar = {
   addons?: boolean
   plan?: boolean
   tier?: boolean
+  workingDays?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "allowedCurrencies" | "defaultCurrency" | "supervisorReportEnabled" | "supervisorSlaMinutes" | "allowForecastedLeaveApply" | "addons" | "plan" | "tier", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "allowedCurrencies" | "defaultCurrency" | "supervisorReportEnabled" | "supervisorSlaMinutes" | "allowForecastedLeaveApply" | "addons" | "plan" | "tier" | "workingDays", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   employeeMembers?: boolean | Prisma.Organization$employeeMembersArgs<ExtArgs>
@@ -4814,6 +5209,7 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   xeroConnection?: boolean | Prisma.Organization$xeroConnectionArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
   shifts?: boolean | Prisma.Organization$shiftsArgs<ExtArgs>
+  orgHolidays?: boolean | Prisma.Organization$orgHolidaysArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -4839,6 +5235,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     xeroConnection: Prisma.$XeroConnectionPayload<ExtArgs> | null
     projects: Prisma.$XeroProjectPayload<ExtArgs>[]
     shifts: Prisma.$ShiftPayload<ExtArgs>[]
+    orgHolidays: Prisma.$OrgHolidayPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -4905,6 +5302,12 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
      * FREE | PAID only when plan = DIY. Null for EXPERT (no tier split).
      */
     tier: $Enums.OrgPlanTier | null
+    /**
+     * Org-wide default working days as a CSV of weekday numbers 1–7
+     * (Mon = 1 … Sun = 7). Null means Mon–Fri (1,2,3,4,5). Projects can
+     * override via XeroProject.workingDays.
+     */
+    workingDays: string | null
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -5264,6 +5667,7 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   xeroConnection<T extends Prisma.Organization$xeroConnectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionArgs<ExtArgs>>): Prisma.Prisma__XeroConnectionClient<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   projects<T extends Prisma.Organization$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   shifts<T extends Prisma.Organization$shiftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  orgHolidays<T extends Prisma.Organization$orgHolidaysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$orgHolidaysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrgHolidayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5313,6 +5717,7 @@ export interface OrganizationFieldRefs {
   readonly addons: Prisma.FieldRef<"Organization", 'Json'>
   readonly plan: Prisma.FieldRef<"Organization", 'OrgPlan'>
   readonly tier: Prisma.FieldRef<"Organization", 'OrgPlanTier'>
+  readonly workingDays: Prisma.FieldRef<"Organization", 'String'>
 }
     
 
@@ -6099,6 +6504,30 @@ export type Organization$shiftsArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.ShiftScalarFieldEnum | Prisma.ShiftScalarFieldEnum[]
+}
+
+/**
+ * Organization.orgHolidays
+ */
+export type Organization$orgHolidaysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrgHoliday
+   */
+  select?: Prisma.OrgHolidaySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrgHoliday
+   */
+  omit?: Prisma.OrgHolidayOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrgHolidayInclude<ExtArgs> | null
+  where?: Prisma.OrgHolidayWhereInput
+  orderBy?: Prisma.OrgHolidayOrderByWithRelationInput | Prisma.OrgHolidayOrderByWithRelationInput[]
+  cursor?: Prisma.OrgHolidayWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrgHolidayScalarFieldEnum | Prisma.OrgHolidayScalarFieldEnum[]
 }
 
 /**

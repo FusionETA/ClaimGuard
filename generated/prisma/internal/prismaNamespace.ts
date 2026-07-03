@@ -406,6 +406,7 @@ export const ModelName = {
   XeroProject: 'XeroProject',
   Shift: 'Shift',
   ProjectHoliday: 'ProjectHoliday',
+  OrgHoliday: 'OrgHoliday',
   ProjectManager: 'ProjectManager',
   AttendanceRecord: 'AttendanceRecord',
   AttendanceEditLog: 'AttendanceEditLog',
@@ -449,7 +450,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "shift" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1902,6 +1903,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProjectHolidayCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProjectHolidayCountAggregateOutputType> | number
+        }
+      }
+    }
+    OrgHoliday: {
+      payload: Prisma.$OrgHolidayPayload<ExtArgs>
+      fields: Prisma.OrgHolidayFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OrgHolidayFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrgHolidayPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OrgHolidayFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrgHolidayPayload>
+        }
+        findFirst: {
+          args: Prisma.OrgHolidayFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrgHolidayPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OrgHolidayFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrgHolidayPayload>
+        }
+        findMany: {
+          args: Prisma.OrgHolidayFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrgHolidayPayload>[]
+        }
+        create: {
+          args: Prisma.OrgHolidayCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrgHolidayPayload>
+        }
+        createMany: {
+          args: Prisma.OrgHolidayCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.OrgHolidayDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrgHolidayPayload>
+        }
+        update: {
+          args: Prisma.OrgHolidayUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrgHolidayPayload>
+        }
+        deleteMany: {
+          args: Prisma.OrgHolidayDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OrgHolidayUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.OrgHolidayUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrgHolidayPayload>
+        }
+        aggregate: {
+          args: Prisma.OrgHolidayAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOrgHoliday>
+        }
+        groupBy: {
+          args: Prisma.OrgHolidayGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrgHolidayGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OrgHolidayCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrgHolidayCountAggregateOutputType> | number
         }
       }
     }
@@ -3828,7 +3895,8 @@ export const OrganizationScalarFieldEnum = {
   allowForecastedLeaveApply: 'allowForecastedLeaveApply',
   addons: 'addons',
   plan: 'plan',
-  tier: 'tier'
+  tier: 'tier',
+  workingDays: 'workingDays'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -4202,6 +4270,17 @@ export const ProjectHolidayScalarFieldEnum = {
 } as const
 
 export type ProjectHolidayScalarFieldEnum = (typeof ProjectHolidayScalarFieldEnum)[keyof typeof ProjectHolidayScalarFieldEnum]
+
+
+export const OrgHolidayScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  date: 'date',
+  name: 'name',
+  createdAt: 'createdAt'
+} as const
+
+export type OrgHolidayScalarFieldEnum = (typeof OrgHolidayScalarFieldEnum)[keyof typeof OrgHolidayScalarFieldEnum]
 
 
 export const ProjectManagerScalarFieldEnum = {
@@ -4950,7 +5029,8 @@ export const OrganizationOrderByRelevanceFieldEnum = {
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
   timezone: 'timezone',
-  defaultCurrency: 'defaultCurrency'
+  defaultCurrency: 'defaultCurrency',
+  workingDays: 'workingDays'
 } as const
 
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
@@ -5212,6 +5292,15 @@ export const ProjectHolidayOrderByRelevanceFieldEnum = {
 } as const
 
 export type ProjectHolidayOrderByRelevanceFieldEnum = (typeof ProjectHolidayOrderByRelevanceFieldEnum)[keyof typeof ProjectHolidayOrderByRelevanceFieldEnum]
+
+
+export const OrgHolidayOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name'
+} as const
+
+export type OrgHolidayOrderByRelevanceFieldEnum = (typeof OrgHolidayOrderByRelevanceFieldEnum)[keyof typeof OrgHolidayOrderByRelevanceFieldEnum]
 
 
 export const ProjectManagerOrderByRelevanceFieldEnum = {
@@ -6067,6 +6156,7 @@ export type GlobalOmitConfig = {
   xeroProject?: Prisma.XeroProjectOmit
   shift?: Prisma.ShiftOmit
   projectHoliday?: Prisma.ProjectHolidayOmit
+  orgHoliday?: Prisma.OrgHolidayOmit
   projectManager?: Prisma.ProjectManagerOmit
   attendanceRecord?: Prisma.AttendanceRecordOmit
   attendanceEditLog?: Prisma.AttendanceEditLogOmit
