@@ -309,7 +309,7 @@ function buildLineItems(breakdown: Record<string, number>): LineItem[] {
     items.push({
       kind: "DEDUCTION",
       category: null,
-      label: "Other Deduction",
+      label: "Advance Deduction",
       amount: Math.round(othDeduction * 100) / 100,
     })
   }
