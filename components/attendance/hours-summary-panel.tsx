@@ -57,12 +57,15 @@ type Props = {
   filterBar?: FilterBarProps
 }
 
+// Bucket cards shown across the top of the panel. "Normal" was
+// removed intentionally — it duplicated the "Clock in hours" roll-up
+// below and admins found the two side-by-side confusing (both are
+// derived from the same data — the roll-up already tells the story).
 const BUCKET_META: Array<{
   key: keyof HoursBuckets
   label: string
   tone: string
 }> = [
-  { key: "normalMin", label: "Normal", tone: "text-foreground" },
   { key: "otMin", label: "Overtime", tone: "text-amber-600" },
   { key: "restDayMin", label: "Rest day", tone: "text-blue-600" },
   { key: "publicHolidayMin", label: "Public holiday", tone: "text-purple-600" },
@@ -253,9 +256,12 @@ function BucketTotals({
   totals: HoursBuckets & { expectedMin?: number }
 }) {
   const expectedMin = totals.expectedMin ?? 0
-  const shortfall = expectedMin > 0 && totals.normalMin < expectedMin
+  // Grid now holds 5 cards: 3 buckets (OT/Rest/PH) + Clock in hours +
+  // Expected. Dropped the old 7-slot layout since we removed the two
+  // "Normal"-flavour cards ("Normal" bucket + "Worked (Normal)"
+  // shortfall card) — they duplicated the roll-up.
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
       {BUCKET_META.map((meta) => (
         <div
           key={meta.key}
@@ -277,12 +283,13 @@ function BucketTotals({
           ) : null}
         </div>
       ))}
-      {/* HR-reference card: sum of Normal + OT + Rest day + Public holiday.
+      {/* Roll-up: sum of Normal + OT + Rest day + Public holiday.
           Distinct primary tint so it reads as a "roll-up" rather than
-          another category bucket. Not used by payroll. */}
+          another category bucket. Renamed from "Total worked" to
+          "Clock in hours" — matches what employees know they did. */}
       <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">
-          Total worked
+          Clock in hours
         </p>
         <p className="mt-1 text-lg font-bold text-primary">
           {formatHm(totals.totalMin)}
@@ -294,28 +301,6 @@ function BucketTotals({
         </p>
         <p className="mt-1 text-lg font-bold text-muted-foreground">
           {formatHm(expectedMin)}
-        </p>
-      </div>
-      <div
-        className={`rounded-lg border p-3 ${
-          shortfall
-            ? "border-tertiary/40 bg-tertiary/5"
-            : "border-primary/40 bg-primary/5"
-        }`}
-      >
-        <p
-          className={`text-[10px] font-semibold uppercase tracking-wider ${
-            shortfall ? "text-tertiary" : "text-primary"
-          }`}
-        >
-          Worked (Normal)
-        </p>
-        <p
-          className={`mt-1 text-lg font-bold ${
-            shortfall ? "text-tertiary" : "text-primary"
-          }`}
-        >
-          {formatHm(totals.normalMin)}
         </p>
       </div>
     </div>
@@ -336,8 +321,11 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
         <thead className="sticky top-0 z-10 bg-card">
           <tr className="border-b border-border/60 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
             <th className="bg-card py-2 pl-3 pr-3 font-semibold">Employee</th>
-            <th className="bg-card py-2 pr-3 text-right font-semibold">Normal</th>
-            <th className="bg-card py-2 pr-3 text-right font-semibold">Total</th>
+            {/* Renamed "Total" to "Clock in hours" — matches the roll-up
+                card above and reads better for HR (no ambiguity with the
+                per-bucket columns). "Normal" column removed with the
+                bucket cards; the value is still folded into the roll-up. */}
+            <th className="bg-card py-2 pr-3 text-right font-semibold">Clock in hours</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">Expected</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">OT</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">Rest day</th>
@@ -348,6 +336,10 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
         <tbody>
           {employees.map((row) => {
             const expectedMin = row.buckets.expectedMin ?? 0
+            // Still needed for the Status column badge — shortfall
+            // means clocked-normal-hours < expected. Column
+            // (Normal) was removed, but the derived status pill
+            // stays visible.
             const shortfall =
               expectedMin > 0 && row.buckets.normalMin < expectedMin
             const isZero = row.buckets.totalMin === 0
@@ -363,9 +355,6 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
                   <div className="text-[10px] text-muted-foreground">
                     {row.email}
                   </div>
-                </td>
-                <td className="py-2 pr-3 text-right tabular-nums">
-                  {formatHm(row.buckets.normalMin)}
                 </td>
                 <td className="py-2 pr-3 text-right tabular-nums font-semibold text-primary">
                   {formatHm(row.buckets.totalMin)}
