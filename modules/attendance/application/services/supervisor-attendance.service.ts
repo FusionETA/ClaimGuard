@@ -5,6 +5,10 @@ import { publishUserEvents } from "@/lib/realtime"
 import { writeAuditByUserId } from "@/modules/audit/application/services/audit-log.service"
 import { notify } from "@/modules/notifications/application/services/notification.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import {
+  shiftRepository,
+  type SupervisedMembershipShift,
+} from "@/modules/attendance/infrastructure/shift.repository"
 import type {
   ApprovalRequestView,
   SupervisorTeamOverview,
@@ -304,5 +308,53 @@ export const supervisorAttendanceService = {
         // Realtime never blocks a successful edit.
       }
     }
+  },
+
+  // ─── Shift assignment (Phase 5) ────────────────────────────────────
+
+  /**
+   * List every EmployeeTeamMembership the supervisor manages that
+   * involves the target employee. Empty list = supervisor doesn't
+   * manage this employee at all (page should surface a 403).
+   *
+   * The repo query joins the available shift pool per team's project
+   * so the client picker never needs a follow-up round trip.
+   */
+  async listShiftAssignmentsForEmployee(
+    supervisorUserId: string,
+    targetUserId: string,
+  ): Promise<SupervisedMembershipShift[]> {
+    return shiftRepository.listSupervisedMembershipsWithShifts({
+      supervisorUserId,
+      targetUserId,
+    })
+  },
+
+  /**
+   * Assign a specific shift (or clear it, pass shiftId=null) to a
+   * membership. Delegates the auth check to the repo — supervisor
+   * must sit on the approval chain for the membership's team, and
+   * the shift must belong to that team's project.
+   *
+   * `organizationId` is looked up from the current session before
+   * calling; the repo receives it as an extra tx guard.
+   */
+  async assignShiftToMembership(input: {
+    supervisorUserId: string
+    organizationId: string
+    membershipId: string
+    shiftId: string | null
+  }): Promise<
+    | { ok: true }
+    | {
+        ok: false
+        code:
+          | "NOT_SUPERVISOR"
+          | "WRONG_ORG"
+          | "SHIFT_WRONG_PROJECT"
+          | "NOT_FOUND"
+      }
+  > {
+    return shiftRepository.assignShiftToMembership(input)
   },
 }

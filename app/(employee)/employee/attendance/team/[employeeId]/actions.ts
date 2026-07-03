@@ -262,3 +262,60 @@ export async function editSessionAction(
   })
   return { ok: true }
 }
+
+// ─── Shift assignment (Phase 5) ─────────────────────────────────────
+
+/**
+ * Assign a specific shift to a team-membership (or clear the override
+ * by passing `shiftId: null`). Auth: supervisor must sit on the
+ * approval chain for the membership's team. Same shape as the
+ * other actions on this page — returns `{ ok }` on success or
+ * `{ error }` for surface in a toast.
+ *
+ * `employeeIdForPath` is the target member's userId, only used to
+ * revalidate the detail page they're currently viewing.
+ */
+export async function assignShiftToMembershipAction(input: {
+  membershipId: string
+  shiftId: string | null
+  employeeIdForPath: string
+}): Promise<{ ok?: boolean; error?: string }> {
+  const session = await getCurrentSession()
+  if (!session) redirect("/login")
+
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return { error: "No active organisation." }
+
+  if (!input.membershipId) return { error: "Missing team membership id." }
+
+  const result = await supervisorAttendanceService.assignShiftToMembership({
+    supervisorUserId: session.userId,
+    organizationId: orgId,
+    membershipId: input.membershipId,
+    shiftId: input.shiftId,
+  })
+
+  if (result.ok === false) {
+    if (result.code === "NOT_SUPERVISOR") {
+      return {
+        error:
+          "You can only reassign shifts for team members in teams you supervise.",
+      }
+    }
+    if (result.code === "WRONG_ORG") {
+      return { error: "That membership isn't in your active organisation." }
+    }
+    if (result.code === "SHIFT_WRONG_PROJECT") {
+      return {
+        error:
+          "That shift belongs to a different project than this team. Pick a shift from the same project.",
+      }
+    }
+    if (result.code === "NOT_FOUND") {
+      return { error: "That team membership no longer exists." }
+    }
+  }
+
+  revalidatePath(`/employee/attendance/team/${input.employeeIdForPath}`)
+  return { ok: true }
+}
