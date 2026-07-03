@@ -280,6 +280,42 @@ export async function upsertPayrollProfile(input: {
     patch: input.patch,
   })
 
+  // Defensive auto-archive: if this save left the profile with a
+  // leaveDate already in the past but still marked active, flip it
+  // to archived now. Two paths that can land the row in this
+  // inconsistent state:
+  //
+  //   1. Legacy XLSX imports from before the auto-archive-on-import
+  //      fix (payroll-import.service.ts::autoArchiveFieldsForImport)
+  //      — profile came in with a past leaveDate but isArchived=false.
+  //   2. Manual `Archive` action that was interrupted or half-saved.
+  //
+  // Either way, any subsequent save (Personal / Employment / Statutory
+  // / Compensation tab) is a good moment to self-heal the state. The
+  // yellow "Last working day: … — see Archive section below" banner
+  // will disappear on the next page load because the archived
+  // employee moves to the Archived tab of the manage-employees list.
+  //
+  // Skip when leaveDate is null (active employee — nothing to
+  // auto-archive) or in the future (planned leaver — the standard
+  // "runs until the leave month" prorate flow still applies).
+  const stored = result.leaveDate ? new Date(result.leaveDate) : null
+  if (stored !== null && result.isArchived !== true) {
+    const now = new Date()
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    )
+    if (stored.getTime() < todayStart.getTime()) {
+      await payrollProfileRepository.archive(
+        upsertProfile.id,
+        result.archiveReason ?? "Auto-archived: leave date already past",
+        stored,
+      )
+    }
+  }
+
   // If joinDate changed (set for the first time, or updated to a
   // different date), recompute PRO_RATED accrued days for every
   // entitlement row that's safe to touch (no per-employee override,
