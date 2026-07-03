@@ -12,6 +12,7 @@ import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
 import { CoordsLink } from "@/components/attendance/coords-link"
 import { useToast } from "@/components/ui/toaster"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
+import { otSubtypes } from "@/modules/attendance/domain/models"
 import { otSubtypeMeta } from "@/modules/attendance/domain/metadata"
 import { cn } from "@/lib/utils"
 
@@ -71,13 +72,20 @@ function fmtTime(iso: string | null): string {
   })
 }
 
+function fmtDuration(startIso: string, endIso: string): string {
+  const diffMin = Math.round(
+    (new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000,
+  )
+  if (diffMin <= 0) return "—"
+  const h = Math.floor(diffMin / 60)
+  const m = diffMin % 60
+  return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`
+}
+
 type Props = {
   items: ApprovalRequestView[]
 }
 
-/// Small tri-state checkbox (button, so it can be indeterminate and nest
-/// next to other interactive elements without an <input>). `mixed` =
-/// some-but-not-all selected.
 function CheckBox({
   state,
   onClick,
@@ -116,8 +124,6 @@ function CheckBox({
   )
 }
 
-// A single label: value line in an event's detail list. Label is muted and
-// fixed-width so the values align into a tidy column.
 function DetailRow({
   label,
   children,
@@ -140,19 +146,17 @@ type EmployeeGroup = {
   events: ApprovalRequestView[]
 }
 
-export function ApprovalsList({ items }: Props) {
+// ─── Attendance tab ───────────────────────────────────────────────────────────
+
+function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
   const { toast } = useToast()
   const [query, setQuery] = useState("")
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "7days">("all")
   const [optimisticallyHidden, setOptimisticallyHidden] = useState<Set<string>>(new Set())
-  // Which employee:date groups are expanded (collapsed by default)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [bulkPendingFor, setBulkPendingFor] = useState<string | null>(null)
   const [, startTransition] = useTransition()
-  // Per-row time override: maps approvalId → local datetime string.
-  // `undefined` means the editor isn't open for that row.
   const [overrides, setOverrides] = useState<Record<string, string>>({})
-  // Selected approval ids (for partial Approve/Reject). Empty = act on all.
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   function visibleIdsFor(group: EmployeeGroup): string[] {
@@ -221,7 +225,6 @@ export function ApprovalsList({ items }: Props) {
     ids: string[],
   ) {
     if (ids.length === 0) return
-
     const groupKey = `${group.employeeId}:${group.date}`
     setBulkPendingFor(groupKey)
     setOptimisticallyHidden((prev) => {
@@ -240,8 +243,6 @@ export function ApprovalsList({ items }: Props) {
       let message = ""
 
       if (status === "APPROVED" && ids.some((id) => overrides[id])) {
-        // At least one row has a time override — call reviewApprovalAction
-        // individually so each override is applied correctly.
         let failed = 0
         for (const id of ids) {
           const fd = new FormData()
@@ -282,7 +283,6 @@ export function ApprovalsList({ items }: Props) {
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase()
-    // Preset date filter (dates are ISO yyyy-mm-dd, so string compare works).
     let exactDate: string | null = null
     let minDate: string | null = null
     if (dateFilter !== "all") {
@@ -476,31 +476,16 @@ export function ApprovalsList({ items }: Props) {
                               />
                             </div>
                             <div className="min-w-0 flex-1">
-                            {/* Event header: just the type label + pencil. The
-                                colored triage badges live on the group header;
-                                here we lay everything out as a clean detail list. */}
                             <div className="flex items-start justify-between gap-2">
                               <span className="text-sm font-semibold text-foreground">
-                                {r.kind === "OT"
-                                  ? r.otSubtype
-                                    ? otSubtypeMeta[r.otSubtype].label
-                                    : "Overtime"
-                                  : CLOCK_LABEL[r.kind] ?? "Clock"}
+                                {CLOCK_LABEL[r.kind] ?? "Clock"}
                               </span>
-
-                              {/* Pencil — time-adjust toggle (CLOCK_IN / CLOCK_OUT only) */}
                               {canAdjust ? (
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    toggleOverride(r.id, r.eventAt)
-                                  }
+                                  onClick={() => toggleOverride(r.id, r.eventAt)}
                                   disabled={isBusy}
-                                  title={
-                                    isAdjusting
-                                      ? "Cancel time adjustment"
-                                      : "Adjust time"
-                                  }
+                                  title={isAdjusting ? "Cancel time adjustment" : "Adjust time"}
                                   className={cn(
                                     "ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors disabled:opacity-40",
                                     isAdjusting
@@ -513,9 +498,6 @@ export function ApprovalsList({ items }: Props) {
                               ) : null}
                             </div>
 
-                            {/* Event body — detail list on the left, selfie on the
-                                right (flex-row-reverse keeps the selfie first in the
-                                DOM but renders it on the right). */}
                             <div className="mt-1.5 flex flex-row-reverse items-start gap-3">
                               {r.selfieAttendanceRecordId ? (
                                 <SelfieThumbnail
@@ -530,13 +512,6 @@ export function ApprovalsList({ items }: Props) {
                                   <DetailRow label="Time">
                                     {fmtTime(r.eventAt)}
                                   </DetailRow>
-                                  {r.kind === "OT" && r.otPayoutMethod ? (
-                                    <DetailRow label="Payout">
-                                      {r.otPayoutMethod === "TIME_BANK"
-                                        ? "Time bank"
-                                        : "Cash"}
-                                    </DetailRow>
-                                  ) : null}
                                   {isLate ? (
                                     <DetailRow label="Late">
                                       <span className="font-semibold text-amber-700 dark:text-amber-400">
@@ -549,37 +524,28 @@ export function ApprovalsList({ items }: Props) {
                                       {earlyMin} min
                                     </DetailRow>
                                   ) : null}
-                                  {r.kind !== "OT" ? (
-                                    <DetailRow label="Off-site">
-                                      <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                        {parsed.offSite ? (
-                                          <span className="font-semibold text-destructive">
-                                            Yes
-                                          </span>
-                                        ) : (
-                                          "No"
-                                        )}
-                                        {r.latitude != null &&
-                                        r.longitude != null ? (
-                                          <CoordsLink
-                                            lat={r.latitude}
-                                            lng={r.longitude}
-                                            showCoords={false}
-                                            label="Open in map"
-                                          />
-                                        ) : null}
-                                      </span>
-                                    </DetailRow>
-                                  ) : null}
+                                  <DetailRow label="Off-site">
+                                    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                      {parsed.offSite ? (
+                                        <span className="font-semibold text-destructive">Yes</span>
+                                      ) : (
+                                        "No"
+                                      )}
+                                      {r.latitude != null && r.longitude != null ? (
+                                        <CoordsLink
+                                          lat={r.latitude}
+                                          lng={r.longitude}
+                                          showCoords={false}
+                                          label="Open in map"
+                                        />
+                                      ) : null}
+                                    </span>
+                                  </DetailRow>
                                   {r.project ? (
-                                    <DetailRow label="Project">
-                                      {r.project}
-                                    </DetailRow>
+                                    <DetailRow label="Project">{r.project}</DetailRow>
                                   ) : null}
                                   {r.location ? (
-                                    <DetailRow label="Location">
-                                      {r.location}
-                                    </DetailRow>
+                                    <DetailRow label="Location">{r.location}</DetailRow>
                                   ) : null}
                                   {stepFlag ? (
                                     <DetailRow label="Step">
@@ -587,9 +553,7 @@ export function ApprovalsList({ items }: Props) {
                                     </DetailRow>
                                   ) : null}
                                   {parsed.remark ? (
-                                    <DetailRow label="Remark">
-                                      {parsed.remark}
-                                    </DetailRow>
+                                    <DetailRow label="Remark">{parsed.remark}</DetailRow>
                                   ) : null}
                                 </dl>
 
@@ -603,17 +567,10 @@ export function ApprovalsList({ items }: Props) {
                                         <span className="font-semibold text-foreground">
                                           Step {h.step}
                                         </span>{" "}
-                                        {h.status === "APPROVED"
-                                          ? "approved"
-                                          : "rejected"}{" "}
-                                        by{" "}
-                                        <span className="font-semibold">
-                                          {h.approverName}
-                                        </span>{" "}
+                                        {h.status === "APPROVED" ? "approved" : "rejected"} by{" "}
+                                        <span className="font-semibold">{h.approverName}</span>{" "}
                                         at{" "}
-                                        {new Date(
-                                          h.reviewedAt,
-                                        ).toLocaleTimeString("en-US", {
+                                        {new Date(h.reviewedAt).toLocaleTimeString("en-US", {
                                           hour: "2-digit",
                                           minute: "2-digit",
                                         })}
@@ -624,15 +581,11 @@ export function ApprovalsList({ items }: Props) {
                               </div>
                             </div>
 
-                            {/* Inline time-adjust field */}
                             {isAdjusting ? (
                               <div className="mt-2 space-y-1.5 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5">
                                 <p className="text-[10px] font-semibold uppercase tracking-wider text-primary/80">
                                   Adjusted{" "}
-                                  {r.kind === "CLOCK_IN"
-                                    ? "clock-in"
-                                    : "clock-out"}{" "}
-                                  time
+                                  {r.kind === "CLOCK_IN" ? "clock-in" : "clock-out"} time
                                 </p>
                                 <DateTimeField
                                   value={overrides[r.id] ?? ""}
@@ -640,8 +593,7 @@ export function ApprovalsList({ items }: Props) {
                                   compact
                                 />
                                 <p className="text-[10px] text-muted-foreground">
-                                  This override is applied when you click
-                                  &ldquo;Approve all&rdquo; below.
+                                  This override is applied when you click &ldquo;Approve all&rdquo; below.
                                 </p>
                               </div>
                             ) : null}
@@ -651,8 +603,6 @@ export function ApprovalsList({ items }: Props) {
                       })}
                       </div>
 
-                      {/* Adaptive footer: acts on the selected events, or all
-                          when nothing is ticked. */}
                       <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3">
                         {hasSelection ? (
                           <>
@@ -673,11 +623,7 @@ export function ApprovalsList({ items }: Props) {
                             size="sm"
                             disabled={isBusy}
                             onClick={() =>
-                              bulkAction(
-                                group,
-                                "APPROVED",
-                                hasSelection ? selectedIds : visibleIds,
-                              )
+                              bulkAction(group, "APPROVED", hasSelection ? selectedIds : visibleIds)
                             }
                           >
                             {isBusy
@@ -691,11 +637,7 @@ export function ApprovalsList({ items }: Props) {
                             variant="outline"
                             disabled={isBusy}
                             onClick={() =>
-                              bulkAction(
-                                group,
-                                "REJECTED",
-                                hasSelection ? selectedIds : visibleIds,
-                              )
+                              bulkAction(group, "REJECTED", hasSelection ? selectedIds : visibleIds)
                             }
                           >
                             {hasSelection
@@ -711,6 +653,246 @@ export function ApprovalsList({ items }: Props) {
             })}
           </div>
         </Card>
+      )}
+    </div>
+  )
+}
+
+// ─── OT tab ───────────────────────────────────────────────────────────────────
+
+type OtSubtypeValue = (typeof otSubtypes)[number]
+
+function OtCard({ item }: { item: ApprovalRequestView }) {
+  const { toast } = useToast()
+  const [hidden, setHidden] = useState(false)
+  const [subtype, setSubtype] = useState<OtSubtypeValue | "">("")
+  const [isPending, startTransition] = useTransition()
+
+  function submit(status: "APPROVED" | "REJECTED") {
+    startTransition(async () => {
+      const fd = new FormData()
+      fd.set("approvalId", item.id)
+      fd.set("status", status)
+      if (subtype) fd.set("otSubtype", subtype)
+      const result = await reviewApprovalAction({}, fd)
+      if (result.error) {
+        toast({ title: result.error, variant: "error" })
+      } else {
+        setHidden(true)
+        notifyBadgeRefresh()
+        toast({
+          title: status === "APPROVED" ? "OT approved." : "OT rejected.",
+          variant: status === "APPROVED" ? "success" : "error",
+        })
+      }
+    })
+  }
+
+  if (hidden) return null
+
+  const stepFlag = item.totalSteps > 1 && item.currentStep
+  const hasPeriod = item.otStartAt && item.otEndAt
+
+  return (
+    <div className="space-y-3 px-4 py-4">
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-foreground">{item.employeeName}</p>
+        <p className="text-[11px] text-muted-foreground">{item.date}</p>
+      </div>
+
+      <dl className="space-y-1 text-xs">
+        {hasPeriod ? (
+          <>
+            <DetailRow label="Period">
+              {fmtTime(item.otStartAt)} – {fmtTime(item.otEndAt)}
+            </DetailRow>
+            <DetailRow label="Duration">
+              {fmtDuration(item.otStartAt!, item.otEndAt!)}
+            </DetailRow>
+          </>
+        ) : null}
+        {item.otPayoutMethod ? (
+          <DetailRow label="Payout">
+            {item.otPayoutMethod === "TIME_BANK" ? "Time bank" : "Cash"}
+          </DetailRow>
+        ) : null}
+        {item.project ? (
+          <DetailRow label="Project">{item.project}</DetailRow>
+        ) : null}
+        {stepFlag ? (
+          <DetailRow label="Step">
+            {item.currentStep} of {item.totalSteps}
+          </DetailRow>
+        ) : null}
+        {item.detail ? (
+          <DetailRow label="Reason">{item.detail}</DetailRow>
+        ) : null}
+      </dl>
+
+      {item.chainHistory && item.chainHistory.length > 0 ? (
+        <div className="space-y-0.5 rounded-md border border-border/60 bg-secondary/20 px-2 py-1.5">
+          {item.chainHistory.map((h) => (
+            <p key={`${h.step}-${h.approverId}`} className="text-[10px] text-muted-foreground">
+              <span className="font-semibold text-foreground">Step {h.step}</span>{" "}
+              {h.status === "APPROVED" ? "approved" : "rejected"} by{" "}
+              <span className="font-semibold">{h.approverName}</span>
+            </p>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="space-y-1.5">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          OT type
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {otSubtypes.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setSubtype(s)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                subtype === s
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {otSubtypeMeta[s].label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex gap-2 pt-1">
+        <Button
+          size="sm"
+          disabled={isPending}
+          onClick={() => submit("APPROVED")}
+        >
+          {isPending ? "Saving…" : "Approve"}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={isPending}
+          onClick={() => submit("REJECTED")}
+        >
+          Reject
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function OtList({ items }: { items: ApprovalRequestView[] }) {
+  const [query, setQuery] = useState("")
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return items
+    return items.filter((i) => i.employeeName.toLowerCase().includes(q))
+  }, [items, query])
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-baseline justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {filtered.length} of {items.length} pending
+        </p>
+      </div>
+
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search employee name…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {filtered.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-sm font-semibold text-foreground">No pending OT requests</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {query ? "Try a different search." : "All caught up!"}
+          </p>
+        </Card>
+      ) : (
+        <Card className="overflow-hidden">
+          <div className="divide-y divide-border/60">
+            {filtered.map((item) => (
+              <OtCard key={item.id} item={item} />
+            ))}
+          </div>
+        </Card>
+      )}
+    </div>
+  )
+}
+
+// ─── Root component with tab switcher ────────────────────────────────────────
+
+export function ApprovalsList({ items }: Props) {
+  const [tab, setTab] = useState<"attendance" | "overtime">("attendance")
+
+  const attendanceItems = items.filter((i) => i.kind !== "OT")
+  const otItems = items.filter((i) => i.kind === "OT")
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-1 rounded-lg border border-border/60 bg-card p-1 w-fit">
+        <button
+          type="button"
+          onClick={() => setTab("attendance")}
+          className={cn(
+            "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+            tab === "attendance"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          Attendance
+          {attendanceItems.length > 0 ? (
+            <span className={cn(
+              "flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-semibold",
+              tab === "attendance"
+                ? "bg-primary-foreground/20 text-primary-foreground"
+                : "bg-muted text-muted-foreground",
+            )}>
+              {attendanceItems.length}
+            </span>
+          ) : null}
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("overtime")}
+          className={cn(
+            "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+            tab === "overtime"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          Overtime
+          {otItems.length > 0 ? (
+            <span className={cn(
+              "flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-semibold",
+              tab === "overtime"
+                ? "bg-primary-foreground/20 text-primary-foreground"
+                : "bg-muted text-muted-foreground",
+            )}>
+              {otItems.length}
+            </span>
+          ) : null}
+        </button>
+      </div>
+
+      {tab === "attendance" ? (
+        <AttendanceList items={attendanceItems} />
+      ) : (
+        <OtList items={otItems} />
       )}
     </div>
   )

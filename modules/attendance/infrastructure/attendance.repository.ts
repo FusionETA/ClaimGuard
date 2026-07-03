@@ -361,6 +361,8 @@ type PrismaApproval = {
   project: string | null
   otSubtype: string | null
   otPayoutMethod: string | null
+  otStartAt: Date | null
+  otEndAt: Date | null
   lateMinutes: number | null
   offsetRef: string | null
   reviewNotes: string | null
@@ -394,6 +396,8 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
       r.otPayoutMethod === "TIME_BANK" || r.otPayoutMethod === "CASH"
         ? r.otPayoutMethod
         : null,
+    otStartAt: r.otStartAt?.toISOString() ?? null,
+    otEndAt: r.otEndAt?.toISOString() ?? null,
     lateMinutes: r.lateMinutes,
     // Populated by backfillLateMinutes() from the AttendanceRecord; null here.
     latitude: null,
@@ -3073,6 +3077,7 @@ export const attendanceRepository = {
     status: "APPROVED" | "REJECTED",
     notes?: string,
     overrideEventAt?: Date | null,
+    otSubtype?: OTSubtype | null,
   ): Promise<{
     employeeUserId: string
     kind: string
@@ -3099,6 +3104,8 @@ export const attendanceRepository = {
         chainHistory: true,
         date: true,
         otPayoutMethod: true,
+        otStartAt: true,
+        otEndAt: true,
         // Carry-forward time: each step that applies an override writes
         // back to `eventAt`, so subsequent reviewers (and the final-step
         // apply-to-AttendanceRecord branch below) see the latest proposed
@@ -3191,6 +3198,7 @@ export const attendanceRepository = {
         reviewNotes: notes ?? null,
         chainHistory: nextHistory as unknown as object,
         ...(carriesOverride ? { eventAt: overrideEventAt } : {}),
+        ...(otSubtype && request.kind === "OT" ? { otSubtype } : {}),
       },
     })
 
@@ -3297,11 +3305,12 @@ export const attendanceRepository = {
           ? "TIME_BANK"
           : "CASH")
       if (effectivePayout === "TIME_BANK" && profile) {
-        const otMinutes = await computeApprovedOtMinutes(
-          prisma,
-          request.employeeId,
-          request.date,
-        )
+        const otMinutes =
+          request.otStartAt && request.otEndAt
+            ? Math.round(
+                (request.otEndAt.getTime() - request.otStartAt.getTime()) / 60_000,
+              )
+            : 0
         if (otMinutes > 0) {
           await prisma.employeeProfile.updateMany({
             where: { id: profile.id },
@@ -3882,7 +3891,7 @@ export const attendanceRepository = {
         kind: "OT",
         date: { gte: from, lte: to },
       },
-      select: { employeeId: true, date: true, status: true },
+      select: { employeeId: true, date: true, status: true, otStartAt: true, otEndAt: true },
     })
     const otKey = (employeeId: string, date: Date) =>
       `${employeeId}|${startOfDay(date).toISOString()}`
@@ -3935,21 +3944,26 @@ export const attendanceRepository = {
         hasApprovedOT: otStatus === "APPROVED",
       })
 
-      // Attribute the day's OT-eligible time (working-day OT + rest day
-      // + public holiday) to the matching status sub-bucket so the
-      // hours summary can render Approved / Pending / Rejected splits.
-      // Days with NO OT request fall into none of the three — that
-      // residual is implicit (totalOt − approved − pending − rejected).
-      const otEligibleMin =
-        bucket.otMin + bucket.restDayMin + bucket.publicHolidayMin
-      if (otEligibleMin > 0 && otStatus !== null) {
-        if (otStatus === "APPROVED") bucket.otApprovedMin = otEligibleMin
-        else if (otStatus === "PENDING") bucket.otPendingMin = otEligibleMin
-        else if (otStatus === "REJECTED") bucket.otRejectedMin = otEligibleMin
-      }
-
       const current = perEmployee.get(record.employeeId) ?? { ...EMPTY_BUCKETS }
       perEmployee.set(record.employeeId, addBuckets(current, bucket))
+    }
+
+    // Add OT submission minutes (from otStartAt/otEndAt) to each employee's
+    // bucket. OT is submission-driven — bucketRecord no longer produces
+    // otMin from clock-in duration, so these are the only source of otMin.
+    for (const req of otRequests) {
+      if (!req.otStartAt || !req.otEndAt) continue
+      const otMin = Math.round(
+        (req.otEndAt.getTime() - req.otStartAt.getTime()) / 60_000,
+      )
+      if (otMin <= 0) continue
+      const current = perEmployee.get(req.employeeId) ?? { ...EMPTY_BUCKETS }
+      const status = req.status as "APPROVED" | "PENDING" | "REJECTED"
+      current.otMin += otMin
+      if (status === "APPROVED") current.otApprovedMin += otMin
+      else if (status === "PENDING") current.otPendingMin += otMin
+      else if (status === "REJECTED") current.otRejectedMin += otMin
+      perEmployee.set(req.employeeId, current)
     }
 
     let totals: HoursBuckets = { ...EMPTY_BUCKETS }
@@ -4330,6 +4344,8 @@ export const attendanceRepository = {
       selfieAttendanceRecordId: string | null
       overrideAt: string | null
       overrideReason: string | null
+      otStartAt: string | null
+      otEndAt: string | null
     }>
   > {
     const prisma = getClient()
@@ -4534,8 +4550,75 @@ export const attendanceRepository = {
         selfieAttendanceRecordId,
         overrideAt: override?.at ? override.at.toISOString() : null,
         overrideReason: override?.reason ?? null,
+        otStartAt: r.otStartAt?.toISOString() ?? null,
+        otEndAt: r.otEndAt?.toISOString() ?? null,
       }
     })
+  },
+
+  async getOtSubmissionsForOrg(args: {
+    orgId: string
+    from: Date
+    to: Date
+    statuses?: Array<"APPROVED" | "REJECTED" | "PENDING">
+    policyIdScope?: string[] | null
+  }): Promise<
+    Array<{
+      id: string
+      employeeId: string
+      employeeName: string
+      project: string | null
+      date: string
+      otStartAt: string | null
+      otEndAt: string | null
+      status: "PENDING" | "APPROVED" | "REJECTED"
+      otSubtype: string | null
+      detail: string
+      submittedAt: string
+      reviewerName: string | null
+      reviewedAt: string | null
+    }>
+  > {
+    const prisma = getClient()
+    const statuses = args.statuses ?? ["PENDING", "APPROVED", "REJECTED"]
+    const policyIdScope = args.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+
+    const employeeFilter: Record<string, unknown> = { organizationId: args.orgId }
+    if (policyIdScope && policyIdScope.length > 0) {
+      employeeFilter.employeeProfile = { policyId: { in: policyIdScope } }
+    }
+
+    const rows = await prisma.approvalRequest.findMany({
+      where: {
+        kind: "OT",
+        status: { in: statuses },
+        date: { gte: startOfDay(args.from), lte: endOfDay(args.to) },
+        employee: employeeFilter,
+      },
+      orderBy: { date: "desc" },
+      take: 500,
+      include: {
+        employee: { select: { name: true } },
+        reviewer: { select: { name: true } },
+      },
+    })
+
+    return rows.map((r) => ({
+      id: r.id,
+      employeeId: r.employeeId,
+      employeeName: r.employee?.name ?? r.employeeId,
+      project: r.project,
+      date: r.date.toISOString().slice(0, 10),
+      otStartAt: r.otStartAt?.toISOString() ?? null,
+      otEndAt: r.otEndAt?.toISOString() ?? null,
+      status: r.status as "PENDING" | "APPROVED" | "REJECTED",
+      otSubtype: r.otSubtype,
+      detail: r.detail,
+      submittedAt: r.submittedAt.toISOString(),
+      reviewerName: r.reviewer?.name ?? null,
+      reviewedAt: r.reviewedAt?.toISOString() ?? null,
+    }))
   },
 
   /**

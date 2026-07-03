@@ -48,6 +48,8 @@ export type AuditLogRow = {
   overrideAt: string | null
   /** Optional free-text reason captured alongside the override. */
   overrideReason: string | null
+  otStartAt: string | null
+  otEndAt: string | null
 }
 
 type LoadAction = (
@@ -94,6 +96,31 @@ function fmtDateTime(iso: string): string {
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+  })
+}
+
+function fmtOtTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function fmtOtDuration(startIso: string, endIso: string): string {
+  const diffMin = Math.round(
+    (new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000,
+  )
+  if (diffMin <= 0) return ""
+  const h = Math.floor(diffMin / 60)
+  const m = diffMin % 60
+  return m === 0 ? `${h}h` : `${h}h ${m}m`
+}
+
+function fmtShortDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   })
 }
 
@@ -352,33 +379,44 @@ export function ApprovalAuditLog({
                     </td>
                     <td className="py-2 pr-3 text-xs">{KIND_LABEL[row.kind]}</td>
                     <td className="py-2 pr-3 text-xs tabular-nums">
-                      <div className="flex flex-col gap-0.5">
-                        <span
-                          className={
-                            row.overrideAt
-                              ? "text-muted-foreground line-through"
-                              : ""
-                          }
-                        >
-                          {row.eventAt ? fmtDateTime(row.eventAt) : "—"}
-                        </span>
-                        {row.overrideAt ? (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
-                            <span>→ {fmtDateTime(row.overrideAt)}</span>
-                            <Badge
-                              variant="overtime"
-                              className="px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider"
-                            >
-                              Adjusted
-                            </Badge>
+                      {row.kind === "OT" && row.otStartAt && row.otEndAt ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium">
+                            {fmtOtTime(row.otStartAt)} – {fmtOtTime(row.otEndAt)}
                           </span>
-                        ) : null}
-                        {row.overrideAt && row.overrideReason ? (
-                          <span className="text-[10px] text-muted-foreground">
-                            {row.overrideReason}
+                          <span className="text-[11px] text-muted-foreground">
+                            {fmtOtDuration(row.otStartAt, row.otEndAt)} · {fmtShortDate(row.otStartAt)}
                           </span>
-                        ) : null}
-                      </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-0.5">
+                          <span
+                            className={
+                              row.overrideAt
+                                ? "text-muted-foreground line-through"
+                                : ""
+                            }
+                          >
+                            {row.eventAt ? fmtDateTime(row.eventAt) : "—"}
+                          </span>
+                          {row.overrideAt ? (
+                            <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
+                              <span>→ {fmtDateTime(row.overrideAt)}</span>
+                              <Badge
+                                variant="overtime"
+                                className="px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider"
+                              >
+                                Adjusted
+                              </Badge>
+                            </span>
+                          ) : null}
+                          {row.overrideAt && row.overrideReason ? (
+                            <span className="text-[10px] text-muted-foreground">
+                              {row.overrideReason}
+                            </span>
+                          ) : null}
+                        </div>
+                      )}
                     </td>
                     <td className="py-2 pr-3 text-xs">
                       {row.chainHistory && row.chainHistory.length > 0 ? (
