@@ -324,11 +324,26 @@ export function calcSocso(input: {
   /// regardless of scheme; see `lookupSkbbk` for the period gate.
   periodYear: number
   periodMonth: number
+  /// Age at the END of the period. Drives the mandatory Cat 1 → Cat 2
+  /// flip at age 60+. Optional so legacy callers stay working; when
+  /// omitted the raw scheme is used (pre-fix behaviour).
+  ageAtPeriodEnd?: number
 }): { employee: number; employer: number; employeeSkbbk: number } {
   if (!input.scheme) {
     return { employee: 0, employer: 0, employeeSkbbk: 0 }
   }
-  const category2 = input.scheme === "EMPLOYMENT_INJURY_ONLY"
+  // Mandatory age flip per SOCSO Act 4 Third Schedule: at 60 the
+  // employee moves to Category 2 (Employment Injury only, employer-
+  // only) regardless of what the profile says — Invalidity coverage
+  // ends at retirement age. This mirrors how `calcEpf` auto-flips to
+  // Part E at 60+. Without this override an admin who forgets to
+  // update the profile keeps wrongly deducting employee SOCSO from a
+  // 60+ worker (and PERKESO refunds it at year-end anyway).
+  const effectiveScheme: SocsoScheme =
+    input.ageAtPeriodEnd !== undefined && input.ageAtPeriodEnd >= 60
+      ? "EMPLOYMENT_INJURY_ONLY"
+      : input.scheme
+  const category2 = effectiveScheme === "EMPLOYMENT_INJURY_ONLY"
   const { employer, employee } = lookupSocso(input.wage, category2)
   // SKBBK is the same gazette amount for Cat 1 and Cat 2 — PERKESO
   // publishes one Non-Employment Injury column that both categories
@@ -1247,6 +1262,11 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     scheme: profile.socsoScheme,
     periodYear,
     periodMonth,
+    // 60+ mandates Cat 2 (Employment Injury only), regardless of what
+    // the admin set on the profile. Same age gate SOCSO Act 4 Third
+    // Schedule already applies — moved into the calc so a stale
+    // profile can't misfire.
+    ageAtPeriodEnd,
   })
 
   // EIS eligibility per PERKESO EIS Act 2017 + the EIS coverage flyer:

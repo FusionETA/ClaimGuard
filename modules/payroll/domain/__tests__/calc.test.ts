@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   autoHoursFromMinutes,
   calcPayslip,
+  calcSocso,
   effectiveWorkedDays,
   type CalcPayslipInput,
 } from "../calc"
@@ -949,5 +950,83 @@ describe("calcPayslip — unpaid leave reduces gross (not just net)", () => {
     })
     // Full 400 off gross — not 400 × proratedFactor.
     expect(withUnpaid.grossPay).toBeCloseTo(withoutUnpaid.grossPay - 400, 2)
+  })
+})
+
+describe("calcSocso — age auto-flip to Cat 2 at 60+", () => {
+  const base = { wage: 3000, periodYear: 2026, periodMonth: 5 }
+
+  it("under 60 in Cat 1 → both sides contribute", () => {
+    const r = calcSocso({
+      ...base,
+      scheme: "EMPLOYMENT_INJURY_INVALIDITY",
+      ageAtPeriodEnd: 59,
+    })
+    expect(r.employee).toBeGreaterThan(0)
+    expect(r.employer).toBeGreaterThan(0)
+  })
+
+  it("60+ in Cat 1 → auto-flips to Cat 2 (employer only, no employee deduction)", () => {
+    const cat1At60 = calcSocso({
+      ...base,
+      scheme: "EMPLOYMENT_INJURY_INVALIDITY",
+      ageAtPeriodEnd: 60,
+    })
+    const cat2Direct = calcSocso({
+      ...base,
+      scheme: "EMPLOYMENT_INJURY_ONLY",
+      ageAtPeriodEnd: 59,
+    })
+    // 60+ Cat 1 must produce zero employee and match Cat 2 employer.
+    expect(cat1At60.employee).toBe(0)
+    expect(cat1At60.employer).toBe(cat2Direct.employer)
+  })
+
+  it("59 vs 61 in Cat 1 — the exact boundary", () => {
+    const at59 = calcSocso({
+      ...base,
+      scheme: "EMPLOYMENT_INJURY_INVALIDITY",
+      ageAtPeriodEnd: 59,
+    })
+    const at61 = calcSocso({
+      ...base,
+      scheme: "EMPLOYMENT_INJURY_INVALIDITY",
+      ageAtPeriodEnd: 61,
+    })
+    expect(at59.employee).toBeGreaterThan(0)
+    expect(at61.employee).toBe(0)
+  })
+
+  it("Cat 2 profile — age has no additional effect", () => {
+    const under60 = calcSocso({
+      ...base,
+      scheme: "EMPLOYMENT_INJURY_ONLY",
+      ageAtPeriodEnd: 59,
+    })
+    const sixtyPlus = calcSocso({
+      ...base,
+      scheme: "EMPLOYMENT_INJURY_ONLY",
+      ageAtPeriodEnd: 72,
+    })
+    expect(under60).toEqual(sixtyPlus)
+  })
+
+  it("ageAtPeriodEnd omitted → falls back to profile scheme (back-compat)", () => {
+    // Legacy callers that don't yet pass age must see pre-fix
+    // behaviour, so the change is additive rather than a break.
+    const r = calcSocso({
+      ...base,
+      scheme: "EMPLOYMENT_INJURY_INVALIDITY",
+    })
+    expect(r.employee).toBeGreaterThan(0)
+  })
+
+  it("null scheme → 0/0 regardless of age", () => {
+    const r = calcSocso({
+      ...base,
+      scheme: null,
+      ageAtPeriodEnd: 72,
+    })
+    expect(r).toEqual({ employee: 0, employer: 0, employeeSkbbk: 0 })
   })
 })
