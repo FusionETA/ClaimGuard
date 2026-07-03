@@ -4940,4 +4940,205 @@ export const attendanceRepository = {
     return rows
       .filter((r): r is { employeeId: string; timeIn: Date } => r.timeIn !== null)
   },
+
+  // ─── Auto clock-out cron (Phase 6) ─────────────────────────────────
+
+  /**
+   * Find AttendanceSession rows that are candidates for the auto
+   * clock-out cron. A row qualifies when ALL of these hold:
+   *
+   *   - `endedAt IS NULL` (still open — the employee never clicked
+   *     Clock Out)
+   *   - Their EmployeePolicy has `autoClockOutEnabled = true` and
+   *     `autoClockOutAfterMin != null`
+   *   - Net working minutes since `startedAt` — wall-clock elapsed
+   *     minus any completed BreakSession durations — is ≥ the policy
+   *     threshold
+   *   - No CURRENTLY-OPEN BreakSession on the session. If they're on
+   *     an open break, we skip and let the next cron cycle handle it
+   *     (avoids the ambiguity of "clocked out during a break").
+   *
+   * For each candidate we return the pre-computed `cutoffAt` — the
+   * exact instant they hit the threshold, accounting for completed
+   * breaks. Setting endedAt to this (rather than "now") records the
+   * true clockout time regardless of how delayed the cron was.
+   *
+   * `limit` caps the sweep per run so a large backlog can't blow the
+   * request budget. Leftover rows come back on the next fire.
+   */
+  async listOpenSessionsForAutoClockOut(
+    now: Date,
+    limit: number,
+  ): Promise<
+    Array<{
+      sessionId: string
+      recordId: string
+      employeeId: string
+      organizationId: string | null
+      startedAt: Date
+      autoClockOutAfterMin: number
+      cutoffAt: Date
+      durationMin: number
+    }>
+  > {
+    const prisma = getClient()
+    const openSessions = await prisma.attendanceSession.findMany({
+      where: { endedAt: null },
+      select: {
+        id: true,
+        attendanceRecordId: true,
+        startedAt: true,
+        breaks: {
+          select: { startedAt: true, endedAt: true },
+        },
+        attendanceRecord: {
+          select: {
+            id: true,
+            employeeId: true,
+            employee: {
+              select: {
+                organizationId: true,
+                employeeProfiles: {
+                  select: {
+                    policy: {
+                      select: {
+                        autoClockOutEnabled: true,
+                        autoClockOutAfterMin: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      // Ordered so the oldest open sessions get closed first on partial
+      // sweeps — matters if the backlog exceeds `limit`.
+      orderBy: { startedAt: "asc" },
+      take: limit * 4,
+    })
+
+    const candidates: Array<{
+      sessionId: string
+      recordId: string
+      employeeId: string
+      organizationId: string | null
+      startedAt: Date
+      autoClockOutAfterMin: number
+      cutoffAt: Date
+      durationMin: number
+    }> = []
+
+    for (const s of openSessions) {
+      // Find the ACTIVE policy on the employee's profile. Multi-org
+      // means the same userId can appear on multiple profiles; the
+      // one whose organizationId matches the User.organizationId is
+      // the current active profile. Fall back to the first row.
+      const profiles = s.attendanceRecord.employee?.employeeProfiles ?? []
+      const activePolicy = profiles[0]?.policy ?? null
+      if (!activePolicy) continue
+      if (!activePolicy.autoClockOutEnabled) continue
+      if (activePolicy.autoClockOutAfterMin == null) continue
+
+      const threshold = activePolicy.autoClockOutAfterMin
+
+      // Skip when there's an OPEN break — we can't cleanly derive a
+      // cutoff, and the employee is technically not accumulating work
+      // minutes right now. Next cron cycle re-inspects.
+      const openBreak = s.breaks.find((b) => b.endedAt === null)
+      if (openBreak) continue
+
+      const completedBreakMin = s.breaks.reduce((sum, b) => {
+        if (!b.endedAt) return sum
+        const diff = Math.floor(
+          (b.endedAt.getTime() - b.startedAt.getTime()) / 60_000,
+        )
+        return sum + Math.max(0, diff)
+      }, 0)
+
+      const wallElapsedMin = Math.floor(
+        (now.getTime() - s.startedAt.getTime()) / 60_000,
+      )
+      const netWorkMin = wallElapsedMin - completedBreakMin
+      if (netWorkMin < threshold) continue
+
+      // Cutoff = when net work minutes first hit the threshold,
+      // measured on the wall clock. That's `startedAt + threshold +
+      // completedBreakMin` — pre-cutoff breaks are added back so the
+      // recorded duration ends up equal to the threshold exactly.
+      const cutoffAt = new Date(
+        s.startedAt.getTime() + (threshold + completedBreakMin) * 60_000,
+      )
+
+      candidates.push({
+        sessionId: s.id,
+        recordId: s.attendanceRecordId,
+        employeeId: s.attendanceRecord.employeeId,
+        organizationId:
+          s.attendanceRecord.employee?.organizationId ?? null,
+        startedAt: s.startedAt,
+        autoClockOutAfterMin: threshold,
+        cutoffAt,
+        durationMin: threshold,
+      })
+
+      if (candidates.length >= limit) break
+    }
+
+    return candidates
+  },
+
+  /**
+   * Close ONE open AttendanceSession as an auto-clockout. Wraps the
+   * two updates in a $transaction so a mid-write failure can't leave
+   * the record and session in disagreement.
+   *
+   *   - `AttendanceSession.endedAt = cutoffAt`
+   *   - `AttendanceSession.durationMin = durationMin` (= policy
+   *     threshold, since we cut at the moment net work hit it)
+   *   - `AttendanceSession.isAutoClockOut = true` (schema-native
+   *     signal — no separate AttendanceEditLog row; the boolean is
+   *     the audit trail)
+   *   - `AttendanceSession.clockOutNotes` — stamp the reason so
+   *     admins reviewing the record see what happened
+   *   - `AttendanceRecord.timeOut = cutoffAt`, `durationMin =
+   *     durationMin`, `status = "CLOCKED_OUT"` — the daily roll-up
+   *     mirrors the session close
+   *
+   * Deliberately does NOT create an OT ApprovalRequest even if the
+   * duration exceeds `otDailyThresholdMinutes`. Auto-clockouts are a
+   * cleanup for "employee forgot to clock out"; treating that as an
+   * OT approval would let a phantom OT slip through the queue. If
+   * the employee legitimately worked past the threshold, the
+   * supervisor can manually edit the session and the existing
+   * override path will auto-generate the OT row properly.
+   */
+  async performAutoClockOut(input: {
+    sessionId: string
+    recordId: string
+    cutoffAt: Date
+    durationMin: number
+  }): Promise<void> {
+    const prisma = getClient()
+    await prisma.$transaction([
+      prisma.attendanceSession.update({
+        where: { id: input.sessionId },
+        data: {
+          endedAt: input.cutoffAt,
+          durationMin: input.durationMin,
+          isAutoClockOut: true,
+          clockOutNotes: "Auto-clocked-out (cron): idle past shift end",
+        },
+      }),
+      prisma.attendanceRecord.update({
+        where: { id: input.recordId },
+        data: {
+          timeOut: input.cutoffAt,
+          durationMin: input.durationMin,
+          status: "CLOCKED_OUT",
+        },
+      }),
+    ])
+  },
 }
