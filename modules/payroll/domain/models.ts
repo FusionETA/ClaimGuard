@@ -143,6 +143,7 @@ export const payrollAdjustmentCategories = [
   "deduct_unpaid_leave",
   "deduct_salary_adjustment",
   "deduct_advance",
+  "deduct_loan_repayment",
   "deduct_cp38",
   "deduct_zakat",
   "deduct_zakat_tp1",
@@ -743,6 +744,30 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     reducesBase: true,
+  },
+  deduct_loan_repayment: {
+    // Repayment of a personal loan the employer made to the employee
+    // (via the `EmployeeLoan` model). Distinct from `deduct_advance`:
+    // a loan disbursement is NOT taxable income under Malaysian tax
+    // law, so the repayment must NOT reduce statutory wage bases.
+    // The employee still EARNED the full monthly salary; the loan
+    // repayment is a personal-debt allocation from take-home pay.
+    //
+    // Contrast with `deduct_advance`, where the "advance" is money the
+    // admin paid ahead of the earn date (already tax-treated as
+    // salary) and clawed back later — those SHOULD reduce base to
+    // avoid double-taxation. Admin-typed advance lines keep that
+    // behaviour. Only the auto-generated loan installments route
+    // through this new category.
+    code: "deduct_loan_repayment",
+    label: "Loan Repayment",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
   },
   deduct_cp38: {
     // LHDN CP38 arrears order — court-issued instruction to withhold

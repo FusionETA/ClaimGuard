@@ -871,7 +871,11 @@ export async function previewEmployeeNetForRun(input: {
     )
     if (installment > 0) {
       oneOffLines.push({
-        category: "deduct_advance" as (typeof overriddenFixed)[number]["category"],
+        // Loans repay a non-taxable disbursement, so this category has
+        // `reducesBase: false` — the repayment must not shrink the
+        // employee's EPF/SOCSO/EIS/PCB wage.
+        category:
+          "deduct_loan_repayment" as (typeof overriddenFixed)[number]["category"],
         name: "Loan repayment",
         amount: installment,
       })
@@ -1286,10 +1290,13 @@ export async function generatePayrollPayslips(input: {
       ...(li.treatAsRecurring ? { treatAsRecurring: true } : {}),
     }))
 
-    // Auto-applied loan installments for this period. A loan repayment
-    // is recorded under the existing "Advance Deduction" category
-    // (`deduct_advance`), added as a one-off line so it flows through
-    // the same category-aware calc + Xero deduction credit.
+    // Auto-applied loan installments for this period. Routed through
+    // the dedicated `deduct_loan_repayment` category so the repayment
+    // does NOT reduce statutory wage bases (loan proceeds were never
+    // taxed as income under Malaysian tax law — the wage earned is
+    // unchanged when they're paid back). Admin-typed "Advance
+    // Deduction" line items still route through `deduct_advance` and
+    // keep their base-reducing behaviour.
     for (const loan of loansByEmp.get(e.employeeProfileId) ?? []) {
       const installment = loanInstallmentForPeriod(
         loan,
@@ -1298,7 +1305,8 @@ export async function generatePayrollPayslips(input: {
       )
       if (installment > 0) {
         oneOffLines.push({
-          category: "deduct_advance" as (typeof overriddenFixed)[number]["category"],
+          category:
+            "deduct_loan_repayment" as (typeof overriddenFixed)[number]["category"],
           name: `Loan repayment (${formatLoanPeriodLabel(
             loan.startYear,
             loan.startMonth,
