@@ -1241,15 +1241,17 @@ function HrdfCard(props: {
               Part I — mandatory (1.0%).
             </span>{" "}
             Detected {props.malaysianEmployeeCount} active
-            Malaysian-citizen employees. Per PSMB Act 2001, employers
-            with 10 or more employees must register and pay the levy.
+            Malaysian-citizen employees. Once headcount exceeds 10, HRDF
+            is auto-enabled at 1.0%. If someone is archived and the
+            count drops back to 10 or below, HRDF returns to the
+            optional zone (5-10 employees) where you can decide.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <LockedDisplay
             label="HRDF enabled?"
             value="Yes (mandatory)"
-            note="Cannot be disabled while you have ≥10 Malaysian employees."
+            note="Cannot be disabled while you have more than 10 Malaysian employees."
           />
           <LockedDisplay
             label="HRDF rate (%)"
@@ -1273,8 +1275,9 @@ function HrdfCard(props: {
               Part II — optional (0.5%).
             </span>{" "}
             Detected {props.malaysianEmployeeCount} active
-            Malaysian-citizen employees. Registration is voluntary; opt
-            in to pay the levy.
+            Malaysian-citizen employees (decide zone: 5-10). Registration
+            is voluntary — opt in to pay the levy, or leave off. Once
+            headcount exceeds 10, HRDF auto-enables at 1.0%.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
@@ -1309,8 +1312,9 @@ function HrdfCard(props: {
           Detected {props.malaysianEmployeeCount} active
           Malaysian-citizen{" "}
           {props.malaysianEmployeeCount === 1 ? "employee" : "employees"}.
-          HRDF applies once you have at least 5 employees (Part II opt-in)
-          or 10 employees (Part I mandatory).
+          HRDF applies once you have at least 5 employees (Part II
+          opt-in, decide zone 5-10) or more than 10 employees (Part I
+          auto-enabled, mandatory 1.0%).
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">

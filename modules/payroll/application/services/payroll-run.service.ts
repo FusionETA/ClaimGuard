@@ -42,6 +42,10 @@ import { payrollRunAdjustmentRepository } from "@/modules/payroll/infrastructure
 import { payrollRunClaimRepository } from "@/modules/payroll/infrastructure/payroll-run-claim.repository"
 import { payrollAnnualReportRepository } from "@/modules/payroll/infrastructure/payroll-annual-report.repository"
 import { payrollRunReportRepository } from "@/modules/payroll/infrastructure/payroll-run-report.repository"
+import {
+  countActiveMalaysianEmployeesForOrg,
+  hrdfTierFromCount,
+} from "@/modules/payroll/application/services/payroll-settings.service"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 import {
   payslipRepository,
@@ -52,6 +56,38 @@ import { attendanceRepository } from "@/modules/attendance/infrastructure/attend
 import { unpaidLeaveDays } from "@/modules/leave/application/services/leave-balance.service"
 import { parseWorkingDays } from "@/modules/attendance/domain/hours-summary"
 import { deriveDailyHours, deriveHourlyRate } from "@/modules/payroll/domain/calc"
+
+/**
+ * Resolve the HRDF settings that should be passed into `calcPayslip`
+ * for this run, given (a) the org's current active Malaysian
+ * headcount and (b) the admin's stored preference.
+ *
+ * Tier logic lives in `payroll-settings.service.hrdfTierFromCount`
+ * (single source of truth — same rule the settings UI shows):
+ *
+ *   - PART_I (>10 active Malaysian citizens): MANDATORY, force
+ *     enabled at 1.0% regardless of the DB flag. Prevents the "admin
+ *     forgot to save settings after the 11th hire" silent-skip bug.
+ *   - PART_II (5-10): admin decides — honour whatever the DB has.
+ *   - NOT_APPLICABLE (<5): force disabled.
+ *
+ * Called from every run path (single-employee preview, whole-run
+ * generation, submit-time recompute) so the calc engine can't
+ * accidentally read the stale flag.
+ */
+function resolveEffectiveHrdf(input: {
+  activeMalaysianCount: number
+  adminHrdfEnabled: boolean
+  adminHrdfRate: number | null
+}): { hrdfEnabled: boolean; hrdfRate: number | null } {
+  const tier = hrdfTierFromCount(input.activeMalaysianCount)
+  if (tier === "PART_I") return { hrdfEnabled: true, hrdfRate: 1 }
+  if (tier === "NOT_APPLICABLE") return { hrdfEnabled: false, hrdfRate: 0 }
+  return {
+    hrdfEnabled: input.adminHrdfEnabled,
+    hrdfRate: input.adminHrdfRate,
+  }
+}
 
 /**
  * Auto "Unpaid Leave" deduction for MONTHLY staff: the base salary is left
@@ -802,7 +838,7 @@ export async function previewEmployeeNetForRun(input: {
   })
   if (!run) return null
 
-  const [settings, employees, policies, attachments, activeLoans, orgHours] =
+  const [settings, employees, policies, attachments, activeLoans, orgHours, activeMalaysianCount] =
     await Promise.all([
       payrollSettingsRepository.getByOrgId(orgId),
       // When the run was scoped at draft creation, only its chosen
@@ -828,7 +864,18 @@ export async function previewEmployeeNetForRun(input: {
           workingHoursEnd: org?.workingHoursEnd ?? "18:00",
         }
       })(),
+      // Live active-Malaysian count drives the HRDF tier so the calc
+      // engine can't silently skip HRDF when the org has crossed >10
+      // but the admin never re-saved payroll settings. See
+      // `resolveEffectiveHrdf` at the top of this file.
+      countActiveMalaysianEmployeesForOrg(orgId),
     ])
+
+  const effectiveHrdf = resolveEffectiveHrdf({
+    activeMalaysianCount,
+    adminHrdfEnabled: settings?.hrdfEnabled ?? false,
+    adminHrdfRate: settings?.hrdfRate ?? null,
+  })
 
   const e = employees.find((x) => x.employeeProfileId === input.employeeProfileId)
   if (!e) return null
@@ -935,8 +982,8 @@ export async function previewEmployeeNetForRun(input: {
     workingDaysRule: settings?.workingDaysRule ?? "TWENTY_SIX",
     defaultEpfEmployeeRate: settings?.defaultEpfEmployeeRate ?? 11,
     defaultEpfEmployerRate: settings?.defaultEpfEmployerRate ?? 13,
-    hrdfEnabled: settings?.hrdfEnabled ?? false,
-    hrdfRate: settings?.hrdfRate ?? null,
+    hrdfEnabled: effectiveHrdf.hrdfEnabled,
+    hrdfRate: effectiveHrdf.hrdfRate,
     autoApplySocsoEisRelief: settings?.autoApplySocsoEisRelief ?? true,
     otRateNormal: cashOt ? policy!.otRateNormalDay : 0,
     otRateRest: cashOt ? policy!.otRateRestDay : 0,
@@ -1020,34 +1067,51 @@ export async function generatePayrollPayslips(input: {
     throw new Error("Only draft runs can be run again.")
   }
 
-  const [settings, employees, attachments, adjustments, policies, orgHours, activeLoans] =
-    await Promise.all([
-      payrollSettingsRepository.getByOrgId(orgId),
-      // Honour the per-run policy scope picked at draft creation.
-      // `null` (legacy / org-wide) pulls every eligible employee.
-      // Period window excludes employees whose joinDate is after this
-      // month or whose leaveDate is before it.
-      payrollProfileRepository.listReadyForPayroll(orgId, {
-        policyIdScope: run.policyIds,
-        period: { year: run.periodYear, month: run.periodMonth },
-      }),
-      payrollRunClaimRepository.listForCalc(run.id),
-      payrollRunAdjustmentRepository.listForRun(run.id),
-      policyRepository.listForOrganization(orgId),
-      (async () => {
-        const prisma = getPrismaClient()
-        if (!prisma) return { workingHoursStart: "09:00", workingHoursEnd: "18:00" }
-        const org = await prisma.organization.findUnique({
-          where: { id: orgId },
-          select: { workingHoursStart: true, workingHoursEnd: true },
-        })
-        return {
-          workingHoursStart: org?.workingHoursStart ?? "09:00",
-          workingHoursEnd: org?.workingHoursEnd ?? "18:00",
-        }
-      })(),
-      employeeLoanRepository.listActiveForOrganization(orgId),
-    ])
+  const [
+    settings,
+    employees,
+    attachments,
+    adjustments,
+    policies,
+    orgHours,
+    activeLoans,
+    activeMalaysianCount,
+  ] = await Promise.all([
+    payrollSettingsRepository.getByOrgId(orgId),
+    // Honour the per-run policy scope picked at draft creation.
+    // `null` (legacy / org-wide) pulls every eligible employee.
+    // Period window excludes employees whose joinDate is after this
+    // month or whose leaveDate is before it.
+    payrollProfileRepository.listReadyForPayroll(orgId, {
+      policyIdScope: run.policyIds,
+      period: { year: run.periodYear, month: run.periodMonth },
+    }),
+    payrollRunClaimRepository.listForCalc(run.id),
+    payrollRunAdjustmentRepository.listForRun(run.id),
+    policyRepository.listForOrganization(orgId),
+    (async () => {
+      const prisma = getPrismaClient()
+      if (!prisma) return { workingHoursStart: "09:00", workingHoursEnd: "18:00" }
+      const org = await prisma.organization.findUnique({
+        where: { id: orgId },
+        select: { workingHoursStart: true, workingHoursEnd: true },
+      })
+      return {
+        workingHoursStart: org?.workingHoursStart ?? "09:00",
+        workingHoursEnd: org?.workingHoursEnd ?? "18:00",
+      }
+    })(),
+    employeeLoanRepository.listActiveForOrganization(orgId),
+    // Live active-Malaysian count → HRDF tier at run time. See
+    // `resolveEffectiveHrdf` for how the tier maps to enabled/rate.
+    countActiveMalaysianEmployeesForOrg(orgId),
+  ])
+
+  const effectiveHrdf = resolveEffectiveHrdf({
+    activeMalaysianCount,
+    adminHrdfEnabled: settings?.hrdfEnabled ?? false,
+    adminHrdfRate: settings?.hrdfRate ?? null,
+  })
 
   // Active loans grouped by employee — each contributes a
   // `deduct_advance` (Advance Deduction) installment for this run's
@@ -1086,8 +1150,8 @@ export async function generatePayrollPayslips(input: {
     workingDaysRule: settings?.workingDaysRule ?? "TWENTY_SIX",
     defaultEpfEmployeeRate: settings?.defaultEpfEmployeeRate ?? 11,
     defaultEpfEmployerRate: settings?.defaultEpfEmployerRate ?? 13,
-    hrdfEnabled: settings?.hrdfEnabled ?? false,
-    hrdfRate: settings?.hrdfRate ?? null,
+    hrdfEnabled: effectiveHrdf.hrdfEnabled,
+    hrdfRate: effectiveHrdf.hrdfRate,
     // Default ON when the row is missing (new orgs) so admins get
     // the HReasily-style monthly PCB out of the box. Turn off if
     // strict LHDN-TP1 reading is preferred.

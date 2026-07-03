@@ -16,16 +16,27 @@ import { payrollCompanyInfoRepository } from "@/modules/payroll/infrastructure/p
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 
 /**
- * HRD Corp tier per PSMB Act 2001 First Schedule (as amended 2021):
+ * HRD Corp tier per PSMB Act 2001 First Schedule (as amended 2021).
  *
- *   - PART_I    — 10+ Malaysian-citizen employees → MANDATORY 1.0%
- *   - PART_II   — 5-9 Malaysian-citizen employees → OPTIONAL 0.5%
- *                 (employer must register voluntarily)
- *   - NOT_APPLICABLE — under 5 Malaysian-citizen employees → no HRDF
+ * Thresholds enforced here (per the admin's product spec — slightly
+ * more conservative than a strict reading of the Act):
  *
- * The count is Malaysian citizens only because PSMB Act § 2 defines
- * "employee" as a citizen of Malaysia (PRs and foreign workers are
- * excluded).
+ *   - PART_I    — MORE THAN 10 active Malaysian-citizen employees
+ *                 → MANDATORY 1.0% (auto-enable, cannot be turned off)
+ *   - PART_II   — 5 to 10 active Malaysian-citizen employees
+ *                 → OPTIONAL 0.5% (admin decides; the "decide zone")
+ *   - NOT_APPLICABLE — fewer than 5 → no HRDF, force-disabled
+ *
+ * PSMB Act § 2 defines "employee" as a citizen of Malaysia, so PRs and
+ * foreign workers are excluded from the count. Archived profiles are
+ * also excluded — only *active* employees count toward the threshold,
+ * so an archive can drop the org out of Part I back into the
+ * decide-zone next month.
+ *
+ * Note vs strict Act reading: the Act's First Schedule text reads
+ * "10 or more", i.e. ≥10 = mandatory. This system uses `> 10` so an
+ * org sitting exactly at 10 stays in the decide zone (admin choice
+ * respected), only auto-enabling on the eleventh Malaysian citizen.
  */
 export type HrdfTier = "PART_I" | "PART_II" | "NOT_APPLICABLE"
 
@@ -146,10 +157,32 @@ async function countActiveMalaysianEmployees(
   return count
 }
 
-function hrdfTierFromCount(count: number): HrdfTier {
-  if (count >= 10) return "PART_I"
+/**
+ * Public: resolve the HRDF tier from an active Malaysian-citizen head-
+ * count. Kept `export` so `payroll-run.service` can enforce the same
+ * rule at run time (payroll must not silently skip HRDF when the org
+ * has crossed the mandatory threshold, even if the DB's cached
+ * `hrdfEnabled` flag is stale from before the last hire).
+ *
+ * See the HrdfTier doc block above for the thresholds + rationale.
+ */
+export function hrdfTierFromCount(count: number): HrdfTier {
+  if (count > 10) return "PART_I"
   if (count >= 5) return "PART_II"
   return "NOT_APPLICABLE"
+}
+
+/**
+ * Public counterpart to the private helper above. Used by
+ * `payroll-run.service` when the run engine needs a fresh count
+ * (rather than trusting the possibly-stale DB `hrdfEnabled` flag).
+ */
+export async function countActiveMalaysianEmployeesForOrg(
+  organizationId: string,
+): Promise<number> {
+  const prisma = getPrismaClient()
+  if (!prisma) return 0
+  return countActiveMalaysianEmployees(prisma, organizationId)
 }
 
 export async function upsertPayrollSettings(
