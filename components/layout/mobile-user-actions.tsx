@@ -86,10 +86,19 @@ export function MobileUserActions({
             "[&_button]:rounded-xl [&_button]:px-3",
             "[&_form]:w-full",
           )}
-          // Close AFTER the child's click handler fires (React's event
-          // bubbles), so tapping "Log out" runs the logout action and
-          // then dismisses the menu.
-          onClick={close}
+          // Defer the close by one tick. React's synthetic events
+          // bubble child → parent, so a naive `onClick={close}` here
+          // fires AFTER the child button's onClick — which reads fine
+          // in isolation. BUT for children that rely on the browser's
+          // DEFAULT action (form submit for LogoutButton, opening a
+          // dialog for ChangePasswordButton), React commits our
+          // `setOpen(false)` synchronously and unmounts the whole
+          // menu before the browser fires those defaults. The result
+          // is the form vanishes before it can submit / the dialog
+          // state is destroyed before it can render. Punting the
+          // close to the next macrotask lets the browser's default
+          // action fire against a still-mounted DOM node first.
+          onClick={() => setTimeout(close, 0)}
         >
           {hasMultipleCompanies ? <SwitchCompanyButton showLabel /> : null}
           <ChangePasswordButton
