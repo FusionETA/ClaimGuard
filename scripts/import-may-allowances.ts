@@ -200,13 +200,13 @@ const PDF_DATA: Array<{ empNo: string; basicSalary: number; breakdown: Record<st
 // ─── Category mapping ──────────────────────────────────────────────────────
 // PETROL ALL + MV EXP.ALL → allowance_travel_private (combined)
 // OUT.EXP.ALL              → allowance_travel_official
-// ADD.ALL                  → wages_gratuity (treatAsRecurring=true — same amount every month)
+// ADD.ALL                  → allowance_travel_official (treatAsRecurring=true — same amount every month)
 // MEAL                     → allowance_meal
 // HP EXP.ALL               → allowance_phone_bill
 // HOUSE ALL                → bik_living_accommodation
 // EXP.ALL                  → allowance_standard
 // REFUND                   → wages_expense_claim
-// OTH. DEDUCTION           → kind DEDUCTION, category null (post-tax; no statutory base impact)
+// OTH. DEDUCTION           → deduct_miscellaneous
 // ZAKAT                    → deduct_zakat (offsets PCB per calcPayslip)
 
 type LineItem = {
@@ -247,8 +247,8 @@ function buildLineItems(breakdown: Record<string, number>): LineItem[] {
   if (addAll > 0) {
     items.push({
       kind: "ALLOWANCE",
-      category: "wages_gratuity",
-      label: "Gratuity",
+      category: "allowance_travel_official",
+      label: "Official Duty Allowance",
       amount: addAll,
       treatAsRecurring: true,
     })
@@ -308,8 +308,8 @@ function buildLineItems(breakdown: Record<string, number>): LineItem[] {
   if (othDeduction > 0) {
     items.push({
       kind: "DEDUCTION",
-      category: null,
-      label: "Advance Deduction",
+      category: "deduct_miscellaneous",
+      label: "OTH. DEDUCTION",
       amount: Math.round(othDeduction * 100) / 100,
     })
   }
