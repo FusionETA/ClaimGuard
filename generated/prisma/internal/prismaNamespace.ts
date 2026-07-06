@@ -4828,6 +4828,7 @@ export const PayslipLineItemScalarFieldEnum = {
   kind: 'kind',
   label: 'label',
   amount: 'amount',
+  pcbTaxableAmount: 'pcbTaxableAmount',
   claimId: 'claimId',
   subjectToEpf: 'subjectToEpf',
   subjectToSocso: 'subjectToSocso',

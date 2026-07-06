@@ -30,10 +30,12 @@ export type AggregatePayslipLineItem = {
 
 export type PayslipLineItemAvgAggregateOutputType = {
   amount: runtime.Decimal | null
+  pcbTaxableAmount: runtime.Decimal | null
 }
 
 export type PayslipLineItemSumAggregateOutputType = {
   amount: runtime.Decimal | null
+  pcbTaxableAmount: runtime.Decimal | null
 }
 
 export type PayslipLineItemMinAggregateOutputType = {
@@ -42,6 +44,7 @@ export type PayslipLineItemMinAggregateOutputType = {
   kind: $Enums.PayslipLineKind | null
   label: string | null
   amount: runtime.Decimal | null
+  pcbTaxableAmount: runtime.Decimal | null
   claimId: string | null
   subjectToEpf: boolean | null
   subjectToSocso: boolean | null
@@ -57,6 +60,7 @@ export type PayslipLineItemMaxAggregateOutputType = {
   kind: $Enums.PayslipLineKind | null
   label: string | null
   amount: runtime.Decimal | null
+  pcbTaxableAmount: runtime.Decimal | null
   claimId: string | null
   subjectToEpf: boolean | null
   subjectToSocso: boolean | null
@@ -72,6 +76,7 @@ export type PayslipLineItemCountAggregateOutputType = {
   kind: number
   label: number
   amount: number
+  pcbTaxableAmount: number
   claimId: number
   subjectToEpf: number
   subjectToSocso: number
@@ -85,10 +90,12 @@ export type PayslipLineItemCountAggregateOutputType = {
 
 export type PayslipLineItemAvgAggregateInputType = {
   amount?: true
+  pcbTaxableAmount?: true
 }
 
 export type PayslipLineItemSumAggregateInputType = {
   amount?: true
+  pcbTaxableAmount?: true
 }
 
 export type PayslipLineItemMinAggregateInputType = {
@@ -97,6 +104,7 @@ export type PayslipLineItemMinAggregateInputType = {
   kind?: true
   label?: true
   amount?: true
+  pcbTaxableAmount?: true
   claimId?: true
   subjectToEpf?: true
   subjectToSocso?: true
@@ -112,6 +120,7 @@ export type PayslipLineItemMaxAggregateInputType = {
   kind?: true
   label?: true
   amount?: true
+  pcbTaxableAmount?: true
   claimId?: true
   subjectToEpf?: true
   subjectToSocso?: true
@@ -127,6 +136,7 @@ export type PayslipLineItemCountAggregateInputType = {
   kind?: true
   label?: true
   amount?: true
+  pcbTaxableAmount?: true
   claimId?: true
   subjectToEpf?: true
   subjectToSocso?: true
@@ -229,6 +239,7 @@ export type PayslipLineItemGroupByOutputType = {
   kind: $Enums.PayslipLineKind
   label: string
   amount: runtime.Decimal
+  pcbTaxableAmount: runtime.Decimal | null
   claimId: string | null
   subjectToEpf: boolean
   subjectToSocso: boolean
@@ -267,6 +278,7 @@ export type PayslipLineItemWhereInput = {
   kind?: Prisma.EnumPayslipLineKindFilter<"PayslipLineItem"> | $Enums.PayslipLineKind
   label?: Prisma.StringFilter<"PayslipLineItem"> | string
   amount?: Prisma.DecimalFilter<"PayslipLineItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.DecimalNullableFilter<"PayslipLineItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: Prisma.StringNullableFilter<"PayslipLineItem"> | string | null
   subjectToEpf?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
   subjectToSocso?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
@@ -284,6 +296,7 @@ export type PayslipLineItemOrderByWithRelationInput = {
   kind?: Prisma.SortOrder
   label?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  pcbTaxableAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   claimId?: Prisma.SortOrderInput | Prisma.SortOrder
   subjectToEpf?: Prisma.SortOrder
   subjectToSocso?: Prisma.SortOrder
@@ -306,6 +319,7 @@ export type PayslipLineItemWhereUniqueInput = Prisma.AtLeast<{
   kind?: Prisma.EnumPayslipLineKindFilter<"PayslipLineItem"> | $Enums.PayslipLineKind
   label?: Prisma.StringFilter<"PayslipLineItem"> | string
   amount?: Prisma.DecimalFilter<"PayslipLineItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.DecimalNullableFilter<"PayslipLineItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   subjectToEpf?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
   subjectToSocso?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
   subjectToEis?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
@@ -322,6 +336,7 @@ export type PayslipLineItemOrderByWithAggregationInput = {
   kind?: Prisma.SortOrder
   label?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  pcbTaxableAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   claimId?: Prisma.SortOrderInput | Prisma.SortOrder
   subjectToEpf?: Prisma.SortOrder
   subjectToSocso?: Prisma.SortOrder
@@ -345,6 +360,7 @@ export type PayslipLineItemScalarWhereWithAggregatesInput = {
   kind?: Prisma.EnumPayslipLineKindWithAggregatesFilter<"PayslipLineItem"> | $Enums.PayslipLineKind
   label?: Prisma.StringWithAggregatesFilter<"PayslipLineItem"> | string
   amount?: Prisma.DecimalWithAggregatesFilter<"PayslipLineItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.DecimalNullableWithAggregatesFilter<"PayslipLineItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: Prisma.StringNullableWithAggregatesFilter<"PayslipLineItem"> | string | null
   subjectToEpf?: Prisma.BoolWithAggregatesFilter<"PayslipLineItem"> | boolean
   subjectToSocso?: Prisma.BoolWithAggregatesFilter<"PayslipLineItem"> | boolean
@@ -359,6 +375,7 @@ export type PayslipLineItemCreateInput = {
   kind: $Enums.PayslipLineKind
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   subjectToEpf?: boolean
   subjectToSocso?: boolean
   subjectToEis?: boolean
@@ -375,6 +392,7 @@ export type PayslipLineItemUncheckedCreateInput = {
   kind: $Enums.PayslipLineKind
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: string | null
   subjectToEpf?: boolean
   subjectToSocso?: boolean
@@ -389,6 +407,7 @@ export type PayslipLineItemUpdateInput = {
   kind?: Prisma.EnumPayslipLineKindFieldUpdateOperationsInput | $Enums.PayslipLineKind
   label?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   subjectToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToSocso?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -405,6 +424,7 @@ export type PayslipLineItemUncheckedUpdateInput = {
   kind?: Prisma.EnumPayslipLineKindFieldUpdateOperationsInput | $Enums.PayslipLineKind
   label?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subjectToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToSocso?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -420,6 +440,7 @@ export type PayslipLineItemCreateManyInput = {
   kind: $Enums.PayslipLineKind
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: string | null
   subjectToEpf?: boolean
   subjectToSocso?: boolean
@@ -434,6 +455,7 @@ export type PayslipLineItemUpdateManyMutationInput = {
   kind?: Prisma.EnumPayslipLineKindFieldUpdateOperationsInput | $Enums.PayslipLineKind
   label?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   subjectToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToSocso?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -448,6 +470,7 @@ export type PayslipLineItemUncheckedUpdateManyInput = {
   kind?: Prisma.EnumPayslipLineKindFieldUpdateOperationsInput | $Enums.PayslipLineKind
   label?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subjectToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToSocso?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -484,6 +507,7 @@ export type PayslipLineItemCountOrderByAggregateInput = {
   kind?: Prisma.SortOrder
   label?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  pcbTaxableAmount?: Prisma.SortOrder
   claimId?: Prisma.SortOrder
   subjectToEpf?: Prisma.SortOrder
   subjectToSocso?: Prisma.SortOrder
@@ -495,6 +519,7 @@ export type PayslipLineItemCountOrderByAggregateInput = {
 
 export type PayslipLineItemAvgOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  pcbTaxableAmount?: Prisma.SortOrder
 }
 
 export type PayslipLineItemMaxOrderByAggregateInput = {
@@ -503,6 +528,7 @@ export type PayslipLineItemMaxOrderByAggregateInput = {
   kind?: Prisma.SortOrder
   label?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  pcbTaxableAmount?: Prisma.SortOrder
   claimId?: Prisma.SortOrder
   subjectToEpf?: Prisma.SortOrder
   subjectToSocso?: Prisma.SortOrder
@@ -518,6 +544,7 @@ export type PayslipLineItemMinOrderByAggregateInput = {
   kind?: Prisma.SortOrder
   label?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  pcbTaxableAmount?: Prisma.SortOrder
   claimId?: Prisma.SortOrder
   subjectToEpf?: Prisma.SortOrder
   subjectToSocso?: Prisma.SortOrder
@@ -529,6 +556,7 @@ export type PayslipLineItemMinOrderByAggregateInput = {
 
 export type PayslipLineItemSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  pcbTaxableAmount?: Prisma.SortOrder
 }
 
 export type PayslipLineItemCreateNestedOneWithoutClaimInput = {
@@ -614,6 +642,7 @@ export type PayslipLineItemCreateWithoutClaimInput = {
   kind: $Enums.PayslipLineKind
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   subjectToEpf?: boolean
   subjectToSocso?: boolean
   subjectToEis?: boolean
@@ -629,6 +658,7 @@ export type PayslipLineItemUncheckedCreateWithoutClaimInput = {
   kind: $Enums.PayslipLineKind
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   subjectToEpf?: boolean
   subjectToSocso?: boolean
   subjectToEis?: boolean
@@ -658,6 +688,7 @@ export type PayslipLineItemUpdateWithoutClaimInput = {
   kind?: Prisma.EnumPayslipLineKindFieldUpdateOperationsInput | $Enums.PayslipLineKind
   label?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   subjectToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToSocso?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -673,6 +704,7 @@ export type PayslipLineItemUncheckedUpdateWithoutClaimInput = {
   kind?: Prisma.EnumPayslipLineKindFieldUpdateOperationsInput | $Enums.PayslipLineKind
   label?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   subjectToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToSocso?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -686,6 +718,7 @@ export type PayslipLineItemCreateWithoutPayslipInput = {
   kind: $Enums.PayslipLineKind
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   subjectToEpf?: boolean
   subjectToSocso?: boolean
   subjectToEis?: boolean
@@ -700,6 +733,7 @@ export type PayslipLineItemUncheckedCreateWithoutPayslipInput = {
   kind: $Enums.PayslipLineKind
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: string | null
   subjectToEpf?: boolean
   subjectToSocso?: boolean
@@ -744,6 +778,7 @@ export type PayslipLineItemScalarWhereInput = {
   kind?: Prisma.EnumPayslipLineKindFilter<"PayslipLineItem"> | $Enums.PayslipLineKind
   label?: Prisma.StringFilter<"PayslipLineItem"> | string
   amount?: Prisma.DecimalFilter<"PayslipLineItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.DecimalNullableFilter<"PayslipLineItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: Prisma.StringNullableFilter<"PayslipLineItem"> | string | null
   subjectToEpf?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
   subjectToSocso?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
@@ -758,6 +793,7 @@ export type PayslipLineItemCreateManyPayslipInput = {
   kind: $Enums.PayslipLineKind
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: string | null
   subjectToEpf?: boolean
   subjectToSocso?: boolean
@@ -772,6 +808,7 @@ export type PayslipLineItemUpdateWithoutPayslipInput = {
   kind?: Prisma.EnumPayslipLineKindFieldUpdateOperationsInput | $Enums.PayslipLineKind
   label?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   subjectToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToSocso?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -786,6 +823,7 @@ export type PayslipLineItemUncheckedUpdateWithoutPayslipInput = {
   kind?: Prisma.EnumPayslipLineKindFieldUpdateOperationsInput | $Enums.PayslipLineKind
   label?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subjectToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToSocso?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -800,6 +838,7 @@ export type PayslipLineItemUncheckedUpdateManyWithoutPayslipInput = {
   kind?: Prisma.EnumPayslipLineKindFieldUpdateOperationsInput | $Enums.PayslipLineKind
   label?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbTaxableAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   claimId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subjectToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToSocso?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -817,6 +856,7 @@ export type PayslipLineItemSelect<ExtArgs extends runtime.Types.Extensions.Inter
   kind?: boolean
   label?: boolean
   amount?: boolean
+  pcbTaxableAmount?: boolean
   claimId?: boolean
   subjectToEpf?: boolean
   subjectToSocso?: boolean
@@ -836,6 +876,7 @@ export type PayslipLineItemSelectScalar = {
   kind?: boolean
   label?: boolean
   amount?: boolean
+  pcbTaxableAmount?: boolean
   claimId?: boolean
   subjectToEpf?: boolean
   subjectToSocso?: boolean
@@ -845,7 +886,7 @@ export type PayslipLineItemSelectScalar = {
   category?: boolean
 }
 
-export type PayslipLineItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payslipId" | "kind" | "label" | "amount" | "claimId" | "subjectToEpf" | "subjectToSocso" | "subjectToEis" | "subjectToPcb" | "createdAt" | "category", ExtArgs["result"]["payslipLineItem"]>
+export type PayslipLineItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payslipId" | "kind" | "label" | "amount" | "pcbTaxableAmount" | "claimId" | "subjectToEpf" | "subjectToSocso" | "subjectToEis" | "subjectToPcb" | "createdAt" | "category", ExtArgs["result"]["payslipLineItem"]>
 export type PayslipLineItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   claim?: boolean | Prisma.PayslipLineItem$claimArgs<ExtArgs>
   payslip?: boolean | Prisma.PayslipDefaultArgs<ExtArgs>
@@ -870,6 +911,19 @@ export type $PayslipLineItemPayload<ExtArgs extends runtime.Types.Extensions.Int
      * kind determines sign at calc time).
      */
     amount: runtime.Decimal
+    /**
+     * PCB-taxable portion of `amount` — after applying any per-item
+     * LHDN `taxExemptLimit` at write time. Nullable for two reasons:
+     * 1. Legacy rows written before this column existed have NULL,
+     * and reads must fall back to `amount` for those (matches the
+     * old behavior where the full amount fed next month's Y).
+     * 2. Line items with no exemption cap (most rows) can also carry
+     * NULL to signal "no clamp applied; use amount as-is".
+     * Reads (`getYtdForEmployee.ytdTaxable`) use COALESCE(pcbTaxableAmount, amount)
+     * so previously-exempted portions don't leak into the next month's
+     * LHDN Y accumulation.
+     */
+    pcbTaxableAmount: runtime.Decimal | null
     /**
      * FK to the original AltomateHR claim when this line item is a
      * REIMBURSEMENT. Unique so a single claim can only ever sit on one
@@ -1266,6 +1320,7 @@ export interface PayslipLineItemFieldRefs {
   readonly kind: Prisma.FieldRef<"PayslipLineItem", 'PayslipLineKind'>
   readonly label: Prisma.FieldRef<"PayslipLineItem", 'String'>
   readonly amount: Prisma.FieldRef<"PayslipLineItem", 'Decimal'>
+  readonly pcbTaxableAmount: Prisma.FieldRef<"PayslipLineItem", 'Decimal'>
   readonly claimId: Prisma.FieldRef<"PayslipLineItem", 'String'>
   readonly subjectToEpf: Prisma.FieldRef<"PayslipLineItem", 'Boolean'>
   readonly subjectToSocso: Prisma.FieldRef<"PayslipLineItem", 'Boolean'>

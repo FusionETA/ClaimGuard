@@ -430,6 +430,10 @@ function buildImportedPayslipInput(input: {
     kind: "ALLOWANCE" | "DEDUCTION" | "REIMBURSEMENT"
     label: string
     amount: number
+    /// YTD-imported rows never apply per-line taxExemptLimit clamping
+    /// (the admin is entering pre-aggregated figures), so this is
+    /// always null — the ytd read path falls back to `amount`.
+    pcbTaxableAmount: number | null
     category: string | null
     subjectToEpf: boolean
     subjectToSocso: boolean
@@ -442,6 +446,7 @@ function buildImportedPayslipInput(input: {
         kind: "ALLOWANCE",
         label,
         amount: round2(amount),
+        pcbTaxableAmount: null,
         category: null,
         subjectToEpf: true,
         subjectToSocso: true,
@@ -456,6 +461,7 @@ function buildImportedPayslipInput(input: {
         kind: "DEDUCTION",
         label,
         amount: round2(amount),
+        pcbTaxableAmount: null,
         category: null,
         // Deductions don't affect statutory bases — flags ignored on
         // the deduction path but set to false for clarity.
@@ -492,6 +498,7 @@ function buildImportedPayslipInput(input: {
       kind: meta.kind,
       label: meta.label,
       amount: round2(li.amount),
+      pcbTaxableAmount: null,
       category: li.categoryCode,
       subjectToEpf: meta.subjectToEpf,
       subjectToSocso: meta.subjectToSocso,

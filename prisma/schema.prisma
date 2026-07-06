@@ -1907,6 +1907,17 @@ model PayslipLineItem {
   /// Positive for ALLOWANCE/REIMBURSEMENT, positive for DEDUCTION (the
   /// kind determines sign at calc time).
   amount         Decimal         @db.Decimal(12, 2)
+  /// PCB-taxable portion of `amount` — after applying any per-item
+  /// LHDN `taxExemptLimit` at write time. Nullable for two reasons:
+  ///   1. Legacy rows written before this column existed have NULL,
+  ///      and reads must fall back to `amount` for those (matches the
+  ///      old behavior where the full amount fed next month's Y).
+  ///   2. Line items with no exemption cap (most rows) can also carry
+  ///      NULL to signal "no clamp applied; use amount as-is".
+  /// Reads (`getYtdForEmployee.ytdTaxable`) use COALESCE(pcbTaxableAmount, amount)
+  /// so previously-exempted portions don't leak into the next month's
+  /// LHDN Y accumulation.
+  pcbTaxableAmount Decimal?      @db.Decimal(12, 2)
   /// FK to the original AltomateHR claim when this line item is a
   /// REIMBURSEMENT. Unique so a single claim can only ever sit on one
   /// payslip line item. NULL for manual allowance/deduction entries.

@@ -758,6 +758,14 @@ export type CalcPayslipResult = {
     kind: "ALLOWANCE" | "DEDUCTION" | "REIMBURSEMENT"
     label: string
     amount: number
+    /// PCB-taxable portion of `amount` — set only when the category
+    /// has a `taxExemptLimit` and part of `amount` was clamped as
+    /// exempt this month. Null when the whole `amount` is fully
+    /// PCB-taxable (i.e. `pcbTaxable === amount`). Persisted on
+    /// `PayslipLineItem.pcbTaxableAmount` so next month's LHDN Y
+    /// accumulation (`getYtdForEmployee.ytdTaxable`) can subtract
+    /// the exempt portion instead of double-counting it.
+    pcbTaxableAmount: number | null
     /// `PayrollAdjustmentCategory` code when known (every line item
     /// coming from `profile.fixedAllowances` carries one). Null only
     /// for free-form manual deductions and Phase-5 reimbursements
@@ -1099,6 +1107,12 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       kind: meta.kind,
       label: a.name || meta.label,
       amount: amt,
+      // Persist the clamped PCB-taxable portion only when a
+      // `taxExemptLimit` category actually clamped this line (i.e.
+      // pcbTaxable < amt). Otherwise leave null → the ytd read path
+      // falls back to `amount`, matching the pre-fix behaviour for
+      // categories without an exemption cap.
+      pcbTaxableAmount: pcbTaxable < amt ? pcbTaxable : null,
       category: a.category,
       subjectToEpf: meta.subjectToEpf,
       subjectToSocso: meta.subjectToSocso,
@@ -1136,6 +1150,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       kind: "REIMBURSEMENT",
       label: r.label,
       amount: round2(r.amount),
+      pcbTaxableAmount: null,
       category: null,
       claimId: r.id,
       subjectToEpf: false,
@@ -1159,6 +1174,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       kind: "DEDUCTION",
       label: d.label || "Deduction",
       amount: round2(d.amount),
+      pcbTaxableAmount: null,
       category: null,
       subjectToEpf: true,
       subjectToSocso: true,

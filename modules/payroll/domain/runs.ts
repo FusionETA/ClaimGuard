@@ -138,6 +138,11 @@ export type PayslipLineItemData = {
   kind: PayslipLineKind
   label: string
   amount: number
+  /// PCB-taxable portion of `amount` — after applying any per-item
+  /// LHDN `taxExemptLimit` at write time. Null when no clamp applied
+  /// (use `amount` as-is) or on legacy rows written before this
+  /// column existed.
+  pcbTaxableAmount: number | null
   /// `PayrollAdjustmentCategory` code (when known). Nullable on
   /// legacy rows written before the column existed, and on free-form
   /// manual deductions / claim reimbursements that don't tie back to

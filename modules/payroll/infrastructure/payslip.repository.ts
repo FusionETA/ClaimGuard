@@ -89,6 +89,10 @@ export type CreatePayslipInput = {
     kind: "ALLOWANCE" | "DEDUCTION" | "REIMBURSEMENT"
     label: string
     amount: number
+    /// PCB-taxable portion of `amount` (see PayslipLineItemData). Null
+    /// when no `taxExemptLimit` clamp was applied — the write path
+    /// falls back to `amount` in the DB column.
+    pcbTaxableAmount: number | null
     category: string | null
     claimId?: string
     subjectToEpf: boolean
@@ -192,6 +196,7 @@ export const payslipRepository = {
                     subjectToSocso: li.subjectToSocso,
                     subjectToEis: li.subjectToEis,
                     subjectToPcb: li.subjectToPcb,
+                    pcbTaxableAmount: li.pcbTaxableAmount ?? null,
                   })),
                 },
               }
@@ -285,6 +290,7 @@ export const payslipRepository = {
                 subjectToSocso: li.subjectToSocso,
                 subjectToEis: li.subjectToEis,
                 subjectToPcb: li.subjectToPcb,
+                pcbTaxableAmount: li.pcbTaxableAmount ?? null,
               })),
             },
           },
@@ -481,7 +487,8 @@ export const payslipRepository = {
       "deduct_tp1_sports_equipment",
       "deduct_tp1_other",
     ]
-    const [agg, pcbAllowanceAgg, byCategory, tp1Agg] = await Promise.all([
+    const [agg, pcbAllowanceAgg, pcbExemptedAgg, byCategory, tp1Agg] =
+      await Promise.all([
       prisma.payslip.aggregate({
         where: submittedPayslipFilter,
         _sum: {
@@ -502,10 +509,28 @@ export const payslipRepository = {
       // be excluded. Earlier this summed `Payslip.totalAllowances`,
       // which is the FULL cash allowance total — including PCB-exempt
       // rows — and falsely inflated Y for restricted-admin runs.
+      //
+      // Two sums returned here — see the combined-formula comment
+      // below for how they resolve to the per-line COALESCE
+      // (pcbTaxableAmount, amount) semantic we actually want.
       prisma.payslipLineItem.aggregate({
         where: {
           kind: "ALLOWANCE",
           subjectToPcb: true,
+          payslip: submittedPayslipFilter,
+        },
+        _sum: { amount: true, pcbTaxableAmount: true },
+      }),
+      // Rows where `pcbTaxableAmount` was written (i.e. clamped by a
+      // `taxExemptLimit` category at write time). Used to substitute
+      // their `amount` with the clamped `pcbTaxableAmount` in the
+      // total below — otherwise those rows would double-count the
+      // exempt portion into next month's Y.
+      prisma.payslipLineItem.aggregate({
+        where: {
+          kind: "ALLOWANCE",
+          subjectToPcb: true,
+          pcbTaxableAmount: { not: null },
           payslip: submittedPayslipFilter,
         },
         _sum: { amount: true },
@@ -538,10 +563,31 @@ export const payslipRepository = {
       ytdAllowanceByCategory[row.category] = toNumber(row._sum.amount, 0)
     }
 
+    // Per-line COALESCE(pcbTaxableAmount, amount) semantics, computed
+    // from two aggregates because Prisma's `_sum` can't do arithmetic
+    // per row:
+    //   allocatedTaxable
+    //     = SUM(amount WHERE pcbTaxableAmount IS NULL)  ← full amount for legacy / no-cap rows
+    //     + SUM(pcbTaxableAmount WHERE pcbTaxableAmount IS NOT NULL)  ← clamped amount for capped rows
+    //     = (allAmount − exemptedRowsAmount) + pcbTaxableAggregate
+    //
+    // Fixes the taxExemptLimit YTD leak: a travel-official RM 1,500
+    // that was fully exempt in Jan (Y=19,000) previously came back in
+    // Feb's ytdTaxable as 1,500 (Y=20,500), pushing PCB up by ~RM 34/mo
+    // and compounding through the year.
+    const pcbAllowanceTotalAmount = toNumber(pcbAllowanceAgg._sum.amount, 0)
+    const pcbExemptedAmount = toNumber(pcbExemptedAgg._sum.amount, 0)
+    const pcbTaxableFromClamped = toNumber(
+      pcbAllowanceAgg._sum.pcbTaxableAmount,
+      0,
+    )
+    const pcbAllowanceTaxable =
+      pcbAllowanceTotalAmount - pcbExemptedAmount + pcbTaxableFromClamped
+
     return {
       ytdTaxable:
         toNumber(agg._sum.proratedPay, 0) +
-        toNumber(pcbAllowanceAgg._sum.amount, 0) +
+        pcbAllowanceTaxable +
         toNumber(agg._sum.otPay, 0),
       // ytdPcb intentionally uses only Payslip.pcb (formula-calculated
       // portion). Payslip.cp38 + Payslip.voluntaryPcb are EXCLUDED per
@@ -874,6 +920,8 @@ function mapPayslipLineItem(row: any): PayslipLineItemData {
     kind: row.kind,
     label: row.label,
     amount: toNumber(row.amount, 0),
+    pcbTaxableAmount:
+      row.pcbTaxableAmount == null ? null : toNumber(row.pcbTaxableAmount, 0),
     category: row.category ?? null,
     claimId: row.claimId ?? null,
     subjectToEpf: row.subjectToEpf,
