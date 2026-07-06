@@ -1,4 +1,4 @@
-import { AlertTriangle, ThumbsDown } from "lucide-react"
+import { ThumbsDown } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -41,9 +41,6 @@ export function SupervisorPerformanceCard({
   slaMinutes: number
   filterBar?: FilterBarProps
 }) {
-  const slow = rows
-    .filter((r) => r.slowApprovalCount > 0)
-    .sort((a, b) => b.slowApprovalCount - a.slowApprovalCount)
   const rejecters = rows
     .filter((r) => r.rejectedCount > 0)
     .sort((a, b) => b.rejectedCount - a.rejectedCount)
@@ -54,7 +51,6 @@ export function SupervisorPerformanceCard({
         <div>
           <CardTitle>Supervisor performance</CardTitle>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Slow approvals exceed {slaMinutes} min from event to review.
             Rejections are any rejected approval in the selected range.
           </p>
         </div>
@@ -71,20 +67,6 @@ export function SupervisorPerformanceCard({
             value={filterBar.value}
           />
         ) : null}
-        <div className="grid gap-4 lg:grid-cols-2">
-        <PerformanceList
-          title="Slow approvals"
-          subtitle={`> ${slaMinutes} min`}
-          icon={<AlertTriangle className="h-4 w-4" />}
-          accent="bg-tertiary/10 text-tertiary"
-          empty="Every supervisor reviewed within the SLA."
-          rows={slow}
-          render={(r) => (
-            <span className="text-xs font-semibold text-tertiary">
-              {r.slowApprovalCount} slow · max {fmtDelay(r.maxDelayMinutes)}
-            </span>
-          )}
-        />
         <PerformanceList
           title="Frequent rejecters"
           subtitle="Any rejection"
@@ -104,7 +86,6 @@ export function SupervisorPerformanceCard({
             )
           }}
         />
-        </div>
       </CardContent>
     </Card>
   )
