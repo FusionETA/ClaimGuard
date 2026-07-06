@@ -206,7 +206,7 @@ const PDF_DATA: Array<{ empNo: string; basicSalary: number; breakdown: Record<st
 // HOUSE ALL                → bik_living_accommodation
 // EXP.ALL                  → allowance_standard
 // REFUND                   → wages_expense_claim
-// OTH. DEDUCTION           → deduct_advance
+// OTH. DEDUCTION           → deduct_miscellaneous
 // ZAKAT                    → deduct_zakat (offsets PCB per calcPayslip)
 
 type LineItem = {
@@ -308,7 +308,7 @@ function buildLineItems(breakdown: Record<string, number>): LineItem[] {
   if (othDeduction > 0) {
     items.push({
       kind: "DEDUCTION",
-      category: "deduct_advance",
+      category: "deduct_miscellaneous",
       label: "OTH. DEDUCTION",
       amount: Math.round(othDeduction * 100) / 100,
     })
