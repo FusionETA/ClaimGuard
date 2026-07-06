@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { isAdminRole } from "@/lib/auth/types"
 import { safeErrorMessage } from "@/lib/errors"
+import { log } from "@/lib/log"
 import { z } from "zod"
 
 import {
@@ -416,6 +417,19 @@ export async function createHierarchyMemberAction(
     })
     linkedExistingUser = result.linkedExistingUser === true
   } catch (error) {
+    // Diagnostic: the catch previously swallowed the real cause, leaving
+    // only the user-facing "Unable to create employee" message with no
+    // server-side trail. Log the actual error + safe context (never the
+    // password) so we can see WHY a create fails in prod. stdout-only.
+    log.error("employee.create.failed", {
+      organizationId,
+      email: parsed.data.email,
+      employeeId: parsed.data.employeeId,
+      role: parsed.data.role,
+      projectCount: parsed.data.projectIds.length,
+      leaveMethod: parsed.data.leaveMethod,
+      err: error,
+    })
     return {
       ...createInitialAddHierarchyMemberFormState(values),
       status: "error",

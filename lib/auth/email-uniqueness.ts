@@ -74,7 +74,10 @@ export async function findActiveUserByEmail(
       role: true,
       organizationId: true,
       passwordHash: true,
-      employeeProfile: {
+      // `employeeProfiles` is a LIST (a User can hold a profile at more
+      // than one org since the multi-org change). We only need each
+      // profile's archived flag to decide active-vs-archived.
+      employeeProfiles: {
         select: { payrollProfile: { select: { isArchived: true } } },
       },
     },
@@ -82,7 +85,7 @@ export async function findActiveUserByEmail(
   for (const c of candidates) {
     if (isActiveCandidate(c)) {
       // Strip the join projection — caller only needs the User fields.
-      const { employeeProfile: _unused, ...rest } = c
+      const { employeeProfiles: _unused, ...rest } = c
       void _unused
       return rest
     }
@@ -130,8 +133,15 @@ export async function assertEmailAvailableForNewUser(input: {
     select: {
       id: true,
       organizationId: true,
-      employeeProfile: {
-        select: { payrollProfile: { select: { isArchived: true } } },
+      // List, post multi-org. Carry each profile's org so the
+      // "archived in THIS org" check below reads the profile's org
+      // (not the User's home-org scalar, which is meaningless once a
+      // user spans multiple orgs).
+      employeeProfiles: {
+        select: {
+          organizationId: true,
+          payrollProfile: { select: { isArchived: true } },
+        },
       },
     },
   })
@@ -144,13 +154,16 @@ export async function assertEmailAvailableForNewUser(input: {
       "This email is already in use by an active employee.",
     )
   }
-  // No active match anywhere. Check for archived rows IN THIS ORG.
+  // No active match anywhere. Check for an archived profile IN THIS ORG.
   if (input.orgId) {
-    if (
-      candidates.some(
-        (c) => c.organizationId === input.orgId && isArchivedCandidate(c),
-      )
-    ) {
+    const archivedInThisOrg = candidates.some((c) =>
+      c.employeeProfiles.some(
+        (p) =>
+          p.organizationId === input.orgId &&
+          p.payrollProfile?.isArchived === true,
+      ),
+    )
+    if (archivedInThisOrg) {
       throw new EmailNotAvailableError(
         "ARCHIVED_SAME_ORG",
         "This email belongs to an archived employee in this organisation. Use Restore on their profile instead of adding a duplicate.",
@@ -164,22 +177,14 @@ export async function assertEmailAvailableForNewUser(input: {
 // ─── Internals ──────────────────────────────────────────────────────
 
 function isActiveCandidate(c: {
-  employeeProfile: {
+  employeeProfiles: Array<{
     payrollProfile: { isArchived: boolean } | null
-  } | null
+  }>
 }): boolean {
-  const pp = c.employeeProfile?.payrollProfile
-  // No payroll profile at all = active (admin / OWNER without payroll).
-  if (!pp) return true
-  return pp.isArchived === false
-}
-
-function isArchivedCandidate(c: {
-  employeeProfile: {
-    payrollProfile: { isArchived: boolean } | null
-  } | null
-}): boolean {
-  const pp = c.employeeProfile?.payrollProfile
-  if (!pp) return false
-  return pp.isArchived === true
+  // No profile at all = active (admin / OWNER without payroll).
+  if (c.employeeProfiles.length === 0) return true
+  // Active if ANY profile is non-archived. A profile with no
+  // PayrollProfile counts as active — same rule as the single-profile
+  // era ("no payroll profile = active"), just applied per profile.
+  return c.employeeProfiles.some((p) => p.payrollProfile?.isArchived !== true)
 }
