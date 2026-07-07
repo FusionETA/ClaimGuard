@@ -28,6 +28,7 @@ import {
 import { DeletePayrollRunDraftButton } from "@/components/admin/delete-payroll-run-draft-button"
 import { DownloadPayrollSummaryButton } from "@/components/admin/download-payroll-summary-button"
 import { GeneratePayslipsButton } from "@/components/admin/generate-payslips-button"
+import { ImportPayrollAdjustmentsDialog } from "@/components/admin/import-payroll-adjustments-dialog"
 import { PayrollDownloadsModal } from "@/components/admin/payroll-downloads-modal"
 import { PayrollRunEmployeeTables } from "@/components/admin/payroll-run-employee-tables"
 import { PayslipsListPanel } from "@/components/admin/payslip-list-panel"
@@ -560,6 +561,13 @@ export default async function AdminPayrollRunDetailPage({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <DeletePayrollRunDraftButton runId={data.run.id} />
           <div className="flex flex-wrap items-center gap-2">
+            <ImportPayrollAdjustmentsDialog
+              runId={data.run.id}
+              periodLabel={periodLabel(
+                data.run.periodYear,
+                data.run.periodMonth,
+              )}
+            />
             <GeneratePayslipsButton
               runId={data.run.id}
               hasExisting={data.payslips.length > 0}

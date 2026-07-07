@@ -6,6 +6,11 @@ import { safeErrorMessage } from "@/lib/errors"
 import { applySalaryChangeHint } from "@/modules/payroll/application/services/salary-change-hints.service"
 import { generatePayrollReport } from "@/modules/payroll/application/services/payroll-reports.service"
 import { getPayrollPayslipDetailPageData } from "@/modules/payroll/application/services/payroll-run.service"
+import {
+  importPayrollRunAdjustments,
+  type AdjustmentImportError,
+  type AdjustmentImportSummary,
+} from "@/modules/payroll/application/services/payroll-run-adjustment-import.service"
 import type { PayrollReportKind } from "@/modules/payroll/domain/reports"
 import type { PayslipData } from "@/modules/payroll/domain/runs"
 
@@ -115,6 +120,55 @@ export async function applySalaryChangeHintAction(input: {
     return {
       status: "error",
       message: safeErrorMessage(err, "Could not apply this adjustment."),
+    }
+  }
+}
+
+/**
+ * Bulk-import per-run manual adjustments from an XLSX file. REPLACE
+ * semantics — every existing manualLineItems on the run gets wiped
+ * and rebuilt from the file. DRAFT runs only.
+ *
+ * The client posts the file as multipart/form-data with two fields:
+ *   - runId: string
+ *   - file:  Blob (the .xlsx)
+ */
+export async function importPayrollRunAdjustmentsAction(
+  formData: FormData,
+): Promise<AdjustmentImportSummary | AdjustmentImportError> {
+  const runId = String(formData.get("runId") ?? "")
+  if (runId.length === 0) {
+    return { status: "error", message: "Missing run id." }
+  }
+  const file = formData.get("file")
+  if (!(file instanceof Blob) || file.size === 0) {
+    return {
+      status: "error",
+      message: "Attach an .xlsx file before submitting.",
+    }
+  }
+  // Cheap upper bound so a huge upload can't OOM the server. Adjustment
+  // files should be a few thousand rows at most.
+  if (file.size > 10 * 1024 * 1024) {
+    return {
+      status: "error",
+      message: "File is too large (max 10 MB).",
+    }
+  }
+  try {
+    const arrayBuffer = await file.arrayBuffer()
+    const result = await importPayrollRunAdjustments({
+      runId,
+      fileBuffer: arrayBuffer,
+    })
+    if (result.status === "success") {
+      revalidatePath(`/admin/payroll/runs/${runId}`)
+    }
+    return result
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not import the file."),
     }
   }
 }
