@@ -59,6 +59,7 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     children: [
       { href: "/employee/attendance", label: "Dashboard" },
       { href: "/employee/attendance/history", label: "History" },
+      { href: "/employee/attendance/overtime", label: "Overtime" },
       { href: "/employee/attendance/team", label: "Team", supervisorOnly: true },
       { href: "/employee/attendance/approvals", label: "Approvals", supervisorOnly: true },
     ],

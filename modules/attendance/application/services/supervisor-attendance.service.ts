@@ -42,6 +42,12 @@ export const supervisorAttendanceService = {
     return attendanceRepository.getPendingApprovalsForSupervisor(supervisorId)
   },
 
+  async getReviewedOtForTeam(
+    supervisorId: string,
+  ): Promise<ApprovalRequestView[]> {
+    return attendanceRepository.getReviewedOtForSupervisor(supervisorId)
+  },
+
   async countPendingApprovalsForSupervisor(supervisorId: string): Promise<number> {
     return attendanceRepository.countPendingApprovalsForSupervisor(supervisorId)
   },

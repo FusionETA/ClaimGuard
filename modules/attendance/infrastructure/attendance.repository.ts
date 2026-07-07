@@ -2624,10 +2624,21 @@ export const attendanceRepository = {
     const records = await prisma.approvalRequest.findMany({
       where: { employeeId: { in: memberIds }, status: "PENDING" },
       orderBy: { submittedAt: "desc" },
-      include: { employee: { select: { name: true } } },
+      include: {
+        employee: { select: { name: true } },
+        otAttachments: { orderBy: { createdAt: "asc" } },
+      },
       take: 100,
     })
-    const baseViews = records.map(approvalToView)
+    const baseViews = records.map((r) => ({
+      ...approvalToView(r),
+      attachments: r.otAttachments.map((a) => ({
+        id: a.id,
+        fileName: a.fileName,
+        fileUrl: a.fileUrl,
+        mimeType: a.mimeType,
+      })),
+    }))
     const withContext = await attachChainContext(baseViews)
     // Only show requests where this supervisor is among the current step's
     // approvers — multi-layer chain enforcement.
@@ -2635,6 +2646,36 @@ export const attendanceRepository = {
       v.currentStepApproverIds.includes(supervisorId),
     )
     return backfillLateMinutes(filtered, prisma)
+  },
+
+  async getReviewedOtForSupervisor(
+    supervisorId: string,
+  ): Promise<ApprovalRequestView[]> {
+    const prisma = getClient()
+    const memberIds = await this.getTeamMemberIds(supervisorId)
+    if (memberIds.length === 0) return []
+    const records = await prisma.approvalRequest.findMany({
+      where: {
+        employeeId: { in: memberIds },
+        kind: "OT",
+        status: { in: ["APPROVED", "REJECTED"] },
+      },
+      orderBy: { reviewedAt: "desc" },
+      include: {
+        employee: { select: { name: true } },
+        otAttachments: { orderBy: { createdAt: "asc" } },
+      },
+      take: 50,
+    })
+    return records.map((r) => ({
+      ...approvalToView(r),
+      attachments: r.otAttachments.map((a) => ({
+        id: a.id,
+        fileName: a.fileName,
+        fileUrl: a.fileUrl,
+        mimeType: a.mimeType,
+      })),
+    }))
   },
 
   async getEmployeeProfile(employeeId: string): Promise<{
@@ -3414,10 +3455,23 @@ export const attendanceRepository = {
     const records = await prisma.approvalRequest.findMany({
       where,
       orderBy: { submittedAt: "desc" },
-      include: { employee: { select: { name: true } } },
+      include: {
+        employee: { select: { name: true } },
+        otAttachments: { orderBy: { createdAt: "asc" } },
+      },
       take: 200,
     })
-    const withContext = await attachChainContext(records.map(approvalToView))
+    const withContext = await attachChainContext(
+      records.map((r) => ({
+        ...approvalToView(r),
+        attachments: r.otAttachments.map((a) => ({
+          id: a.id,
+          fileName: a.fileName,
+          fileUrl: a.fileUrl,
+          mimeType: a.mimeType,
+        })),
+      })),
+    )
     return backfillLateMinutes(withContext, prisma)
   },
 
@@ -4640,6 +4694,7 @@ export const attendanceRepository = {
       submittedAt: string
       reviewerName: string | null
       reviewedAt: string | null
+      attachments: { id: string; fileName: string; fileUrl: string; mimeType: string }[]
     }>
   > {
     const prisma = getClient()
@@ -4664,6 +4719,7 @@ export const attendanceRepository = {
       include: {
         employee: { select: { name: true } },
         reviewer: { select: { name: true } },
+        otAttachments: { orderBy: { createdAt: "asc" } },
       },
     })
 
@@ -4681,6 +4737,12 @@ export const attendanceRepository = {
       submittedAt: r.submittedAt.toISOString(),
       reviewerName: r.reviewer?.name ?? null,
       reviewedAt: r.reviewedAt?.toISOString() ?? null,
+      attachments: r.otAttachments.map((a) => ({
+        id: a.id,
+        fileName: a.fileName,
+        fileUrl: a.fileUrl,
+        mimeType: a.mimeType,
+      })),
     }))
   },
 

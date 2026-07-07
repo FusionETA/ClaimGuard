@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2 } from "lucide-react"
+import { AlertTriangle, CheckCircle2, FileText } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/attendance/ui/avatar"
 import { Badge } from "@/components/attendance/ui/badge"
@@ -371,6 +371,22 @@ export function EmployeeDetailView({
                       </p>
                     ) : null}
                     <p className="mt-1 text-xs text-muted-foreground">{r.detail}</p>
+                    {r.attachments.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-2">
+                        {r.attachments.map((a) => (
+                          <a
+                            key={a.id}
+                            href={a.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          >
+                            <FileText className="h-3 w-3 shrink-0" />
+                            <span className="max-w-[160px] truncate">{a.fileName}</span>
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <Badge variant={APPROVAL_VARIANT[r.status] as never}>
                     {approvalStatusMeta[r.status].label}

@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo, useState, useTransition } from "react"
-import { Search } from "lucide-react"
+import React, { useMemo, useState, useTransition } from "react"
+import { ChevronDown, ChevronUp, FileText, Search } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Button } from "@/components/attendance/ui/button"
@@ -90,6 +90,7 @@ export function OtAdminTable({ initialRows, initialFrom, initialTo }: Props) {
   const [search, setSearch] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   function handleApply() {
     setError(null)
@@ -222,69 +223,108 @@ export function OtAdminTable({ initialRows, initialFrom, initialTo }: Props) {
                   <th className="bg-card py-2 pr-3 font-semibold">Type</th>
                   <th className="bg-card py-2 pr-3 font-semibold">Reviewed by</th>
                   <th className="bg-card py-2 pr-3 font-semibold">Status</th>
+                  <th className="bg-card py-2 pr-3 font-semibold"></th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-border/30 text-foreground last:border-0"
-                  >
-                    <td className="py-2.5 pl-3 pr-3">
-                      <p className="font-medium">{row.employeeName}</p>
-                      {row.project ? (
-                        <p className="text-[11px] text-muted-foreground">{row.project}</p>
-                      ) : null}
-                      {row.detail ? (
-                        <p className="mt-0.5 max-w-[200px] truncate text-[11px] text-muted-foreground">
-                          {row.detail}
-                        </p>
-                      ) : null}
-                    </td>
-                    <td className="py-2.5 pr-3 text-xs tabular-nums">
-                      {fmtDate(row.date)}
-                    </td>
-                    <td className="py-2.5 pr-3 text-xs tabular-nums" suppressHydrationWarning>
-                      {row.otStartAt && row.otEndAt ? (
-                        <span suppressHydrationWarning>
-                          {fmtTime(row.otStartAt)} – {fmtTime(row.otEndAt)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="py-2.5 pr-3 text-xs font-medium tabular-nums">
-                      {row.otStartAt && row.otEndAt
-                        ? fmtDuration(row.otStartAt, row.otEndAt)
-                        : "—"}
-                    </td>
-                    <td className="py-2.5 pr-3 text-xs">
-                      {row.otSubtype ? (
-                        otSubtypeMeta[row.otSubtype as keyof typeof otSubtypeMeta]?.label
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="py-2.5 pr-3 text-xs">
-                      {row.reviewerName ? (
-                        <div>
-                          <p>{row.reviewerName}</p>
-                          {row.reviewedAt ? (
-                            <p className="text-[11px] text-muted-foreground" suppressHydrationWarning>
-                              {fmtDate(row.reviewedAt)}
-                            </p>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="py-2.5 pr-3">
-                      <Badge variant={APPROVAL_VARIANT[row.status] as never}>
-                        {approvalStatusMeta[row.status].label}
-                      </Badge>
-                    </td>
-                  </tr>
+                  <React.Fragment key={row.id}>
+                    <tr
+                      className="border-b border-border/30 text-foreground last:border-0"
+                    >
+                      <td className="py-2.5 pl-3 pr-3">
+                        <p className="font-medium">{row.employeeName}</p>
+                        {row.project ? (
+                          <p className="text-[11px] text-muted-foreground">{row.project}</p>
+                        ) : null}
+                        {row.detail ? (
+                          <p className="mt-0.5 max-w-[200px] truncate text-[11px] text-muted-foreground">
+                            {row.detail}
+                          </p>
+                        ) : null}
+                      </td>
+                      <td className="py-2.5 pr-3 text-xs tabular-nums">
+                        {fmtDate(row.date)}
+                      </td>
+                      <td className="py-2.5 pr-3 text-xs tabular-nums" suppressHydrationWarning>
+                        {row.otStartAt && row.otEndAt ? (
+                          <span suppressHydrationWarning>
+                            {fmtTime(row.otStartAt)} – {fmtTime(row.otEndAt)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 pr-3 text-xs font-medium tabular-nums">
+                        {row.otStartAt && row.otEndAt
+                          ? fmtDuration(row.otStartAt, row.otEndAt)
+                          : "—"}
+                      </td>
+                      <td className="py-2.5 pr-3 text-xs">
+                        {row.otSubtype ? (
+                          otSubtypeMeta[row.otSubtype as keyof typeof otSubtypeMeta]?.label
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 pr-3 text-xs">
+                        {row.reviewerName ? (
+                          <div>
+                            <p>{row.reviewerName}</p>
+                            {row.reviewedAt ? (
+                              <p className="text-[11px] text-muted-foreground" suppressHydrationWarning>
+                                {fmtDate(row.reviewedAt)}
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 pr-3">
+                        <Badge variant={APPROVAL_VARIANT[row.status] as never}>
+                          {approvalStatusMeta[row.status].label}
+                        </Badge>
+                      </td>
+                      <td className="py-2.5 pr-3">
+                        {row.attachments.length > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => setExpandedId(expandedId === row.id ? null : row.id)}
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                            title="View evidence"
+                          >
+                            <FileText className="h-3.5 w-3.5" />
+                            <span>{row.attachments.length}</span>
+                            {expandedId === row.id
+                              ? <ChevronUp className="h-3 w-3" />
+                              : <ChevronDown className="h-3 w-3" />
+                            }
+                          </button>
+                        ) : null}
+                      </td>
+                    </tr>
+                    {expandedId === row.id && row.attachments.length > 0 && (
+                      <tr className="border-b border-border/30 bg-secondary/20">
+                        <td colSpan={8} className="px-3 py-2">
+                          <div className="flex flex-wrap gap-3">
+                            {row.attachments.map((a) => (
+                              <a
+                                key={a.id}
+                                href={a.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                              >
+                                <FileText className="h-3.5 w-3.5 shrink-0" />
+                                <span className="max-w-[200px] truncate">{a.fileName}</span>
+                              </a>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
