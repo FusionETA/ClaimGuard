@@ -237,6 +237,39 @@ export const payrollRunRepository = {
   },
 
   /**
+   * True iff the org has ANY SUBMITTED payroll run whose period is
+   * strictly BEFORE the given period (across all prior years).
+   *
+   * Used by the chronological-order guard on submit to distinguish
+   * "first run for this org, no prior months required" from "org has
+   * been running payroll for months, and someone is trying to submit
+   * ahead of a gap".
+   */
+  async hasEarlierSubmittedRun(input: {
+    organizationId: string
+    periodYear: number
+    periodMonth: number
+  }): Promise<boolean> {
+    const prisma = getPrismaClient()
+    if (!prisma) return false
+    const row = await prisma.payrollRun.findFirst({
+      where: {
+        organizationId: input.organizationId,
+        status: "SUBMITTED",
+        OR: [
+          { periodYear: { lt: input.periodYear } },
+          {
+            periodYear: input.periodYear,
+            periodMonth: { lt: input.periodMonth },
+          },
+        ],
+      },
+      select: { id: true },
+    })
+    return row !== null
+  },
+
+  /**
    * Return the earliest submitted run after the requested period.
    * Backdated drafts are only blocked by submitted later periods;
    * later drafts remain editable and do not lock chronology.

@@ -454,13 +454,25 @@ export async function submitPayrollRunForApproval(input: {
     )
   }
 
-  // Guard 3 — chronological order. A month can't be submitted while
-  // the immediately-preceding month's run is still sitting unsubmitted
-  // (DRAFT / PENDING_APPROVAL). This stops admins skipping ahead and
-  // leaving an earlier month un-finalised. We only block when a prior
-  // run actually EXISTS but isn't SUBMITTED yet — if there's simply no
-  // run for the previous month (e.g. the org's first run, or a month
-  // genuinely skipped), submission is allowed.
+  // Guard 3 — chronological order. Two-part check:
+  //
+  //   3a. If a prior-month run EXISTS but isn't SUBMITTED yet
+  //       (DRAFT / PENDING_APPROVAL), block. Admin can't skip ahead
+  //       past a run they've already started.
+  //
+  //   3b. If there's NO prior-month run at all but the org has ANY
+  //       earlier SUBMITTED run (i.e. this is a GAP, not the org's
+  //       first run), block too. This closes the "Feb submitted while
+  //       Jan didn't exist yet" bug — Feb's snapshot freezes with
+  //       ytdTaxable=0 / ytdEpf=0 / ytdPcb=0 because getYtdForEmployee
+  //       only sums SUBMITTED payslips, and no Jan payslips exist yet.
+  //       Once Jan is finally submitted, Feb stays wrong forever —
+  //       payslip snapshots are immutable.
+  //
+  // Both branches share the same actionable message: submit the
+  // missing / draft prior period FIRST. Only when there's genuinely
+  // no earlier submitted run (fresh org onboarding at some later
+  // month) do we allow the current submit through.
   const prevPeriod =
     run.periodMonth > 1
       ? { year: run.periodYear, month: run.periodMonth - 1 }
@@ -470,10 +482,26 @@ export async function submitPayrollRunForApproval(input: {
     periodYear: prevPeriod.year,
     periodMonth: prevPeriod.month,
   })
-  if (previousRun && previousRun.status !== "SUBMITTED") {
-    throw new Error(
-      `Submit ${periodLabel(prevPeriod.year, prevPeriod.month)} first — payroll runs must be submitted in order, and that month's run is still ${PAYROLL_RUN_STATUS_LABELS[previousRun.status].toLowerCase()}.`,
-    )
+  if (previousRun) {
+    if (previousRun.status !== "SUBMITTED") {
+      throw new Error(
+        `Submit ${periodLabel(prevPeriod.year, prevPeriod.month)} first — payroll runs must be submitted in order, and that month's run is still ${PAYROLL_RUN_STATUS_LABELS[previousRun.status].toLowerCase()}.`,
+      )
+    }
+  } else {
+    // No prior-month run row — is this a genuine first-ever submission
+    // for this org, or is a gap being papered over?
+    const hasEarlierSubmitted =
+      await payrollRunRepository.hasEarlierSubmittedRun({
+        organizationId: orgId,
+        periodYear: run.periodYear,
+        periodMonth: run.periodMonth,
+      })
+    if (hasEarlierSubmitted) {
+      throw new Error(
+        `Create and submit ${periodLabel(prevPeriod.year, prevPeriod.month)} first — you have earlier submitted runs but no run for that month. Skipping it would freeze this month's PCB / EPF / SOCSO with zero YTD (payslip snapshots can't be edited after submission).`,
+      )
+    }
   }
 
   // Guard 4 — statutory readiness. Block the submit if Company Info or
