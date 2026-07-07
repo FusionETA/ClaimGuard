@@ -59,7 +59,6 @@ export async function generateAdjustmentImportTemplate(input: {
     periodLabel: periodLabel(run.periodYear, run.periodMonth),
     employees: employees.map((e) => ({
       name: e.name || "(no name)",
-      jobTitle: e.jobTitle || null,
     })),
   })
 

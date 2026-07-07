@@ -13,10 +13,10 @@ import {
  * profiles and applying the changes is the import service's job.
  *
  * Expected shape (first sheet, header row 1):
- *   | Full Name | Category | Label | Amount | Notes |
+ *   | Full Name | Category | Label | Amount |
  *
  * Column matching is done by lowercased header text so admins can
- * safely reorder columns or drop the optional "Notes" column.
+ * safely reorder columns.
  *
  * The parser is intentionally strict: if ANY row is malformed, it
  * refuses the whole file (via `errors`), matching the product decision
@@ -35,7 +35,6 @@ export type ParsedAdjustmentRow = {
   category: PayrollAdjustmentCategory
   label: string
   amount: number
-  notes: string | null
 }
 
 export type ParsedAdjustmentImport = {
@@ -122,7 +121,6 @@ export async function parseAdjustmentImport(
   const categoryCol = columnByHeader.get("category")
   const labelCol = columnByHeader.get("label")
   const amountCol = columnByHeader.get("amount")
-  const notesCol = columnByHeader.get("notes") ?? null
 
   const missing: string[] = []
   if (!nameCol) missing.push("Full Name")
@@ -155,7 +153,6 @@ export async function parseAdjustmentImport(
     const rawCategory = cellText(row.getCell(categoryCol!))
     const rawLabel = cellText(row.getCell(labelCol!))
     const rawAmount = cellNumeric(row.getCell(amountCol!))
-    const rawNotes = notesCol == null ? "" : cellText(row.getCell(notesCol))
 
     if (rawName.length === 0) {
       rowErrors.push({ rowNumber: r, message: "Full Name is required." })
@@ -193,7 +190,6 @@ export async function parseAdjustmentImport(
       // Round to 2dp — sheet floats sometimes come through as 500.0000001
       // and we don't want to persist those.
       amount: Math.round(rawAmount * 100) / 100,
-      notes: rawNotes.length > 0 ? rawNotes : null,
     })
   }
 
