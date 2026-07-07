@@ -1906,10 +1906,6 @@ export type NullableEnumMaritalStatusFieldUpdateOperationsInput = {
   set?: $Enums.MaritalStatus | null
 }
 
-export type NullableBoolFieldUpdateOperationsInput = {
-  set?: boolean | null
-}
-
 export type NullableEnumSocsoSchemeFieldUpdateOperationsInput = {
   set?: $Enums.SocsoScheme | null
 }

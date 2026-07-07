@@ -1,10 +1,12 @@
 "use server"
 
+import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { safeErrorMessage } from "@/lib/errors"
 
 import { requirePortalSession } from "@/lib/auth/session"
 import { bustAttendanceCaches } from "@/lib/cache-invalidation"
+import { extractClientIp } from "@/lib/ip-whitelist"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 
@@ -69,6 +71,10 @@ export async function clockInAction(
   const coords = parseCoords(formData)
   const notes = parseNotes(formData)
   const selfie = parseSelfie(formData)
+  // Client IP for the policy-gated IP-whitelist check. Extracted here
+  // (Next.js's headers() is only available in server actions) and
+  // passed into the service so the domain layer stays HTTP-agnostic.
+  const clientIp = extractClientIp(await headers())
   try {
     await employeeAttendanceService.clockIn(
       session.userId,
@@ -76,6 +82,7 @@ export async function clockInAction(
       coords,
       notes,
       selfie,
+      clientIp,
     )
   } catch (err) {
     return { error: safeErrorMessage(err, "Could not clock in") }

@@ -60,6 +60,8 @@ export type AttendanceSessionMinAggregateOutputType = {
   clockInLat: number | null
   clockInLng: number | null
   clockInDistanceMeters: number | null
+  clockInIpAddress: string | null
+  clockInIpAllowed: boolean | null
   clockOutLat: number | null
   clockOutLng: number | null
   clockOutDistanceMeters: number | null
@@ -86,6 +88,8 @@ export type AttendanceSessionMaxAggregateOutputType = {
   clockInLat: number | null
   clockInLng: number | null
   clockInDistanceMeters: number | null
+  clockInIpAddress: string | null
+  clockInIpAllowed: boolean | null
   clockOutLat: number | null
   clockOutLng: number | null
   clockOutDistanceMeters: number | null
@@ -112,6 +116,8 @@ export type AttendanceSessionCountAggregateOutputType = {
   clockInLat: number
   clockInLng: number
   clockInDistanceMeters: number
+  clockInIpAddress: number
+  clockInIpAllowed: number
   clockOutLat: number
   clockOutLng: number
   clockOutDistanceMeters: number
@@ -160,6 +166,8 @@ export type AttendanceSessionMinAggregateInputType = {
   clockInLat?: true
   clockInLng?: true
   clockInDistanceMeters?: true
+  clockInIpAddress?: true
+  clockInIpAllowed?: true
   clockOutLat?: true
   clockOutLng?: true
   clockOutDistanceMeters?: true
@@ -186,6 +194,8 @@ export type AttendanceSessionMaxAggregateInputType = {
   clockInLat?: true
   clockInLng?: true
   clockInDistanceMeters?: true
+  clockInIpAddress?: true
+  clockInIpAllowed?: true
   clockOutLat?: true
   clockOutLng?: true
   clockOutDistanceMeters?: true
@@ -212,6 +222,8 @@ export type AttendanceSessionCountAggregateInputType = {
   clockInLat?: true
   clockInLng?: true
   clockInDistanceMeters?: true
+  clockInIpAddress?: true
+  clockInIpAllowed?: true
   clockOutLat?: true
   clockOutLng?: true
   clockOutDistanceMeters?: true
@@ -325,6 +337,8 @@ export type AttendanceSessionGroupByOutputType = {
   clockInLat: number | null
   clockInLng: number | null
   clockInDistanceMeters: number | null
+  clockInIpAddress: string | null
+  clockInIpAllowed: boolean | null
   clockOutLat: number | null
   clockOutLng: number | null
   clockOutDistanceMeters: number | null
@@ -374,6 +388,8 @@ export type AttendanceSessionWhereInput = {
   clockInLat?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockInLng?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockInDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
+  clockInIpAddress?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
+  clockInIpAllowed?: Prisma.BoolNullableFilter<"AttendanceSession"> | boolean | null
   clockOutLat?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockOutLng?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockOutDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
@@ -402,6 +418,8 @@ export type AttendanceSessionOrderByWithRelationInput = {
   clockInLat?: Prisma.SortOrderInput | Prisma.SortOrder
   clockInLng?: Prisma.SortOrderInput | Prisma.SortOrder
   clockInDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
+  clockInIpAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  clockInIpAllowed?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutLat?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutLng?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -436,6 +454,8 @@ export type AttendanceSessionWhereUniqueInput = Prisma.AtLeast<{
   clockInLat?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockInLng?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockInDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
+  clockInIpAddress?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
+  clockInIpAllowed?: Prisma.BoolNullableFilter<"AttendanceSession"> | boolean | null
   clockOutLat?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockOutLng?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockOutDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
@@ -462,6 +482,8 @@ export type AttendanceSessionOrderByWithAggregationInput = {
   clockInLat?: Prisma.SortOrderInput | Prisma.SortOrder
   clockInLng?: Prisma.SortOrderInput | Prisma.SortOrder
   clockInDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
+  clockInIpAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  clockInIpAllowed?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutLat?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutLng?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -496,6 +518,8 @@ export type AttendanceSessionScalarWhereWithAggregatesInput = {
   clockInLat?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceSession"> | number | null
   clockInLng?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceSession"> | number | null
   clockInDistanceMeters?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceSession"> | number | null
+  clockInIpAddress?: Prisma.StringNullableWithAggregatesFilter<"AttendanceSession"> | string | null
+  clockInIpAllowed?: Prisma.BoolNullableWithAggregatesFilter<"AttendanceSession"> | boolean | null
   clockOutLat?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceSession"> | number | null
   clockOutLng?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceSession"> | number | null
   clockOutDistanceMeters?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceSession"> | number | null
@@ -521,6 +545,8 @@ export type AttendanceSessionCreateInput = {
   clockInLat?: number | null
   clockInLng?: number | null
   clockInDistanceMeters?: number | null
+  clockInIpAddress?: string | null
+  clockInIpAllowed?: boolean | null
   clockOutLat?: number | null
   clockOutLng?: number | null
   clockOutDistanceMeters?: number | null
@@ -549,6 +575,8 @@ export type AttendanceSessionUncheckedCreateInput = {
   clockInLat?: number | null
   clockInLng?: number | null
   clockInDistanceMeters?: number | null
+  clockInIpAddress?: string | null
+  clockInIpAllowed?: boolean | null
   clockOutLat?: number | null
   clockOutLng?: number | null
   clockOutDistanceMeters?: number | null
@@ -575,6 +603,8 @@ export type AttendanceSessionUpdateInput = {
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInIpAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInIpAllowed?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -603,6 +633,8 @@ export type AttendanceSessionUncheckedUpdateInput = {
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInIpAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInIpAllowed?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -630,6 +662,8 @@ export type AttendanceSessionCreateManyInput = {
   clockInLat?: number | null
   clockInLng?: number | null
   clockInDistanceMeters?: number | null
+  clockInIpAddress?: string | null
+  clockInIpAllowed?: boolean | null
   clockOutLat?: number | null
   clockOutLng?: number | null
   clockOutDistanceMeters?: number | null
@@ -655,6 +689,8 @@ export type AttendanceSessionUpdateManyMutationInput = {
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInIpAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInIpAllowed?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -681,6 +717,8 @@ export type AttendanceSessionUncheckedUpdateManyInput = {
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInIpAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInIpAllowed?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -728,6 +766,8 @@ export type AttendanceSessionCountOrderByAggregateInput = {
   clockInLat?: Prisma.SortOrder
   clockInLng?: Prisma.SortOrder
   clockInDistanceMeters?: Prisma.SortOrder
+  clockInIpAddress?: Prisma.SortOrder
+  clockInIpAllowed?: Prisma.SortOrder
   clockOutLat?: Prisma.SortOrder
   clockOutLng?: Prisma.SortOrder
   clockOutDistanceMeters?: Prisma.SortOrder
@@ -764,6 +804,8 @@ export type AttendanceSessionMaxOrderByAggregateInput = {
   clockInLat?: Prisma.SortOrder
   clockInLng?: Prisma.SortOrder
   clockInDistanceMeters?: Prisma.SortOrder
+  clockInIpAddress?: Prisma.SortOrder
+  clockInIpAllowed?: Prisma.SortOrder
   clockOutLat?: Prisma.SortOrder
   clockOutLng?: Prisma.SortOrder
   clockOutDistanceMeters?: Prisma.SortOrder
@@ -790,6 +832,8 @@ export type AttendanceSessionMinOrderByAggregateInput = {
   clockInLat?: Prisma.SortOrder
   clockInLng?: Prisma.SortOrder
   clockInDistanceMeters?: Prisma.SortOrder
+  clockInIpAddress?: Prisma.SortOrder
+  clockInIpAllowed?: Prisma.SortOrder
   clockOutLat?: Prisma.SortOrder
   clockOutLng?: Prisma.SortOrder
   clockOutDistanceMeters?: Prisma.SortOrder
@@ -874,6 +918,10 @@ export type AttendanceSessionUpdateOneWithoutBreaksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AttendanceSessionUpdateToOneWithWhereWithoutBreaksInput, Prisma.AttendanceSessionUpdateWithoutBreaksInput>, Prisma.AttendanceSessionUncheckedUpdateWithoutBreaksInput>
 }
 
+export type NullableBoolFieldUpdateOperationsInput = {
+  set?: boolean | null
+}
+
 export type AttendanceSessionCreateWithoutAttendanceRecordInput = {
   id?: string
   startedAt: Date | string
@@ -883,6 +931,8 @@ export type AttendanceSessionCreateWithoutAttendanceRecordInput = {
   clockInLat?: number | null
   clockInLng?: number | null
   clockInDistanceMeters?: number | null
+  clockInIpAddress?: string | null
+  clockInIpAllowed?: boolean | null
   clockOutLat?: number | null
   clockOutLng?: number | null
   clockOutDistanceMeters?: number | null
@@ -909,6 +959,8 @@ export type AttendanceSessionUncheckedCreateWithoutAttendanceRecordInput = {
   clockInLat?: number | null
   clockInLng?: number | null
   clockInDistanceMeters?: number | null
+  clockInIpAddress?: string | null
+  clockInIpAllowed?: boolean | null
   clockOutLat?: number | null
   clockOutLng?: number | null
   clockOutDistanceMeters?: number | null
@@ -965,6 +1017,8 @@ export type AttendanceSessionScalarWhereInput = {
   clockInLat?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockInLng?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockInDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
+  clockInIpAddress?: Prisma.StringNullableFilter<"AttendanceSession"> | string | null
+  clockInIpAllowed?: Prisma.BoolNullableFilter<"AttendanceSession"> | boolean | null
   clockOutLat?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockOutLng?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
   clockOutDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceSession"> | number | null
@@ -990,6 +1044,8 @@ export type AttendanceSessionCreateWithoutBreaksInput = {
   clockInLat?: number | null
   clockInLng?: number | null
   clockInDistanceMeters?: number | null
+  clockInIpAddress?: string | null
+  clockInIpAllowed?: boolean | null
   clockOutLat?: number | null
   clockOutLng?: number | null
   clockOutDistanceMeters?: number | null
@@ -1017,6 +1073,8 @@ export type AttendanceSessionUncheckedCreateWithoutBreaksInput = {
   clockInLat?: number | null
   clockInLng?: number | null
   clockInDistanceMeters?: number | null
+  clockInIpAddress?: string | null
+  clockInIpAllowed?: boolean | null
   clockOutLat?: number | null
   clockOutLng?: number | null
   clockOutDistanceMeters?: number | null
@@ -1058,6 +1116,8 @@ export type AttendanceSessionUpdateWithoutBreaksInput = {
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInIpAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInIpAllowed?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -1085,6 +1145,8 @@ export type AttendanceSessionUncheckedUpdateWithoutBreaksInput = {
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInIpAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInIpAllowed?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -1110,6 +1172,8 @@ export type AttendanceSessionCreateManyAttendanceRecordInput = {
   clockInLat?: number | null
   clockInLng?: number | null
   clockInDistanceMeters?: number | null
+  clockInIpAddress?: string | null
+  clockInIpAllowed?: boolean | null
   clockOutLat?: number | null
   clockOutLng?: number | null
   clockOutDistanceMeters?: number | null
@@ -1135,6 +1199,8 @@ export type AttendanceSessionUpdateWithoutAttendanceRecordInput = {
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInIpAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInIpAllowed?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -1161,6 +1227,8 @@ export type AttendanceSessionUncheckedUpdateWithoutAttendanceRecordInput = {
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInIpAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInIpAllowed?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -1187,6 +1255,8 @@ export type AttendanceSessionUncheckedUpdateManyWithoutAttendanceRecordInput = {
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInIpAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInIpAllowed?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -1244,6 +1314,8 @@ export type AttendanceSessionSelect<ExtArgs extends runtime.Types.Extensions.Int
   clockInLat?: boolean
   clockInLng?: boolean
   clockInDistanceMeters?: boolean
+  clockInIpAddress?: boolean
+  clockInIpAllowed?: boolean
   clockOutLat?: boolean
   clockOutLng?: boolean
   clockOutDistanceMeters?: boolean
@@ -1275,6 +1347,8 @@ export type AttendanceSessionSelectScalar = {
   clockInLat?: boolean
   clockInLng?: boolean
   clockInDistanceMeters?: boolean
+  clockInIpAddress?: boolean
+  clockInIpAllowed?: boolean
   clockOutLat?: boolean
   clockOutLng?: boolean
   clockOutDistanceMeters?: boolean
@@ -1291,7 +1365,7 @@ export type AttendanceSessionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AttendanceSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "attendanceRecordId" | "startedAt" | "endedAt" | "durationMin" | "status" | "clockInLat" | "clockInLng" | "clockInDistanceMeters" | "clockOutLat" | "clockOutLng" | "clockOutDistanceMeters" | "clockInNotes" | "clockOutNotes" | "xeroSelfieFileId" | "selfieUploadedAt" | "project" | "projectId" | "clockInApprovalRequestId" | "clockOutApprovalRequestId" | "isAutoClockOut" | "createdAt" | "updatedAt", ExtArgs["result"]["attendanceSession"]>
+export type AttendanceSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "attendanceRecordId" | "startedAt" | "endedAt" | "durationMin" | "status" | "clockInLat" | "clockInLng" | "clockInDistanceMeters" | "clockInIpAddress" | "clockInIpAllowed" | "clockOutLat" | "clockOutLng" | "clockOutDistanceMeters" | "clockInNotes" | "clockOutNotes" | "xeroSelfieFileId" | "selfieUploadedAt" | "project" | "projectId" | "clockInApprovalRequestId" | "clockOutApprovalRequestId" | "isAutoClockOut" | "createdAt" | "updatedAt", ExtArgs["result"]["attendanceSession"]>
 export type AttendanceSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attendanceRecord?: boolean | Prisma.AttendanceRecordDefaultArgs<ExtArgs>
   breaks?: boolean | Prisma.AttendanceSession$breaksArgs<ExtArgs>
@@ -1314,6 +1388,22 @@ export type $AttendanceSessionPayload<ExtArgs extends runtime.Types.Extensions.I
     clockInLat: number | null
     clockInLng: number | null
     clockInDistanceMeters: number | null
+    /**
+     * Client IP address the employee clocked in from. Set only when
+     * their policy has `requireIpWhitelist = true` (feature-off →
+     * null, saves a column write on the geofence-only common case).
+     * Persisted for audit / supervisor review; roll call surfaces the
+     * paired boolean below as a chip.
+     */
+    clockInIpAddress: string | null
+    /**
+     * True when the IP above matched an entry in the project's
+     * `allowedIps`. False when the IP-check ran and mismatched (the
+     * employee still clocked in via the remark-override flow, same as
+     * off-geofence). Null when the check was skipped (feature-off or
+     * project has no IPs configured).
+     */
+    clockInIpAllowed: boolean | null
     clockOutLat: number | null
     clockOutLng: number | null
     clockOutDistanceMeters: number | null
@@ -1726,6 +1816,8 @@ export interface AttendanceSessionFieldRefs {
   readonly clockInLat: Prisma.FieldRef<"AttendanceSession", 'Float'>
   readonly clockInLng: Prisma.FieldRef<"AttendanceSession", 'Float'>
   readonly clockInDistanceMeters: Prisma.FieldRef<"AttendanceSession", 'Float'>
+  readonly clockInIpAddress: Prisma.FieldRef<"AttendanceSession", 'String'>
+  readonly clockInIpAllowed: Prisma.FieldRef<"AttendanceSession", 'Boolean'>
   readonly clockOutLat: Prisma.FieldRef<"AttendanceSession", 'Float'>
   readonly clockOutLng: Prisma.FieldRef<"AttendanceSession", 'Float'>
   readonly clockOutDistanceMeters: Prisma.FieldRef<"AttendanceSession", 'Float'>

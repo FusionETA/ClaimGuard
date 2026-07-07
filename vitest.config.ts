@@ -20,7 +20,10 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["modules/**/domain/__tests__/**/*.test.ts"],
+    include: [
+      "modules/**/domain/__tests__/**/*.test.ts",
+      "lib/__tests__/**/*.test.ts",
+    ],
     environment: "node",
     // Pure-function tests should be fast.
     testTimeout: 5000,

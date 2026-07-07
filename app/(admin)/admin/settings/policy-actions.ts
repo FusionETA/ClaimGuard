@@ -23,6 +23,7 @@ const baseSchema = z.object({
   /// TIME_BANK and OT is enabled.
   otMode: z.enum(["NONE", "CASH", "TIME_BANK"]),
   requireGeofence: z.boolean(),
+  requireIpWhitelist: z.boolean(),
   /// Master + per-event GPS capture flags. All optional in the Zod
   /// schema since the form might omit them on legacy templates; the
   /// repo's create/update writes a default of true when undefined.
@@ -150,6 +151,7 @@ export async function createPolicyAction(
     salaryType: String(formData.get("salaryType") ?? "HOURLY"),
     otMode: String(formData.get("otMode") ?? "CASH"),
     requireGeofence: parseBoolFlag(formData, "requireGeofence"),
+    requireIpWhitelist: parseBoolFlag(formData, "requireIpWhitelist"),
     geolocationEnabled: parseBoolFlag(formData, "geolocationEnabled"),
     captureLocationOnClockIn: parseBoolFlag(formData, "captureLocationOnClockIn"),
     captureLocationOnClockOut: parseBoolFlag(formData, "captureLocationOnClockOut"),
@@ -185,6 +187,7 @@ export async function createPolicyAction(
       otEnabled: ot.otEnabled,
       otMethod: ot.otMethod,
       requireGeofence: parsed.data.requireGeofence,
+      requireIpWhitelist: parsed.data.requireIpWhitelist,
       geolocationEnabled: parsed.data.geolocationEnabled,
       captureLocationOnClockIn: parsed.data.captureLocationOnClockIn,
       captureLocationOnClockOut: parsed.data.captureLocationOnClockOut,
@@ -251,6 +254,7 @@ export async function updatePolicyAction(
     salaryType: String(formData.get("salaryType") ?? "HOURLY"),
     otMode: String(formData.get("otMode") ?? "CASH"),
     requireGeofence: parseBoolFlag(formData, "requireGeofence"),
+    requireIpWhitelist: parseBoolFlag(formData, "requireIpWhitelist"),
     geolocationEnabled: parseBoolFlag(formData, "geolocationEnabled"),
     captureLocationOnClockIn: parseBoolFlag(formData, "captureLocationOnClockIn"),
     captureLocationOnClockOut: parseBoolFlag(formData, "captureLocationOnClockOut"),
@@ -287,6 +291,7 @@ export async function updatePolicyAction(
       otEnabled: ot.otEnabled,
       otMethod: ot.otMethod,
       requireGeofence: parsed.data.requireGeofence,
+      requireIpWhitelist: parsed.data.requireIpWhitelist,
       geolocationEnabled: parsed.data.geolocationEnabled,
       captureLocationOnClockIn: parsed.data.captureLocationOnClockIn,
       captureLocationOnClockOut: parsed.data.captureLocationOnClockOut,

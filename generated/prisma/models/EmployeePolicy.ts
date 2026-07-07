@@ -72,6 +72,7 @@ export type EmployeePolicyMinAggregateOutputType = {
   updatedAt: Date | null
   otEnabled: boolean | null
   requireGeofence: boolean | null
+  requireIpWhitelist: boolean | null
   requireSelfie: boolean | null
   requireClockOutSelfie: boolean | null
   otDailyThresholdMinutes: number | null
@@ -107,6 +108,7 @@ export type EmployeePolicyMaxAggregateOutputType = {
   updatedAt: Date | null
   otEnabled: boolean | null
   requireGeofence: boolean | null
+  requireIpWhitelist: boolean | null
   requireSelfie: boolean | null
   requireClockOutSelfie: boolean | null
   otDailyThresholdMinutes: number | null
@@ -142,6 +144,7 @@ export type EmployeePolicyCountAggregateOutputType = {
   updatedAt: number
   otEnabled: number
   requireGeofence: number
+  requireIpWhitelist: number
   requireSelfie: number
   requireClockOutSelfie: number
   otDailyThresholdMinutes: number
@@ -201,6 +204,7 @@ export type EmployeePolicyMinAggregateInputType = {
   updatedAt?: true
   otEnabled?: true
   requireGeofence?: true
+  requireIpWhitelist?: true
   requireSelfie?: true
   requireClockOutSelfie?: true
   otDailyThresholdMinutes?: true
@@ -236,6 +240,7 @@ export type EmployeePolicyMaxAggregateInputType = {
   updatedAt?: true
   otEnabled?: true
   requireGeofence?: true
+  requireIpWhitelist?: true
   requireSelfie?: true
   requireClockOutSelfie?: true
   otDailyThresholdMinutes?: true
@@ -271,6 +276,7 @@ export type EmployeePolicyCountAggregateInputType = {
   updatedAt?: true
   otEnabled?: true
   requireGeofence?: true
+  requireIpWhitelist?: true
   requireSelfie?: true
   requireClockOutSelfie?: true
   otDailyThresholdMinutes?: true
@@ -393,6 +399,7 @@ export type EmployeePolicyGroupByOutputType = {
   updatedAt: Date
   otEnabled: boolean
   requireGeofence: boolean
+  requireIpWhitelist: boolean
   requireSelfie: boolean
   requireClockOutSelfie: boolean
   otDailyThresholdMinutes: number
@@ -451,6 +458,7 @@ export type EmployeePolicyWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  requireIpWhitelist?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireClockOutSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
@@ -489,6 +497,7 @@ export type EmployeePolicyOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  requireIpWhitelist?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
   requireClockOutSelfie?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
@@ -532,6 +541,7 @@ export type EmployeePolicyWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  requireIpWhitelist?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireClockOutSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
@@ -570,6 +580,7 @@ export type EmployeePolicyOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  requireIpWhitelist?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
   requireClockOutSelfie?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
@@ -613,6 +624,7 @@ export type EmployeePolicyScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeePolicy"> | Date | string
   otEnabled?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
+  requireIpWhitelist?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   requireClockOutSelfie?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   otDailyThresholdMinutes?: Prisma.IntWithAggregatesFilter<"EmployeePolicy"> | number
@@ -647,6 +659,7 @@ export type EmployeePolicyCreateInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: number
@@ -685,6 +698,7 @@ export type EmployeePolicyUncheckedCreateInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: number
@@ -721,6 +735,7 @@ export type EmployeePolicyUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -759,6 +774,7 @@ export type EmployeePolicyUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -796,6 +812,7 @@ export type EmployeePolicyCreateManyInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: number
@@ -830,6 +847,7 @@ export type EmployeePolicyUpdateManyMutationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -865,6 +883,7 @@ export type EmployeePolicyUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -921,6 +940,7 @@ export type EmployeePolicyCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  requireIpWhitelist?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
   requireClockOutSelfie?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
@@ -967,6 +987,7 @@ export type EmployeePolicyMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  requireIpWhitelist?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
   requireClockOutSelfie?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
@@ -1002,6 +1023,7 @@ export type EmployeePolicyMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  requireIpWhitelist?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
   requireClockOutSelfie?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
@@ -1153,6 +1175,7 @@ export type EmployeePolicyCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: number
@@ -1189,6 +1212,7 @@ export type EmployeePolicyUncheckedCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: number
@@ -1255,6 +1279,7 @@ export type EmployeePolicyScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  requireIpWhitelist?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireClockOutSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
@@ -1289,6 +1314,7 @@ export type EmployeePolicyCreateWithoutEmployeesInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: number
@@ -1326,6 +1352,7 @@ export type EmployeePolicyUncheckedCreateWithoutEmployeesInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: number
@@ -1377,6 +1404,7 @@ export type EmployeePolicyUpdateWithoutEmployeesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1414,6 +1442,7 @@ export type EmployeePolicyUncheckedUpdateWithoutEmployeesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1449,6 +1478,7 @@ export type EmployeePolicyCreateWithoutLeaveDefaultsInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: number
@@ -1486,6 +1516,7 @@ export type EmployeePolicyUncheckedCreateWithoutLeaveDefaultsInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: number
@@ -1537,6 +1568,7 @@ export type EmployeePolicyUpdateWithoutLeaveDefaultsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1574,6 +1606,7 @@ export type EmployeePolicyUncheckedUpdateWithoutLeaveDefaultsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1609,6 +1642,7 @@ export type EmployeePolicyCreateManyOrganizationInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: number
@@ -1643,6 +1677,7 @@ export type EmployeePolicyUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1679,6 +1714,7 @@ export type EmployeePolicyUncheckedUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1715,6 +1751,7 @@ export type EmployeePolicyUncheckedUpdateManyWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireIpWhitelist?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireClockOutSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1790,6 +1827,7 @@ export type EmployeePolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   updatedAt?: boolean
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: boolean
@@ -1831,6 +1869,7 @@ export type EmployeePolicySelectScalar = {
   updatedAt?: boolean
   otEnabled?: boolean
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   requireSelfie?: boolean
   requireClockOutSelfie?: boolean
   otDailyThresholdMinutes?: boolean
@@ -1850,7 +1889,7 @@ export type EmployeePolicySelectScalar = {
   autoClockOutAfterMin?: boolean
 }
 
-export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otMethod" | "createdAt" | "updatedAt" | "otEnabled" | "requireGeofence" | "requireSelfie" | "requireClockOutSelfie" | "otDailyThresholdMinutes" | "otRateNormalDay" | "otRatePublicHoliday" | "otRatePublicHolidayInShift" | "otRateRestDay" | "otRateRestDayInShift" | "otSalaryThreshold" | "temporary" | "captureLocationOnBreakEnd" | "captureLocationOnBreakStart" | "captureLocationOnClockIn" | "captureLocationOnClockOut" | "geolocationEnabled" | "autoClockOutEnabled" | "autoClockOutAfterMin", ExtArgs["result"]["employeePolicy"]>
+export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otMethod" | "createdAt" | "updatedAt" | "otEnabled" | "requireGeofence" | "requireIpWhitelist" | "requireSelfie" | "requireClockOutSelfie" | "otDailyThresholdMinutes" | "otRateNormalDay" | "otRatePublicHoliday" | "otRatePublicHolidayInShift" | "otRateRestDay" | "otRateRestDayInShift" | "otSalaryThreshold" | "temporary" | "captureLocationOnBreakEnd" | "captureLocationOnBreakStart" | "captureLocationOnClockIn" | "captureLocationOnClockOut" | "geolocationEnabled" | "autoClockOutEnabled" | "autoClockOutAfterMin", ExtArgs["result"]["employeePolicy"]>
 export type EmployeePolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   employees?: boolean | Prisma.EmployeePolicy$employeesArgs<ExtArgs>
@@ -1898,6 +1937,16 @@ export type $EmployeePolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
      * in. When false, geofence checks are skipped for these employees.
      */
     requireGeofence: boolean
+    /**
+     * When true, employees on this policy must be connected from an IP
+     * address in the project's allowlist (`XeroProject.allowedIps`) to
+     * clock in. Same off-site remark override as geofence — an employee
+     * on 4G / at a client site can still clock in by providing a reason.
+     * Silently skipped when the project has no `allowedIps` configured,
+     * so newly-created projects don't block clock-in until the admin
+     * gets around to populating the list.
+     */
+    requireIpWhitelist: boolean
     /**
      * When true, the clock-in flow gates on a selfie capture. Replaces
      * the legacy `salaryType === HOURLY` heuristic — admins can now turn
@@ -2359,6 +2408,7 @@ export interface EmployeePolicyFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"EmployeePolicy", 'DateTime'>
   readonly otEnabled: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly requireGeofence: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
+  readonly requireIpWhitelist: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly requireSelfie: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly requireClockOutSelfie: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly otDailyThresholdMinutes: Prisma.FieldRef<"EmployeePolicy", 'Int'>

@@ -27,6 +27,10 @@ export type EmployeePolicy = {
   /// in. Radius is configured per project; this flag only decides
   /// whether the check is enforced for this policy's employees.
   requireGeofence: boolean
+  /// When true, employees must be connected from an IP in the project's
+  /// `allowedIps` list to clock in. Off-site remark override same as
+  /// geofence. Silently skipped for projects with no IPs configured.
+  requireIpWhitelist: boolean
   /// Master switch for capturing GPS coords on attendance events.
   /// Auto-enabled by the server when `requireGeofence` is turned on.
   geolocationEnabled: boolean

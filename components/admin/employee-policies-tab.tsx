@@ -550,6 +550,18 @@ function PolicyEditorCard({
               <label className="flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                 <input
                   type="checkbox"
+                  name="requireIpWhitelist"
+                  defaultChecked={policy?.requireIpWhitelist ?? false}
+                  disabled={pending}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="font-medium text-foreground">
+                  Require IP whitelist on clock-in
+                </span>
+              </label>
+              <label className="flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="checkbox"
                   name="requireSelfie"
                   defaultChecked={policy?.requireSelfie ?? false}
                   disabled={pending}

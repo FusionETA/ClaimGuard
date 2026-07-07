@@ -170,6 +170,14 @@ model EmployeePolicy {
   /// geofence (radius set on Organization, lat/lng on Project) to clock
   /// in. When false, geofence checks are skipped for these employees.
   requireGeofence             Boolean                  @default(true)
+  /// When true, employees on this policy must be connected from an IP
+  /// address in the project's allowlist (`XeroProject.allowedIps`) to
+  /// clock in. Same off-site remark override as geofence — an employee
+  /// on 4G / at a client site can still clock in by providing a reason.
+  /// Silently skipped when the project has no `allowedIps` configured,
+  /// so newly-created projects don't block clock-in until the admin
+  /// gets around to populating the list.
+  requireIpWhitelist          Boolean                  @default(false)
   /// When true, the clock-in flow gates on a selfie capture. Replaces
   /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
   /// selfie on for any policy regardless of pay type.
@@ -797,6 +805,13 @@ model XeroProject {
   isDisabled             Boolean                     @default(false)
   latitude               Float?
   longitude              Float?
+  /// Comma-separated list of IPv4 addresses or CIDR ranges (e.g.
+  /// `"203.106.51.10, 118.100.0.0/16"`) the project's employees must
+  /// clock in from when their policy has `requireIpWhitelist = true`.
+  /// Single IPs are treated as `/32` internally. Null / empty →
+  /// IP-check silently skipped for this project even if the policy
+  /// requires it — so new projects don't block clock-in during setup.
+  allowedIps             String?                     @db.Text
   workingHoursStart      String?
   workingHoursEnd        String?
   workingDays            String?
@@ -1045,6 +1060,18 @@ model AttendanceSession {
   clockInLat                Float?
   clockInLng                Float?
   clockInDistanceMeters     Float?
+  /// Client IP address the employee clocked in from. Set only when
+  /// their policy has `requireIpWhitelist = true` (feature-off →
+  /// null, saves a column write on the geofence-only common case).
+  /// Persisted for audit / supervisor review; roll call surfaces the
+  /// paired boolean below as a chip.
+  clockInIpAddress          String?
+  /// True when the IP above matched an entry in the project's
+  /// `allowedIps`. False when the IP-check ran and mismatched (the
+  /// employee still clocked in via the remark-override flow, same as
+  /// off-geofence). Null when the check was skipped (feature-off or
+  /// project has no IPs configured).
+  clockInIpAllowed          Boolean?
   clockOutLat               Float?
   clockOutLng               Float?
   clockOutDistanceMeters    Float?

@@ -1154,6 +1154,19 @@ export const attendanceRepository = {
     return project ?? null
   },
 
+  /// Fetch just the project's comma-separated IP allowlist (raw string
+  /// as the admin typed it) for the clock-in IP-whitelist check. Split
+  /// from `getProjectGeoById` so the service can Promise.all the two
+  /// reads in parallel with the geofence resolve.
+  async getProjectAllowedIps(projectId: string): Promise<string | null> {
+    const prisma = getClient()
+    const row = await prisma.xeroProject.findUnique({
+      where: { id: projectId },
+      select: { allowedIps: true },
+    })
+    return row?.allowedIps ?? null
+  },
+
   async getTodayProjectId(employeeId: string): Promise<string | null> {
     const prisma = getClient()
     const today = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00.000Z")
@@ -1457,6 +1470,12 @@ export const attendanceRepository = {
     projectId?: string,
     notes?: string,
     geo?: { lat: number; lng: number; distanceMeters: number | null },
+    /// IP-whitelist audit fields, only set when the employee's policy
+    /// has `requireIpWhitelist=true` AND a client IP was captured from
+    /// the request. `allowed=null` when the check was skipped (project
+    /// has no allowedIps), `false` when the IP mismatched AND the
+    /// employee provided a remark override.
+    ip?: { address: string; allowed: boolean | null },
   ): Promise<{
     recordId: string
     sessionId: string
@@ -1523,6 +1542,12 @@ export const attendanceRepository = {
               clockInLat: geo.lat,
               clockInLng: geo.lng,
               clockInDistanceMeters: geo.distanceMeters,
+            }
+          : {}),
+        ...(ip
+          ? {
+              clockInIpAddress: ip.address,
+              clockInIpAllowed: ip.allowed,
             }
           : {}),
       },

@@ -725,6 +725,19 @@ export type EnumAttendanceStatusNullableWithAggregatesFilter<$PrismaModel = neve
   _max?: Prisma.NestedEnumAttendanceStatusNullableFilter<$PrismaModel>
 }
 
+export type BoolNullableFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedBoolNullableFilter<$PrismaModel> | boolean | null
+}
+
+export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolNullableFilter<$PrismaModel>
+}
+
 export type EnumBreakSessionEditLog_editorRoleFilter<$PrismaModel = never> = {
   equals?: $Enums.BreakSessionEditLog_editorRole | Prisma.EnumBreakSessionEditLog_editorRoleFieldRefInput<$PrismaModel>
   in?: $Enums.BreakSessionEditLog_editorRole[]
@@ -831,11 +844,6 @@ export type EnumMaritalStatusNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumMaritalStatusNullableFilter<$PrismaModel> | $Enums.MaritalStatus | null
 }
 
-export type BoolNullableFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedBoolNullableFilter<$PrismaModel> | boolean | null
-}
-
 export type EnumSocsoSchemeNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.SocsoScheme | Prisma.EnumSocsoSchemeFieldRefInput<$PrismaModel> | null
   in?: $Enums.SocsoScheme[] | null
@@ -885,14 +893,6 @@ export type EnumMaritalStatusNullableWithAggregatesFilter<$PrismaModel = never> 
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumMaritalStatusNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumMaritalStatusNullableFilter<$PrismaModel>
-}
-
-export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
-  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedBoolNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedBoolNullableFilter<$PrismaModel>
 }
 
 export type EnumSocsoSchemeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -1853,6 +1853,19 @@ export type NestedEnumAttendanceStatusNullableWithAggregatesFilter<$PrismaModel 
   _max?: Prisma.NestedEnumAttendanceStatusNullableFilter<$PrismaModel>
 }
 
+export type NestedBoolNullableFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedBoolNullableFilter<$PrismaModel> | boolean | null
+}
+
+export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolNullableFilter<$PrismaModel>
+}
+
 export type NestedEnumBreakSessionEditLog_editorRoleFilter<$PrismaModel = never> = {
   equals?: $Enums.BreakSessionEditLog_editorRole | Prisma.EnumBreakSessionEditLog_editorRoleFieldRefInput<$PrismaModel>
   in?: $Enums.BreakSessionEditLog_editorRole[]
@@ -1959,11 +1972,6 @@ export type NestedEnumMaritalStatusNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumMaritalStatusNullableFilter<$PrismaModel> | $Enums.MaritalStatus | null
 }
 
-export type NestedBoolNullableFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedBoolNullableFilter<$PrismaModel> | boolean | null
-}
-
 export type NestedEnumSocsoSchemeNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.SocsoScheme | Prisma.EnumSocsoSchemeFieldRefInput<$PrismaModel> | null
   in?: $Enums.SocsoScheme[] | null
@@ -2013,14 +2021,6 @@ export type NestedEnumMaritalStatusNullableWithAggregatesFilter<$PrismaModel = n
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumMaritalStatusNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumMaritalStatusNullableFilter<$PrismaModel>
-}
-
-export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
-  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedBoolNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedBoolNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumSocsoSchemeNullableWithAggregatesFilter<$PrismaModel = never> = {

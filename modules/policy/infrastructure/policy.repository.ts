@@ -22,6 +22,7 @@ type PolicyRow = {
   otEnabled: boolean
   otMethod: OtPayoutMethod
   requireGeofence: boolean
+  requireIpWhitelist: boolean
   geolocationEnabled: boolean
   captureLocationOnClockIn: boolean
   captureLocationOnClockOut: boolean
@@ -56,6 +57,7 @@ function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
     otEnabled: row.otEnabled,
     otMethod: row.otMethod,
     requireGeofence: row.requireGeofence,
+    requireIpWhitelist: row.requireIpWhitelist,
     geolocationEnabled: row.geolocationEnabled,
     captureLocationOnClockIn: row.captureLocationOnClockIn,
     captureLocationOnClockOut: row.captureLocationOnClockOut,
@@ -100,6 +102,7 @@ export type PolicyCreateInput = {
   otEnabled: boolean
   otMethod: OtPayoutMethod
   requireGeofence: boolean
+  requireIpWhitelist?: boolean
   geolocationEnabled?: boolean
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
@@ -125,6 +128,7 @@ export type PolicyUpdateInput = {
   otEnabled?: boolean
   otMethod?: OtPayoutMethod
   requireGeofence?: boolean
+  requireIpWhitelist?: boolean
   geolocationEnabled?: boolean
   captureLocationOnClockIn?: boolean
   captureLocationOnClockOut?: boolean
@@ -212,6 +216,7 @@ export const policyRepository = {
           otEnabled: input.otEnabled,
           otMethod: input.otMethod,
           requireGeofence: input.requireGeofence,
+          requireIpWhitelist: input.requireIpWhitelist ?? false,
           geolocationEnabled,
           captureLocationOnClockIn,
           captureLocationOnClockOut: input.captureLocationOnClockOut ?? true,
@@ -273,6 +278,7 @@ export const policyRepository = {
           otEnabled: input.otEnabled ?? undefined,
           otMethod: input.otMethod ?? undefined,
           requireGeofence: input.requireGeofence ?? undefined,
+          requireIpWhitelist: input.requireIpWhitelist ?? undefined,
           geolocationEnabled: geolocationEnabledPatch,
           captureLocationOnClockIn: captureLocationOnClockInPatch,
           captureLocationOnClockOut:

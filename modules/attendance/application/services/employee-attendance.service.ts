@@ -2,6 +2,7 @@ import "server-only"
 
 import { getOrSetCache } from "@/lib/cache"
 import { DEFAULT_GEOFENCE_RADIUS_METERS, checkGeofence } from "@/lib/geo"
+import { ipMatchesRawAllowlist } from "@/lib/ip-whitelist"
 import { publishUserEvents } from "@/lib/realtime"
 import { key } from "@/lib/redis"
 import {
@@ -27,6 +28,9 @@ const ARCHIVED_XERO_STATUSES = new Set(["CLOSED", "ARCHIVED"])
 const OFF_SITE_REMARK_REQUIRED =
   "You're outside the project geofence. Please add a remark before continuing."
 
+const OFF_NETWORK_REMARK_REQUIRED =
+  "You're not on the office network. If you're at a site visit or WFH, add a remark below to clock in from elsewhere."
+
 /**
  * Resolve the geofence radius for an employee's organisation. Always returns a
  * number — falls back to the system default when no org is set or the org has
@@ -50,6 +54,23 @@ async function policyEnforcesGeofence(employeeId: string): Promise<boolean> {
   })
   if (!row?.policy) return true
   return row.policy.requireGeofence
+}
+
+/// Resolve whether the employee's assigned policy enforces the
+/// IP-whitelist check at clock-in. Defaults to `false` when no policy
+/// is assigned — new-feature semantics; unlike geofence, we don't
+/// silently opt legacy employees in without an admin action.
+async function policyEnforcesIpWhitelist(
+  employeeId: string,
+): Promise<boolean> {
+  const prisma = getAttendancePrismaClientSafe()
+  if (!prisma) return false
+  const row = await prisma.employeeProfile.findFirst({
+    where: { userId: employeeId },
+    select: { policy: { select: { requireIpWhitelist: true } } },
+  })
+  if (!row?.policy) return false
+  return row.policy.requireIpWhitelist
 }
 
 /**
@@ -408,6 +429,13 @@ export const employeeAttendanceService = {
     /// the call site can wire it in once the upload target is decided.
     /// For now we just acknowledge receipt; nothing is persisted.
     selfie?: string,
+    /// Client IP extracted from the request headers by the caller
+    /// (via `lib/ip-whitelist.extractClientIp`). When the employee's
+    /// policy has `requireIpWhitelist=true` AND the project has
+    /// `allowedIps` configured, this must match one of the entries or
+    /// a remark is required. Null → check silently skipped (e.g.
+    /// localhost dev or a request without any proxy headers).
+    clientIp?: string | null,
   ) {
     const [project, orgId] = await Promise.all([
       attendanceRepository.getProjectGeoById(projectId),
@@ -420,6 +448,25 @@ export const employeeAttendanceService = {
     const enforceFence = await policyEnforcesGeofence(employeeId)
     if (enforceFence && !fence.withinRadius && !notes) {
       throw new Error(OFF_SITE_REMARK_REQUIRED)
+    }
+
+    // IP-whitelist check. Runs BEFORE the repo call so we can throw
+    // the remark-required error early without a wasted DB write. Same
+    // remark-override contract as geofence: an off-network employee
+    // can still clock in by providing a reason (site visit / WFH).
+    const [enforceIp, projectAllowedIps] = await Promise.all([
+      policyEnforcesIpWhitelist(employeeId),
+      attendanceRepository.getProjectAllowedIps(projectId),
+    ])
+    // `ipAllowed` tri-state: true (matched), false (mismatch), null
+    // (check skipped — feature-off, project has no IPs, or no client
+    // IP available). Stored on the session for audit / roll-call.
+    let ipAllowed: boolean | null = null
+    if (enforceIp && projectAllowedIps && clientIp) {
+      ipAllowed = ipMatchesRawAllowlist(clientIp, projectAllowedIps)
+      if (!ipAllowed && !notes) {
+        throw new Error(OFF_NETWORK_REMARK_REQUIRED)
+      }
     }
 
     const location = coords
@@ -438,6 +485,9 @@ export const employeeAttendanceService = {
             distanceMeters: fence.distanceMeters,
           }
         : undefined,
+      // IP whitelist audit data. Repo persists these on the newly-
+      // created AttendanceSession row.
+      clientIp && enforceIp ? { address: clientIp, allowed: ipAllowed } : undefined,
     )
 
     // Hourly Worker selfie → Xero Files. Inline (Vercel can't fire-
