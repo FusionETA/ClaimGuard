@@ -5,8 +5,10 @@ import { ApprovalsList } from "./approvals-list"
 
 export default async function ApprovalsPage() {
   const session = await requirePortalSession("SUPERVISOR")
-  const pending =
-    await supervisorAttendanceService.getPendingApprovalsForSupervisor(session.userId)
+  const [pending, reviewedOt] = await Promise.all([
+    supervisorAttendanceService.getPendingApprovalsForSupervisor(session.userId),
+    supervisorAttendanceService.getReviewedOtForTeam(session.userId),
+  ])
 
   return (
     <div className="space-y-4">
@@ -17,7 +19,7 @@ export default async function ApprovalsPage() {
         <h2 className="mt-0.5 text-xl font-bold text-foreground">Approvals queue</h2>
       </div>
 
-      <ApprovalsList items={pending} />
+      <ApprovalsList items={pending} reviewedOt={reviewedOt} />
     </div>
   )
 }

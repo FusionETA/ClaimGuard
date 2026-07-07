@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useTransition } from "react"
+import { useRef, useState, useTransition } from "react"
 import { FileText, Paperclip, Trash2, Upload } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
@@ -50,6 +50,7 @@ export function OtRecordCard({
   record: ApprovalRequestView
   timezone: string
 }) {
+  const [attachments, setAttachments] = useState(record.attachments)
   const [uploadPending, startUpload] = useTransition()
   const [deletePending, startDelete] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -63,8 +64,11 @@ export function OtRecordCard({
     fd.set("file", file)
     startUpload(async () => {
       const res = await uploadOtAttachmentAction(record.id, fd)
-      if ("error" in res) alert(res.error)
-      // reset input so the same file can be re-uploaded if needed
+      if ("error" in res) {
+        alert(res.error)
+      } else {
+        setAttachments((prev) => [...prev, res.attachment])
+      }
       if (fileInputRef.current) fileInputRef.current.value = ""
     })
   }
@@ -72,7 +76,11 @@ export function OtRecordCard({
   function handleDelete(attachmentId: string) {
     startDelete(async () => {
       const res = await deleteOtAttachmentAction(attachmentId)
-      if ("error" in res) alert(res.error)
+      if ("error" in res) {
+        alert(res.error)
+      } else {
+        setAttachments((prev) => prev.filter((a) => a.id !== attachmentId))
+      }
     })
   }
 
@@ -137,11 +145,11 @@ export function OtRecordCard({
               />
             </div>
 
-            {record.attachments.length === 0 ? (
+            {attachments.length === 0 ? (
               <p className="text-xs text-muted-foreground">No evidence uploaded yet.</p>
             ) : (
               <ul className="space-y-1.5">
-                {record.attachments.map((a) => (
+                {attachments.map((a) => (
                   <li
                     key={a.id}
                     className="flex items-center justify-between gap-2 rounded-lg border border-border/50 bg-surface-low px-3 py-2"

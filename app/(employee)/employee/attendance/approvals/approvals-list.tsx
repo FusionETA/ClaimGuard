@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState, useTransition, type ReactNode } from "react"
-import { Check, ChevronDown, ChevronUp, Minus, Pencil, Search } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, FileText, Minus, Pencil, Search } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Button } from "@/components/attendance/ui/button"
@@ -84,6 +84,7 @@ function fmtDuration(startIso: string, endIso: string): string {
 
 type Props = {
   items: ApprovalRequestView[]
+  reviewedOt: ApprovalRequestView[]
 }
 
 function CheckBox({
@@ -764,6 +765,26 @@ function OtCard({ item }: { item: ApprovalRequestView }) {
         </div>
       </div>
 
+      {item.attachments.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Evidence
+          </p>
+          {item.attachments.map((a) => (
+            <a
+              key={a.id}
+              href={a.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-xs text-primary hover:underline"
+            >
+              <FileText className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{a.fileName}</span>
+            </a>
+          ))}
+        </div>
+      )}
+
       <div className="flex gap-2 pt-1">
         <Button
           size="sm"
@@ -785,21 +806,111 @@ function OtCard({ item }: { item: ApprovalRequestView }) {
   )
 }
 
-function OtList({ items }: { items: ApprovalRequestView[] }) {
+function OtReviewedCard({ item }: { item: ApprovalRequestView }) {
+  const isApproved = item.status === "APPROVED"
+  return (
+    <div className="space-y-2 px-4 py-4">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">{item.employeeName}</p>
+          <p className="text-[11px] text-muted-foreground">{item.date}</p>
+        </div>
+        <Badge variant={isApproved ? "approved" : "rejected"}>
+          {isApproved ? "Approved" : "Rejected"}
+        </Badge>
+      </div>
+
+      <dl className="space-y-1 text-xs">
+        {item.otStartAt && item.otEndAt ? (
+          <>
+            <DetailRow label="Period">
+              {fmtTime(item.otStartAt)} – {fmtTime(item.otEndAt)}
+            </DetailRow>
+            <DetailRow label="Duration">
+              {fmtDuration(item.otStartAt, item.otEndAt)}
+            </DetailRow>
+          </>
+        ) : null}
+        {item.otSubtype ? (
+          <DetailRow label="Type">{otSubtypeMeta[item.otSubtype].label}</DetailRow>
+        ) : null}
+        {item.project ? (
+          <DetailRow label="Project">{item.project}</DetailRow>
+        ) : null}
+        {item.detail ? (
+          <DetailRow label="Reason">{item.detail}</DetailRow>
+        ) : null}
+        {item.reviewNotes ? (
+          <DetailRow label="Notes">{item.reviewNotes}</DetailRow>
+        ) : null}
+      </dl>
+
+      {item.attachments.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Evidence
+          </p>
+          {item.attachments.map((a) => (
+            <a
+              key={a.id}
+              href={a.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-xs text-primary hover:underline"
+            >
+              <FileText className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{a.fileName}</span>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function OtList({ items, reviewedOt }: { items: ApprovalRequestView[]; reviewedOt: ApprovalRequestView[] }) {
+  const [otTab, setOtTab] = useState<"pending" | "reviewed">("pending")
   const [query, setQuery] = useState("")
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return items
-    return items.filter((i) => i.employeeName.toLowerCase().includes(q))
-  }, [items, query])
+    const source = otTab === "pending" ? items : reviewedOt
+    if (!q) return source
+    return source.filter((i) => i.employeeName.toLowerCase().includes(q))
+  }, [items, reviewedOt, otTab, query])
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {filtered.length} of {items.length} pending
-        </p>
+      <div className="flex gap-1 rounded-lg border border-border/60 bg-card p-1 w-fit">
+        {(["pending", "reviewed"] as const).map((t) => {
+          const count = t === "pending" ? items.length : reviewedOt.length
+          const active = otTab === t
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => { setOtTab(t); setQuery("") }}
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors capitalize",
+                active
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t}
+              {count > 0 ? (
+                <span className={cn(
+                  "flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-semibold",
+                  active
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-muted text-muted-foreground",
+                )}>
+                  {count}
+                </span>
+              ) : null}
+            </button>
+          )
+        })}
       </div>
 
       <div className="relative">
@@ -814,17 +925,21 @@ function OtList({ items }: { items: ApprovalRequestView[] }) {
 
       {filtered.length === 0 ? (
         <Card className="p-8 text-center">
-          <p className="text-sm font-semibold text-foreground">No pending OT requests</p>
+          <p className="text-sm font-semibold text-foreground">
+            {otTab === "pending" ? "No pending OT requests" : "No reviewed OT records"}
+          </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {query ? "Try a different search." : "All caught up!"}
+            {query ? "Try a different search." : otTab === "pending" ? "All caught up!" : "Reviewed OT will appear here."}
           </p>
         </Card>
       ) : (
         <Card className="overflow-hidden">
           <div className="divide-y divide-border/60">
-            {filtered.map((item) => (
-              <OtCard key={item.id} item={item} />
-            ))}
+            {filtered.map((item) =>
+              otTab === "pending"
+                ? <OtCard key={item.id} item={item} />
+                : <OtReviewedCard key={item.id} item={item} />
+            )}
           </div>
         </Card>
       )}
@@ -834,7 +949,7 @@ function OtList({ items }: { items: ApprovalRequestView[] }) {
 
 // ─── Root component with tab switcher ────────────────────────────────────────
 
-export function ApprovalsList({ items }: Props) {
+export function ApprovalsList({ items, reviewedOt }: Props) {
   const [tab, setTab] = useState<"attendance" | "overtime">("attendance")
 
   const attendanceItems = items.filter((i) => i.kind !== "OT")
@@ -892,7 +1007,7 @@ export function ApprovalsList({ items }: Props) {
       {tab === "attendance" ? (
         <AttendanceList items={attendanceItems} />
       ) : (
-        <OtList items={otItems} />
+        <OtList items={otItems} reviewedOt={reviewedOt} />
       )}
     </div>
   )

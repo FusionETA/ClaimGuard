@@ -623,7 +623,7 @@ export const employeeAttendanceService = {
     employeeId: string,
     approvalId: string,
     file: File,
-  ): Promise<void> {
+  ): Promise<{ id: string; fileName: string; fileUrl: string; mimeType: string }> {
     const { storeOtAttachment } = await import("./ot-attachments.service")
     // Verify the approval belongs to this employee before storing anything.
     const records = await attendanceRepository.getEmployeeOTApprovals(employeeId)
@@ -633,7 +633,8 @@ export const employeeAttendanceService = {
       throw new Error("Cannot add attachments to a rejected submission.")
     }
     const stored = await storeOtAttachment(file)
-    await attendanceRepository.addOtAttachment(approvalId, stored)
+    const id = await attendanceRepository.addOtAttachment(approvalId, stored)
+    return { id, fileName: stored.fileName, fileUrl: stored.fileUrl, mimeType: stored.mimeType }
   },
 
   async deleteOtAttachment(
