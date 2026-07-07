@@ -234,30 +234,25 @@ export function calcEpf(input: CalcEpfInput): {
   // tier. Defaults to `wage` for backwards-compatible call sites.
   const rateWage = input.rateDeterminingWage ?? input.wage
 
-  // Employer EPF — single ceil of (mandatory + voluntary) × combined
-  // wage. Avoids the double-ceil drift between mandatory and voluntary
-  // that previously left us RM 1 above Panda on bonus months. Cliff
-  // for the mandatory rate is driven by `rateWage` (regular monthly),
-  // NOT combined wage — so a one-off bonus that pushes the month's
-  // total past RM 5,000 keeps the employee on the 13% Part A low tier
-  // when their contractual wage is under RM 5,000.
-  const employerMandatoryRate =
-    rateWage <= 5000 ? employerRateLow : employerRateHigh
-  const employerTotalRate =
-    employerMandatoryRate + (input.employerVoluntary > 0 ? input.employerVoluntary : 0)
-  const employerTotal =
-    totalWage > 0
-      ? Math.ceil(totalWage * employerTotalRate / 100)
-      : 0
-
-  // Employee EPF — two paths depending on which side of the gazetted
-  // Schedule we're on:
+  // Employer EPF + Employee EPF — SAME two paths as documented below
+  // for the employee side. KWSP Third Schedule Note 2 mandates the
+  // gazetted band table for BOTH sides when wage ≤ RM 20,000 in Parts A
+  // and C — treating employer differently (exact %) previously drifted
+  // us RM 6 below Payroll Panda for Mohammad Za'im (wage 8,250 → band
+  // upper 8,300 → panda 996, ours 990). Cliff for the mandatory rate is
+  // driven by `rateWage` (regular monthly), NOT combined wage — so a
+  // one-off bonus that pushes the month's total past RM 5,000 keeps the
+  // employee on the 13% Part A low tier when their contractual wage is
+  // under RM 5,000.
+  //
+  // Two paths per side:
   //
   //   1. Band-table branches (Parts A and C, hasCliff === true) with
   //      wage ≤ RM 20,000 → KWSP mandates the gazetted table for the
-  //      mandatory side. We take it via `lookupEpfBand`, then add the
-  //      voluntary as a separate ceil (the Schedule has no concept of
-  //      voluntary, so off-table rules apply to it).
+  //      mandatory portion of BOTH sides. We take it via `lookupEpfBand`,
+  //      then add the voluntary contribution as a separate ceil (the
+  //      Schedule has no concept of voluntary, so off-table rules apply
+  //      to it). Same treatment on employer and employee sides.
   //
   //   2. Off-table cases — flat-rate branches (Parts E and F,
   //      hasCliff === false) OR any branch with wage > RM 20,000.
@@ -268,10 +263,14 @@ export function calcEpf(input: CalcEpfInput): {
   //      ceil the total — matches Payroll Panda. Pre-fix, Asim (Part
   //      F: 2% mandatory + 9% voluntary at wage 14,645) was producing
   //      ceil(293) + ceil(1,319) = 1,612 instead of ceil(1,611) = 1,611.
+  const employerMandatoryRate =
+    rateWage <= 5000 ? employerRateLow : employerRateHigh
   const hasCliff = employerRateLow !== employerRateHigh
   const usesBandTable = hasCliff && totalWage <= 20000
   let employee: number
+  let employerTotal: number
   if (usesBandTable) {
+    // Employee ALWAYS uses band table on totalWage — KWSP-strict.
     const employeeBand = lookupEpfBand({
       wage: totalWage,
       employerRateLow,
@@ -283,13 +282,53 @@ export function calcEpf(input: CalcEpfInput): {
         ? Math.ceil(totalWage * input.employeeVoluntary / 100)
         : 0
     employee = employeeBand.employee + employeeExtra
+
+    // Employer branches on whether AR conceptually lifted the wage —
+    // i.e. whether the caller supplied a `rateDeterminingWage` lower
+    // than the total. Callers today pass the ENTIRE EPF-subject bonus
+    // as part of `input.wage` (not `additionalRemuneration`) and mark
+    // it as AR only via `rateDeterminingWage = regular-portion`, so
+    // discriminate by comparing the two:
+    //
+    //   - No AR (rateWage === totalWage) → band table on totalWage,
+    //     mirroring the employee side. Fixes the RM 6 gap vs Payroll
+    //     Panda for regular no-bonus months (Mohammad Za'im: wage
+    //     8,250 → band-up 8,300 → ceil(8,300 × 12%) = 996, not 990).
+    //
+    //   - AR present (rateWage < totalWage) → single ceil of combined
+    //     (mandatory + voluntary) rates × totalWage. Same "Panda
+    //     parity for bonus months" fix as before, driven by `rateWage`
+    //     cliff so a bonus can't push a sub-RM 5,000 employee into the
+    //     12% tier. Confirmed against Kay Ben (regular 4,100 + bonus
+    //     1,218 → employer 692 not 702).
+    const employerVoluntaryRate =
+      input.employerVoluntary > 0 ? input.employerVoluntary : 0
+    const hasArLift = rateWage < totalWage
+    if (!hasArLift) {
+      const employerExtra =
+        employerVoluntaryRate > 0
+          ? Math.ceil(totalWage * employerVoluntaryRate / 100)
+          : 0
+      employerTotal = employeeBand.employer + employerExtra
+    } else {
+      const employerTotalRate =
+        employerMandatoryRate + employerVoluntaryRate
+      employerTotal =
+        totalWage > 0
+          ? Math.ceil(totalWage * employerTotalRate / 100)
+          : 0
+    }
   } else {
     const employeeTotalRate =
       employeeRate +
       (input.employeeVoluntary > 0 ? input.employeeVoluntary : 0)
-    employee = totalWage > 0
-      ? Math.ceil(totalWage * employeeTotalRate / 100)
-      : 0
+    const employerTotalRate =
+      employerMandatoryRate +
+      (input.employerVoluntary > 0 ? input.employerVoluntary : 0)
+    employee =
+      totalWage > 0 ? Math.ceil(totalWage * employeeTotalRate / 100) : 0
+    employerTotal =
+      totalWage > 0 ? Math.ceil(totalWage * employerTotalRate / 100) : 0
   }
 
   return {

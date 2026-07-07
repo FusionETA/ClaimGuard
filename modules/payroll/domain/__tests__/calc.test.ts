@@ -274,12 +274,18 @@ describe("calcPayslip — additional remuneration routing", () => {
     // treatAsRecurring=true → bonus is part of regular monthly wage
     // for EPF purposes → `rateDeterminingWage` = combined 5,318 →
     // cliff trips → employer rate drops to 12% (Part A HIGH).
-    //   Employer = ceil((12 + 2)% × 5,318) = ceil(744.52) = 745
+    //   Employer mandatory = ceil(12% × 5,400 band-up) = 648 (band
+    //     table, matches Payroll Panda for no-AR cases like Mohammad
+    //     Za'im 8,250 → 996)
+    //   Employer voluntary = ceil(2% × 5,318) = 107 (off-table
+    //     separate ceil)
+    //   Employer total = 648 + 107 = 755
     //   Employee mandatory = ceil(11% × 5,400 band-up) = 594, plus
-    //   voluntary 1% × 5,318 ceil = 54 → 648.
+    //     voluntary 1% × 5,318 ceil = 54 → 648.
     // Different from the unticked variant above (which kept the
-    // 13% rate → 798) — the flag legitimately controls the cliff.
-    expect(result.epfEmployer).toBe(745)
+    // 13% rate on totalWage → 798) — the flag legitimately controls
+    // the cliff.
+    expect(result.epfEmployer).toBe(755)
     expect(result.epfEmployee).toBe(648)
   })
 
@@ -469,10 +475,12 @@ describe("calcPayslip — additional remuneration routing", () => {
 
     // treatAsRecurring=true folds bonus into the regular wage →
     // rateDeterminingWage = combined 5,318 → cliff trips → employer 12%.
-    //   Employer total = ceil(12% × 5,318) = ceil(638.16) = 639
+    //   Employer total = ceil(12% × 5,400 band-up) = 648 (band table
+    //     matches Payroll Panda for no-AR cases like Mohammad Za'im
+    //     8,250 → 996)
     //   Employee mandatory = ceil(11% × 5,400 band-up) = 594
     // No voluntary on this profile.
-    expect(result.epfEmployer).toBe(639)
+    expect(result.epfEmployer).toBe(648)
     expect(result.epfEmployee).toBe(594)
   })
 })
