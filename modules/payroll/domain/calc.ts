@@ -137,9 +137,17 @@ export function pickEpfBranch(input: {
 
   if (input.ageAtPeriodEnd < 60) return "MALAYSIAN_UNDER_60"
 
-  // Age 60+: pure Malaysian citizens drop to Part E (0/4). PR + pre-
-  // 1998 non-Malaysians stay on the tiered Part C (5.5 / 6.5 / 6).
-  if (input.isMalaysianCitizen && !input.hasPr) {
+  // Age 60+: Malaysian citizens drop to Part E (0/4). Non-Malaysian PR
+  // and pre-1998 non-Malaysians stay on the tiered Part C (5.5 / 6.5 / 6).
+  //
+  // `hasPr` is NOT part of the citizen check — a Malaysian citizen is
+  // by definition permanent in Malaysia; the `hasPr` flag on the profile
+  // is only meaningful for NON-citizens (foreign workers who obtained
+  // Malaysian PR). Earlier the check was `isMalaysianCitizen && !hasPr`,
+  // which mis-routed citizens whose profile UI auto-locked hasPr=true
+  // into Part C, over-collecting 5.5% mandatory employee EPF from
+  // employees legally entitled to Part E's 0% rate.
+  if (input.isMalaysianCitizen) {
     return "MALAYSIAN_CITIZEN_60_PLUS"
   }
   return "PR_OR_PRE1998_60_PLUS"

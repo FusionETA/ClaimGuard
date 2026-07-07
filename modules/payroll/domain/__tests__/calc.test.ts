@@ -5,6 +5,7 @@ import {
   calcPayslip,
   calcSocso,
   effectiveWorkedDays,
+  pickEpfBranch,
   type CalcPayslipInput,
 } from "../calc"
 import type { PayrollAdjustmentCategory } from "../models"
@@ -1036,5 +1037,116 @@ describe("calcSocso — age auto-flip to Cat 2 at 60+", () => {
       ageAtPeriodEnd: 72,
     })
     expect(r).toEqual({ employee: 0, employer: 0, employeeSkbbk: 0 })
+  })
+})
+
+describe("pickEpfBranch — KWSP Third Schedule branch resolver", () => {
+  const base = {
+    contributeToEpf: true,
+    wage: 8000,
+    epfMemberBefore1998: false,
+  }
+
+  it("under 60 Malaysian → Part A (MALAYSIAN_UNDER_60)", () => {
+    expect(
+      pickEpfBranch({
+        ...base,
+        isMalaysianCitizen: true,
+        hasPr: false,
+        ageAtPeriodEnd: 59,
+      }),
+    ).toBe("MALAYSIAN_UNDER_60")
+  })
+
+  it("Malaysian citizen 60+ → Part E regardless of hasPr flag", () => {
+    // Regression: profile UI auto-locks hasPr=true for Malaysian citizens
+    // (weird UX label "Malaysian citizens are permanent residents"). Old
+    // branch picker used `!hasPr` in the citizen check, so citizens with
+    // hasPr=true were mis-routed to Part C (5.5%/6%) instead of Part E
+    // (0%/4%). This test locks in that Malaysian citizenship ALONE
+    // determines Part E at 60+, independent of the hasPr scratch flag.
+    expect(
+      pickEpfBranch({
+        ...base,
+        isMalaysianCitizen: true,
+        hasPr: false,
+        ageAtPeriodEnd: 60,
+      }),
+    ).toBe("MALAYSIAN_CITIZEN_60_PLUS")
+    expect(
+      pickEpfBranch({
+        ...base,
+        isMalaysianCitizen: true,
+        hasPr: true,
+        ageAtPeriodEnd: 62,
+      }),
+    ).toBe("MALAYSIAN_CITIZEN_60_PLUS")
+    expect(
+      pickEpfBranch({
+        ...base,
+        isMalaysianCitizen: true,
+        hasPr: true,
+        ageAtPeriodEnd: 75,
+      }),
+    ).toBe("MALAYSIAN_CITIZEN_60_PLUS")
+  })
+
+  it("Non-Malaysian PR 60+ → Part C (PR_OR_PRE1998_60_PLUS)", () => {
+    expect(
+      pickEpfBranch({
+        ...base,
+        isMalaysianCitizen: false,
+        hasPr: true,
+        ageAtPeriodEnd: 65,
+      }),
+    ).toBe("PR_OR_PRE1998_60_PLUS")
+  })
+
+  it("Non-Malaysian pre-1998 EPF member 60+ → Part C", () => {
+    expect(
+      pickEpfBranch({
+        ...base,
+        isMalaysianCitizen: false,
+        hasPr: false,
+        epfMemberBefore1998: true,
+        ageAtPeriodEnd: 62,
+      }),
+    ).toBe("PR_OR_PRE1998_60_PLUS")
+  })
+
+  it("Post-1998 non-Malaysian (no PR) → Part F at any age", () => {
+    expect(
+      pickEpfBranch({
+        ...base,
+        isMalaysianCitizen: false,
+        hasPr: false,
+        epfMemberBefore1998: false,
+        ageAtPeriodEnd: 35,
+      }),
+    ).toBe("POST_1998_NON_MALAYSIAN")
+  })
+
+  it("Opted out → OPTED_OUT regardless of citizenship / age", () => {
+    expect(
+      pickEpfBranch({
+        ...base,
+        contributeToEpf: false,
+        isMalaysianCitizen: true,
+        hasPr: false,
+        ageAtPeriodEnd: 45,
+      }),
+    ).toBe("OPTED_OUT")
+  })
+
+  it("De-minimis wage (≤ RM 10) → DE_MINIMIS", () => {
+    expect(
+      pickEpfBranch({
+        ...base,
+        wage: 10,
+        isMalaysianCitizen: true,
+        hasPr: false,
+        ageAtPeriodEnd: 40,
+      }),
+    ).toBe("DE_MINIMIS")
   })
 })

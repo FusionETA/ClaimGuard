@@ -639,8 +639,13 @@ function PersonalTab(props: {
   const [isResident, setIsResident] = useState<boolean>(
     props.profile?.isResident ?? true,
   )
-  // Locked-on display values when Malaysian; otherwise the admin's pick.
-  const prChecked = isMalaysian ? true : hasPr
+  // Locked-off for hasPr when Malaysian — PR is a legal status for
+  // non-citizens who obtained permanent residency in Malaysia;
+  // citizens don't have or need it. Previously we locked it ON here
+  // (with a misleading "citizens ARE permanent residents" label),
+  // which routed Malaysian citizens 60+ into KWSP Part C (5.5%/6%)
+  // instead of Part E (0%/4%), over-collecting employee EPF.
+  const prChecked = isMalaysian ? false : hasPr
   const residentChecked = isMalaysian ? true : isResident
   // Build the dropdown options, preserving any legacy free-text value
   // that isn't in our canonical list so it still shows + round-trips.
@@ -821,7 +826,7 @@ function PersonalTab(props: {
             onCheckedChange={setHasPr}
             hint={
               isMalaysian
-                ? "Locked on — Malaysian citizens are permanent residents."
+                ? "N/A — Malaysian citizens don't need PR status. Only foreign workers who obtained PR should have this on."
                 : undefined
             }
           />
@@ -1926,7 +1931,10 @@ function StatutoryTab(props: {
     epfBranchLabel = "Foreign worker (post-1 Aug 1998) — Part F"
     epfEmployerText = "2% (effective Oct 2025 salary)"
     epfEmployeeText = "2%"
-  } else if (isAge60Plus && isMalaysianCitizen && !props.profile?.hasPr) {
+  } else if (isAge60Plus && isMalaysianCitizen) {
+    // Malaysian citizens 60+ always drop to Part E (0%/4%). `hasPr`
+    // is meaningless for citizens — this branch is picked purely on
+    // citizenship + age, matching pickEpfBranch's fix.
     epfBranchLabel = "Malaysian citizen, age 60+ — Part E"
     epfEmployerText = "4%"
     epfEmployeeText = "0%"
