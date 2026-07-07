@@ -561,17 +561,47 @@ function ProjectCard({
         showHelper={false}
         compact
       />
-      <input
-        type="text"
-        value={allowedIps}
-        onChange={(e) => setAllowedIps(e.target.value)}
-        placeholder="Allowed IPs (e.g. 203.106.51.10, 118.100.0.0/16)"
-        className="w-full rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-      />
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={allowedIps}
+          onChange={(e) => setAllowedIps(e.target.value)}
+          placeholder="Allowed IPs (e.g. 203.106.51.10, 118.100.0.0/16)"
+          className="min-w-0 flex-1 rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              const res = await fetch("/api/whoami/ip", { cache: "no-store" })
+              if (!res.ok) throw new Error("lookup failed")
+              const { ip } = (await res.json()) as { ip: string | null }
+              if (!ip) {
+                alert("Could not detect your IP. Please enter it manually.")
+                return
+              }
+              setAllowedIps((prev) => {
+                const trimmed = prev.trim()
+                if (trimmed.length === 0) return ip
+                const parts = trimmed.split(",").map((s) => s.trim())
+                if (parts.includes(ip)) return trimmed
+                return `${trimmed}, ${ip}`
+              })
+            } catch {
+              alert("Could not detect your IP. Please enter it manually.")
+            }
+          }}
+          className="shrink-0 rounded-full border border-border/70 bg-background px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-surface-low focus:border-primary focus:outline-none"
+          title="Detect and append your current public IP"
+        >
+          Use current IP
+        </button>
+      </div>
       <p className="px-1 text-[10px] text-muted-foreground leading-relaxed">
         Only used when a policy has the IP-whitelist check turned on.
         Comma-separated; single IPs or CIDR ranges. Leave empty to skip the
-        check for this project.
+        check for this project. Click <span className="font-medium">Use current IP</span> to append
+        the IP you&#39;re browsing from.
       </p>
       <Button
         type="button"
