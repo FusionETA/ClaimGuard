@@ -98,11 +98,27 @@ function fallbackCoordsFromState(
 
 type BreakKind = "BREAK_START" | "BREAK_END"
 
+/**
+ * The server throws this exact copy when the caller's IP fails the
+ * project's allowedIps whitelist (see
+ * `modules/attendance/application/services/employee-attendance.service.ts`).
+ * A substring check is defensive against future wrapping ("Server: ...").
+ */
+function isOffNetworkError(msg: string | undefined): boolean {
+  if (!msg) return false
+  return msg.toLowerCase().includes("office network")
+}
+
 type PendingAction = {
   formData: FormData
   fence: GeofenceCheck
   kind: "CLOCK_IN" | "CLOCK_OUT" | BreakKind
   projectName: string | null
+  /// When true, the panel was opened because the server rejected the
+  /// clock-in for the IP whitelist (not the client-side geofence). The
+  /// panel shows a network-specific heading and the `fence` prop is
+  /// synthetic. Only used on clock-in.
+  offNetwork?: boolean
 }
 
 type Props = {
@@ -352,6 +368,18 @@ export function ClockCard({
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [remark, setRemark] = useState("")
   const [remarkError, setRemarkError] = useState<string | null>(null)
+  /// Snapshot of the most recent clock-in submission (formData + display
+  /// context). Kept so we can re-open the remark panel when the server
+  /// rejects for the IP whitelist — a check the client can't run
+  /// preemptively, so the only signal is the returned error string.
+  const lastClockInAttemptRef = useRef<{
+    formData: FormData
+    projectName: string | null
+  } | null>(null)
+  /// Remembers the last off-network error we already turned into a
+  /// pendingAction, so a re-render with the same `result.error` doesn't
+  /// keep re-opening the panel after the user dismisses it.
+  const consumedOffNetworkErrorRef = useRef<string | null>(null)
   // Guards against a second tap firing handleClockIn/Out/Break while the
   // first is still awaiting GPS — without this, the second resolution
   // wipes any remark the user has typed and reopens the dismissed popup.
@@ -409,6 +437,43 @@ export function ClockCard({
     )
     return () => navigator.geolocation.clearWatch(watchId)
   }, [captureAny])
+
+  // Server-side IP-whitelist rejection → open the remark panel so the
+  // employee can type a reason (site visit / WFH) and retry. The
+  // server throws `OFF_NETWORK_REMARK_REQUIRED` when the project has
+  // an allowedIps list and the caller's IP doesn't match; the client
+  // can't run that check preemptively, so this useEffect is the only
+  // hook that surfaces the panel for this path.
+  useEffect(() => {
+    const err = result.error
+    if (!err) {
+      // Cleared error → let the next error re-fire the effect.
+      consumedOffNetworkErrorRef.current = null
+      return
+    }
+    if (
+      err === consumedOffNetworkErrorRef.current ||
+      !isOffNetworkError(err) ||
+      pendingAction ||
+      !lastClockInAttemptRef.current
+    ) {
+      return
+    }
+    consumedOffNetworkErrorRef.current = err
+    const { formData, projectName } = lastClockInAttemptRef.current
+    setRemark("")
+    setRemarkError(null)
+    setPendingAction({
+      formData,
+      // Synthetic fence — the panel only reads `reason` for the
+      // heading fallback. `offNetwork: true` below routes to a
+      // network-specific heading instead.
+      fence: { withinRadius: false, distanceMeters: null, reason: "no_gps" },
+      kind: "CLOCK_IN",
+      projectName,
+      offNetwork: true,
+    })
+  }, [result.error, pendingAction])
 
   const targetProjectCoords: { latitude: number | null; longitude: number | null } | null =
     state === "OUT"
@@ -501,6 +566,13 @@ export function ClockCard({
           )
         : { withinRadius: true, distanceMeters: null, reason: "ok" }
       if (fence.withinRadius) {
+        // Snapshot the attempt so we can re-surface the remark panel
+        // when the server rejects on the IP-whitelist check (which the
+        // client can't run preemptively — same envelope, no notes).
+        lastClockInAttemptRef.current = {
+          formData,
+          projectName: project?.name ?? null,
+        }
         startTransition(() => formAction(formData))
         return
       }
@@ -627,7 +699,11 @@ export function ClockCard({
     if (!pendingAction) return
     const trimmed = remark.trim()
     if (!trimmed) {
-      setRemarkError("A remark is required when you're off-site.")
+      setRemarkError(
+        pendingAction.offNetwork
+          ? "A remark is required when you're off-network."
+          : "A remark is required when you're off-site.",
+      )
       return
     }
     pendingAction.formData.set("notes", trimmed)
@@ -855,6 +931,7 @@ export function ClockCard({
         <RemarkPanel
           fence={pendingAction.fence}
           projectName={pendingAction.projectName}
+          offNetwork={pendingAction.offNetwork === true}
           remark={remark}
           onChange={setRemark}
           onConfirm={confirmRemark}
@@ -1093,6 +1170,7 @@ function SelfieCaptureModal({
 function RemarkPanel({
   fence,
   projectName,
+  offNetwork,
   remark,
   onChange,
   onConfirm,
@@ -1101,29 +1179,35 @@ function RemarkPanel({
 }: {
   fence: GeofenceCheck
   projectName: string | null
+  offNetwork: boolean
   remark: string
   onChange: (value: string) => void
   onConfirm: () => void
   onCancel: () => void
   error: string | null
 }) {
-  const heading =
-    fence.reason === "no_gps"
+  const heading = offNetwork
+    ? "You're not on the office network"
+    : fence.reason === "no_gps"
       ? "Location unavailable — add a remark"
       : fence.reason === "no_project_coords"
         ? "Project has no coordinates set — add a remark"
         : `You're ${fence.distanceMeters ? Math.round(fence.distanceMeters) : "?"}m from ${projectName ?? "the project"}`
+  const body = offNetwork
+    ? "Add a remark explaining why you're off-network (site visit / WFH). Your approver will see it."
+    : "Add a remark explaining why you're off-site. Your approver will see it."
+  const placeholder = offNetwork
+    ? "e.g. WFH today, on-site at client premises"
+    : "e.g. Stuck in traffic, on-site at client office"
 
   return (
     <div className="mt-4 rounded-[20px] border border-amber-300 bg-amber-50 p-4">
       <p className="text-sm font-bold text-amber-900">{heading}</p>
-      <p className="mt-1 text-xs text-amber-800">
-        Add a remark explaining why you're off-site. Your approver will see it.
-      </p>
+      <p className="mt-1 text-xs text-amber-800">{body}</p>
       <textarea
         value={remark}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="e.g. Stuck in traffic, on-site at client office"
+        placeholder={placeholder}
         rows={3}
         // 16px (`text-base`) on mobile prevents iOS Safari from
         // auto-zooming the viewport when the textarea is focused —
