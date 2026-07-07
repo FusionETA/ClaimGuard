@@ -5,11 +5,7 @@ import { Card, CardContent } from "@/components/attendance/ui/card"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
-import {
-  approvalStatusMeta,
-  attendanceStatusMeta,
-  otSubtypeMeta,
-} from "@/modules/attendance/domain/metadata"
+import { attendanceStatusMeta } from "@/modules/attendance/domain/metadata"
 import type { AttendanceRecordView } from "@/modules/attendance/domain/models"
 import { cn } from "@/lib/utils"
 
@@ -20,12 +16,6 @@ const STATUS_VARIANT: Record<string, string> = {
   ON_LEAVE: "on-leave",
   CLOCKED_IN: "clocked-in",
   CLOCKED_OUT: "clocked-out",
-}
-
-const APPROVAL_VARIANT: Record<string, string> = {
-  PENDING: "pending",
-  APPROVED: "approved",
-  REJECTED: "rejected",
 }
 
 function monthKey(iso: string, tz: string) {
@@ -41,16 +31,6 @@ function fmtTime(iso: string | null, tz: string) {
         timeZone: tz,
       })
     : "—"
-}
-
-function fmtOtDuration(startIso: string, endIso: string): string {
-  const diffMin = Math.round(
-    (new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000,
-  )
-  if (diffMin <= 0) return ""
-  const h = Math.floor(diffMin / 60)
-  const m = diffMin % 60
-  return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
 function summarise(records: AttendanceRecordView[]) {
@@ -75,7 +55,6 @@ export default async function EmployeeHistoryPage() {
     monthAgo,
     now,
   )
-  const otRecords = await employeeAttendanceService.getEmployeeOTRecords(session.userId)
   const rejectedClockEvents = await employeeAttendanceService.getRejectedClockEvents(
     session.userId,
     monthAgo,
@@ -223,49 +202,6 @@ export default async function EmployeeHistoryPage() {
         })
       )}
 
-      <section className="space-y-3">
-        <div className="flex items-baseline justify-between">
-          <h3 className="font-headline text-lg font-bold text-foreground">
-            OT &amp; replacements
-          </h3>
-          <span className="text-xs text-muted-foreground">{otRecords.length} entries</span>
-        </div>
-
-        {otRecords.length === 0 ? (
-          <Card className="p-4 text-center">
-            <p className="text-sm text-muted-foreground">No overtime entries.</p>
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                {otRecords.map((r) => (
-                  <div
-                    key={r.id}
-                    className="flex items-start gap-3 border-b border-border/50 pb-3 last:border-0 last:pb-0"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-foreground">{r.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {r.otSubtype ? otSubtypeMeta[r.otSubtype].label : "OT"} • {r.date}
-                      </p>
-                      {r.otStartAt && r.otEndAt ? (
-                        <p className="text-xs font-medium text-foreground">
-                          {fmtTime(r.otStartAt, tz)} – {fmtTime(r.otEndAt, tz)} · {fmtOtDuration(r.otStartAt, r.otEndAt)}
-                        </p>
-                      ) : null}
-                      <p className="mt-1 text-xs text-muted-foreground">{r.detail}</p>
-                    </div>
-                    <Badge variant={APPROVAL_VARIANT[r.status] as never}>
-                      {approvalStatusMeta[r.status].label}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </section>
     </div>
   )
 }

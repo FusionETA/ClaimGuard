@@ -367,6 +367,7 @@ export type ApprovalRequestWhereInput = {
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   otProject?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
+  otAttachments?: Prisma.OtAttachmentListRelationFilter
 }
 
 export type ApprovalRequestOrderByWithRelationInput = {
@@ -397,6 +398,7 @@ export type ApprovalRequestOrderByWithRelationInput = {
   employee?: Prisma.UserOrderByWithRelationInput
   reviewer?: Prisma.UserOrderByWithRelationInput
   otProject?: Prisma.XeroProjectOrderByWithRelationInput
+  otAttachments?: Prisma.OtAttachmentOrderByRelationAggregateInput
   _relevance?: Prisma.ApprovalRequestOrderByRelevanceInput
 }
 
@@ -431,6 +433,7 @@ export type ApprovalRequestWhereUniqueInput = Prisma.AtLeast<{
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   otProject?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
+  otAttachments?: Prisma.OtAttachmentListRelationFilter
 }, "id">
 
 export type ApprovalRequestOrderByWithAggregationInput = {
@@ -520,6 +523,7 @@ export type ApprovalRequestCreateInput = {
   employee: Prisma.UserCreateNestedOneWithoutApprovalsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutApprovalReviewsInput
   otProject?: Prisma.XeroProjectCreateNestedOneWithoutOtSubmissionsInput
+  otAttachments?: Prisma.OtAttachmentCreateNestedManyWithoutApprovalRequestInput
 }
 
 export type ApprovalRequestUncheckedCreateInput = {
@@ -547,6 +551,7 @@ export type ApprovalRequestUncheckedCreateInput = {
   otStartAt?: Date | string | null
   otEndAt?: Date | string | null
   otProjectId?: string | null
+  otAttachments?: Prisma.OtAttachmentUncheckedCreateNestedManyWithoutApprovalRequestInput
 }
 
 export type ApprovalRequestUpdateInput = {
@@ -574,6 +579,7 @@ export type ApprovalRequestUpdateInput = {
   employee?: Prisma.UserUpdateOneRequiredWithoutApprovalsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutApprovalReviewsNestedInput
   otProject?: Prisma.XeroProjectUpdateOneWithoutOtSubmissionsNestedInput
+  otAttachments?: Prisma.OtAttachmentUpdateManyWithoutApprovalRequestNestedInput
 }
 
 export type ApprovalRequestUncheckedUpdateInput = {
@@ -601,6 +607,7 @@ export type ApprovalRequestUncheckedUpdateInput = {
   otStartAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   otEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   otProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otAttachments?: Prisma.OtAttachmentUncheckedUpdateManyWithoutApprovalRequestNestedInput
 }
 
 export type ApprovalRequestCreateManyInput = {
@@ -784,6 +791,11 @@ export type ApprovalRequestSumOrderByAggregateInput = {
   lateMinutes?: Prisma.SortOrder
 }
 
+export type ApprovalRequestScalarRelationFilter = {
+  is?: Prisma.ApprovalRequestWhereInput
+  isNot?: Prisma.ApprovalRequestWhereInput
+}
+
 export type ApprovalRequestCreateNestedManyWithoutEmployeeInput = {
   create?: Prisma.XOR<Prisma.ApprovalRequestCreateWithoutEmployeeInput, Prisma.ApprovalRequestUncheckedCreateWithoutEmployeeInput> | Prisma.ApprovalRequestCreateWithoutEmployeeInput[] | Prisma.ApprovalRequestUncheckedCreateWithoutEmployeeInput[]
   connectOrCreate?: Prisma.ApprovalRequestCreateOrConnectWithoutEmployeeInput | Prisma.ApprovalRequestCreateOrConnectWithoutEmployeeInput[]
@@ -926,6 +938,20 @@ export type NullableEnumOtPayoutMethodFieldUpdateOperationsInput = {
   set?: $Enums.OtPayoutMethod | null
 }
 
+export type ApprovalRequestCreateNestedOneWithoutOtAttachmentsInput = {
+  create?: Prisma.XOR<Prisma.ApprovalRequestCreateWithoutOtAttachmentsInput, Prisma.ApprovalRequestUncheckedCreateWithoutOtAttachmentsInput>
+  connectOrCreate?: Prisma.ApprovalRequestCreateOrConnectWithoutOtAttachmentsInput
+  connect?: Prisma.ApprovalRequestWhereUniqueInput
+}
+
+export type ApprovalRequestUpdateOneRequiredWithoutOtAttachmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.ApprovalRequestCreateWithoutOtAttachmentsInput, Prisma.ApprovalRequestUncheckedCreateWithoutOtAttachmentsInput>
+  connectOrCreate?: Prisma.ApprovalRequestCreateOrConnectWithoutOtAttachmentsInput
+  upsert?: Prisma.ApprovalRequestUpsertWithoutOtAttachmentsInput
+  connect?: Prisma.ApprovalRequestWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ApprovalRequestUpdateToOneWithWhereWithoutOtAttachmentsInput, Prisma.ApprovalRequestUpdateWithoutOtAttachmentsInput>, Prisma.ApprovalRequestUncheckedUpdateWithoutOtAttachmentsInput>
+}
+
 export type ApprovalRequestCreateWithoutEmployeeInput = {
   id?: string
   kind: $Enums.ApprovalKind
@@ -950,6 +976,7 @@ export type ApprovalRequestCreateWithoutEmployeeInput = {
   otEndAt?: Date | string | null
   reviewer?: Prisma.UserCreateNestedOneWithoutApprovalReviewsInput
   otProject?: Prisma.XeroProjectCreateNestedOneWithoutOtSubmissionsInput
+  otAttachments?: Prisma.OtAttachmentCreateNestedManyWithoutApprovalRequestInput
 }
 
 export type ApprovalRequestUncheckedCreateWithoutEmployeeInput = {
@@ -976,6 +1003,7 @@ export type ApprovalRequestUncheckedCreateWithoutEmployeeInput = {
   otStartAt?: Date | string | null
   otEndAt?: Date | string | null
   otProjectId?: string | null
+  otAttachments?: Prisma.OtAttachmentUncheckedCreateNestedManyWithoutApprovalRequestInput
 }
 
 export type ApprovalRequestCreateOrConnectWithoutEmployeeInput = {
@@ -1012,6 +1040,7 @@ export type ApprovalRequestCreateWithoutReviewerInput = {
   otEndAt?: Date | string | null
   employee: Prisma.UserCreateNestedOneWithoutApprovalsInput
   otProject?: Prisma.XeroProjectCreateNestedOneWithoutOtSubmissionsInput
+  otAttachments?: Prisma.OtAttachmentCreateNestedManyWithoutApprovalRequestInput
 }
 
 export type ApprovalRequestUncheckedCreateWithoutReviewerInput = {
@@ -1038,6 +1067,7 @@ export type ApprovalRequestUncheckedCreateWithoutReviewerInput = {
   otStartAt?: Date | string | null
   otEndAt?: Date | string | null
   otProjectId?: string | null
+  otAttachments?: Prisma.OtAttachmentUncheckedCreateNestedManyWithoutApprovalRequestInput
 }
 
 export type ApprovalRequestCreateOrConnectWithoutReviewerInput = {
@@ -1136,6 +1166,7 @@ export type ApprovalRequestCreateWithoutOtProjectInput = {
   otEndAt?: Date | string | null
   employee: Prisma.UserCreateNestedOneWithoutApprovalsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutApprovalReviewsInput
+  otAttachments?: Prisma.OtAttachmentCreateNestedManyWithoutApprovalRequestInput
 }
 
 export type ApprovalRequestUncheckedCreateWithoutOtProjectInput = {
@@ -1162,6 +1193,7 @@ export type ApprovalRequestUncheckedCreateWithoutOtProjectInput = {
   otPayoutMethod?: $Enums.OtPayoutMethod | null
   otStartAt?: Date | string | null
   otEndAt?: Date | string | null
+  otAttachments?: Prisma.OtAttachmentUncheckedCreateNestedManyWithoutApprovalRequestInput
 }
 
 export type ApprovalRequestCreateOrConnectWithoutOtProjectInput = {
@@ -1188,6 +1220,130 @@ export type ApprovalRequestUpdateWithWhereUniqueWithoutOtProjectInput = {
 export type ApprovalRequestUpdateManyWithWhereWithoutOtProjectInput = {
   where: Prisma.ApprovalRequestScalarWhereInput
   data: Prisma.XOR<Prisma.ApprovalRequestUpdateManyMutationInput, Prisma.ApprovalRequestUncheckedUpdateManyWithoutOtProjectInput>
+}
+
+export type ApprovalRequestCreateWithoutOtAttachmentsInput = {
+  id?: string
+  kind: $Enums.ApprovalKind
+  status?: $Enums.ApprovalStatus
+  date: Date | string
+  eventAt?: Date | string | null
+  title: string
+  detail: string
+  location?: string | null
+  otSubtype?: $Enums.OTSubtype | null
+  lateMinutes?: number | null
+  offsetRef?: string | null
+  reviewNotes?: string | null
+  submittedAt?: Date | string
+  reviewedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  otPayoutMethod?: $Enums.OtPayoutMethod | null
+  otStartAt?: Date | string | null
+  otEndAt?: Date | string | null
+  employee: Prisma.UserCreateNestedOneWithoutApprovalsInput
+  reviewer?: Prisma.UserCreateNestedOneWithoutApprovalReviewsInput
+  otProject?: Prisma.XeroProjectCreateNestedOneWithoutOtSubmissionsInput
+}
+
+export type ApprovalRequestUncheckedCreateWithoutOtAttachmentsInput = {
+  id?: string
+  employeeId: string
+  reviewerId?: string | null
+  kind: $Enums.ApprovalKind
+  status?: $Enums.ApprovalStatus
+  date: Date | string
+  eventAt?: Date | string | null
+  title: string
+  detail: string
+  location?: string | null
+  otSubtype?: $Enums.OTSubtype | null
+  lateMinutes?: number | null
+  offsetRef?: string | null
+  reviewNotes?: string | null
+  submittedAt?: Date | string
+  reviewedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  otPayoutMethod?: $Enums.OtPayoutMethod | null
+  otStartAt?: Date | string | null
+  otEndAt?: Date | string | null
+  otProjectId?: string | null
+}
+
+export type ApprovalRequestCreateOrConnectWithoutOtAttachmentsInput = {
+  where: Prisma.ApprovalRequestWhereUniqueInput
+  create: Prisma.XOR<Prisma.ApprovalRequestCreateWithoutOtAttachmentsInput, Prisma.ApprovalRequestUncheckedCreateWithoutOtAttachmentsInput>
+}
+
+export type ApprovalRequestUpsertWithoutOtAttachmentsInput = {
+  update: Prisma.XOR<Prisma.ApprovalRequestUpdateWithoutOtAttachmentsInput, Prisma.ApprovalRequestUncheckedUpdateWithoutOtAttachmentsInput>
+  create: Prisma.XOR<Prisma.ApprovalRequestCreateWithoutOtAttachmentsInput, Prisma.ApprovalRequestUncheckedCreateWithoutOtAttachmentsInput>
+  where?: Prisma.ApprovalRequestWhereInput
+}
+
+export type ApprovalRequestUpdateToOneWithWhereWithoutOtAttachmentsInput = {
+  where?: Prisma.ApprovalRequestWhereInput
+  data: Prisma.XOR<Prisma.ApprovalRequestUpdateWithoutOtAttachmentsInput, Prisma.ApprovalRequestUncheckedUpdateWithoutOtAttachmentsInput>
+}
+
+export type ApprovalRequestUpdateWithoutOtAttachmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumApprovalKindFieldUpdateOperationsInput | $Enums.ApprovalKind
+  status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  detail?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
+  lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  otPayoutMethod?: Prisma.NullableEnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod | null
+  otStartAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  employee?: Prisma.UserUpdateOneRequiredWithoutApprovalsNestedInput
+  reviewer?: Prisma.UserUpdateOneWithoutApprovalReviewsNestedInput
+  otProject?: Prisma.XeroProjectUpdateOneWithoutOtSubmissionsNestedInput
+}
+
+export type ApprovalRequestUncheckedUpdateWithoutOtAttachmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumApprovalKindFieldUpdateOperationsInput | $Enums.ApprovalKind
+  status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  detail?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
+  lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  otPayoutMethod?: Prisma.NullableEnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod | null
+  otStartAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalRequestCreateManyEmployeeInput = {
@@ -1266,6 +1422,7 @@ export type ApprovalRequestUpdateWithoutEmployeeInput = {
   otEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewer?: Prisma.UserUpdateOneWithoutApprovalReviewsNestedInput
   otProject?: Prisma.XeroProjectUpdateOneWithoutOtSubmissionsNestedInput
+  otAttachments?: Prisma.OtAttachmentUpdateManyWithoutApprovalRequestNestedInput
 }
 
 export type ApprovalRequestUncheckedUpdateWithoutEmployeeInput = {
@@ -1292,6 +1449,7 @@ export type ApprovalRequestUncheckedUpdateWithoutEmployeeInput = {
   otStartAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   otEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   otProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otAttachments?: Prisma.OtAttachmentUncheckedUpdateManyWithoutApprovalRequestNestedInput
 }
 
 export type ApprovalRequestUncheckedUpdateManyWithoutEmployeeInput = {
@@ -1344,6 +1502,7 @@ export type ApprovalRequestUpdateWithoutReviewerInput = {
   otEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employee?: Prisma.UserUpdateOneRequiredWithoutApprovalsNestedInput
   otProject?: Prisma.XeroProjectUpdateOneWithoutOtSubmissionsNestedInput
+  otAttachments?: Prisma.OtAttachmentUpdateManyWithoutApprovalRequestNestedInput
 }
 
 export type ApprovalRequestUncheckedUpdateWithoutReviewerInput = {
@@ -1370,6 +1529,7 @@ export type ApprovalRequestUncheckedUpdateWithoutReviewerInput = {
   otStartAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   otEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   otProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otAttachments?: Prisma.OtAttachmentUncheckedUpdateManyWithoutApprovalRequestNestedInput
 }
 
 export type ApprovalRequestUncheckedUpdateManyWithoutReviewerInput = {
@@ -1448,6 +1608,7 @@ export type ApprovalRequestUpdateWithoutOtProjectInput = {
   otEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employee?: Prisma.UserUpdateOneRequiredWithoutApprovalsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutApprovalReviewsNestedInput
+  otAttachments?: Prisma.OtAttachmentUpdateManyWithoutApprovalRequestNestedInput
 }
 
 export type ApprovalRequestUncheckedUpdateWithoutOtProjectInput = {
@@ -1474,6 +1635,7 @@ export type ApprovalRequestUncheckedUpdateWithoutOtProjectInput = {
   otPayoutMethod?: Prisma.NullableEnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod | null
   otStartAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   otEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otAttachments?: Prisma.OtAttachmentUncheckedUpdateManyWithoutApprovalRequestNestedInput
 }
 
 export type ApprovalRequestUncheckedUpdateManyWithoutOtProjectInput = {
@@ -1502,6 +1664,35 @@ export type ApprovalRequestUncheckedUpdateManyWithoutOtProjectInput = {
   otEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
+
+/**
+ * Count Type ApprovalRequestCountOutputType
+ */
+
+export type ApprovalRequestCountOutputType = {
+  otAttachments: number
+}
+
+export type ApprovalRequestCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  otAttachments?: boolean | ApprovalRequestCountOutputTypeCountOtAttachmentsArgs
+}
+
+/**
+ * ApprovalRequestCountOutputType without action
+ */
+export type ApprovalRequestCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ApprovalRequestCountOutputType
+   */
+  select?: Prisma.ApprovalRequestCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ApprovalRequestCountOutputType without action
+ */
+export type ApprovalRequestCountOutputTypeCountOtAttachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OtAttachmentWhereInput
+}
 
 
 export type ApprovalRequestSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1532,6 +1723,8 @@ export type ApprovalRequestSelect<ExtArgs extends runtime.Types.Extensions.Inter
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reviewer?: boolean | Prisma.ApprovalRequest$reviewerArgs<ExtArgs>
   otProject?: boolean | Prisma.ApprovalRequest$otProjectArgs<ExtArgs>
+  otAttachments?: boolean | Prisma.ApprovalRequest$otAttachmentsArgs<ExtArgs>
+  _count?: boolean | Prisma.ApprovalRequestCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["approvalRequest"]>
 
 
@@ -1568,6 +1761,8 @@ export type ApprovalRequestInclude<ExtArgs extends runtime.Types.Extensions.Inte
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reviewer?: boolean | Prisma.ApprovalRequest$reviewerArgs<ExtArgs>
   otProject?: boolean | Prisma.ApprovalRequest$otProjectArgs<ExtArgs>
+  otAttachments?: boolean | Prisma.ApprovalRequest$otAttachmentsArgs<ExtArgs>
+  _count?: boolean | Prisma.ApprovalRequestCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $ApprovalRequestPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1576,6 +1771,7 @@ export type $ApprovalRequestPayload<ExtArgs extends runtime.Types.Extensions.Int
     employee: Prisma.$UserPayload<ExtArgs>
     reviewer: Prisma.$UserPayload<ExtArgs> | null
     otProject: Prisma.$XeroProjectPayload<ExtArgs> | null
+    otAttachments: Prisma.$OtAttachmentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1965,6 +2161,7 @@ export interface Prisma__ApprovalRequestClient<T, Null = never, ExtArgs extends 
   employee<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   reviewer<T extends Prisma.ApprovalRequest$reviewerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApprovalRequest$reviewerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   otProject<T extends Prisma.ApprovalRequest$otProjectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApprovalRequest$otProjectArgs<ExtArgs>>): Prisma.Prisma__XeroProjectClient<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  otAttachments<T extends Prisma.ApprovalRequest$otAttachmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApprovalRequest$otAttachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OtAttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2401,6 +2598,30 @@ export type ApprovalRequest$otProjectArgs<ExtArgs extends runtime.Types.Extensio
    */
   include?: Prisma.XeroProjectInclude<ExtArgs> | null
   where?: Prisma.XeroProjectWhereInput
+}
+
+/**
+ * ApprovalRequest.otAttachments
+ */
+export type ApprovalRequest$otAttachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OtAttachment
+   */
+  select?: Prisma.OtAttachmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OtAttachment
+   */
+  omit?: Prisma.OtAttachmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtAttachmentInclude<ExtArgs> | null
+  where?: Prisma.OtAttachmentWhereInput
+  orderBy?: Prisma.OtAttachmentOrderByWithRelationInput | Prisma.OtAttachmentOrderByWithRelationInput[]
+  cursor?: Prisma.OtAttachmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OtAttachmentScalarFieldEnum | Prisma.OtAttachmentScalarFieldEnum[]
 }
 
 /**

@@ -121,6 +121,8 @@ export type ApprovalRequestView = {
   currentStepApproverNames: string[]
   /** When `currentStep` is set, the user IDs of the approvers who can act on it. */
   currentStepApproverIds: string[]
+  /** Evidence files attached by the employee. Empty array for non-OT or when none uploaded. */
+  attachments: { id: string; fileName: string; fileUrl: string; mimeType: string }[]
 }
 
 export type AttendanceProjectView = {

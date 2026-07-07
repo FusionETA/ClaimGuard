@@ -414,6 +414,7 @@ export const ModelName = {
   AttendanceSession: 'AttendanceSession',
   BreakSessionEditLog: 'BreakSessionEditLog',
   ApprovalRequest: 'ApprovalRequest',
+  OtAttachment: 'OtAttachment',
   ApprovalChainStep: 'ApprovalChainStep',
   Team: 'Team',
   EmployeeTeamMembership: 'EmployeeTeamMembership',
@@ -450,7 +451,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "otAttachment" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2431,6 +2432,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ApprovalRequestCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ApprovalRequestCountAggregateOutputType> | number
+        }
+      }
+    }
+    OtAttachment: {
+      payload: Prisma.$OtAttachmentPayload<ExtArgs>
+      fields: Prisma.OtAttachmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OtAttachmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OtAttachmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OtAttachmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OtAttachmentPayload>
+        }
+        findFirst: {
+          args: Prisma.OtAttachmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OtAttachmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OtAttachmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OtAttachmentPayload>
+        }
+        findMany: {
+          args: Prisma.OtAttachmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OtAttachmentPayload>[]
+        }
+        create: {
+          args: Prisma.OtAttachmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OtAttachmentPayload>
+        }
+        createMany: {
+          args: Prisma.OtAttachmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.OtAttachmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OtAttachmentPayload>
+        }
+        update: {
+          args: Prisma.OtAttachmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OtAttachmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.OtAttachmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OtAttachmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.OtAttachmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OtAttachmentPayload>
+        }
+        aggregate: {
+          args: Prisma.OtAttachmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOtAttachment>
+        }
+        groupBy: {
+          args: Prisma.OtAttachmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OtAttachmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OtAttachmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OtAttachmentCountAggregateOutputType> | number
         }
       }
     }
@@ -4441,6 +4508,19 @@ export const ApprovalRequestScalarFieldEnum = {
 export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldEnum)[keyof typeof ApprovalRequestScalarFieldEnum]
 
 
+export const OtAttachmentScalarFieldEnum = {
+  id: 'id',
+  approvalRequestId: 'approvalRequestId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  createdAt: 'createdAt'
+} as const
+
+export type OtAttachmentScalarFieldEnum = (typeof OtAttachmentScalarFieldEnum)[keyof typeof OtAttachmentScalarFieldEnum]
+
+
 export const ApprovalChainStepScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
@@ -5395,6 +5475,17 @@ export const ApprovalRequestOrderByRelevanceFieldEnum = {
 export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOrderByRelevanceFieldEnum)[keyof typeof ApprovalRequestOrderByRelevanceFieldEnum]
 
 
+export const OtAttachmentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  approvalRequestId: 'approvalRequestId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType'
+} as const
+
+export type OtAttachmentOrderByRelevanceFieldEnum = (typeof OtAttachmentOrderByRelevanceFieldEnum)[keyof typeof OtAttachmentOrderByRelevanceFieldEnum]
+
+
 export const ApprovalChainStepOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
@@ -6165,6 +6256,7 @@ export type GlobalOmitConfig = {
   attendanceSession?: Prisma.AttendanceSessionOmit
   breakSessionEditLog?: Prisma.BreakSessionEditLogOmit
   approvalRequest?: Prisma.ApprovalRequestOmit
+  otAttachment?: Prisma.OtAttachmentOmit
   approvalChainStep?: Prisma.ApprovalChainStepOmit
   team?: Prisma.TeamOmit
   employeeTeamMembership?: Prisma.EmployeeTeamMembershipOmit

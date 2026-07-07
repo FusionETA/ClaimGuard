@@ -415,6 +415,7 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
     totalSteps: 1,
     currentStepApproverNames: [],
     currentStepApproverIds: [],
+    attachments: [],
   }
 }
 
@@ -1390,10 +1391,47 @@ export const attendanceRepository = {
     const records = await prisma.approvalRequest.findMany({
       where: { employeeId, kind: "OT" },
       orderBy: { submittedAt: "desc" },
-      include: { employee: { select: { name: true } } },
-      take: 20,
+      include: {
+        employee: { select: { name: true } },
+        otAttachments: { orderBy: { createdAt: "asc" } },
+      },
+      take: 50,
     })
-    return records.map(approvalToView)
+    return records.map((r) => ({
+      ...approvalToView(r),
+      attachments: (r.otAttachments ?? []).map((a) => ({
+        id: a.id,
+        fileName: a.fileName,
+        fileUrl: a.fileUrl,
+        mimeType: a.mimeType,
+      })),
+    }))
+  },
+
+  async addOtAttachment(
+    approvalRequestId: string,
+    data: { fileName: string; fileUrl: string; mimeType: string; sizeBytes: number },
+  ): Promise<string> {
+    const prisma = getClient()
+    const row = await prisma.otAttachment.create({
+      data: { approvalRequestId, ...data },
+      select: { id: true },
+    })
+    return row.id
+  },
+
+  async deleteOtAttachment(
+    attachmentId: string,
+    employeeId: string,
+  ): Promise<string | null> {
+    const prisma = getClient()
+    const row = await prisma.otAttachment.findFirst({
+      where: { id: attachmentId, approvalRequest: { employeeId } },
+      select: { id: true, fileUrl: true },
+    })
+    if (!row) return null
+    await prisma.otAttachment.delete({ where: { id: attachmentId } })
+    return row.fileUrl
   },
 
   async getAttendanceHistory(

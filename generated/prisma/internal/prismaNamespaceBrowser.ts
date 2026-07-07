@@ -81,6 +81,7 @@ export const ModelName = {
   AttendanceSession: 'AttendanceSession',
   BreakSessionEditLog: 'BreakSessionEditLog',
   ApprovalRequest: 'ApprovalRequest',
+  OtAttachment: 'OtAttachment',
   ApprovalChainStep: 'ApprovalChainStep',
   Team: 'Team',
   EmployeeTeamMembership: 'EmployeeTeamMembership',
@@ -700,6 +701,19 @@ export const ApprovalRequestScalarFieldEnum = {
 } as const
 
 export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldEnum)[keyof typeof ApprovalRequestScalarFieldEnum]
+
+
+export const OtAttachmentScalarFieldEnum = {
+  id: 'id',
+  approvalRequestId: 'approvalRequestId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  createdAt: 'createdAt'
+} as const
+
+export type OtAttachmentScalarFieldEnum = (typeof OtAttachmentScalarFieldEnum)[keyof typeof OtAttachmentScalarFieldEnum]
 
 
 export const ApprovalChainStepScalarFieldEnum = {
@@ -1654,6 +1668,17 @@ export const ApprovalRequestOrderByRelevanceFieldEnum = {
 } as const
 
 export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOrderByRelevanceFieldEnum)[keyof typeof ApprovalRequestOrderByRelevanceFieldEnum]
+
+
+export const OtAttachmentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  approvalRequestId: 'approvalRequestId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType'
+} as const
+
+export type OtAttachmentOrderByRelevanceFieldEnum = (typeof OtAttachmentOrderByRelevanceFieldEnum)[keyof typeof OtAttachmentOrderByRelevanceFieldEnum]
 
 
 export const ApprovalChainStepOrderByRelevanceFieldEnum = {

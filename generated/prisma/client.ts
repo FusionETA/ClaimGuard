@@ -283,6 +283,11 @@ export type BreakSessionEditLog = Prisma.BreakSessionEditLogModel
  */
 export type ApprovalRequest = Prisma.ApprovalRequestModel
 /**
+ * Model OtAttachment
+ * 
+ */
+export type OtAttachment = Prisma.OtAttachmentModel
+/**
  * Model ApprovalChainStep
  * 
  */

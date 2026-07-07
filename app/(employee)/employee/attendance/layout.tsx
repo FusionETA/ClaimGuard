@@ -11,6 +11,7 @@ type AttendanceNavItem = {
 const baseItems: ReadonlyArray<AttendanceNavItem> = [
   { href: "/employee/attendance", label: "Dashboard" },
   { href: "/employee/attendance/history", label: "History" },
+  { href: "/employee/attendance/overtime", label: "Overtime" },
 ]
 
 export default async function EmployeeAttendanceLayout({

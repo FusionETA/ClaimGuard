@@ -619,6 +619,33 @@ export const employeeAttendanceService = {
     return attendanceRepository.createOtSubmission(args)
   },
 
+  async addOtAttachment(
+    employeeId: string,
+    approvalId: string,
+    file: File,
+  ): Promise<void> {
+    const { storeOtAttachment } = await import("./ot-attachments.service")
+    // Verify the approval belongs to this employee before storing anything.
+    const records = await attendanceRepository.getEmployeeOTApprovals(employeeId)
+    const record = records.find((r) => r.id === approvalId)
+    if (!record) throw new Error("OT record not found.")
+    if (record.status === "REJECTED") {
+      throw new Error("Cannot add attachments to a rejected submission.")
+    }
+    const stored = await storeOtAttachment(file)
+    await attendanceRepository.addOtAttachment(approvalId, stored)
+  },
+
+  async deleteOtAttachment(
+    employeeId: string,
+    attachmentId: string,
+  ): Promise<void> {
+    const { deleteOtAttachmentFile } = await import("./ot-attachments.service")
+    const fileUrl = await attendanceRepository.deleteOtAttachment(attachmentId, employeeId)
+    if (!fileUrl) throw new Error("Attachment not found.")
+    await deleteOtAttachmentFile(fileUrl)
+  },
+
   async sendOtWarningNotifications({ orgId }: { orgId: string }): Promise<number> {
     const openRecords = await attendanceRepository.findOpenRecordsForOtWarning({ orgId })
     let notified = 0

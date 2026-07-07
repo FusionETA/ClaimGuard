@@ -1146,11 +1146,25 @@ model ApprovalRequest {
   employee       User            @relation("EmployeeApprovals", fields: [employeeId], references: [id], onDelete: Cascade)
   reviewer       User?           @relation("ReviewerApprovals", fields: [reviewerId], references: [id])
   otProject      XeroProject?    @relation("OtSubmissionProject", fields: [otProjectId], references: [id])
+  otAttachments  OtAttachment[]
 
   @@index([employeeId, date])
   @@index([status, date])
   @@index([kind, status])
   @@index([reviewerId], map: "ApprovalRequest_reviewerId_fkey")
+}
+
+model OtAttachment {
+  id                String          @id @default(cuid())
+  approvalRequestId String
+  fileName          String
+  fileUrl           String
+  mimeType          String
+  sizeBytes         Int
+  createdAt         DateTime        @default(now())
+  approvalRequest   ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+
+  @@index([approvalRequestId])
 }
 
 model ApprovalChainStep {
