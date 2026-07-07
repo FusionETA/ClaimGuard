@@ -474,7 +474,8 @@ function ProjectCard({
     projectManagerIds: string[],
     location: string | undefined,
     latitude: number | null,
-    longitude: number | null
+    longitude: number | null,
+    allowedIps: string | null,
   ) => void
   onDelete?: (id: string) => void
 }) {
@@ -491,11 +492,19 @@ function ProjectCard({
     lat: project.latitude ?? null,
     lng: project.longitude ?? null,
   })
+  const [allowedIps, setAllowedIps] = useState<string>(project.allowedIps ?? "")
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
     setSaving(true)
-    await onUpdate(project.id, pmIds, undefined, coords.lat, coords.lng)
+    await onUpdate(
+      project.id,
+      pmIds,
+      undefined,
+      coords.lat,
+      coords.lng,
+      allowedIps.trim() === "" ? null : allowedIps.trim(),
+    )
     setSaving(false)
   }
 
@@ -552,6 +561,18 @@ function ProjectCard({
         showHelper={false}
         compact
       />
+      <input
+        type="text"
+        value={allowedIps}
+        onChange={(e) => setAllowedIps(e.target.value)}
+        placeholder="Allowed IPs (e.g. 203.106.51.10, 118.100.0.0/16)"
+        className="w-full rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+      />
+      <p className="px-1 text-[10px] text-muted-foreground leading-relaxed">
+        Only used when a policy has the IP-whitelist check turned on.
+        Comma-separated; single IPs or CIDR ranges. Leave empty to skip the
+        check for this project.
+      </p>
       <Button
         type="button"
         size="sm"
@@ -919,7 +940,8 @@ export function AdminSettingsPanel({
     projectManagerIds: string[],
     location: string | undefined,
     latitude: number | null,
-    longitude: number | null
+    longitude: number | null,
+    allowedIps: string | null,
   ) {
     const result = await updateProjectAction(
       projectId,
@@ -927,6 +949,7 @@ export function AdminSettingsPanel({
       location,
       latitude,
       longitude,
+      allowedIps,
     )
     if (result.ok) {
       toast({ title: result.message, variant: "success" })

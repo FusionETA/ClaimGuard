@@ -1033,7 +1033,11 @@ export async function updateProjectAction(
   projectManagerIds: string[] | undefined,
   location: string | undefined,
   latitude: number | null | undefined,
-  longitude: number | null | undefined
+  longitude: number | null | undefined,
+  /// Comma-separated IPv4 allowlist (single IPs or CIDR ranges) for
+  /// the clock-in IP-whitelist check. Undefined = leave unchanged,
+  /// empty string / null = clear.
+  allowedIps?: string | null,
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
 
@@ -1060,6 +1064,19 @@ export async function updateProjectAction(
       ? `${latitude.toFixed(6)},${longitude.toFixed(6)}`
       : location || undefined
 
+  // Normalise allowedIps: undefined = leave alone; empty string → null
+  // (clear the whitelist); otherwise trim and pass through. Server-side
+  // parse validation lives in the repo / the `lib/ip-whitelist.parseAllowlist`
+  // helper — we don't reject bad entries here; parseAllowlist silently
+  // drops unparseable entries at read time so a single fat-finger typo
+  // doesn't break clock-in for the whole project.
+  const normalisedAllowedIps =
+    allowedIps === undefined
+      ? undefined
+      : allowedIps === null || allowedIps.trim() === ""
+        ? null
+        : allowedIps.trim()
+
   try {
     await organizationRepository.updateProjectDetails({
       projectId,
@@ -1068,6 +1085,7 @@ export async function updateProjectAction(
       location: derivedLocation,
       latitude: latitude ?? null,
       longitude: longitude ?? null,
+      allowedIps: normalisedAllowedIps,
     })
   } catch (error) {
     return {

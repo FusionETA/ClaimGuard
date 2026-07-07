@@ -3731,6 +3731,7 @@ export const organizationRepository = {
       location: row.location ?? undefined,
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
+      allowedIps: row.allowedIps ?? null,
       isManual: row.isManual,
     }))
   },
@@ -3820,6 +3821,7 @@ export const organizationRepository = {
       location: row.location ?? undefined,
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
+      allowedIps: row.allowedIps ?? null,
       isManual: row.isManual,
       workingHoursStart: row.workingHoursStart,
       workingHoursEnd: row.workingHoursEnd,
@@ -3913,6 +3915,9 @@ export const organizationRepository = {
     location?: string
     latitude?: number | null
     longitude?: number | null
+    /// Comma-separated IPv4 allowlist for the clock-in IP-whitelist
+    /// check. `undefined` = leave unchanged; `null` or empty = clear.
+    allowedIps?: string | null
   }): Promise<void> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -3950,6 +3955,9 @@ export const organizationRepository = {
           location: data.location || null,
           latitude: data.latitude ?? null,
           longitude: data.longitude ?? null,
+          ...(data.allowedIps !== undefined
+            ? { allowedIps: data.allowedIps }
+            : {}),
         },
       })
 

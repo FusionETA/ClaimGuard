@@ -125,6 +125,11 @@ export type OrganizationProjectOption = {
   location?: string
   latitude?: number
   longitude?: number
+  /// Comma-separated IPv4 allowlist (single IPs or CIDR ranges) for the
+  /// clock-in IP-whitelist check. Employees on a policy with
+  /// `requireIpWhitelist=true` must clock in from an IP that matches.
+  /// Null/empty → check silently skipped even when the policy requires it.
+  allowedIps?: string | null
   isManual: boolean
   workingHoursStart?: string | null
   workingHoursEnd?: string | null
