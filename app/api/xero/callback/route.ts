@@ -46,11 +46,51 @@ export async function GET(request: NextRequest) {
     return response
   }
 
+  // Does the currently-active company already have a Xero connection?
+  // Used to turn "duplicate / replayed callback" outcomes into a benign
+  // success redirect instead of a scary error — see the state-cookie check
+  // below and the catch block. A replayed callback (browser refresh,
+  // Back→Forward, prefetch, or a concurrent duplicate request) re-submits
+  // the SAME one-time authorization code; Xero already consumed it on the
+  // first, successful exchange, so the connection is genuinely saved even
+  // though the second attempt fails.
+  const orgAlreadyHasXeroConnection = async (): Promise<boolean> => {
+    const activeOrgId = resolveActiveOrgId(session)
+    if (!activeOrgId) return false
+    try {
+      const conns = await organizationRepository.getXeroConnections(activeOrgId)
+      return conns.length > 0
+    } catch {
+      return false
+    }
+  }
+
   if (error) {
     return finish(`/admin/settings?xero=error&reason=${encodeURIComponent(errorDescription || error)}`)
   }
 
-  if (!code || !state || !cookieState || cookieState !== state) {
+  if (!code || !state) {
+    return finish("/admin/settings?xero=invalid-state")
+  }
+
+  // The OAuth state cookie is httpOnly + single-use: `finish()` clears it on
+  // the first callback. So a callback that arrives with a valid-looking
+  // code+state but NO state cookie is almost always a REPLAY of the callback
+  // URL (browser refresh / Back→Forward) after a connect that already
+  // succeeded — not a CSRF attempt. If this company is already connected,
+  // treat it as a no-op success rather than scaring the admin with
+  // "invalid-state". A cookie that is PRESENT but mismatched is still handled
+  // strictly (that's the genuine tamper signature).
+  if (!cookieState) {
+    if (await orgAlreadyHasXeroConnection()) {
+      console.warn(
+        "[xero-callback] replayed callback with no state cookie; org already connected — treating as success"
+      )
+      return finish("/admin/settings?xero=connected")
+    }
+    return finish("/admin/settings?xero=invalid-state")
+  }
+  if (cookieState !== state) {
     return finish("/admin/settings?xero=invalid-state")
   }
 
@@ -237,6 +277,24 @@ export async function GET(request: NextRequest) {
   } catch (callbackError) {
     const reason =
       callbackError instanceof Error ? callbackError.message : "Unable to connect to Xero."
+
+    // Xero returns `invalid_grant` / "Authorization code not found" when the
+    // one-time authorization code has already been consumed — a duplicate or
+    // concurrent callback hit (browser prefetch, double-click, refresh) — or
+    // when the code expired. In the duplicate case the FIRST exchange already
+    // saved the connection, so surfacing the raw error is misleading: the
+    // admin DID connect. If the active company already has a Xero connection,
+    // show the success state instead of the error.
+    const isConsumedOrExpiredCode =
+      /invalid_grant|Authorization code not found/i.test(reason)
+    if (isConsumedOrExpiredCode && (await orgAlreadyHasXeroConnection())) {
+      console.warn(
+        `[xero-callback] token exchange failed on a duplicate/replayed code but org is already connected — treating as success: ${reason}`
+      )
+      return finish("/admin/settings?xero=connected")
+    }
+
+    console.error(`[xero-callback] connect failed: ${reason}`)
     return finish(`/admin/settings?xero=error&reason=${encodeURIComponent(reason)}`)
   }
 }
