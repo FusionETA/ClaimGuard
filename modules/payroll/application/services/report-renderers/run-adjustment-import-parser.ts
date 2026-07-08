@@ -154,6 +154,19 @@ export async function parseAdjustmentImport(
     const rawLabel = cellText(row.getCell(labelCol!))
     const rawAmount = cellNumeric(row.getCell(amountCol!))
 
+    // Template pre-fills every eligible employee's name so admins can
+    // add lines to any of them without inserting new rows manually.
+    // Rows the admin left completely blank (name only, no
+    // category/label/amount) are intentional skips — nothing to import
+    // for that employee. Treat as skipped rather than an error.
+    if (
+      rawCategory.length === 0 &&
+      rawLabel.length === 0 &&
+      rawAmount === null
+    ) {
+      continue
+    }
+
     if (rawName.length === 0) {
       rowErrors.push({ rowNumber: r, message: "Full Name is required." })
       continue
