@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache"
 import { safeErrorMessage } from "@/lib/errors"
 import { applySalaryChangeHint } from "@/modules/payroll/application/services/salary-change-hints.service"
 import { generatePayrollReport } from "@/modules/payroll/application/services/payroll-reports.service"
-import { getPayrollPayslipDetailPageData } from "@/modules/payroll/application/services/payroll-run.service"
+import {
+  generatePayrollPayslips,
+  getPayrollPayslipDetailPageData,
+} from "@/modules/payroll/application/services/payroll-run.service"
 import {
   importPayrollRunAdjustments,
   type AdjustmentImportError,
@@ -161,10 +164,21 @@ export async function importPayrollRunAdjustmentsAction(
       runId,
       fileBuffer: arrayBuffer,
     })
-    if (result.status === "success") {
-      revalidatePath(`/admin/payroll/runs/${runId}`)
+    if (result.status !== "success") return result
+
+    // Auto re-run payroll so the payslip totals + PCB / EPF pick up
+    // the imported adjustments immediately. Failures are non-fatal —
+    // the import already succeeded and the admin can click Re-run
+    // payroll manually if the auto attempt errors.
+    let rerunWarning: string | undefined
+    try {
+      await generatePayrollPayslips({ runId })
+    } catch (err) {
+      rerunWarning = `Auto re-run failed (${safeErrorMessage(err, "unknown error")}). Click Re-run payroll to refresh totals.`
     }
-    return result
+
+    revalidatePath(`/admin/payroll/runs/${runId}`)
+    return rerunWarning ? { ...result, rerunWarning } : result
   } catch (err) {
     return {
       status: "error",

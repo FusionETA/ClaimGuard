@@ -7,6 +7,7 @@ import { z } from "zod"
 import type { BaseFormState } from "@/lib/form-state"
 import {
   clearPayrollAdjustment,
+  generatePayrollPayslips,
   getPayrollAdjustmentPageData,
   previewEmployeeNetForRun,
   savePayrollAdjustment,
@@ -244,8 +245,32 @@ export async function savePayrollAdjustmentAction(
     }
   }
 
+  // Auto re-run payroll so the payslip totals + PCB / EPF pick up the
+  // adjustment immediately. Failures are non-fatal — the save already
+  // succeeded and the admin can click Re-run payroll manually.
+  const rerunWarning = await rerunPayrollBestEffort(parsed.data.runId)
+
   revalidatePath(`/admin/payroll/runs/${parsed.data.runId}`)
-  return { status: "success", message: "Adjustments saved." }
+  return {
+    status: "success",
+    message: rerunWarning
+      ? `Adjustments saved. ${rerunWarning}`
+      : "Adjustments saved and payroll re-run.",
+  }
+}
+
+/**
+ * Try to re-run payroll for the given run. Returns undefined on
+ * success, or a short warning message the caller should append to
+ * the success toast so the admin knows to re-run manually.
+ */
+async function rerunPayrollBestEffort(runId: string): Promise<string | undefined> {
+  try {
+    await generatePayrollPayslips({ runId })
+    return undefined
+  } catch (err) {
+    return `Auto re-run failed (${safeErrorMessage(err, "unknown error")}). Click Re-run payroll to refresh totals.`
+  }
 }
 
 const clearSchema = z.object({
@@ -275,8 +300,15 @@ export async function clearPayrollAdjustmentAction(
     }
   }
 
+  const rerunWarning = await rerunPayrollBestEffort(parsed.data.runId)
+
   revalidatePath(`/admin/payroll/runs/${parsed.data.runId}`)
-  return { status: "success", message: "Adjustments cleared." }
+  return {
+    status: "success",
+    message: rerunWarning
+      ? `Adjustments cleared. ${rerunWarning}`
+      : "Adjustments cleared and payroll re-run.",
+  }
 }
 
 /**

@@ -99,6 +99,10 @@ export type AdjustmentImportSummary = {
   employeesAffected: number
   linesWritten: number
   employeesWithoutFileEntry: number
+  /// Populated when the auto re-run after the import failed. The
+  /// import itself succeeded; this is a soft warning telling the
+  /// admin they should click Re-run payroll to refresh totals.
+  rerunWarning?: string
 }
 
 export type AdjustmentImportError = {

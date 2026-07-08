@@ -30,6 +30,9 @@ type ImportResult =
       employeesAffected: number
       linesWritten: number
       employeesWithoutFileEntry: number
+      /// Present when the auto re-run after import failed. Import
+      /// itself succeeded; admin needs to click Re-run payroll.
+      rerunWarning?: string
     }
   | {
       status: "error"
@@ -232,28 +235,39 @@ export function ImportPayrollAdjustmentsDialog({
           )}
 
           {result?.status === "success" && (
-            <div className="flex items-start gap-2 rounded-xl border border-emerald-300/60 bg-emerald-50/40 p-3 dark:border-emerald-700/40 dark:bg-emerald-950/20">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
-              <div className="min-w-0 text-xs text-emerald-900 dark:text-emerald-200">
-                <p className="font-medium">Imported.</p>
-                <p>
-                  {result.linesWritten} line
-                  {result.linesWritten === 1 ? "" : "s"} written across{" "}
-                  {result.employeesAffected} employee
-                  {result.employeesAffected === 1 ? "" : "s"}.
-                  {result.employeesWithoutFileEntry > 0 && (
-                    <>
-                      {" "}
-                      {result.employeesWithoutFileEntry} employee
-                      {result.employeesWithoutFileEntry === 1 ? "" : "s"} on
-                      the run had their manual adjustments cleared (not in
-                      file).
-                    </>
-                  )}{" "}
-                  Re-run payroll to refresh the payslip totals.
-                </p>
+            <>
+              <div className="flex items-start gap-2 rounded-xl border border-emerald-300/60 bg-emerald-50/40 p-3 dark:border-emerald-700/40 dark:bg-emerald-950/20">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
+                <div className="min-w-0 text-xs text-emerald-900 dark:text-emerald-200">
+                  <p className="font-medium">
+                    {result.rerunWarning ? "Imported." : "Imported and payroll re-run."}
+                  </p>
+                  <p>
+                    {result.linesWritten} line
+                    {result.linesWritten === 1 ? "" : "s"} written across{" "}
+                    {result.employeesAffected} employee
+                    {result.employeesAffected === 1 ? "" : "s"}.
+                    {result.employeesWithoutFileEntry > 0 && (
+                      <>
+                        {" "}
+                        {result.employeesWithoutFileEntry} employee
+                        {result.employeesWithoutFileEntry === 1 ? "" : "s"} on
+                        the run had their manual adjustments cleared (not in
+                        file).
+                      </>
+                    )}
+                  </p>
+                </div>
               </div>
-            </div>
+              {result.rerunWarning && (
+                <div className="flex items-start gap-2 rounded-xl border border-amber-300/60 bg-amber-50/40 p-3 dark:border-amber-700/40 dark:bg-amber-950/20">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
+                  <p className="text-xs text-amber-900 dark:text-amber-200">
+                    {result.rerunWarning}
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -272,7 +286,7 @@ export function ImportPayrollAdjustmentsDialog({
             {importing ? (
               <>
                 <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                Importing…
+                Importing & re-running payroll…
               </>
             ) : (
               <>

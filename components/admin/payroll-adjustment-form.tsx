@@ -778,7 +778,7 @@ export function PayrollAdjustmentForm(props: {
           <span />
         )}
         <Button type="submit" form={saveFormId} disabled={pending}>
-          {pending ? "Saving…" : "Save adjustments"}
+          {pending ? "Saving & re-running payroll…" : "Save adjustments"}
         </Button>
       </div>
     )}
@@ -1014,7 +1014,7 @@ export function ClearAdjustmentButton(props: {
         description="OT hours, one-off line items, and unpaid-leave deductions for this employee will all be reset to zero."
         confirmLabel="Clear adjustments"
         triggerLabel="Clear all adjustments"
-        pendingLabel="Clearing..."
+        pendingLabel="Clearing & re-running payroll…"
         pending={pending}
         triggerVariant="ghost"
         triggerClassName="text-destructive"
