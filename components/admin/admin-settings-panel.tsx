@@ -4,7 +4,7 @@ import { useActionState, useEffect, useLayoutEffect, useMemo, useRef, useState, 
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
-import { CalendarDays, Clock, Coins, Download, Loader2, MapPin, Pencil, Plus, Search, ShieldCheck, Trash2, UserPlus } from "lucide-react"
+import { CalendarDays, ChevronDown, ChevronUp, Clock, Coins, Download, Loader2, MapPin, Pencil, Plus, Search, ShieldCheck, Trash2, UserPlus, X } from "lucide-react"
 
 import { CURRENCY_CATALOG } from "@/lib/currencies"
 
@@ -492,21 +492,72 @@ function ProjectCard({
     lat: project.latitude ?? null,
     lng: project.longitude ?? null,
   })
-  const [allowedIps, setAllowedIps] = useState<string>(project.allowedIps ?? "")
+  // Stored server-side as a comma-separated string; edited here as a
+  // list so admins get one row per IP instead of a cramped single-line
+  // field. Always has at least one row (empty) so the "add first IP"
+  // path doesn't need a special empty-state.
+  const [allowedIpsList, setAllowedIpsList] = useState<string[]>(() => {
+    const raw = project.allowedIps ?? ""
+    const parts = raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+    return parts.length > 0 ? parts : [""]
+  })
+  // Collapse the list to a summary when there are 4+ entries — long
+  // office/site-visit whitelists don't need to permanently take up
+  // vertical space on the settings page.
+  const [ipsExpanded, setIpsExpanded] = useState(false)
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
     setSaving(true)
+    const csv = allowedIpsList
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+      .join(", ")
     await onUpdate(
       project.id,
       pmIds,
       undefined,
       coords.lat,
       coords.lng,
-      allowedIps.trim() === "" ? null : allowedIps.trim(),
+      csv === "" ? null : csv,
     )
     setSaving(false)
   }
+
+  function addIpRow(value: string = "") {
+    setAllowedIpsList((prev) => {
+      // If the caller passed a value AND it's already in the list,
+      // don't dupe it — just keep the current list.
+      if (value && prev.map((s) => s.trim()).includes(value)) return prev
+      // Reuse a trailing empty row if present, so clicking Add IP
+      // twice in a row doesn't create two empties.
+      if (value === "" && prev.length > 0 && prev[prev.length - 1]!.trim() === "") {
+        return prev
+      }
+      return [...prev, value]
+    })
+    setIpsExpanded(true)
+  }
+
+  function updateIpAt(index: number, value: string) {
+    setAllowedIpsList((prev) => prev.map((s, i) => (i === index ? value : s)))
+  }
+
+  function removeIpAt(index: number) {
+    setAllowedIpsList((prev) => {
+      const next = prev.filter((_, i) => i !== index)
+      // Always keep at least one (empty) row so the "add first IP"
+      // path is a single click.
+      return next.length === 0 ? [""] : next
+    })
+  }
+
+  const nonEmptyIpsCount = allowedIpsList.filter((s) => s.trim().length > 0)
+    .length
+  const shouldCollapse = nonEmptyIpsCount >= 4 && !ipsExpanded
 
   const supervisorMembers = members.filter(
     (m) => m.role === "SUPERVISOR",
@@ -561,47 +612,104 @@ function ProjectCard({
         showHelper={false}
         compact
       />
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={allowedIps}
-          onChange={(e) => setAllowedIps(e.target.value)}
-          placeholder="Allowed IPs (e.g. 203.106.51.10, 118.100.0.0/16)"
-          className="min-w-0 flex-1 rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-        />
-        <button
-          type="button"
-          onClick={async () => {
-            try {
-              const res = await fetch("/api/whoami/ip", { cache: "no-store" })
-              if (!res.ok) throw new Error("lookup failed")
-              const { ip } = (await res.json()) as { ip: string | null }
-              if (!ip) {
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-2 px-1">
+          <p className="text-[11px] font-medium text-muted-foreground">
+            Allowed IPs
+            {nonEmptyIpsCount > 0 ? (
+              <span className="ml-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                {nonEmptyIpsCount}
+              </span>
+            ) : null}
+          </p>
+          {nonEmptyIpsCount >= 4 ? (
+            <button
+              type="button"
+              onClick={() => setIpsExpanded((v) => !v)}
+              className="flex items-center gap-0.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+            >
+              {ipsExpanded ? (
+                <>
+                  Collapse
+                  <ChevronUp className="h-3 w-3" />
+                </>
+              ) : (
+                <>
+                  Expand
+                  <ChevronDown className="h-3 w-3" />
+                </>
+              )}
+            </button>
+          ) : null}
+        </div>
+        {shouldCollapse ? (
+          <button
+            type="button"
+            onClick={() => setIpsExpanded(true)}
+            className="w-full rounded-[14px] border border-border/70 bg-background px-3 py-2 text-left text-xs text-muted-foreground hover:bg-surface-low"
+          >
+            {nonEmptyIpsCount} IP{nonEmptyIpsCount === 1 ? "" : "s"} configured — click to edit
+          </button>
+        ) : (
+          <div className="space-y-1.5">
+            {allowedIpsList.map((ip, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  value={ip}
+                  onChange={(e) => updateIpAt(i, e.target.value)}
+                  placeholder="e.g. 203.106.51.10 or 118.100.0.0/16"
+                  className="min-w-0 flex-1 rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeIpAt(i)}
+                  className="shrink-0 rounded-full p-1 text-muted-foreground hover:text-destructive"
+                  title="Remove this IP"
+                  aria-label="Remove this IP"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => addIpRow("")}
+            className="flex-1 rounded-full border border-border/70 border-dashed bg-background px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-surface-low hover:text-foreground"
+          >
+            <Plus className="mr-1 inline h-3 w-3" />
+            Add IP
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/whoami/ip", { cache: "no-store" })
+                if (!res.ok) throw new Error("lookup failed")
+                const { ip } = (await res.json()) as { ip: string | null }
+                if (!ip) {
+                  alert("Could not detect your IP. Please enter it manually.")
+                  return
+                }
+                addIpRow(ip)
+              } catch {
                 alert("Could not detect your IP. Please enter it manually.")
-                return
               }
-              setAllowedIps((prev) => {
-                const trimmed = prev.trim()
-                if (trimmed.length === 0) return ip
-                const parts = trimmed.split(",").map((s) => s.trim())
-                if (parts.includes(ip)) return trimmed
-                return `${trimmed}, ${ip}`
-              })
-            } catch {
-              alert("Could not detect your IP. Please enter it manually.")
-            }
-          }}
-          className="shrink-0 rounded-full border border-border/70 bg-background px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-surface-low focus:border-primary focus:outline-none"
-          title="Detect and append your current public IP"
-        >
-          Use current IP
-        </button>
+            }}
+            className="shrink-0 rounded-full border border-border/70 bg-background px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-surface-low focus:border-primary focus:outline-none"
+            title="Detect and add your current public IP as a new row"
+          >
+            Use current IP
+          </button>
+        </div>
       </div>
       <p className="px-1 text-[10px] text-muted-foreground leading-relaxed">
-        Only used when a policy has the IP-whitelist check turned on.
-        Comma-separated; single IPs or CIDR ranges. Leave empty to skip the
-        check for this project. Click <span className="font-medium">Use current IP</span> to append
-        the IP you&#39;re browsing from.
+        Only used when a policy has the IP-whitelist check turned on. Each row
+        is one IP or CIDR range. Leave empty to skip the check for this
+        project.
       </p>
       <Button
         type="button"
