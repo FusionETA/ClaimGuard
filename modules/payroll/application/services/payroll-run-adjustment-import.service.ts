@@ -14,6 +14,7 @@ import {
 } from "@/modules/payroll/application/services/report-renderers/run-adjustment-import-parser"
 import { renderAdjustmentImportTemplate } from "@/modules/payroll/application/services/report-renderers/run-adjustment-import-template"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
+import { payrollRunAdjustmentRepository } from "@/modules/payroll/infrastructure/payroll-run-adjustment.repository"
 import {
   getPayrollPrismaClientSafe,
   payrollRunRepository,
@@ -47,19 +48,37 @@ export async function generateAdjustmentImportTemplate(input: {
   })
   if (!run) throw new Error("Run not found.")
 
-  // Pre-populate with the run's eligible employees so admins can just
-  // edit amounts in-place. Falls back to a single hint row when the
-  // run has zero eligible employees.
-  const employees = await payrollProfileRepository.listReadyForPayroll(
-    orgId,
-    { period: { year: run.periodYear, month: run.periodMonth } },
-  )
+  // Pre-populate with the run's eligible employees + any existing
+  // manual line items already on the run. Since import is REPLACE
+  // semantics, showing what's already there is important — admins
+  // shouldn't have to remember to re-add lines they meant to keep.
+  const [employees, existingAdjustments] = await Promise.all([
+    payrollProfileRepository.listReadyForPayroll(orgId, {
+      period: { year: run.periodYear, month: run.periodMonth },
+    }),
+    payrollRunAdjustmentRepository.listForRun(run.id),
+  ])
+
+  // Reverse-lookup: category code → human label used by the parser.
+  const codeToLabel = new Map<string, string>()
+  for (const meta of Object.values(PAYROLL_ADJUSTMENT_CATEGORY_META)) {
+    codeToLabel.set(meta.code, meta.label)
+  }
 
   const buffer = await renderAdjustmentImportTemplate({
     periodLabel: periodLabel(run.periodYear, run.periodMonth),
-    employees: employees.map((e) => ({
-      name: e.name || "(no name)",
-    })),
+    employees: employees.map((e) => {
+      const adj = existingAdjustments.get(e.employeeProfileId)
+      const items = (adj?.manualLineItems ?? []).map((li) => ({
+        categoryLabel: codeToLabel.get(li.category) ?? li.category,
+        label: li.label,
+        amount: li.amount,
+      }))
+      return {
+        name: e.name || "(no name)",
+        existingLines: items,
+      }
+    }),
   })
 
   const slug = periodLabel(run.periodYear, run.periodMonth)

@@ -25,7 +25,19 @@ import {
  */
 export async function renderAdjustmentImportTemplate(input: {
   periodLabel: string
-  employees: Array<{ name: string }>
+  employees: Array<{
+    name: string
+    /// Existing manual line items already on the run for this
+    /// employee. Emitted as one row per line, pre-filled with the
+    /// current category / label / amount so the admin sees what
+    /// REPLACE would wipe if they upload the file as-is. Empty
+    /// array (or omitted) → one blank hint row for the employee.
+    existingLines?: Array<{
+      categoryLabel: string
+      label: string
+      amount: number
+    }>
+  }>
 }): Promise<Buffer> {
   const wb = new ExcelJS.Workbook()
   wb.creator = "AltomateHR"
@@ -149,7 +161,8 @@ export async function renderAdjustmentImportTemplate(input: {
       {
         text:
           `Bulk-adjustment template for the ${input.periodLabel} payroll run.\n\n` +
-          `Uploading this file REPLACES every existing one-off adjustment on the run.\n\n` +
+          `Rows are pre-filled with any adjustments already on the run — edit, add, or delete rows freely.\n\n` +
+          `Uploading this file REPLACES every existing one-off adjustment on the run — so anything you delete here disappears from the run.\n\n` +
           `Multiple adjustments per employee — just add another row with the same Full Name. ` +
           `E.g. one row for bonus, another row for loan repayment.\n\n` +
           `Category column has a dropdown — see the "Categories" tab for what each option is subject to.`,
@@ -161,9 +174,21 @@ export async function renderAdjustmentImportTemplate(input: {
   // admin doesn't have to retype. Category/Label/Amount stay blank so
   // an unedited upload writes nothing (all rows fail row-level
   // validation and the file is rejected cleanly).
-  const rows =
+  // Emit one row per existing line item. Employees with no existing
+  // adjustments still get one blank hint row so admins can add lines
+  // to them without inserting new rows manually.
+  const rows: Array<Array<string | number>> =
     input.employees.length > 0
-      ? input.employees.map((e) => [e.name, "", "", ""])
+      ? input.employees.flatMap((e) => {
+          const existing = e.existingLines ?? []
+          if (existing.length === 0) return [[e.name, "", "", ""]]
+          return existing.map((li) => [
+            e.name,
+            li.categoryLabel,
+            li.label,
+            li.amount,
+          ])
+        })
       : [
           [
             "Ali bin Ahmad",
