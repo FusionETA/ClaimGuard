@@ -1,6 +1,5 @@
 import { EmployeeShell } from "@/components/layout/employee-shell"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
 import { deriveOrgEnabledModulesFromRow } from "@/modules/organization/domain/plan"
 import { employeeOrganizationRepository } from "@/modules/organization/infrastructure/employee-organization.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
@@ -56,17 +55,14 @@ export default async function EmployeeLayout({
   // Multi-org employee: count this user's ACTIVE EmployeeOrganization
   // memberships. If >= 2, the shell renders the "Switch Company"
   // header button. We check the count (not just isMulti > 0) so a
-  // legacy single-org employee never sees the button.
-  const prisma = getPrismaClient()
-  let hasMultipleCompanies = false
-  if (prisma) {
-    const memberships =
-      await employeeOrganizationRepository.listActiveMembershipsForUser(
-        prisma,
-        session.userId,
-      )
-    hasMultipleCompanies = memberships.length >= 2
-  }
+  // legacy single-org employee never sees the button. The repo
+  // returns [] when the DB is unavailable — same effective outcome
+  // as the old getPrismaClient() null-guard.
+  const memberships =
+    await employeeOrganizationRepository.listActiveMembershipsForUser(
+      session.userId,
+    )
+  const hasMultipleCompanies = memberships.length >= 2
 
   // Header org name reflects the ACTIVE org (not the home org). For
   // single-org users this is identical to `session.organizationName`;

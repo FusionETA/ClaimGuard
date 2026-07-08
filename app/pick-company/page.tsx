@@ -4,7 +4,6 @@ import { LogoutButton } from "@/components/layout/logout-button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCurrentSession } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
-import { getPrismaClient } from "@/lib/prisma"
 import { employeeOrganizationRepository } from "@/modules/organization/infrastructure/employee-organization.repository"
 import { PickCompanyGrid } from "./pick-company-grid"
 
@@ -34,18 +33,15 @@ export default async function PickCompanyPage() {
   if (!session) redirect("/login")
   if (isAdminRole(session.role)) redirect("/admin")
 
-  const prisma = getPrismaClient()
-  if (!prisma) redirect("/login")
-
   const memberships =
     await employeeOrganizationRepository.listActiveMembershipsForUser(
-      prisma,
       session.userId,
     )
   if (memberships.length === 0) {
-    // No active employment — the login flow should have blocked this,
-    // but guard defensively so a stale session with revoked
-    // memberships doesn't render an empty picker.
+    // No active employment (or DB unavailable) — the login flow
+    // should have blocked this, but guard defensively so a stale
+    // session with revoked memberships doesn't render an empty
+    // picker.
     redirect("/login")
   }
 

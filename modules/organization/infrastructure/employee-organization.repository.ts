@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { PrismaClient } from "@/generated/prisma/client"
+import { getPrismaClient } from "@/lib/prisma"
 
 /**
  * Repository for the EmployeeOrganization join table (introduced in
@@ -13,6 +13,12 @@ import type { PrismaClient } from "@/generated/prisma/client"
  * auto-select an active org or route the user to the company picker.
  * The employee shell reads it to decide whether to render the
  * "Switch Company" button.
+ *
+ * All methods fetch the Prisma client internally (per the
+ * infrastructure-layer convention) so callers — including pages,
+ * server actions, and lib helpers — don't need to import
+ * `@/lib/prisma` themselves, which is restricted to infrastructure
+ * modules by the repo-wide eslint rule.
  */
 
 export type EmployeeOrganizationMembership = {
@@ -35,9 +41,10 @@ export const employeeOrganizationRepository = {
    * first — used as the deterministic fallback pick when auto-selecting.
    */
   async listMembershipsForUser(
-    prisma: PrismaClient,
     userId: string,
   ): Promise<EmployeeOrganizationMembership[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
     const rows = await prisma.employeeOrganization.findMany({
       where: { userId },
       orderBy: { createdAt: "asc" },
@@ -66,10 +73,9 @@ export const employeeOrganizationRepository = {
    * should NOT see Company A as a choice.
    */
   async listActiveMembershipsForUser(
-    prisma: PrismaClient,
     userId: string,
   ): Promise<EmployeeOrganizationMembership[]> {
-    const all = await this.listMembershipsForUser(prisma, userId)
+    const all = await this.listMembershipsForUser(userId)
     return all.filter((m) => m.isArchived !== true)
   },
 
@@ -80,10 +86,11 @@ export const employeeOrganizationRepository = {
    * granting cross-org access.
    */
   async getMembership(
-    prisma: PrismaClient,
     userId: string,
     organizationId: string,
   ): Promise<EmployeeOrganizationMembership | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
     const row = await prisma.employeeOrganization.findUnique({
       where: {
         userId_organizationId: { userId, organizationId },

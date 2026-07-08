@@ -104,7 +104,6 @@ export async function authenticateUser({
   } else {
     const memberships =
       await employeeOrganizationRepository.listActiveMembershipsForUser(
-        prisma,
         user.id,
       )
     if (memberships.length === 1) {

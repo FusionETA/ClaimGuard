@@ -5,7 +5,6 @@ import { redirect } from "next/navigation"
 
 import { getCurrentSession, updateCurrentSession } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
-import { getPrismaClient } from "@/lib/prisma"
 import { employeeOrganizationRepository } from "@/modules/organization/infrastructure/employee-organization.repository"
 
 /**
@@ -27,13 +26,12 @@ export async function selectCompanyAction(formData: FormData): Promise<void> {
   if (!session) redirect("/login")
   if (isAdminRole(session.role)) redirect("/admin")
 
-  const prisma = getPrismaClient()
-  if (!prisma) redirect("/login")
-
   // Validate membership BEFORE writing the session cookie — otherwise
-  // a client could POST an arbitrary orgId and gain access.
+  // a client could POST an arbitrary orgId and gain access. Repo
+  // returns null when the DB is unavailable — same effective outcome
+  // as the old getPrismaClient() redirect: the picker rejects the
+  // submission.
   const membership = await employeeOrganizationRepository.getMembership(
-    prisma,
     session.userId,
     orgId,
   )
