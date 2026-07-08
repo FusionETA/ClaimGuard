@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import type { Route } from "next"
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { CheckCircle2, CircleAlert, X } from "lucide-react"
 
@@ -7,14 +9,27 @@ import { cn } from "@/lib/utils"
 
 type ToastVariant = "success" | "error"
 
+type ToastAction = {
+  label: string
+  href: string
+}
+
 type Toast = {
   id: number
   title: string
   variant: ToastVariant
+  /// When present, renders a link below the title. Toasts with an
+  /// action stay on-screen 10s (instead of the default 3s) so admins
+  /// have time to actually click.
+  action?: ToastAction
 }
 
 type ToastContextValue = {
-  toast: (input: { title: string; variant?: ToastVariant }) => void
+  toast: (input: {
+    title: string
+    variant?: ToastVariant
+    action?: ToastAction
+  }) => void
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null)
@@ -27,14 +42,27 @@ export function ToasterProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const toast = useCallback(
-    ({ title, variant = "success" }: { title: string; variant?: ToastVariant }) => {
+    ({
+      title,
+      variant = "success",
+      action,
+    }: {
+      title: string
+      variant?: ToastVariant
+      action?: ToastAction
+    }) => {
       const id = Date.now() + Math.floor(Math.random() * 1000)
 
-      setToasts((current) => [...current, { id, title, variant }])
+      setToasts((current) => [...current, { id, title, variant, action }])
 
-      window.setTimeout(() => {
-        dismiss(id)
-      }, 3000)
+      // Longer window (10s) when the toast is actionable so the user
+      // has time to click; still 3s for plain notifications.
+      window.setTimeout(
+        () => {
+          dismiss(id)
+        },
+        action ? 10_000 : 3_000,
+      )
     },
     [dismiss]
   )
@@ -70,7 +98,18 @@ export function ToasterProvider({ children }: { children: React.ReactNode }) {
                 <CircleAlert className="h-4 w-4" />
               )}
             </div>
-            <p className="flex-1 text-sm font-semibold text-foreground">{item.title}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">{item.title}</p>
+              {item.action ? (
+                <Link
+                  href={item.action.href as Route}
+                  onClick={() => dismiss(item.id)}
+                  className="mt-1 inline-block text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                >
+                  {item.action.label}
+                </Link>
+              ) : null}
+            </div>
             <button
               type="button"
               onClick={() => dismiss(item.id)}

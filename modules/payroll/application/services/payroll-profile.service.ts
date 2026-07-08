@@ -238,10 +238,24 @@ export async function getPayrollEmployeeDetailPageData(input: {
  * Throws on auth failure; the action layer turns that into a form
  * error state.
  */
+/**
+ * Return shape for `upsertPayrollProfile`. `staleDraftRuns` lists
+ * every DRAFT run in the org that got marked stale by this save —
+ * used by the admin UI to show a "Re-run payroll" toast pointing at
+ * each affected run.
+ */
+export type UpsertPayrollProfileResult = PayrollProfileData & {
+  staleDraftRuns: Array<{
+    id: string
+    periodYear: number
+    periodMonth: number
+  }>
+}
+
 export async function upsertPayrollProfile(input: {
   userId: string
   patch: Parameters<typeof payrollProfileRepository.upsert>[0]["patch"]
-}): Promise<PayrollProfileData> {
+}): Promise<UpsertPayrollProfileResult> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
@@ -342,7 +356,13 @@ export async function upsertPayrollProfile(input: {
   // SOCSO numbers shipping. Mark broadly, regenerate cheaply.
   await payrollRunRepository.markDraftsStaleForOrg(orgId)
 
-  return result
+  // Fetch the DRAFT runs so the caller can surface a "Re-run
+  // payroll" toast that links straight to the affected run(s).
+  // Submit is already blocked on stale runs — this is purely for
+  // discoverability so admins don't have to remember on their own.
+  const staleDraftRuns = await payrollRunRepository.listDraftsForOrg(orgId)
+
+  return { ...result, staleDraftRuns }
 }
 
 /// Compare two nullable dates for equality at day-precision (avoids

@@ -6,6 +6,7 @@ import { z } from "zod"
 
 import { getCurrentSession } from "@/lib/auth/session"
 import type { BaseFormState } from "@/lib/form-state"
+import type { PayrollProfileFormState } from "./form-state"
 import {
   childAbilityStatuses,
   childPcbDeductionLevels,
@@ -79,9 +80,9 @@ const personalSchema = z.object({
 })
 
 export async function savePayrollPersonalAction(
-  _prev: BaseFormState,
+  _prev: PayrollProfileFormState,
   formData: FormData,
-): Promise<BaseFormState> {
+): Promise<PayrollProfileFormState> {
   const userId = String(formData.get("userId") ?? "").trim()
   if (!userId) {
     return { status: "error", message: "Missing employee id." }
@@ -138,14 +139,18 @@ export async function savePayrollPersonalAction(
   // below. The rest of `parsed.data` is shaped for PayrollProfile.
   const { email: newEmail, ...payrollPatch } = parsed.data
 
+  let staleDraftRuns:
+    | Array<{ id: string; periodYear: number; periodMonth: number }>
+    | undefined
   try {
-    await upsertPayrollProfile({
+    const result = await upsertPayrollProfile({
       userId,
       patch: {
         ...payrollPatch,
         childRelief,
       },
     })
+    staleDraftRuns = result.staleDraftRuns
   } catch (err) {
     return {
       status: "error",
@@ -169,7 +174,11 @@ export async function savePayrollPersonalAction(
 
   revalidatePath("/admin/payroll/employees")
   revalidatePath(`/admin/payroll/employees/${userId}`)
-  return { status: "success", message: "Personal details saved." }
+  return {
+    status: "success",
+    message: "Personal details saved.",
+    staleDraftRuns,
+  }
 }
 
 // ─── Employment tab ───────────────────────────────────────────────────────
@@ -219,9 +228,9 @@ const employmentSchema = z.object({
 })
 
 export async function savePayrollEmploymentAction(
-  _prev: BaseFormState,
+  _prev: PayrollProfileFormState,
   formData: FormData,
-): Promise<BaseFormState> {
+): Promise<PayrollProfileFormState> {
   const userId = String(formData.get("userId") ?? "").trim()
   if (!userId) {
     return { status: "error", message: "Missing employee id." }
@@ -287,14 +296,18 @@ export async function savePayrollEmploymentAction(
     ...profilePatch
   } = parsed.data
 
+  let staleDraftRuns:
+    | Array<{ id: string; periodYear: number; periodMonth: number }>
+    | undefined
   try {
-    await upsertPayrollProfile({
+    const result = await upsertPayrollProfile({
       userId,
       patch: {
         ...profilePatch,
         fixedAllowances,
       },
     })
+    staleDraftRuns = result.staleDraftRuns
   } catch (err) {
     return {
       status: "error",
@@ -344,7 +357,11 @@ export async function savePayrollEmploymentAction(
 
   revalidatePath("/admin/payroll/employees")
   revalidatePath(`/admin/payroll/employees/${userId}`)
-  return { status: "success", message: "Employment details saved." }
+  return {
+    status: "success",
+    message: "Employment details saved.",
+    staleDraftRuns,
+  }
 }
 
 /**
@@ -397,9 +414,9 @@ const statutorySchema = z.object({
 })
 
 export async function savePayrollStatutoryAction(
-  _prev: BaseFormState,
+  _prev: PayrollProfileFormState,
   formData: FormData,
-): Promise<BaseFormState> {
+): Promise<PayrollProfileFormState> {
   const userId = String(formData.get("userId") ?? "").trim()
   if (!userId) {
     return { status: "error", message: "Missing employee id." }
@@ -430,11 +447,15 @@ export async function savePayrollStatutoryAction(
     }
   }
 
+  let staleDraftRuns:
+    | Array<{ id: string; periodYear: number; periodMonth: number }>
+    | undefined
   try {
-    await upsertPayrollProfile({
+    const result = await upsertPayrollProfile({
       userId,
       patch: parsed.data,
     })
+    staleDraftRuns = result.staleDraftRuns
   } catch (err) {
     return {
       status: "error",
@@ -444,7 +465,11 @@ export async function savePayrollStatutoryAction(
 
   revalidatePath("/admin/payroll/employees")
   revalidatePath(`/admin/payroll/employees/${userId}`)
-  return { status: "success", message: "Statutory details saved." }
+  return {
+    status: "success",
+    message: "Statutory details saved.",
+    staleDraftRuns,
+  }
 }
 
 // ─── Archive / unarchive ──────────────────────────────────────────────────

@@ -586,6 +586,33 @@ export const payrollRunRepository = {
     }
   },
 
+  /**
+   * List DRAFT runs for an org (id + period only). Used after a
+   * profile save to tell the admin which runs were just marked stale
+   * so the UI can render a "Re-run payroll" toast link. Returns
+   * newest period first.
+   */
+  async listDraftsForOrg(
+    organizationId: string,
+  ): Promise<Array<{ id: string; periodYear: number; periodMonth: number }>> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    try {
+      const rows = await prisma.payrollRun.findMany({
+        where: { organizationId, status: "DRAFT" },
+        select: { id: true, periodYear: true, periodMonth: true },
+        orderBy: [{ periodYear: "desc" }, { periodMonth: "desc" }],
+      })
+      return rows
+    } catch (err) {
+      console.error("[payrollRunRepository.listDraftsForOrg]", {
+        organizationId,
+        err,
+      })
+      return []
+    }
+  },
+
   async markMutated(runId: string): Promise<void> {
     const prisma = getPrismaClient()
     if (!prisma) return

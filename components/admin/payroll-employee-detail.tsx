@@ -42,7 +42,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { useToastOnAction } from "@/components/ui/toaster"
+import { useToast, useToastOnAction } from "@/components/ui/toaster"
+import { periodLabel } from "@/modules/payroll/domain/runs"
 import { cn } from "@/lib/utils"
 import { NATIONALITIES } from "@/lib/nationalities"
 import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
@@ -589,6 +590,42 @@ function TabPill({
   )
 }
 
+// ─── Stale-runs CTA toast ─────────────────────────────────────────────────
+
+/**
+ * When a profile save marks one or more DRAFT payroll runs as stale
+ * (see `payrollRunRepository.markDraftsStaleForOrg`), fire a
+ * follow-up toast with a link straight to the affected run. Fires
+ * one toast per stale run so admins can jump to each. Submit on
+ * those runs is already blocked by the stale-check on the run page —
+ * this is purely for discoverability so admins don't have to
+ * remember which run needs regenerating.
+ */
+function useStaleDraftRunsToast(state: {
+  status: "idle" | "success" | "error"
+  staleDraftRuns?: Array<{ id: string; periodYear: number; periodMonth: number }>
+}) {
+  const { toast } = useToast()
+
+  useEffect(() => {
+    if (state.status !== "success") return
+    const runs = state.staleDraftRuns ?? []
+    for (const run of runs) {
+      const label = periodLabel(run.periodYear, run.periodMonth)
+      toast({
+        title: `${label} payroll is now stale`,
+        action: {
+          label: `Re-run payroll →`,
+          href: `/admin/payroll/runs/${run.id}`,
+        },
+      })
+    }
+    // Depend on the STATE REFERENCE, same reason as useToastOnAction —
+    // useActionState always returns a fresh object per submission.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state])
+}
+
 // ─── Personal tab ─────────────────────────────────────────────────────────
 
 function PersonalTab(props: {
@@ -607,6 +644,7 @@ function PersonalTab(props: {
     initialSettingsActionState,
   )
   useToastOnAction(state)
+  useStaleDraftRunsToast(state)
 
   const [children, setChildren] = useState<ChildRelief[]>(
     props.profile?.childRelief ?? [],
@@ -1113,6 +1151,7 @@ function EmploymentTab(props: {
     initialSettingsActionState,
   )
   useToastOnAction(state)
+  useStaleDraftRunsToast(state)
 
   const [salaryType, setSalaryType] = useState(
     props.profile?.salaryType ?? "MONTHLY",
@@ -1839,6 +1878,7 @@ function StatutoryTab(props: {
     initialSettingsActionState,
   )
   useToastOnAction(state)
+  useStaleDraftRunsToast(state)
 
   // Branch detection — drives the read-only employer-rate display +
   // foreign-worker banners. Same logic as the calc engine, so what
