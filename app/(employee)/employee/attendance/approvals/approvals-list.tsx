@@ -82,6 +82,16 @@ function fmtDuration(startIso: string, endIso: string): string {
   return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`
 }
 
+function fmtUploadedAt(iso: string): string {
+  return new Date(iso).toLocaleString("en-MY", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 type Props = {
   items: ApprovalRequestView[]
   reviewedOt: ApprovalRequestView[]
@@ -779,7 +789,14 @@ function OtCard({ item }: { item: ApprovalRequestView }) {
               className="flex items-center gap-2 text-xs text-primary hover:underline"
             >
               <FileText className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{a.fileName}</span>
+              <div className="min-w-0">
+                <span className="truncate block">{a.fileName}</span>
+                {a.uploadedAt ? (
+                  <span className="text-[10px] text-muted-foreground font-normal not-italic">
+                    {fmtUploadedAt(a.uploadedAt)}
+                  </span>
+                ) : null}
+              </div>
             </a>
           ))}
         </div>
@@ -859,7 +876,14 @@ function OtReviewedCard({ item }: { item: ApprovalRequestView }) {
               className="flex items-center gap-2 text-xs text-primary hover:underline"
             >
               <FileText className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{a.fileName}</span>
+              <div className="min-w-0">
+                <span className="truncate block">{a.fileName}</span>
+                {a.uploadedAt ? (
+                  <span className="text-[10px] text-muted-foreground font-normal not-italic">
+                    {fmtUploadedAt(a.uploadedAt)}
+                  </span>
+                ) : null}
+              </div>
             </a>
           ))}
         </div>

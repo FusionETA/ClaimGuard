@@ -31,6 +31,16 @@ function fmtTime(iso: string | null, tz: string) {
     : "—"
 }
 
+function fmtUploadedAt(iso: string): string {
+  return new Date(iso).toLocaleString("en-MY", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 function fmtDuration(startIso: string, endIso: string): string {
   const diffMin = Math.round(
     (new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000,
@@ -161,7 +171,14 @@ export function OtRecordCard({
                       className="flex min-w-0 flex-1 items-center gap-2 text-xs font-medium text-foreground hover:underline"
                     >
                       <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                      <span className="truncate">{a.fileName}</span>
+                      <div className="min-w-0">
+                        <span className="truncate block">{a.fileName}</span>
+                        {"uploadedAt" in a && a.uploadedAt ? (
+                          <span className="text-[10px] text-muted-foreground font-normal">
+                            {fmtUploadedAt(a.uploadedAt)}
+                          </span>
+                        ) : null}
+                      </div>
                     </a>
                     <button
                       type="button"

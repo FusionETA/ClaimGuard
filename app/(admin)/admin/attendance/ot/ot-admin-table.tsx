@@ -66,6 +66,16 @@ function fmtDuration(startIso: string, endIso: string): string {
   return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
+function fmtUploadedAt(iso: string): string {
+  return new Date(iso).toLocaleString("en-MY", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 function todayIso() {
   return new Date().toISOString().slice(0, 10)
 }
@@ -317,7 +327,14 @@ export function OtAdminTable({ initialRows, initialFrom, initialTo }: Props) {
                                 className="flex items-center gap-1.5 text-xs text-primary hover:underline"
                               >
                                 <FileText className="h-3.5 w-3.5 shrink-0" />
-                                <span className="max-w-[200px] truncate">{a.fileName}</span>
+                                <div className="min-w-0">
+                                  <span className="max-w-[200px] truncate block">{a.fileName}</span>
+                                  {a.uploadedAt ? (
+                                    <span className="text-[10px] text-muted-foreground font-normal">
+                                      {fmtUploadedAt(a.uploadedAt)}
+                                    </span>
+                                  ) : null}
+                                </div>
                               </a>
                             ))}
                           </div>

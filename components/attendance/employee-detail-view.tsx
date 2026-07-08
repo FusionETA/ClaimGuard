@@ -58,6 +58,16 @@ function fmtOtDuration(startIso: string, endIso: string): string {
   return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
+function fmtUploadedAt(iso: string): string {
+  return new Date(iso).toLocaleString("en-MY", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 // EmployeeDetailData moved to modules/attendance/domain/models.ts so the
 // service that builds it doesn't have to import this view file.
 export type { EmployeeDetailData } from "@/modules/attendance/domain/models"
@@ -382,7 +392,14 @@ export function EmployeeDetailView({
                             className="flex items-center gap-1 text-xs text-primary hover:underline"
                           >
                             <FileText className="h-3 w-3 shrink-0" />
-                            <span className="max-w-[160px] truncate">{a.fileName}</span>
+                            <div className="min-w-0">
+                              <span className="max-w-[160px] truncate block">{a.fileName}</span>
+                              {a.uploadedAt ? (
+                                <span className="text-[10px] text-muted-foreground font-normal">
+                                  {fmtUploadedAt(a.uploadedAt)}
+                                </span>
+                              ) : null}
+                            </div>
                           </a>
                         ))}
                       </div>

@@ -1417,6 +1417,7 @@ export const attendanceRepository = {
         fileName: a.fileName,
         fileUrl: a.fileUrl,
         mimeType: a.mimeType,
+        uploadedAt: a.createdAt.toISOString(),
       })),
     }))
   },
@@ -2538,6 +2539,7 @@ export const attendanceRepository = {
         fileName: a.fileName,
         fileUrl: a.fileUrl,
         mimeType: a.mimeType,
+        uploadedAt: a.createdAt.toISOString(),
       })),
     }))
     const withContext = await attachChainContext(baseViews)
@@ -2575,6 +2577,7 @@ export const attendanceRepository = {
         fileName: a.fileName,
         fileUrl: a.fileUrl,
         mimeType: a.mimeType,
+        uploadedAt: a.createdAt.toISOString(),
       })),
     }))
   },
@@ -3370,6 +3373,7 @@ export const attendanceRepository = {
           fileName: a.fileName,
           fileUrl: a.fileUrl,
           mimeType: a.mimeType,
+          uploadedAt: a.createdAt.toISOString(),
         })),
       })),
     )
@@ -4595,7 +4599,7 @@ export const attendanceRepository = {
       submittedAt: string
       reviewerName: string | null
       reviewedAt: string | null
-      attachments: { id: string; fileName: string; fileUrl: string; mimeType: string }[]
+      attachments: { id: string; fileName: string; fileUrl: string; mimeType: string; uploadedAt: string }[]
     }>
   > {
     const prisma = getClient()
@@ -4643,6 +4647,7 @@ export const attendanceRepository = {
         fileName: a.fileName,
         fileUrl: a.fileUrl,
         mimeType: a.mimeType,
+        uploadedAt: a.createdAt.toISOString(),
       })),
     }))
   },
