@@ -2215,110 +2215,11 @@ export const attendanceRepository = {
     ])
     void logRow
 
-    // Auto-create an OT ApprovalRequest when the recomputed durationMin
-    // exceeds the daily OT threshold. Mirrors the regular clock-out
-    // flow's auto-OT block (see clockOut around line 1183+) so a
-    // supervisor's session edit produces an OT request for the excess
-    // minutes the same way an over-8h clock-out would. Conservative:
-    // only CREATE when no OT request exists for this date; never
-    // overwrite or delete an existing one.
-    //
-    // When an OT row is created and pending review, we resolve its
-    // first-step approvers and bubble them up so the calling service
-    // can publish a realtime refresh — without this, the next
-    // supervisor's sidebar badge stayed stale until page reload.
-    let pendingApproverIds: string[] = []
-    const orgId = existing.employee?.organizationId ?? null
-    if (durationMin && orgId) {
-      const [org, employeeProfile] = await Promise.all([
-        prisma.organization.findUnique({
-          where: { id: orgId },
-          select: { otEnabled: true },
-        }),
-        prisma.employeeProfile.findFirst({
-          where: { userId: existing.employeeId },
-          select: {
-            id: true,
-            policy: {
-              select: {
-                otEnabled: true,
-                otDailyThresholdMinutes: true,
-                otMethod: true,
-              },
-            },
-          },
-        }),
-      ])
-      const policyOtEnabled = employeeProfile?.policy?.otEnabled ?? true
-      const threshold = employeeProfile?.policy?.otDailyThresholdMinutes ?? 480
-      if (org?.otEnabled && policyOtEnabled && durationMin > threshold) {
-        const otMinutes = durationMin - threshold
-        const existingOt = await prisma.approvalRequest.findFirst({
-          where: {
-            employeeId: existing.employeeId,
-            date: existing.date,
-            kind: "OT",
-          },
-          select: { id: true },
-        })
-        if (!existingOt) {
-          const payout =
-            employeeProfile?.policy?.otEnabled &&
-            employeeProfile.policy.otMethod === "TIME_BANK"
-              ? "TIME_BANK"
-              : "CASH"
-          const otAutoApprove = await shouldAutoApprove({
-            employeeId: existing.employeeId,
-            role: existing.employee?.role,
-            projectId: existing.projectId ?? null,
-            kind: "OT",
-          })
-          const now = new Date()
-          const otApproval = await prisma.approvalRequest.create({
-            data: {
-              employeeId: existing.employeeId,
-              kind: "OT",
-              status: otAutoApprove ? "APPROVED" : "PENDING",
-              date: existing.date,
-              eventAt: now,
-              title: `OT • ${formatHm(otMinutes)}`,
-              detail: `Worked ${formatHm(durationMin)} (threshold ${formatHm(threshold)}). Excess of ${formatHm(otMinutes)} requested as OT.`,
-              project: existing.project ?? null,
-              otSubtype: null,
-              otPayoutMethod: payout,
-              ...(otAutoApprove
-                ? {
-                    reviewerId: existing.employeeId,
-                    reviewedAt: now,
-                    reviewNotes: "Auto-approved (supervisor self-attendance)",
-                  }
-                : {}),
-            },
-            select: { id: true },
-          })
-          if (otAutoApprove && payout === "TIME_BANK" && employeeProfile) {
-            await prisma.employeeProfile.updateMany({
-              where: { id: employeeProfile.id },
-              data: { otTimeBalanceMin: { increment: otMinutes } },
-            })
-          }
-          if (!otAutoApprove) {
-            pendingApproverIds = await resolveCurrentApproverIds(
-              otApproval.id,
-              existing.employeeId,
-              "OT",
-              existing.projectId ?? null,
-            )
-          }
-        }
-      }
-    }
-
     return {
       id: existing.id,
       timeIn: nextTimeIn,
       timeOut: nextTimeOut,
-      pendingApproverIds,
+      pendingApproverIds: [],
     }
   },
 
