@@ -175,17 +175,19 @@ const nullableEnum = <T extends readonly string[]>(values: T) =>
     })
 
 const childAbilityStatuses = ["NORMAL", "DISABLED"] as const
+// Current studying levels after the July 2026 simplification. Import
+// still accepts the legacy set (NONE / PRESCHOOL / PRIMARY / SECONDARY
+// / HIGHER_ED) via `normaliseChildStudying` — the parser maps them to
+// the new codes so old CSV files keep working.
 const childStudyStages = [
-  "PRESCHOOL",
-  "PRIMARY",
-  "SECONDARY",
-  "HIGHER_ED",
-  "NONE",
+  "UNDER_18",
+  "PRE_UNIVERSITY",
+  "DIPLOMA_MALAYSIA",
+  "DEGREE_ABROAD",
 ] as const
 const childPcbDeductions = ["FULL", "HALF", "NONE"] as const
 
 export type ChildReliefEntry = {
-  age: number | null
   abilityStatus: (typeof childAbilityStatuses)[number] | null
   currentlyStudying: (typeof childStudyStages)[number] | null
   pcbDeduction: (typeof childPcbDeductions)[number] | null
@@ -331,6 +333,10 @@ export type RowWithChildren = ImportRow & {
 
 // ─── Dependent-children folding ─────────────────────────────────────────
 
+// `age` is accepted for backward compatibility with older exported
+// CSVs — the value is parsed and discarded. Adding a child now
+// requires `currentlyStudying`; presence of that key is what makes a
+// slot count as populated.
 const CHILD_KEY_REGEX =
   /^child(\d+)\.(age|abilityStatus|currentlyStudying|pcbDeduction)$/
 
@@ -358,9 +364,10 @@ function extractChildRawSlots(
 
 /**
  * Take the per-slot raw values and produce a stable JSON array of
- * dependent-child entries. Slots whose `age` is blank are dropped —
- * they're placeholder columns left over from a wider export with
- * fewer actual kids. Returns null when there are zero children.
+ * dependent-child entries. Slots are populated by `currentlyStudying`
+ * (the old `age` column is still accepted as a fallback trigger for
+ * backward compatibility with older CSVs). Returns null when there
+ * are zero children.
  */
 function foldChildRelief(
   slots: Map<number, Record<string, string>>,
@@ -368,15 +375,16 @@ function foldChildRelief(
   if (slots.size === 0) return null
   const entries: ChildReliefEntry[] = []
   for (const [n, raw] of [...slots.entries()].sort(([a], [b]) => a - b)) {
+    const studyingRaw = (raw.currentlyStudying ?? "").trim()
     const ageStr = (raw.age ?? "").trim()
-    if (ageStr === "") continue // skip empty slot
-    const ageNum = Number(ageStr.replace(/[^0-9.]/g, ""))
-    if (!Number.isFinite(ageNum) || ageNum < 0) continue
+    // A slot counts as populated when at least ONE meaningful field
+    // is present. That's usually currentlyStudying but legacy CSVs
+    // may drive presence from age alone.
+    if (studyingRaw === "" && ageStr === "") continue
 
     entries.push({
-      age: ageNum,
       abilityStatus: normaliseChildAbility(raw.abilityStatus ?? ""),
-      currentlyStudying: normaliseChildStudying(raw.currentlyStudying ?? ""),
+      currentlyStudying: normaliseChildStudying(studyingRaw, ageStr),
       pcbDeduction: normaliseChildPcbDeduction(raw.pcbDeduction ?? ""),
     })
     // n is used implicitly by the sort order above — not stored on
@@ -407,34 +415,66 @@ function normaliseChildAbility(
   return null
 }
 
+/**
+ * Coerce the CSV `currentlyStudying` cell into a current-model value.
+ *
+ * Accepts:
+ *   - Current codes: UNDER_18 / PRE_UNIVERSITY / DIPLOMA_MALAYSIA /
+ *     DEGREE_ABROAD (case + whitespace insensitive)
+ *   - Legacy codes: NONE / PRESCHOOL / PRIMARY / SECONDARY (→ UNDER_18)
+ *     and HIGHER_ED (→ DIPLOMA_MALAYSIA — the safer default when the
+ *     CSV doesn't say whether the child is studying in or outside
+ *     Malaysia; admin can flip to DEGREE_ABROAD via the UI afterwards).
+ *   - Human phrases like "pre-university", "diploma malaysia",
+ *     "degree overseas", etc.
+ *
+ * Falls back to UNDER_18 when the cell is blank AND the caller passed
+ * an age below 18 (legacy CSV shape). Returns null when there's
+ * genuinely no signal to work with.
+ */
 function normaliseChildStudying(
   raw: string,
+  ageFallback: string = "",
 ): ChildReliefEntry["currentlyStudying"] {
   const v = raw.trim().toLowerCase().replace(/[\s_-]+/g, "")
-  if (v === "") return null
-  if (v === "preschool" || v === "kindergarten" || v === "nursery") {
-    return "PRESCHOOL"
+
+  // Current codes
+  if (v === "under18") return "UNDER_18"
+  if (v === "preuniversity" || v === "preuni" || v === "form6" ||
+      v === "alevels" || v === "matriculation") {
+    return "PRE_UNIVERSITY"
   }
-  if (v === "primary" || v === "elementary" || v === "primaryschool") {
-    return "PRIMARY"
+  if (v === "diplomamalaysia" || v === "diplomamy" || v === "diploma" ||
+      v === "diplomaorhigher" || v === "diplomaorhighermalaysia") {
+    return "DIPLOMA_MALAYSIA"
   }
-  if (v === "secondary" || v === "highschool" || v === "secondaryschool") {
-    return "SECONDARY"
+  if (v === "degreeabroad" || v === "degreeoverseas" || v === "degree" ||
+      v === "degreeorhigher" || v === "degreeorhigherabroad" ||
+      v === "abroad" || v === "overseas") {
+    return "DEGREE_ABROAD"
   }
-  if (
-    v === "highered" ||
-    v === "highereducation" ||
-    v === "university" ||
-    v === "college" ||
-    v === "tertiary" ||
-    v === "diploma" ||
-    v === "degree"
-  ) {
-    return "HIGHER_ED"
+
+  // Legacy codes → new codes (matches models.ts normaliseChildStudyingLevel).
+  if (v === "none" || v === "notstudying" || v === "no" || v === "n" ||
+      v === "preschool" || v === "kindergarten" || v === "nursery" ||
+      v === "primary" || v === "elementary" || v === "primaryschool" ||
+      v === "secondary" || v === "highschool" || v === "secondaryschool") {
+    return "UNDER_18"
   }
-  if (v === "none" || v === "notstudying" || v === "no" || v === "n") {
-    return "NONE"
+  if (v === "highered" || v === "highereducation" || v === "university" ||
+      v === "college" || v === "tertiary") {
+    return "DIPLOMA_MALAYSIA"
   }
+
+  // Blank cell — infer from age when we have one (legacy CSV shape).
+  if (v === "") {
+    const age = Number(ageFallback.replace(/[^0-9.]/g, ""))
+    if (Number.isFinite(age) && age >= 0) {
+      return age < 18 ? "UNDER_18" : "PRE_UNIVERSITY"
+    }
+    return null
+  }
+
   return null
 }
 
@@ -2119,13 +2159,13 @@ export async function previewMappedCsv(input: {
       if (v == null) {
         obj[k] = null
       } else if (k === "childRelief" && Array.isArray(v)) {
-        // Compact "n kid(s): age 12 (NORMAL), age 9 (NORMAL)" so the
-        // admin can sanity-check what got folded without seeing raw
-        // JSON in the preview grid.
+        // Compact "n kid(s): UNDER_18 (NORMAL), DIPLOMA_MALAYSIA (NORMAL)"
+        // so the admin can sanity-check what got folded without seeing
+        // raw JSON in the preview grid.
         obj[k] = (v as ChildReliefEntry[])
           .map(
             (e) =>
-              `age ${e.age ?? "?"}${
+              `${e.currentlyStudying ?? "?"}${
                 e.abilityStatus ? ` (${e.abilityStatus})` : ""
               }`,
           )

@@ -81,14 +81,77 @@ export const SALARY_TYPE_LABELS: Record<SalaryType, string> = {
 export const childAbilityStatuses = ["NORMAL", "DISABLED"] as const
 export type ChildAbilityStatus = (typeof childAbilityStatuses)[number]
 
+/**
+ * Child's studying level for PCB relief per LHDN Public Ruling 5/2019
+ * §7.3. Only two amounts exist under the ruling — RM 2,000 or RM 8,000
+ * per child — so the enum collapses to four cases that map cleanly to
+ * those two amounts. Simplified in July 2026 from an age-plus-5-levels
+ * model that carried no math value.
+ *
+ *   UNDER_18          — child under 18. Fixed RM 2,000. No further
+ *                       questions.
+ *   PRE_UNIVERSITY    — 18+, in pre-uni / matriculation / A-levels /
+ *                       Form 6. RM 2,000 per LHDN 5/2019 §7.3.2.
+ *   DIPLOMA_MALAYSIA  — 18+, diploma or higher at an approved
+ *                       institution in Malaysia. RM 8,000 per
+ *                       §7.3.3(a).
+ *   DEGREE_ABROAD     — 18+, degree or higher at an approved
+ *                       institution outside Malaysia. RM 8,000 per
+ *                       §7.3.3(b). Split from DIPLOMA_MALAYSIA so the
+ *                       annual Form EA / CP8D can report the two
+ *                       cohorts separately.
+ */
 export const childStudyingLevels = [
+  "UNDER_18",
+  "PRE_UNIVERSITY",
+  "DIPLOMA_MALAYSIA",
+  "DEGREE_ABROAD",
+] as const
+export type ChildStudyingLevel = (typeof childStudyingLevels)[number]
+
+/**
+ * Legacy studying-level values still present on rows written before
+ * the July 2026 simplification. Repos map these to the new set on
+ * read; the DB is left as-is so historical audit trails don't shift.
+ * `NONE / PRESCHOOL / PRIMARY / SECONDARY` all previously produced
+ * RM 2,000 (identical to UNDER_18); `HIGHER_ED` produced RM 8,000
+ * (we map to DIPLOMA_MALAYSIA as the safer default — admin can flip
+ * to DEGREE_ABROAD if the child is actually studying overseas).
+ */
+export const legacyChildStudyingLevels = [
   "NONE",
   "PRESCHOOL",
   "PRIMARY",
   "SECONDARY",
   "HIGHER_ED",
 ] as const
-export type ChildStudyingLevel = (typeof childStudyingLevels)[number]
+export type LegacyChildStudyingLevel =
+  (typeof legacyChildStudyingLevels)[number]
+
+/**
+ * Coerce any string (legacy or current) to a current-model
+ * `ChildStudyingLevel`. Unknown values fall back to UNDER_18.
+ */
+export function normaliseChildStudyingLevel(
+  raw: string | null | undefined,
+): ChildStudyingLevel {
+  if (typeof raw !== "string") return "UNDER_18"
+  const s = raw.trim().toUpperCase()
+  if ((childStudyingLevels as readonly string[]).includes(s)) {
+    return s as ChildStudyingLevel
+  }
+  switch (s) {
+    case "NONE":
+    case "PRESCHOOL":
+    case "PRIMARY":
+    case "SECONDARY":
+      return "UNDER_18"
+    case "HIGHER_ED":
+      return "DIPLOMA_MALAYSIA"
+    default:
+      return "UNDER_18"
+  }
+}
 
 export const childPcbDeductionLevels = ["FULL", "HALF", "NONE"] as const
 export type ChildPcbDeductionLevel = (typeof childPcbDeductionLevels)[number]
@@ -96,9 +159,12 @@ export type ChildPcbDeductionLevel = (typeof childPcbDeductionLevels)[number]
 /**
  * One child entry. Up to 4 children supported in the PayrollPanda
  * template; we store as an array so the count is flexible.
+ *
+ * The `age` field was removed in July 2026 — it was never referenced
+ * by any calc and the age bracket is now implied by `currentlyStudying`
+ * (UNDER_18 vs the three 18-plus values).
  */
 export type ChildRelief = {
-  age: number
   abilityStatus: ChildAbilityStatus
   currentlyStudying: ChildStudyingLevel
   /// What share of the PCB relief is claimed for this child. Required

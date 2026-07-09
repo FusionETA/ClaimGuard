@@ -16,6 +16,7 @@ import type {
   PayrollEmployeeRow,
   PayrollProfileData,
 } from "@/modules/payroll/domain/models"
+import { normaliseChildStudyingLevel } from "@/modules/payroll/domain/models"
 
 /**
  * Prisma-side repository for `PayrollProfile`. Projects Prisma rows
@@ -906,19 +907,16 @@ function parseChildReliefJson(raw: unknown): ChildRelief[] {
     .map((entry) => {
       if (!entry || typeof entry !== "object") return null
       const e = entry as Record<string, unknown>
-      const age = typeof e.age === "number" ? e.age : Number(e.age)
-      if (!Number.isFinite(age)) return null
+      // `age` is no longer part of the model (July 2026 simplification)
+      // but historical rows still carry it. Drop it silently on read.
       return {
-        age,
         abilityStatus:
           e.abilityStatus === "DISABLED" ? "DISABLED" : "NORMAL",
-        currentlyStudying:
-          (typeof e.currentlyStudying === "string" &&
-          ["NONE", "PRESCHOOL", "PRIMARY", "SECONDARY", "HIGHER_ED"].includes(
-            e.currentlyStudying,
-          )
-            ? e.currentlyStudying
-            : "NONE") as ChildRelief["currentlyStudying"],
+        // Legacy values (NONE / PRESCHOOL / PRIMARY / SECONDARY / HIGHER_ED)
+        // are mapped to the current set inside normaliseChildStudyingLevel.
+        currentlyStudying: normaliseChildStudyingLevel(
+          typeof e.currentlyStudying === "string" ? e.currentlyStudying : null,
+        ),
         pcbDeduction:
           (typeof e.pcbDeduction === "string" &&
           ["FULL", "HALF", "NONE"].includes(e.pcbDeduction)

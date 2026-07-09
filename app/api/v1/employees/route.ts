@@ -59,11 +59,27 @@ const projectAssignmentSchema = z.object({
 })
 
 const childReliefSchema = z.object({
-  age: z.number().int().min(0).max(100),
+  // Age accepted as an optional field for backward compatibility with
+  // integrators still on the pre-July-2026 schema. The value is not
+  // used in any calculation and is discarded on the repo write path.
+  age: z.number().int().min(0).max(100).optional(),
   abilityStatus: z.enum(["NORMAL", "DISABLED"]).default("NORMAL"),
   currentlyStudying: z
-    .enum(["NONE", "PRESCHOOL", "PRIMARY", "SECONDARY", "HIGHER_ED"])
-    .default("NONE"),
+    .enum([
+      // Current codes.
+      "UNDER_18",
+      "PRE_UNIVERSITY",
+      "DIPLOMA_MALAYSIA",
+      "DEGREE_ABROAD",
+      // Legacy codes still accepted for backward compat — mapped to
+      // current codes downstream by normaliseChildStudyingLevel.
+      "NONE",
+      "PRESCHOOL",
+      "PRIMARY",
+      "SECONDARY",
+      "HIGHER_ED",
+    ])
+    .default("UNDER_18"),
   pcbDeduction: z.enum(["FULL", "HALF", "NONE"]).default("NONE"),
 })
 

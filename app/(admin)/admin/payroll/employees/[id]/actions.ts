@@ -633,27 +633,26 @@ export async function deletePayrollDocumentAction(
  */
 function parseChildReliefFromForm(formData: FormData) {
   const out: Array<{
-    age: number
     abilityStatus: (typeof childAbilityStatuses)[number]
     currentlyStudying: (typeof childStudyingLevels)[number]
     pcbDeduction: (typeof childPcbDeductionLevels)[number]
   }> = []
   for (let i = 0; i < 10; i += 1) {
-    const ageRaw = formData.get(`child${i}.age`)
-    if (ageRaw === null || ageRaw === "") continue
-    const age = Number(ageRaw)
-    if (!Number.isFinite(age)) continue
+    // A slot is "present" when it emits a currentlyStudying value —
+    // even the default UNDER_18 is a positive signal. The old code
+    // used age as the presence marker; we now use studying level.
+    const studyingRaw = formData.get(`child${i}.currentlyStudying`)
+    if (studyingRaw === null) continue
+    const studying = String(studyingRaw)
     const ability = String(formData.get(`child${i}.abilityStatus`) ?? "NORMAL")
-    const studying = String(formData.get(`child${i}.currentlyStudying`) ?? "NONE")
     const pcb = String(formData.get(`child${i}.pcbDeduction`) ?? "NONE")
     out.push({
-      age,
       abilityStatus: childAbilityStatuses.includes(ability as never)
         ? (ability as (typeof childAbilityStatuses)[number])
         : "NORMAL",
       currentlyStudying: childStudyingLevels.includes(studying as never)
         ? (studying as (typeof childStudyingLevels)[number])
-        : "NONE",
+        : "UNDER_18",
       pcbDeduction: childPcbDeductionLevels.includes(pcb as never)
         ? (pcb as (typeof childPcbDeductionLevels)[number])
         : "NONE",

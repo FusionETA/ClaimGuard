@@ -186,7 +186,16 @@ export function applyResidentTaxBands(
 export function reliefForChild(child: ChildRelief): number {
   if (child.pcbDeduction === "NONE") return 0
   const isDisabled = child.abilityStatus === "DISABLED"
-  const isHigherEd = child.currentlyStudying === "HIGHER_ED"
+  // "Higher education" for relief purposes is diploma-or-above at an
+  // approved institution — Malaysia or abroad both count the same for
+  // the amount (only the annual Form EA reporting splits them).
+  // The legacy `HIGHER_ED` value is treated as higher-ed too so that
+  // pre-migration DB rows still compute the right RM 8,000. Repos
+  // normalise on read; this is defence-in-depth.
+  const isHigherEd =
+    child.currentlyStudying === "DIPLOMA_MALAYSIA" ||
+    child.currentlyStudying === "DEGREE_ABROAD" ||
+    (child.currentlyStudying as string) === "HIGHER_ED"
   let total: number
   if (isDisabled && isHigherEd) {
     // Both — treated as 8 children @ RM 2,000 per LHDN spec.
@@ -195,7 +204,7 @@ export function reliefForChild(child: ChildRelief): number {
     // Either one — treated as 4 children @ RM 2,000 per LHDN spec.
     total = 8000
   } else {
-    // Below 18, or in primary/secondary school.
+    // UNDER_18 or PRE_UNIVERSITY.
     total = 2000
   }
   return child.pcbDeduction === "HALF" ? Math.round((total / 2) * 100) / 100 : total

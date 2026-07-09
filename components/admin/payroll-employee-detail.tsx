@@ -696,10 +696,9 @@ function PersonalTab(props: {
     setChildren((c) => [
       ...c,
       {
-        age: 0,
         abilityStatus: "NORMAL",
-        currentlyStudying: "NONE",
-        pcbDeduction: "NONE",
+        currentlyStudying: "UNDER_18",
+        pcbDeduction: "FULL",
       },
     ])
   }
@@ -1028,92 +1027,121 @@ function PersonalTab(props: {
               No children added. Add to claim child relief in PCB.
             </p>
           ) : (
-            children.map((child, i) => (
-              <div
-                key={i}
-                className="grid items-end gap-3 rounded-lg border border-border/60 bg-muted/30 p-3 md:grid-cols-[80px_1fr_1fr_1fr_auto]"
-              >
-                <Field label="Age">
-                  <Input
-                    name={`child${i}.age`}
-                    type="number"
-                    min={0}
-                    max={50}
-                    value={String(child.age)}
-                    onChange={(e) =>
-                      patchChild(i, { age: Number(e.target.value) || 0 })
-                    }
-                  />
-                </Field>
-                <Field label="Ability">
-                  <NativeSelect
-                    name={`child${i}.abilityStatus`}
-                    value={child.abilityStatus}
-                    onChange={(e) =>
-                      patchChild(i, {
-                        abilityStatus: e.target.value as ChildRelief["abilityStatus"],
-                      })
-                    }
-                  >
-                    {childAbilityStatuses.map((s) => (
-                      <option key={s} value={s}>
-                        {s === "NORMAL" ? "Normal" : "Disabled"}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-                <Field label="Studying">
-                  <NativeSelect
-                    name={`child${i}.currentlyStudying`}
-                    value={child.currentlyStudying}
-                    onChange={(e) =>
-                      patchChild(i, {
-                        currentlyStudying:
-                          e.target.value as ChildRelief["currentlyStudying"],
-                      })
-                    }
-                  >
-                    {childStudyingLevels.map((s) => (
-                      <option key={s} value={s}>
-                        {s.replace("_", " ")}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-                <Field label="PCB share">
-                  <NativeSelect
-                    name={`child${i}.pcbDeduction`}
-                    value={child.pcbDeduction}
-                    onChange={(e) =>
-                      patchChild(i, {
-                        pcbDeduction:
-                          e.target.value as ChildRelief["pcbDeduction"],
-                      })
-                    }
-                  >
-                    {childPcbDeductionLevels.map((s) => (
-                      <option key={s} value={s}>
-                        {s === "FULL"
-                          ? "100%"
-                          : s === "HALF"
-                            ? "50%"
-                            : "None"}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => removeChild(i)}
-                  title="Remove child"
-                  className="text-destructive"
+            children.map((child, i) => {
+              const isAdult = child.currentlyStudying !== "UNDER_18"
+              return (
+                <div
+                  key={i}
+                  className="grid items-end gap-3 rounded-lg border border-border/60 bg-muted/30 p-3 md:grid-cols-[1fr_1fr_1fr_1fr_auto]"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            ))
+                  <Field label="Age bracket">
+                    <NativeSelect
+                      value={isAdult ? "ADULT" : "UNDER_18"}
+                      onChange={(e) => {
+                        const bracket = e.target.value
+                        patchChild(i, {
+                          currentlyStudying:
+                            bracket === "UNDER_18"
+                              ? "UNDER_18"
+                              : // Default the 18+ pick to Pre-University; admin
+                                // can switch to Diploma / Degree Abroad below.
+                                "PRE_UNIVERSITY",
+                        })
+                      }}
+                    >
+                      <option value="UNDER_18">Under 18</option>
+                      <option value="ADULT">18 and above</option>
+                    </NativeSelect>
+                  </Field>
+                  <Field label="Education level">
+                    {/*
+                     * Only meaningful when 18+ — for under-18 the level
+                     * is fixed to UNDER_18 (auto RM 2,000). Rendered
+                     * disabled with a hint so the admin can see the
+                     * placeholder without being confused about missing
+                     * inputs.
+                     */}
+                    <NativeSelect
+                      name={`child${i}.currentlyStudying`}
+                      value={child.currentlyStudying}
+                      disabled={!isAdult}
+                      onChange={(e) =>
+                        patchChild(i, {
+                          currentlyStudying: e.target
+                            .value as ChildRelief["currentlyStudying"],
+                        })
+                      }
+                    >
+                      {!isAdult ? (
+                        <option value="UNDER_18">Not applicable (under 18)</option>
+                      ) : (
+                        <>
+                          <option value="PRE_UNIVERSITY">
+                            Pre-university or lower — RM 2,000
+                          </option>
+                          <option value="DIPLOMA_MALAYSIA">
+                            Diploma or higher (Malaysia) — RM 8,000
+                          </option>
+                          <option value="DEGREE_ABROAD">
+                            Degree or higher (Abroad) — RM 8,000
+                          </option>
+                        </>
+                      )}
+                    </NativeSelect>
+                  </Field>
+                  <Field label="Ability">
+                    <NativeSelect
+                      name={`child${i}.abilityStatus`}
+                      value={child.abilityStatus}
+                      onChange={(e) =>
+                        patchChild(i, {
+                          abilityStatus: e.target
+                            .value as ChildRelief["abilityStatus"],
+                        })
+                      }
+                    >
+                      {childAbilityStatuses.map((s) => (
+                        <option key={s} value={s}>
+                          {s === "NORMAL" ? "Non-disabled" : "Disabled (OKU)"}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Field>
+                  <Field label="PCB share">
+                    <NativeSelect
+                      name={`child${i}.pcbDeduction`}
+                      value={child.pcbDeduction}
+                      onChange={(e) =>
+                        patchChild(i, {
+                          pcbDeduction: e.target
+                            .value as ChildRelief["pcbDeduction"],
+                        })
+                      }
+                    >
+                      {childPcbDeductionLevels.map((s) => (
+                        <option key={s} value={s}>
+                          {s === "FULL"
+                            ? "100%"
+                            : s === "HALF"
+                              ? "50%"
+                              : "None"}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Field>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeChild(i)}
+                    title="Remove child"
+                    className="text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )
+            })
           )}
         </CardContent>
       </Card>

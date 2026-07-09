@@ -211,21 +211,18 @@ describe("calcPcb — LHDN PCB 2026 worked example (married, 3 children)", () =>
     /// 3 children under 18, full deduction each.
     childRelief: [
       {
-        age: 8,
         abilityStatus: "NORMAL" as const,
-        currentlyStudying: "PRIMARY" as const,
+        currentlyStudying: "UNDER_18" as const,
         pcbDeduction: "FULL" as const,
       },
       {
-        age: 10,
         abilityStatus: "NORMAL" as const,
-        currentlyStudying: "PRIMARY" as const,
+        currentlyStudying: "UNDER_18" as const,
         pcbDeduction: "FULL" as const,
       },
       {
-        age: 12,
         abilityStatus: "NORMAL" as const,
-        currentlyStudying: "PRIMARY" as const,
+        currentlyStudying: "UNDER_18" as const,
         pcbDeduction: "FULL" as const,
       },
     ],
@@ -518,9 +515,8 @@ describe("calcPcb — LHDN Category 2 (married, spouse not working)", () => {
         spouseDisabled: false,
         childRelief: [
           {
-            age: 5,
             abilityStatus: "NORMAL",
-            currentlyStudying: "PRESCHOOL",
+            currentlyStudying: "UNDER_18",
             pcbDeduction: "FULL",
           },
         ],

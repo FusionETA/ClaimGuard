@@ -123,9 +123,12 @@ const CHILD_COLUMNS: Column[] = Array.from(
   { length: MAX_TEMPLATE_CHILDREN },
   (_, i) => i + 1,
 ).flatMap((n) => [
-  { key: `child${n}.age`, required: false, description: `Dependent child ${n} — age in years (leave blank if no child ${n})` },
+  // `age` retained for backward compatibility with older CSVs — the
+  // parser accepts it but the value is no longer used in any relief
+  // calculation.
+  { key: `child${n}.age`, required: false, description: `Dependent child ${n} — age in years (optional; not used in calc, kept for backward compat)` },
   { key: `child${n}.abilityStatus`, required: false, description: `Dependent child ${n} — NORMAL | DISABLED` },
-  { key: `child${n}.currentlyStudying`, required: false, description: `Dependent child ${n} — PRESCHOOL | PRIMARY | SECONDARY | HIGHER_ED | NONE` },
+  { key: `child${n}.currentlyStudying`, required: false, description: `Dependent child ${n} — UNDER_18 | PRE_UNIVERSITY | DIPLOMA_MALAYSIA | DEGREE_ABROAD (legacy values NONE / PRESCHOOL / PRIMARY / SECONDARY / HIGHER_ED still accepted)` },
   { key: `child${n}.pcbDeduction`, required: false, description: `Dependent child ${n} — FULL | HALF | NONE` },
 ])
 
