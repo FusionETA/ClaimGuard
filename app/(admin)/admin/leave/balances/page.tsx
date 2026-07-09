@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { LeaveBalancesGrid } from "@/components/leave/leave-balances-grid"
+import { ExportPdfDialog } from "@/components/admin/export-pdf-dialog"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
 import { listAllEmployeeBalancesForOrg } from "@/modules/leave/application/services/leave-entitlements.service"
@@ -27,18 +28,25 @@ export default async function AdminLeaveBalancesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Leave
-        </p>
-        <h1 className="font-headline text-2xl font-black text-foreground">
-          Employee balances
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Current leave balances across every active employee in this
-          company for {year}. To adjust an individual entitlement, use{" "}
-          <span className="font-semibold">Leave → Settings</span>.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Leave
+          </p>
+          <h1 className="font-headline text-2xl font-black text-foreground">
+            Employee balances
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Current leave balances across every active employee in this
+            company for {year}. To adjust an individual entitlement, use{" "}
+            <span className="font-semibold">Leave → Settings</span>.
+          </p>
+        </div>
+        <ExportPdfDialog
+          kind="leave"
+          initialYear={year}
+          employees={employees.map((e) => ({ id: e.userId, name: e.name }))}
+        />
       </div>
 
       {employees.length === 0 ? (

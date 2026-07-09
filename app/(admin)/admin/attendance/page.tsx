@@ -117,6 +117,7 @@ export default async function AdminAttendancePage({
     initialPendingRejected,
     offSiteRows,
     initialHistory,
+    orgEmployees,
   ] = await Promise.all([
     adminAttendanceService.getOrgOverview(orgId, null),
     adminAttendanceService.getAggregateStats(
@@ -195,6 +196,9 @@ export default async function AdminAttendancePage({
       page: 0,
       policyIdScope,
     }),
+    orgId
+      ? attendanceRepository.getOrgEmployeeList(orgId)
+      : Promise.resolve([]),
   ])
 
   const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }))
@@ -214,6 +218,7 @@ export default async function AdminAttendancePage({
       projects={projectOptions}
       teams={teamOptions}
       timezone={timezone}
+      employees={orgEmployees.map((e) => ({ id: e.id, name: e.name }))}
     />
   )
 

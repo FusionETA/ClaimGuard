@@ -52,15 +52,37 @@ export default async function AdminEmployeeDetailPage({
 
   const boundLoadAction = loadEmployeeHoursSummaryAction.bind(null, employeeId)
 
+  const year = new Date().getUTCFullYear()
+
   return (
     <div className="space-y-4">
-      <Link
-        href="/admin/attendance/employees"
-        className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Back to employees
-      </Link>
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          href="/admin/attendance/employees"
+          className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to employees
+        </Link>
+        <div className="flex items-center gap-2">
+          <a
+            href={`/api/admin/export/attendance-report?employeeId=${employeeId}&from=${initialFrom}&to=${initialTo}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+          >
+            Export Attendance PDF
+          </a>
+          <a
+            href={`/api/admin/export/leave-summary?employeeId=${employeeId}&year=${year}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+          >
+            Export Leave PDF
+          </a>
+        </div>
+      </div>
       <EmployeeDetailView data={data} viewerRole="ADMIN" timezone={timezone} />
       <HoursProgress
         weekly={{

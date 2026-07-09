@@ -306,9 +306,7 @@ export async function listEmployeeBalances(
     },
     select: { id: true },
   })
-  for (const t of types) {
-    await ensureEntitlement(employeeId, t.id, year)
-  }
+  await Promise.all(types.map((t) => ensureEntitlement(employeeId, t.id, year)))
 
   const rows = await leaveRepository.listEntitlementsForEmployee(employeeId, year)
   return rows.map((r) => ({

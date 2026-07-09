@@ -11,6 +11,7 @@ import {
   TableFilterBar,
   type TableFilterValue,
 } from "@/components/attendance/table-filter-bar"
+import { ExportPdfDialog } from "@/components/admin/export-pdf-dialog"
 import { attendanceStatusMeta } from "@/modules/attendance/domain/metadata"
 import type { AttendanceRecordView } from "@/modules/attendance/domain/models"
 import { cn } from "@/lib/utils"
@@ -79,6 +80,7 @@ export function OrgHistoryPanel({
   projects,
   teams,
   timezone,
+  employees,
 }: {
   initialFrom: string
   initialTo: string
@@ -88,6 +90,7 @@ export function OrgHistoryPanel({
   projects: { id: string; name: string }[]
   teams: { id: string; name: string; projectName: string }[]
   timezone: string
+  employees: { id: string; name: string }[]
 }) {
   const [from, setFrom] = useState(initialFrom)
   const [to, setTo] = useState(initialTo)
@@ -199,6 +202,12 @@ export function OrgHistoryPanel({
           {isPending ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
           ) : null}
+          <ExportPdfDialog
+            kind="attendance"
+            initialFrom={from}
+            initialTo={to}
+            employees={employees}
+          />
         </div>
 
         {/* Search + project/team filter */}
