@@ -417,6 +417,16 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // and installation included. Exemption is LIMITED TO ONE UNIT per
     // asset category per year — admin enforces this manually (we
     // don't track per-line-item unit counts).
+    //
+    // HRDF: excluded per PSMB Act 2001 §2(c) — "any sum payable to
+    // the employee to defray special expenses entailed on him by the
+    // nature of his employment." Reimbursement of the employee's
+    // actual phone / internet bill (for work-related communication)
+    // is a textbook §2(c) special expense and therefore NOT wages
+    // for the HRD Corp levy base. Contrast with `allowance_phone_fixed`
+    // — a flat monthly cash allowance regardless of actual bill —
+    // which IS wages (fixed allowance of a like nature) and stays
+    // `subjectToHrdf: true`.
     code: "allowance_phone_bill",
     label: "Phone/Internet Bill Payment",
     group: "Allowances / Recurring Monthly",
@@ -425,7 +435,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: false,
-    subjectToHrdf: true,
+    subjectToHrdf: false,
   },
   allowance_phone_fixed: {
     // FIXED phone allowance (cash paid to the employee, not a bill
