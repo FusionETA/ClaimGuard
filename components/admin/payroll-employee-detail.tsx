@@ -1021,19 +1021,45 @@ function PersonalTab(props: {
             Add child
           </Button>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {children.length === 0 ? (
             <p className="text-xs text-muted-foreground">
               No children added. Add to claim child relief in PCB.
             </p>
           ) : (
             children.map((child, i) => {
-              const isAdult = child.currentlyStudying !== "UNDER_18"
+              // Strict adult check — the 3 explicit 18+ codes, nothing
+              // else. Guards against `null`, empty string, undefined, or
+              // any legacy value that slipped through: they all map to
+              // "Under 18" so the education dropdown always has a
+              // matching option and the age-bracket picker can flip
+              // freely.
+              const isAdult =
+                child.currentlyStudying === "PRE_UNIVERSITY" ||
+                child.currentlyStudying === "DIPLOMA_MALAYSIA" ||
+                child.currentlyStudying === "DEGREE_ABROAD"
               return (
                 <div
                   key={i}
-                  className="grid items-end gap-3 rounded-lg border border-border/60 bg-muted/30 p-3 md:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+                  className="rounded-2xl border border-border bg-card p-4 shadow-sm"
                 >
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground">
+                      Child {i + 1}
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => removeChild(i)}
+                      title="Remove child"
+                      className="h-7 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="mr-1 h-3.5 w-3.5" />
+                      Remove
+                    </Button>
+                  </div>
+                  <div className="grid items-end gap-3 md:grid-cols-2 lg:grid-cols-4">
                   <Field label="Age bracket">
                     <NativeSelect
                       value={isAdult ? "ADULT" : "UNDER_18"}
@@ -1129,16 +1155,7 @@ function PersonalTab(props: {
                       ))}
                     </NativeSelect>
                   </Field>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => removeChild(i)}
-                    title="Remove child"
-                    className="text-destructive"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  </div>
                 </div>
               )
             })
