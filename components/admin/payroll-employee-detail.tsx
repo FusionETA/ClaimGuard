@@ -1081,11 +1081,13 @@ function PersonalTab(props: {
                   </Field>
                   <Field label="Education level">
                     {/*
-                     * Only meaningful when 18+ — for under-18 the level
-                     * is fixed to UNDER_18 (auto RM 2,000). Rendered
-                     * disabled with a hint so the admin can see the
-                     * placeholder without being confused about missing
-                     * inputs.
+                     * All four options are always rendered — the
+                     * appropriate ones are disabled based on the age
+                     * bracket. Radix's Select trips over swapping the
+                     * children mid-render (the value binding briefly
+                     * points at a phantom item and the trigger stays
+                     * blank), so keeping the option list stable is
+                     * what actually makes the switch reliable.
                      */}
                     <NativeSelect
                       name={`child${i}.currentlyStudying`}
@@ -1098,21 +1100,18 @@ function PersonalTab(props: {
                         })
                       }
                     >
-                      {!isAdult ? (
-                        <option value="UNDER_18">Not applicable (under 18)</option>
-                      ) : (
-                        <>
-                          <option value="PRE_UNIVERSITY">
-                            Pre-university or lower — RM 2,000
-                          </option>
-                          <option value="DIPLOMA_MALAYSIA">
-                            Diploma or higher (Malaysia) — RM 8,000
-                          </option>
-                          <option value="DEGREE_ABROAD">
-                            Degree or higher (Abroad) — RM 8,000
-                          </option>
-                        </>
-                      )}
+                      <option value="UNDER_18" disabled={isAdult}>
+                        Not applicable (under 18)
+                      </option>
+                      <option value="PRE_UNIVERSITY" disabled={!isAdult}>
+                        Pre-university or lower — RM 2,000
+                      </option>
+                      <option value="DIPLOMA_MALAYSIA" disabled={!isAdult}>
+                        Diploma or higher (Malaysia) — RM 8,000
+                      </option>
+                      <option value="DEGREE_ABROAD" disabled={!isAdult}>
+                        Degree or higher (Abroad) — RM 8,000
+                      </option>
                     </NativeSelect>
                   </Field>
                   <Field label="Ability">
