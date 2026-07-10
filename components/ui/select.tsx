@@ -74,7 +74,12 @@ const SelectContent = React.forwardRef<
       ref={ref}
       position={position}
       className={cn(
-        "relative z-50 min-w-[8rem] overflow-hidden rounded-2xl border border-white/40 bg-card/95 p-1 text-foreground shadow-panel backdrop-blur-xl",
+        // max-w constraint keeps the popover from overflowing the
+        // viewport on mobile when a SelectItem holds a long string
+        // (e.g. a full project address). Pair with the `break-words`
+        // on SelectItem below so the long string wraps instead of
+        // clipping.
+        "relative z-50 min-w-[8rem] max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-white/40 bg-card/95 p-1 text-foreground shadow-panel backdrop-blur-xl",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
         "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         position === "popper" &&
@@ -118,7 +123,10 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center gap-2 rounded-xl py-2 pl-3 pr-8 text-sm text-foreground outline-none transition-colors",
+      // `break-words` lets a long option label wrap onto multiple
+      // lines instead of pushing the popover past the viewport (see
+      // the matching max-w constraint on SelectContent).
+      "relative flex w-full cursor-pointer select-none items-start gap-2 rounded-xl py-2 pl-3 pr-8 text-sm text-foreground outline-none transition-colors break-words",
       "focus:bg-primary/10 focus:text-foreground",
       "data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
