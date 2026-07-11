@@ -11,6 +11,10 @@ import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getAdminHierarchyPageData } from "@/modules/claims/application/services/admin-page-data.service"
 import { hasAdminModule } from "@/modules/organization/application/services/admin-access.service"
 import { getPayrollEmployeeDetailPageData } from "@/modules/payroll/application/services/payroll-profile.service"
+import {
+  findPendingTransferForEmployee,
+  listTransferTargetsForAdmin,
+} from "@/modules/payroll/application/services/payroll-transfer.service"
 import { isPayrollProfileComplete } from "@/modules/payroll/domain/models"
 
 /**
@@ -82,6 +86,18 @@ export default async function AdminPayrollEmployeeDetailPage({
 
   const complete = data.profile ? isPayrollProfileComplete(data.profile) : false
 
+  // Transfer wizard data. Both queries early-return quietly when the
+  // admin has no other accessible orgs or the employee has no queued
+  // transfer, so the wizard/banner just doesn't render.
+  const [transferTargets, pendingTransfer] = await Promise.all([
+    organizationId
+      ? listTransferTargetsForAdmin({ sourceOrganizationId: organizationId })
+      : Promise.resolve([]),
+    findPendingTransferForEmployee({
+      sourceEmployeeProfileId: data.employeeProfileId,
+    }),
+  ])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
@@ -138,6 +154,9 @@ export default async function AdminPayrollEmployeeDetailPage({
         salaryHistory={data.salaryHistory}
         company={company}
         canEdit={canEdit}
+        sourceEmployeeProfileId={data.employeeProfileId}
+        transferTargets={transferTargets}
+        pendingTransfer={pendingTransfer}
       />
     </div>
   )

@@ -34,11 +34,25 @@ type PayrollState = "complete" | "incomplete" | "archived"
 // without making admins click Next on every other row.
 const PAGE_SIZE = 10
 
+export type PendingTransferMarker = {
+  userId: string
+  targetOrganizationName: string
+  effectiveDate: string
+}
+
 export function PayrollEmployeeListTables({
   employees,
+  pendingTransfers = [],
 }: {
   employees: PayrollEmployeeRow[]
+  pendingTransfers?: PendingTransferMarker[]
 }) {
+  // Map userId → transfer for O(1) badge lookup per row.
+  const pendingByUser = useMemo(() => {
+    const m = new Map<string, PendingTransferMarker>()
+    for (const p of pendingTransfers) m.set(p.userId, p)
+    return m
+  }, [pendingTransfers])
   const [query, setQuery] = useState("")
   const [setupPage, setSetupPage] = useState(1)
   const [readyPage, setReadyPage] = useState(1)
@@ -213,6 +227,7 @@ export function PayrollEmployeeListTables({
               employees={setupSlice}
               emptyText="No setup rows match your search."
               state="incomplete"
+              pendingByUser={pendingByUser}
             />
           </CardContent>
           <SectionPaginationControls
@@ -244,6 +259,7 @@ export function PayrollEmployeeListTables({
               employees={readySlice}
               emptyText="No ready employees match your search."
               state="complete"
+              pendingByUser={pendingByUser}
             />
           </CardContent>
           <SectionPaginationControls
@@ -272,6 +288,7 @@ export function PayrollEmployeeListTables({
               employees={filteredArchived}
               emptyText="No archived employees match your search."
               state="archived"
+              pendingByUser={pendingByUser}
             />
           </CardContent>
         </Card>
@@ -377,10 +394,12 @@ function EmployeeTable({
   employees,
   emptyText,
   state,
+  pendingByUser,
 }: {
   employees: PayrollEmployeeRow[]
   emptyText: string
   state: PayrollState
+  pendingByUser: Map<string, PendingTransferMarker>
 }) {
   return (
     <Table>
@@ -420,7 +439,22 @@ function EmployeeTable({
                   {employee.employeeId}
                 </TableCell>
                 <TableCell>
-                  <PayrollStatusBadge employee={employee} state={state} />
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <PayrollStatusBadge employee={employee} state={state} />
+                    {(() => {
+                      const t = pendingByUser.get(employee.userId)
+                      if (!t) return null
+                      return (
+                        <Badge
+                          variant="outline"
+                          className="border-amber-300/60 text-amber-700"
+                          title={`Transfer scheduled to ${t.targetOrganizationName} on ${t.effectiveDate}`}
+                        >
+                          Transfer pending
+                        </Badge>
+                      )
+                    })()}
+                  </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <Button asChild variant="ghost" size="sm" className="rounded-full">

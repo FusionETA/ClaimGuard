@@ -41,12 +41,19 @@ type PolicyDefaultRow = {
  * payroll/statutory details are then filled in via the detail
  * editor's tabs.
  */
+export type ManageEmployeePendingTransfer = {
+  userId: string
+  targetOrganizationName: string
+  effectiveDate: string
+}
+
 export function ManageEmployeeList({
   employees,
   policies,
   leaveTypes,
   policyDefaults,
   canEdit = true,
+  pendingTransfers = [],
 }: {
   employees: PayrollEmployeeRow[]
   policies: EmployeePolicy[]
@@ -56,6 +63,9 @@ export function ManageEmployeeList({
   /// Add Employee + Import buttons are hidden, and a banner explains
   /// the restriction.
   canEdit?: boolean
+  /// Rows here get a "Transfer pending → target on YYYY-MM-DD" chip
+  /// next to their Status badge. Keyed by userId.
+  pendingTransfers?: ManageEmployeePendingTransfer[]
 }) {
   return (
     <div className="space-y-6">
@@ -78,7 +88,10 @@ export function ManageEmployeeList({
           Ask the owner if you need to make changes.
         </div>
       )}
-      <PayrollEmployeeListTables employees={employees} />
+      <PayrollEmployeeListTables
+        employees={employees}
+        pendingTransfers={pendingTransfers}
+      />
     </div>
   )
 }

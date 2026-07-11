@@ -28,6 +28,10 @@ import {
   updateEmployeeEmail,
   upsertPayrollProfile,
 } from "@/modules/payroll/application/services/payroll-profile.service"
+import {
+  cancelEmployeeTransfer,
+  createEmployeeTransfer,
+} from "@/modules/payroll/application/services/payroll-transfer.service"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-change.repository"
 
@@ -566,6 +570,88 @@ export async function unarchivePayrollProfileAction(
   revalidatePath("/admin/payroll/employees")
   revalidatePath(`/admin/payroll/employees/${userId}`)
   return { status: "success", message: "Employee restored to payroll." }
+}
+
+// ─── Transfer actions ────────────────────────────────────────────────────
+
+const transferSchema = z.object({
+  sourceEmployeeProfileId: z.string().min(1, "Missing employee profile."),
+  targetOrganizationId: z.string().min(1, "Pick a target company."),
+  targetPolicyId: z.string().min(1, "Pick a payroll policy at the target."),
+  effectiveDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Effective date is invalid."),
+  copyPayrollInfo: booleanString(),
+  notes: nullableString(),
+})
+
+export async function transferEmployeeAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const userId = String(formData.get("userId") ?? "").trim()
+  const parsed = transferSchema.safeParse({
+    sourceEmployeeProfileId: formData.get("sourceEmployeeProfileId"),
+    targetOrganizationId: formData.get("targetOrganizationId"),
+    targetPolicyId: formData.get("targetPolicyId"),
+    effectiveDate: formData.get("effectiveDate"),
+    copyPayrollInfo: formData.get("copyPayrollInfo"),
+    notes: formData.get("notes"),
+  })
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid input.",
+    }
+  }
+
+  try {
+    const result = await createEmployeeTransfer({
+      sourceEmployeeProfileId: parsed.data.sourceEmployeeProfileId,
+      targetOrganizationId: parsed.data.targetOrganizationId,
+      targetPolicyId: parsed.data.targetPolicyId,
+      effectiveDate: parsed.data.effectiveDate,
+      copyPayrollInfo: parsed.data.copyPayrollInfo,
+      notes: parsed.data.notes,
+    })
+    revalidatePath("/admin/hierarchy")
+    revalidatePath("/admin/payroll/employees")
+    if (userId) revalidatePath(`/admin/payroll/employees/${userId}`)
+    return {
+      status: "success",
+      message: result.executedImmediately
+        ? "Transfer executed. Employee is now active at the target company."
+        : `Transfer scheduled for ${parsed.data.effectiveDate}. It will run automatically on that day.`,
+    }
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not schedule transfer."),
+    }
+  }
+}
+
+export async function cancelTransferAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const userId = String(formData.get("userId") ?? "").trim()
+  const transferId = String(formData.get("transferId") ?? "").trim()
+  if (!transferId) {
+    return { status: "error", message: "Missing transfer id." }
+  }
+  try {
+    await cancelEmployeeTransfer({ transferId })
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not cancel transfer."),
+    }
+  }
+  revalidatePath("/admin/hierarchy")
+  revalidatePath("/admin/payroll/employees")
+  if (userId) revalidatePath(`/admin/payroll/employees/${userId}`)
+  return { status: "success", message: "Pending transfer cancelled." }
 }
 
 // ─── Documents tab actions ───────────────────────────────────────────────

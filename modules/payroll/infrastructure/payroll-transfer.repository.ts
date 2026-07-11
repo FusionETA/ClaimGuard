@@ -31,6 +31,10 @@ export type EmployeeTransferRow = {
 }
 
 export type PendingTransferRow = EmployeeTransferRow & {
+  /// User.id of the employee — the Manage Employee list keys rows by
+  /// userId, so this saves the caller a second lookup to render a
+  /// pending badge.
+  sourceUserId: string
   employeeName: string
   employeeIdCode: string
   targetOrganizationName: string
@@ -172,7 +176,7 @@ export const payrollTransferRepository = {
         sourceEmployeeProfile: {
           select: {
             employeeId: true,
-            user: { select: { name: true } },
+            user: { select: { id: true, name: true } },
           },
         },
         targetOrganization: { select: { name: true } },
@@ -181,6 +185,7 @@ export const payrollTransferRepository = {
     })
     return rows.map((r) => ({
       ...mapRow(r),
+      sourceUserId: r.sourceEmployeeProfile.user.id,
       employeeName: r.sourceEmployeeProfile.user.name ?? "(no name)",
       employeeIdCode: r.sourceEmployeeProfile.employeeId,
       targetOrganizationName: r.targetOrganization.name,

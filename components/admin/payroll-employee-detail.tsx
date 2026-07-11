@@ -1,14 +1,16 @@
 "use client"
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react"
-import { ArrowRight, History, Plus, Trash2 } from "lucide-react"
+import { ArrowRight, ArrowRightLeft, History, Plus, Trash2 } from "lucide-react"
 
 import {
   archivePayrollProfileAction,
+  cancelTransferAction,
   deletePayrollDocumentAction,
   savePayrollEmploymentAction,
   savePayrollPersonalAction,
   savePayrollStatutoryAction,
+  transferEmployeeAction,
   unarchivePayrollProfileAction,
   uploadPayrollDocumentAction,
 } from "@/app/(admin)/admin/payroll/employees/[id]/actions"
@@ -92,6 +94,8 @@ import {
   type PayrollDocument,
   type PayrollProfileData,
 } from "@/modules/payroll/domain/models"
+import type { AvailableTargetOrg } from "@/modules/payroll/application/services/payroll-transfer.service"
+import type { EmployeeTransferRow } from "@/modules/payroll/infrastructure/payroll-transfer.repository"
 import {
   EMPLOYEE_FORM_KINDS,
   EMPLOYEE_FORM_META,
@@ -144,6 +148,14 @@ export function PayrollEmployeeDetail(props: {
   /// Statutory / Company. Defaults to true for callers that pre-date
   /// the read-only mode.
   canEdit?: boolean
+  /// Employee-transfer data. `sourceEmployeeProfileId` identifies the
+  /// row that will be archived on execute. `transferTargets` is the
+  /// list of orgs (with policies) the current admin can transfer TO —
+  /// empty when the admin only has one accessible org. `pendingTransfer`
+  /// is the queued row if this employee already has one scheduled.
+  sourceEmployeeProfileId?: string
+  transferTargets?: AvailableTargetOrg[]
+  pendingTransfer?: EmployeeTransferRow | null
 }) {
   const canEdit = props.canEdit ?? true
   const [tab, setTab] = useState<Tab>("personal")
@@ -309,6 +321,17 @@ export function PayrollEmployeeDetail(props: {
       ) : null}
 
       <LhdnFormsCard userId={props.userId} profile={props.profile} />
+      {props.sourceEmployeeProfileId &&
+      (props.pendingTransfer ||
+        (props.transferTargets && props.transferTargets.length > 0)) ? (
+        <TransferCard
+          userId={props.userId}
+          sourceEmployeeProfileId={props.sourceEmployeeProfileId}
+          transferTargets={props.transferTargets ?? []}
+          pendingTransfer={props.pendingTransfer ?? null}
+          isArchived={props.profile?.isArchived ?? false}
+        />
+      ) : null}
       <ArchiveCard userId={props.userId} profile={props.profile} />
       </fieldset>
     </div>
@@ -2849,6 +2872,329 @@ function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
   return `${(n / 1024 / 1024).toFixed(2)} MB`
+}
+
+/**
+ * TransferCard — moves an employee from the current company into
+ * another company under the same Owner. Alongside the Archive card
+ * because they are structurally similar terminal actions (the source
+ * PayrollProfile is archived on execute) but the transfer creates a
+ * fresh EmployeeProfile + PayrollProfile at the target instead.
+ *
+ * Two visual modes:
+ *   1. `pendingTransfer` truthy → banner + Cancel button (no wizard).
+ *   2. `pendingTransfer` null → "Transfer" button that opens the wizard.
+ *
+ * Hides itself entirely when the admin has no accessible target org
+ * (that gate lives on the caller — see the null branch above).
+ *
+ * Disabled state (via the wrapping <fieldset disabled> from `canEdit`)
+ * is intentional: transfers are a hierarchy-module mutation, so
+ * read-only admins can see the current queued transfer but can't
+ * create or cancel one.
+ */
+function TransferCard(props: {
+  userId: string
+  sourceEmployeeProfileId: string
+  transferTargets: AvailableTargetOrg[]
+  pendingTransfer: EmployeeTransferRow | null
+  isArchived: boolean
+}) {
+  const [cancelState, cancelAction, cancelPending] = useActionState(
+    cancelTransferAction,
+    initialSettingsActionState,
+  )
+  useToastOnAction(cancelState)
+
+  if (props.pendingTransfer) {
+    // Look up the friendly target-org name from the picker list. If it
+    // isn't there (e.g. the admin lost access after scheduling), fall
+    // back to the raw org id — better than blank.
+    const target = props.transferTargets.find(
+      (t) => t.id === props.pendingTransfer!.targetOrganizationId,
+    )
+    return (
+      <Card className="border-amber-200/60 bg-amber-50/40 dark:bg-amber-950/20">
+        <CardHeader>
+          <CardTitle className="text-base">
+            Transfer scheduled
+          </CardTitle>
+          <CardDescription>
+            This employee is queued to move to{" "}
+            <span className="font-medium text-foreground">
+              {target?.name ?? props.pendingTransfer.targetOrganizationId}
+            </span>{" "}
+            on{" "}
+            <span className="font-medium text-foreground">
+              {props.pendingTransfer.effectiveDate}
+            </span>
+            . The transfer runs automatically on that date. Cancel below
+            if you need to change the target company, policy, or date —
+            you can re-schedule from a fresh wizard.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={cancelAction} className="flex flex-wrap gap-3">
+            <input
+              type="hidden"
+              name="userId"
+              value={props.userId}
+              hidden
+            />
+            <input
+              type="hidden"
+              name="transferId"
+              value={props.pendingTransfer.id}
+              hidden
+            />
+            <Button
+              type="submit"
+              variant="outline"
+              disabled={cancelPending}
+            >
+              {cancelPending ? "Cancelling…" : "Cancel pending transfer"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // No pending transfer, admin has at least one accessible target org
+  // — show the wizard entry point. Archived employees can't be moved
+  // (matches the service guard); we surface the reason inline.
+  return (
+    <Card className="border-border/40">
+      <CardHeader>
+        <CardTitle className="text-base">Transfer to another company</CardTitle>
+        <CardDescription>
+          {props.isArchived
+            ? "Restore this employee first — archived employees can't be transferred."
+            : "Move the employee to another company under the same owner. The current profile archives on the effective date and a fresh profile is created at the target."}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <TransferWizard
+          userId={props.userId}
+          sourceEmployeeProfileId={props.sourceEmployeeProfileId}
+          transferTargets={props.transferTargets}
+          disabled={props.isArchived}
+        />
+      </CardContent>
+    </Card>
+  )
+}
+
+/**
+ * TransferWizard — dialog-based picker for target org + policy +
+ * effective date + copy-payroll toggle + optional notes. Uses local
+ * React state for the two dependent Selects (the policy list is
+ * filtered by target org). Auto-resets on close.
+ */
+function TransferWizard(props: {
+  userId: string
+  sourceEmployeeProfileId: string
+  transferTargets: AvailableTargetOrg[]
+  disabled: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [state, action, pending] = useActionState(
+    transferEmployeeAction,
+    initialSettingsActionState,
+  )
+  useToastOnAction(state)
+  const [targetOrgId, setTargetOrgId] = useState<string>("")
+  const [targetPolicyId, setTargetPolicyId] = useState<string>("")
+  const today = new Date().toISOString().slice(0, 10)
+  const [effectiveDate, setEffectiveDate] = useState<string>(today)
+  const [copyPayrollInfo, setCopyPayrollInfo] = useState<boolean>(true)
+  const [notes, setNotes] = useState<string>("")
+  const successRef = useRef(state.status)
+
+  // Auto-close on success + reset. Watching status transitions so a
+  // stale success state doesn't slam the dialog shut on remount.
+  useEffect(() => {
+    if (state.status === "success" && successRef.current !== "success") {
+      setOpen(false)
+      setTargetOrgId("")
+      setTargetPolicyId("")
+      setEffectiveDate(today)
+      setCopyPayrollInfo(true)
+      setNotes("")
+    }
+    successRef.current = state.status
+  }, [state.status, today])
+
+  // Reset the policy dropdown whenever the admin picks a new target
+  // company — the previously-selected policy id may not belong to the
+  // new org.
+  useEffect(() => {
+    setTargetPolicyId("")
+  }, [targetOrgId])
+
+  const selectedTarget = props.transferTargets.find((t) => t.id === targetOrgId)
+  const policies = selectedTarget?.policies ?? []
+
+  function handleClose(next: boolean) {
+    setOpen(next)
+    if (!next) {
+      // Reset on cancel so re-opening starts fresh.
+      setTargetOrgId("")
+      setTargetPolicyId("")
+      setEffectiveDate(today)
+      setCopyPayrollInfo(true)
+      setNotes("")
+    }
+  }
+
+  const canSubmit =
+    !!targetOrgId && !!targetPolicyId && !!effectiveDate && !pending
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setOpen(true)}
+        disabled={props.disabled}
+      >
+        <ArrowRightLeft className="mr-2 h-4 w-4" />
+        Transfer employee
+      </Button>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Transfer employee to another company</DialogTitle>
+            <DialogDescription>
+              On the effective date the current payroll profile is
+              archived and a fresh profile is created at the target
+              company. Leave balances start at zero at the target — the
+              target policy&apos;s accruals begin from the effective
+              date.
+            </DialogDescription>
+          </DialogHeader>
+          <form action={action} className="space-y-4 py-2 pl-1 pr-2">
+            <input
+              type="hidden"
+              name="userId"
+              value={props.userId}
+              hidden
+            />
+            <input
+              type="hidden"
+              name="sourceEmployeeProfileId"
+              value={props.sourceEmployeeProfileId}
+              hidden
+            />
+            <div className="space-y-1.5">
+              <Label htmlFor="targetOrganizationId">Target company</Label>
+              <NativeSelect
+                id="targetOrganizationId"
+                name="targetOrganizationId"
+                value={targetOrgId}
+                onChange={(e) => setTargetOrgId(e.target.value)}
+              >
+                <option value="">Select company…</option>
+                {props.transferTargets.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="targetPolicyId">Target payroll policy</Label>
+              <NativeSelect
+                id="targetPolicyId"
+                name="targetPolicyId"
+                value={targetPolicyId}
+                onChange={(e) => setTargetPolicyId(e.target.value)}
+                disabled={!targetOrgId}
+              >
+                <option value="">
+                  {targetOrgId ? "Select policy…" : "Pick a company first"}
+                </option>
+                {policies.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                    {p.isDefault ? " (default)" : ""}
+                  </option>
+                ))}
+              </NativeSelect>
+              <p className="text-xs text-muted-foreground">
+                Policies come from the target company&apos;s settings —
+                the wizard shows all active ones.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="effectiveDate">Effective date</Label>
+              <Input
+                id="effectiveDate"
+                name="effectiveDate"
+                type="date"
+                value={effectiveDate}
+                min={today}
+                onChange={(e) => setEffectiveDate(e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Pick today to transfer immediately. A future date queues
+                the transfer — it runs on that date via the daily job.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Data to carry over</Label>
+              <label className="flex items-start gap-2 rounded-md border border-border/60 bg-muted/20 p-3">
+                <input
+                  type="checkbox"
+                  name="copyPayrollInfo"
+                  value="true"
+                  checked={copyPayrollInfo}
+                  onChange={(e) => setCopyPayrollInfo(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span className="text-sm">
+                  <span className="font-medium text-foreground">
+                    Include payroll settings
+                  </span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                    Copies salary, allowances, deductions, and statutory
+                    setup (EPF / SOCSO / EIS / PCB) from the current
+                    company. Leave unticked to carry only basic identity
+                    — admin fills in payroll at the target from scratch.
+                    YTD figures are always carried so PCB stays accurate
+                    for the year.
+                  </span>
+                </span>
+              </label>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="notes">Notes (optional)</Label>
+              <Input
+                id="notes"
+                name="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Why the transfer — internal audit trail"
+              />
+            </div>
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => handleClose(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!canSubmit}>
+                {pending ? "Scheduling…" : "Schedule transfer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
 }
 
 function ArchiveCard(props: {

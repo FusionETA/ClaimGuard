@@ -338,6 +338,19 @@ export async function listPendingTransfersForOrg(input: {
 }
 
 /**
+ * Return the single PENDING transfer for this employee, if any. Used
+ * by the employee detail page to render the "already scheduled"
+ * banner + cancel button in place of the transfer wizard.
+ */
+export async function findPendingTransferForEmployee(input: {
+  sourceEmployeeProfileId: string
+}): Promise<EmployeeTransferRow | null> {
+  return payrollTransferRepository.findPendingBySource(
+    input.sourceEmployeeProfileId,
+  )
+}
+
+/**
  * Execute a single transfer. Callable directly (when effectiveDate =
  * today the create flow inlines this) or by the daily cron.
  */
