@@ -270,6 +270,7 @@ export type EmployeeProfileWhereInput = {
   payslips?: Prisma.PayslipListRelationFilter
   salaryChanges?: Prisma.SalaryChangeListRelationFilter
   employeeOrganization?: Prisma.XOR<Prisma.EmployeeOrganizationNullableScalarRelationFilter, Prisma.EmployeeOrganizationWhereInput> | null
+  transfersOut?: Prisma.EmployeeTransferListRelationFilter
 }
 
 export type EmployeeProfileOrderByWithRelationInput = {
@@ -297,6 +298,7 @@ export type EmployeeProfileOrderByWithRelationInput = {
   payslips?: Prisma.PayslipOrderByRelationAggregateInput
   salaryChanges?: Prisma.SalaryChangeOrderByRelationAggregateInput
   employeeOrganization?: Prisma.EmployeeOrganizationOrderByWithRelationInput
+  transfersOut?: Prisma.EmployeeTransferOrderByRelationAggregateInput
   _relevance?: Prisma.EmployeeProfileOrderByRelevanceInput
 }
 
@@ -329,6 +331,7 @@ export type EmployeeProfileWhereUniqueInput = Prisma.AtLeast<{
   payslips?: Prisma.PayslipListRelationFilter
   salaryChanges?: Prisma.SalaryChangeListRelationFilter
   employeeOrganization?: Prisma.XOR<Prisma.EmployeeOrganizationNullableScalarRelationFilter, Prisma.EmployeeOrganizationWhereInput> | null
+  transfersOut?: Prisma.EmployeeTransferListRelationFilter
 }, "id" | "userId_organizationId">
 
 export type EmployeeProfileOrderByWithAggregationInput = {
@@ -387,6 +390,7 @@ export type EmployeeProfileCreateInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateInput = {
@@ -411,6 +415,7 @@ export type EmployeeProfileUncheckedCreateInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUpdateInput = {
@@ -435,6 +440,7 @@ export type EmployeeProfileUpdateInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateInput = {
@@ -459,6 +465,7 @@ export type EmployeeProfileUncheckedUpdateInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateManyInput = {
@@ -822,6 +829,20 @@ export type EmployeeProfileUpdateOneRequiredWithoutLoansNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeProfileUpdateToOneWithWhereWithoutLoansInput, Prisma.EmployeeProfileUpdateWithoutLoansInput>, Prisma.EmployeeProfileUncheckedUpdateWithoutLoansInput>
 }
 
+export type EmployeeProfileCreateNestedOneWithoutTransfersOutInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutTransfersOutInput, Prisma.EmployeeProfileUncheckedCreateWithoutTransfersOutInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutTransfersOutInput
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+}
+
+export type EmployeeProfileUpdateOneRequiredWithoutTransfersOutNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutTransfersOutInput, Prisma.EmployeeProfileUncheckedCreateWithoutTransfersOutInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutTransfersOutInput
+  upsert?: Prisma.EmployeeProfileUpsertWithoutTransfersOutInput
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeProfileUpdateToOneWithWhereWithoutTransfersOutInput, Prisma.EmployeeProfileUpdateWithoutTransfersOutInput>, Prisma.EmployeeProfileUncheckedUpdateWithoutTransfersOutInput>
+}
+
 export type EmployeeProfileCreateNestedOneWithoutLeaveEntitlementsInput = {
   create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutLeaveEntitlementsInput, Prisma.EmployeeProfileUncheckedCreateWithoutLeaveEntitlementsInput>
   connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutLeaveEntitlementsInput
@@ -871,6 +892,7 @@ export type EmployeeProfileCreateWithoutUserInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutUserInput = {
@@ -894,6 +916,7 @@ export type EmployeeProfileUncheckedCreateWithoutUserInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutUserInput = {
@@ -959,6 +982,7 @@ export type EmployeeProfileCreateWithoutOrganizationInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutOrganizationInput = {
@@ -982,6 +1006,7 @@ export type EmployeeProfileUncheckedCreateWithoutOrganizationInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutOrganizationInput = {
@@ -1031,6 +1056,7 @@ export type EmployeeProfileCreateWithoutPolicyInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutPolicyInput = {
@@ -1054,6 +1080,7 @@ export type EmployeeProfileUncheckedCreateWithoutPolicyInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutPolicyInput = {
@@ -1103,6 +1130,7 @@ export type EmployeeProfileCreateWithoutEmployeeOrganizationInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutEmployeeOrganizationInput = {
@@ -1126,6 +1154,7 @@ export type EmployeeProfileUncheckedCreateWithoutEmployeeOrganizationInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutEmployeeOrganizationInput = {
@@ -1165,6 +1194,7 @@ export type EmployeeProfileUpdateWithoutEmployeeOrganizationInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutEmployeeOrganizationInput = {
@@ -1188,6 +1218,7 @@ export type EmployeeProfileUncheckedUpdateWithoutEmployeeOrganizationInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutProjectAssignmentsInput = {
@@ -1211,6 +1242,7 @@ export type EmployeeProfileCreateWithoutProjectAssignmentsInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutProjectAssignmentsInput = {
@@ -1234,6 +1266,7 @@ export type EmployeeProfileUncheckedCreateWithoutProjectAssignmentsInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutProjectAssignmentsInput = {
@@ -1273,6 +1306,7 @@ export type EmployeeProfileUpdateWithoutProjectAssignmentsInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutProjectAssignmentsInput = {
@@ -1296,6 +1330,7 @@ export type EmployeeProfileUncheckedUpdateWithoutProjectAssignmentsInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutTeamMembershipsInput = {
@@ -1319,6 +1354,7 @@ export type EmployeeProfileCreateWithoutTeamMembershipsInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutTeamMembershipsInput = {
@@ -1342,6 +1378,7 @@ export type EmployeeProfileUncheckedCreateWithoutTeamMembershipsInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutTeamMembershipsInput = {
@@ -1381,6 +1418,7 @@ export type EmployeeProfileUpdateWithoutTeamMembershipsInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutTeamMembershipsInput = {
@@ -1404,6 +1442,7 @@ export type EmployeeProfileUncheckedUpdateWithoutTeamMembershipsInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutPayrollProfileInput = {
@@ -1427,6 +1466,7 @@ export type EmployeeProfileCreateWithoutPayrollProfileInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutPayrollProfileInput = {
@@ -1450,6 +1490,7 @@ export type EmployeeProfileUncheckedCreateWithoutPayrollProfileInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutPayrollProfileInput = {
@@ -1489,6 +1530,7 @@ export type EmployeeProfileUpdateWithoutPayrollProfileInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutPayrollProfileInput = {
@@ -1512,6 +1554,7 @@ export type EmployeeProfileUncheckedUpdateWithoutPayrollProfileInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutSalaryChangesInput = {
@@ -1535,6 +1578,7 @@ export type EmployeeProfileCreateWithoutSalaryChangesInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutSalaryChangesInput = {
@@ -1558,6 +1602,7 @@ export type EmployeeProfileUncheckedCreateWithoutSalaryChangesInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutSalaryChangesInput = {
@@ -1597,6 +1642,7 @@ export type EmployeeProfileUpdateWithoutSalaryChangesInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutSalaryChangesInput = {
@@ -1620,6 +1666,7 @@ export type EmployeeProfileUncheckedUpdateWithoutSalaryChangesInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutPayrollRunClaimsInput = {
@@ -1643,6 +1690,7 @@ export type EmployeeProfileCreateWithoutPayrollRunClaimsInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutPayrollRunClaimsInput = {
@@ -1666,6 +1714,7 @@ export type EmployeeProfileUncheckedCreateWithoutPayrollRunClaimsInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutPayrollRunClaimsInput = {
@@ -1705,6 +1754,7 @@ export type EmployeeProfileUpdateWithoutPayrollRunClaimsInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutPayrollRunClaimsInput = {
@@ -1728,6 +1778,7 @@ export type EmployeeProfileUncheckedUpdateWithoutPayrollRunClaimsInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutPayrollRunAdjustmentsInput = {
@@ -1751,6 +1802,7 @@ export type EmployeeProfileCreateWithoutPayrollRunAdjustmentsInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutPayrollRunAdjustmentsInput = {
@@ -1774,6 +1826,7 @@ export type EmployeeProfileUncheckedCreateWithoutPayrollRunAdjustmentsInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutPayrollRunAdjustmentsInput = {
@@ -1813,6 +1866,7 @@ export type EmployeeProfileUpdateWithoutPayrollRunAdjustmentsInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutPayrollRunAdjustmentsInput = {
@@ -1836,6 +1890,7 @@ export type EmployeeProfileUncheckedUpdateWithoutPayrollRunAdjustmentsInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutPayslipsInput = {
@@ -1859,6 +1914,7 @@ export type EmployeeProfileCreateWithoutPayslipsInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutPayslipsInput = {
@@ -1882,6 +1938,7 @@ export type EmployeeProfileUncheckedCreateWithoutPayslipsInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutPayslipsInput = {
@@ -1921,6 +1978,7 @@ export type EmployeeProfileUpdateWithoutPayslipsInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutPayslipsInput = {
@@ -1944,6 +2002,7 @@ export type EmployeeProfileUncheckedUpdateWithoutPayslipsInput = {
   payrollRunClaims?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutLoansInput = {
@@ -1967,6 +2026,7 @@ export type EmployeeProfileCreateWithoutLoansInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutLoansInput = {
@@ -1990,6 +2050,7 @@ export type EmployeeProfileUncheckedCreateWithoutLoansInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutLoansInput = {
@@ -2029,6 +2090,7 @@ export type EmployeeProfileUpdateWithoutLoansInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutLoansInput = {
@@ -2042,6 +2104,119 @@ export type EmployeeProfileUncheckedUpdateWithoutLoansInput = {
   otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  leaveApplications?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutEmployeeNestedInput
+  leaveEntitlements?: Prisma.LeaveEntitlementUncheckedUpdateManyWithoutEmployeeNestedInput
+  payrollProfile?: Prisma.PayrollProfileUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  payrollRunAdjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  payrollRunClaims?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
+}
+
+export type EmployeeProfileCreateWithoutTransfersOutInput = {
+  id?: string
+  employeeId: string
+  jobTitle: string
+  preferredCurrency?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  otTimeBalanceMin?: number
+  loans?: Prisma.EmployeeLoanCreateNestedManyWithoutEmployeeProfileInput
+  policy?: Prisma.EmployeePolicyCreateNestedOneWithoutEmployeesInput
+  user: Prisma.UserCreateNestedOneWithoutEmployeeProfilesInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutEmployeeProfilesInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutEmployeeProfileInput
+  leaveApplications?: Prisma.LeaveApplicationCreateNestedManyWithoutEmployeeInput
+  leaveEntitlements?: Prisma.LeaveEntitlementCreateNestedManyWithoutEmployeeInput
+  payrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutEmployeeProfileInput
+  payrollRunAdjustments?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutEmployeeProfileInput
+  payrollRunClaims?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
+  payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
+  salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
+  employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+}
+
+export type EmployeeProfileUncheckedCreateWithoutTransfersOutInput = {
+  id?: string
+  userId: string
+  employeeId: string
+  jobTitle: string
+  preferredCurrency?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  otTimeBalanceMin?: number
+  policyId?: string | null
+  organizationId?: string | null
+  loans?: Prisma.EmployeeLoanUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  leaveApplications?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutEmployeeInput
+  leaveEntitlements?: Prisma.LeaveEntitlementUncheckedCreateNestedManyWithoutEmployeeInput
+  payrollProfile?: Prisma.PayrollProfileUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  payrollRunAdjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  payrollRunClaims?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+}
+
+export type EmployeeProfileCreateOrConnectWithoutTransfersOutInput = {
+  where: Prisma.EmployeeProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutTransfersOutInput, Prisma.EmployeeProfileUncheckedCreateWithoutTransfersOutInput>
+}
+
+export type EmployeeProfileUpsertWithoutTransfersOutInput = {
+  update: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutTransfersOutInput, Prisma.EmployeeProfileUncheckedUpdateWithoutTransfersOutInput>
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutTransfersOutInput, Prisma.EmployeeProfileUncheckedCreateWithoutTransfersOutInput>
+  where?: Prisma.EmployeeProfileWhereInput
+}
+
+export type EmployeeProfileUpdateToOneWithWhereWithoutTransfersOutInput = {
+  where?: Prisma.EmployeeProfileWhereInput
+  data: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutTransfersOutInput, Prisma.EmployeeProfileUncheckedUpdateWithoutTransfersOutInput>
+}
+
+export type EmployeeProfileUpdateWithoutTransfersOutInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
+  loans?: Prisma.EmployeeLoanUpdateManyWithoutEmployeeProfileNestedInput
+  policy?: Prisma.EmployeePolicyUpdateOneWithoutEmployeesNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfilesNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutEmployeeProfilesNestedInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutEmployeeProfileNestedInput
+  leaveApplications?: Prisma.LeaveApplicationUpdateManyWithoutEmployeeNestedInput
+  leaveEntitlements?: Prisma.LeaveEntitlementUpdateManyWithoutEmployeeNestedInput
+  payrollProfile?: Prisma.PayrollProfileUpdateOneWithoutEmployeeProfileNestedInput
+  payrollRunAdjustments?: Prisma.PayrollRunAdjustmentUpdateManyWithoutEmployeeProfileNestedInput
+  payrollRunClaims?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
+  payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
+  salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
+  employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+}
+
+export type EmployeeProfileUncheckedUpdateWithoutTransfersOutInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
+  policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  loans?: Prisma.EmployeeLoanUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   leaveApplications?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2075,6 +2250,7 @@ export type EmployeeProfileCreateWithoutLeaveEntitlementsInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutLeaveEntitlementsInput = {
@@ -2098,6 +2274,7 @@ export type EmployeeProfileUncheckedCreateWithoutLeaveEntitlementsInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutLeaveEntitlementsInput = {
@@ -2137,6 +2314,7 @@ export type EmployeeProfileUpdateWithoutLeaveEntitlementsInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutLeaveEntitlementsInput = {
@@ -2160,6 +2338,7 @@ export type EmployeeProfileUncheckedUpdateWithoutLeaveEntitlementsInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutLeaveApplicationsInput = {
@@ -2183,6 +2362,7 @@ export type EmployeeProfileCreateWithoutLeaveApplicationsInput = {
   payslips?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutLeaveApplicationsInput = {
@@ -2206,6 +2386,7 @@ export type EmployeeProfileUncheckedCreateWithoutLeaveApplicationsInput = {
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
   salaryChanges?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutEmployeeProfileInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutLeaveApplicationsInput = {
@@ -2245,6 +2426,7 @@ export type EmployeeProfileUpdateWithoutLeaveApplicationsInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutLeaveApplicationsInput = {
@@ -2268,6 +2450,7 @@ export type EmployeeProfileUncheckedUpdateWithoutLeaveApplicationsInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateManyUserInput = {
@@ -2303,6 +2486,7 @@ export type EmployeeProfileUpdateWithoutUserInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutUserInput = {
@@ -2326,6 +2510,7 @@ export type EmployeeProfileUncheckedUpdateWithoutUserInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateManyWithoutUserInput = {
@@ -2373,6 +2558,7 @@ export type EmployeeProfileUpdateWithoutOrganizationInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutOrganizationInput = {
@@ -2396,6 +2582,7 @@ export type EmployeeProfileUncheckedUpdateWithoutOrganizationInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateManyWithoutOrganizationInput = {
@@ -2443,6 +2630,7 @@ export type EmployeeProfileUpdateWithoutPolicyInput = {
   payslips?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutPolicyInput = {
@@ -2466,6 +2654,7 @@ export type EmployeeProfileUncheckedUpdateWithoutPolicyInput = {
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   salaryChanges?: Prisma.SalaryChangeUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   employeeOrganization?: Prisma.EmployeeOrganizationUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  transfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateManyWithoutPolicyInput = {
@@ -2495,6 +2684,7 @@ export type EmployeeProfileCountOutputType = {
   payrollRunClaims: number
   payslips: number
   salaryChanges: number
+  transfersOut: number
 }
 
 export type EmployeeProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2507,6 +2697,7 @@ export type EmployeeProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.E
   payrollRunClaims?: boolean | EmployeeProfileCountOutputTypeCountPayrollRunClaimsArgs
   payslips?: boolean | EmployeeProfileCountOutputTypeCountPayslipsArgs
   salaryChanges?: boolean | EmployeeProfileCountOutputTypeCountSalaryChangesArgs
+  transfersOut?: boolean | EmployeeProfileCountOutputTypeCountTransfersOutArgs
 }
 
 /**
@@ -2582,6 +2773,13 @@ export type EmployeeProfileCountOutputTypeCountSalaryChangesArgs<ExtArgs extends
   where?: Prisma.SalaryChangeWhereInput
 }
 
+/**
+ * EmployeeProfileCountOutputType without action
+ */
+export type EmployeeProfileCountOutputTypeCountTransfersOutArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeTransferWhereInput
+}
+
 
 export type EmployeeProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2608,6 +2806,7 @@ export type EmployeeProfileSelect<ExtArgs extends runtime.Types.Extensions.Inter
   payslips?: boolean | Prisma.EmployeeProfile$payslipsArgs<ExtArgs>
   salaryChanges?: boolean | Prisma.EmployeeProfile$salaryChangesArgs<ExtArgs>
   employeeOrganization?: boolean | Prisma.EmployeeProfile$employeeOrganizationArgs<ExtArgs>
+  transfersOut?: boolean | Prisma.EmployeeProfile$transfersOutArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeProfileCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["employeeProfile"]>
 
@@ -2642,6 +2841,7 @@ export type EmployeeProfileInclude<ExtArgs extends runtime.Types.Extensions.Inte
   payslips?: boolean | Prisma.EmployeeProfile$payslipsArgs<ExtArgs>
   salaryChanges?: boolean | Prisma.EmployeeProfile$salaryChangesArgs<ExtArgs>
   employeeOrganization?: boolean | Prisma.EmployeeProfile$employeeOrganizationArgs<ExtArgs>
+  transfersOut?: boolean | Prisma.EmployeeProfile$transfersOutArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeProfileCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -2662,6 +2862,7 @@ export type $EmployeeProfilePayload<ExtArgs extends runtime.Types.Extensions.Int
     payslips: Prisma.$PayslipPayload<ExtArgs>[]
     salaryChanges: Prisma.$SalaryChangePayload<ExtArgs>[]
     employeeOrganization: Prisma.$EmployeeOrganizationPayload<ExtArgs> | null
+    transfersOut: Prisma.$EmployeeTransferPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3050,6 +3251,7 @@ export interface Prisma__EmployeeProfileClient<T, Null = never, ExtArgs extends 
   payslips<T extends Prisma.EmployeeProfile$payslipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$payslipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayslipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   salaryChanges<T extends Prisma.EmployeeProfile$salaryChangesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$salaryChangesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalaryChangePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   employeeOrganization<T extends Prisma.EmployeeProfile$employeeOrganizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$employeeOrganizationArgs<ExtArgs>>): Prisma.Prisma__EmployeeOrganizationClient<runtime.Types.Result.GetResult<Prisma.$EmployeeOrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  transfersOut<T extends Prisma.EmployeeProfile$transfersOutArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$transfersOutArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeTransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3726,6 +3928,30 @@ export type EmployeeProfile$employeeOrganizationArgs<ExtArgs extends runtime.Typ
    */
   include?: Prisma.EmployeeOrganizationInclude<ExtArgs> | null
   where?: Prisma.EmployeeOrganizationWhereInput
+}
+
+/**
+ * EmployeeProfile.transfersOut
+ */
+export type EmployeeProfile$transfersOutArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeTransfer
+   */
+  select?: Prisma.EmployeeTransferSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeTransfer
+   */
+  omit?: Prisma.EmployeeTransferOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeTransferInclude<ExtArgs> | null
+  where?: Prisma.EmployeeTransferWhereInput
+  orderBy?: Prisma.EmployeeTransferOrderByWithRelationInput | Prisma.EmployeeTransferOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeTransferWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeTransferScalarFieldEnum | Prisma.EmployeeTransferScalarFieldEnum[]
 }
 
 /**

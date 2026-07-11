@@ -454,6 +454,30 @@ export type PayslipLineItem = Prisma.PayslipLineItemModel
  */
 export type EmployeeLoan = Prisma.EmployeeLoanModel
 /**
+ * Model EmployeeTransfer
+ * Scheduled transfer of an employee from one company to another within
+ * the same Owner account. Rows are created via the "Transfer" wizard
+ * on the employee detail page (alongside "Archive") and executed by a
+ * daily cron on the effective date.
+ * 
+ * On execute, the source PayrollProfile is archived (leaveDate =
+ * effectiveDate − 1 day, isArchived = true), a new EmployeeProfile +
+ * PayrollProfile + EmployeeOrganization are created at the target org,
+ * and — when `copyPayrollInfo = true` — the source's YTD PCB/EPF/etc.
+ * is copied into the target's "Previous Employment" fields so LHDN
+ * MTD projections at the new employer stay accurate (this treats the
+ * same-Owner move as continuous employment for tax purposes).
+ * 
+ * Leave entitlements at the target start FRESH — the target company's
+ * policy accruals begin from `effectiveDate`. Company structure (teams,
+ * projects, hierarchy) is never copied.
+ * 
+ * At most one PENDING row per (sourceEmployeeProfileId) — the app
+ * refuses to create a second while one is queued. CANCELLED /
+ * EXECUTED / FAILED rows accumulate as history.
+ */
+export type EmployeeTransfer = Prisma.EmployeeTransferModel
+/**
  * Model LeaveType
  * Admin-configured leave type for an organization (e.g. ANNUAL, SICK,
  * UNPAID, MATERNITY). `accrualMethod=PRO_RATED` is intended for the

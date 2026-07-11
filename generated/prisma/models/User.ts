@@ -247,6 +247,7 @@ export type UserWhereInput = {
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   managedProjects?: Prisma.XeroProjectListRelationFilter
+  employeeTransfersCreated?: Prisma.EmployeeTransferListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -285,6 +286,7 @@ export type UserOrderByWithRelationInput = {
   organization?: Prisma.OrganizationOrderByWithRelationInput
   xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
   managedProjects?: Prisma.XeroProjectOrderByRelationAggregateInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferOrderByRelationAggregateInput
   _relevance?: Prisma.UserOrderByRelevanceInput
 }
 
@@ -327,6 +329,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   managedProjects?: Prisma.XeroProjectListRelationFilter
+  employeeTransfersCreated?: Prisma.EmployeeTransferListRelationFilter
 }, "id">
 
 export type UserOrderByWithAggregationInput = {
@@ -396,6 +399,7 @@ export type UserCreateInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -433,6 +437,7 @@ export type UserUncheckedCreateInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUpdateInput = {
@@ -470,6 +475,7 @@ export type UserUpdateInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -507,6 +513,7 @@ export type UserUncheckedUpdateInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -996,6 +1003,20 @@ export type UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSubmittedForApprovalPayrollRunsInput, Prisma.UserUpdateWithoutSubmittedForApprovalPayrollRunsInput>, Prisma.UserUncheckedUpdateWithoutSubmittedForApprovalPayrollRunsInput>
 }
 
+export type UserCreateNestedOneWithoutEmployeeTransfersCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEmployeeTransfersCreatedInput, Prisma.UserUncheckedCreateWithoutEmployeeTransfersCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmployeeTransfersCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutEmployeeTransfersCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEmployeeTransfersCreatedInput, Prisma.UserUncheckedCreateWithoutEmployeeTransfersCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmployeeTransfersCreatedInput
+  upsert?: Prisma.UserUpsertWithoutEmployeeTransfersCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEmployeeTransfersCreatedInput, Prisma.UserUpdateWithoutEmployeeTransfersCreatedInput>, Prisma.UserUncheckedUpdateWithoutEmployeeTransfersCreatedInput>
+}
+
 export type UserCreateNestedOneWithoutLeaveApplicationsAppliedByAdminInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutLeaveApplicationsAppliedByAdminInput, Prisma.UserUncheckedCreateWithoutLeaveApplicationsAppliedByAdminInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutLeaveApplicationsAppliedByAdminInput
@@ -1062,6 +1083,7 @@ export type UserCreateWithoutOrganizationInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutOrganizationInput = {
@@ -1098,6 +1120,7 @@ export type UserUncheckedCreateWithoutOrganizationInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutOrganizationInput = {
@@ -1176,6 +1199,7 @@ export type UserCreateWithoutAdminOrganizationsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutAdminOrganizationsInput = {
@@ -1212,6 +1236,7 @@ export type UserUncheckedCreateWithoutAdminOrganizationsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutAdminOrganizationsInput = {
@@ -1264,6 +1289,7 @@ export type UserUpdateWithoutAdminOrganizationsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAdminOrganizationsInput = {
@@ -1300,6 +1326,7 @@ export type UserUncheckedUpdateWithoutAdminOrganizationsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutPushSubscriptionsInput = {
@@ -1336,6 +1363,7 @@ export type UserCreateWithoutPushSubscriptionsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
@@ -1372,6 +1400,7 @@ export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutPushSubscriptionsInput = {
@@ -1424,6 +1453,7 @@ export type UserUpdateWithoutPushSubscriptionsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
@@ -1460,6 +1490,7 @@ export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -1496,6 +1527,7 @@ export type UserCreateWithoutNotificationsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -1532,6 +1564,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -1584,6 +1617,7 @@ export type UserUpdateWithoutNotificationsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -1620,6 +1654,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutEmployeeImportDraftsInput = {
@@ -1656,6 +1691,7 @@ export type UserCreateWithoutEmployeeImportDraftsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutEmployeeImportDraftsInput = {
@@ -1692,6 +1728,7 @@ export type UserUncheckedCreateWithoutEmployeeImportDraftsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutEmployeeImportDraftsInput = {
@@ -1744,6 +1781,7 @@ export type UserUpdateWithoutEmployeeImportDraftsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEmployeeImportDraftsInput = {
@@ -1780,6 +1818,7 @@ export type UserUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutEmployeeProfilesInput = {
@@ -1816,6 +1855,7 @@ export type UserCreateWithoutEmployeeProfilesInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutEmployeeProfilesInput = {
@@ -1852,6 +1892,7 @@ export type UserUncheckedCreateWithoutEmployeeProfilesInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutEmployeeProfilesInput = {
@@ -1904,6 +1945,7 @@ export type UserUpdateWithoutEmployeeProfilesInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEmployeeProfilesInput = {
@@ -1940,6 +1982,7 @@ export type UserUncheckedUpdateWithoutEmployeeProfilesInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutEmployeeOrganizationsInput = {
@@ -1976,6 +2019,7 @@ export type UserCreateWithoutEmployeeOrganizationsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutEmployeeOrganizationsInput = {
@@ -2012,6 +2056,7 @@ export type UserUncheckedCreateWithoutEmployeeOrganizationsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutEmployeeOrganizationsInput = {
@@ -2064,6 +2109,7 @@ export type UserUpdateWithoutEmployeeOrganizationsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEmployeeOrganizationsInput = {
@@ -2100,6 +2146,7 @@ export type UserUncheckedUpdateWithoutEmployeeOrganizationsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutClaimsInput = {
@@ -2136,6 +2183,7 @@ export type UserCreateWithoutClaimsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutClaimsInput = {
@@ -2172,6 +2220,7 @@ export type UserUncheckedCreateWithoutClaimsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutClaimsInput = {
@@ -2213,6 +2262,7 @@ export type UserCreateWithoutReviewsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
@@ -2249,6 +2299,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -2301,6 +2352,7 @@ export type UserUpdateWithoutClaimsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClaimsInput = {
@@ -2337,6 +2389,7 @@ export type UserUncheckedUpdateWithoutClaimsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUpsertWithoutReviewsInput = {
@@ -2384,6 +2437,7 @@ export type UserUpdateWithoutReviewsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -2420,6 +2474,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutClaimApprovalEntriesInput = {
@@ -2456,6 +2511,7 @@ export type UserCreateWithoutClaimApprovalEntriesInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutClaimApprovalEntriesInput = {
@@ -2492,6 +2548,7 @@ export type UserUncheckedCreateWithoutClaimApprovalEntriesInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutClaimApprovalEntriesInput = {
@@ -2544,6 +2601,7 @@ export type UserUpdateWithoutClaimApprovalEntriesInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClaimApprovalEntriesInput = {
@@ -2580,6 +2638,7 @@ export type UserUncheckedUpdateWithoutClaimApprovalEntriesInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutXeroConnectionsInput = {
@@ -2616,6 +2675,7 @@ export type UserCreateWithoutXeroConnectionsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeCreateNestedManyWithoutChangedByUserInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutXeroConnectionsInput = {
@@ -2652,6 +2712,7 @@ export type UserUncheckedCreateWithoutXeroConnectionsInput = {
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutXeroConnectionsInput = {
@@ -2704,6 +2765,7 @@ export type UserUpdateWithoutXeroConnectionsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUpdateManyWithoutChangedByUserNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutXeroConnectionsInput = {
@@ -2740,6 +2802,7 @@ export type UserUncheckedUpdateWithoutXeroConnectionsInput = {
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutManagedProjectsInput = {
@@ -2776,6 +2839,7 @@ export type UserCreateWithoutManagedProjectsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeCreateNestedManyWithoutChangedByUserInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutManagedProjectsInput = {
@@ -2812,6 +2876,7 @@ export type UserUncheckedCreateWithoutManagedProjectsInput = {
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutManagedProjectsInput = {
@@ -2864,6 +2929,7 @@ export type UserUpdateWithoutManagedProjectsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUpdateManyWithoutChangedByUserNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutManagedProjectsInput = {
@@ -2900,6 +2966,7 @@ export type UserUncheckedUpdateWithoutManagedProjectsInput = {
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutProjectManagerOfInput = {
@@ -2936,6 +3003,7 @@ export type UserCreateWithoutProjectManagerOfInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutProjectManagerOfInput = {
@@ -2972,6 +3040,7 @@ export type UserUncheckedCreateWithoutProjectManagerOfInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutProjectManagerOfInput = {
@@ -3024,6 +3093,7 @@ export type UserUpdateWithoutProjectManagerOfInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectManagerOfInput = {
@@ -3060,6 +3130,7 @@ export type UserUncheckedUpdateWithoutProjectManagerOfInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutAttendanceInput = {
@@ -3096,6 +3167,7 @@ export type UserCreateWithoutAttendanceInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutAttendanceInput = {
@@ -3132,6 +3204,7 @@ export type UserUncheckedCreateWithoutAttendanceInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutAttendanceInput = {
@@ -3184,6 +3257,7 @@ export type UserUpdateWithoutAttendanceInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAttendanceInput = {
@@ -3220,6 +3294,7 @@ export type UserUncheckedUpdateWithoutAttendanceInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutAttendanceEditsInput = {
@@ -3256,6 +3331,7 @@ export type UserCreateWithoutAttendanceEditsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutAttendanceEditsInput = {
@@ -3292,6 +3368,7 @@ export type UserUncheckedCreateWithoutAttendanceEditsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutAttendanceEditsInput = {
@@ -3344,6 +3421,7 @@ export type UserUpdateWithoutAttendanceEditsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAttendanceEditsInput = {
@@ -3380,6 +3458,7 @@ export type UserUncheckedUpdateWithoutAttendanceEditsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutBreakSessionEditsInput = {
@@ -3416,6 +3495,7 @@ export type UserCreateWithoutBreakSessionEditsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutBreakSessionEditsInput = {
@@ -3452,6 +3532,7 @@ export type UserUncheckedCreateWithoutBreakSessionEditsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutBreakSessionEditsInput = {
@@ -3504,6 +3585,7 @@ export type UserUpdateWithoutBreakSessionEditsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBreakSessionEditsInput = {
@@ -3540,6 +3622,7 @@ export type UserUncheckedUpdateWithoutBreakSessionEditsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutApprovalsInput = {
@@ -3576,6 +3659,7 @@ export type UserCreateWithoutApprovalsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutApprovalsInput = {
@@ -3612,6 +3696,7 @@ export type UserUncheckedCreateWithoutApprovalsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutApprovalsInput = {
@@ -3653,6 +3738,7 @@ export type UserCreateWithoutApprovalReviewsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutApprovalReviewsInput = {
@@ -3689,6 +3775,7 @@ export type UserUncheckedCreateWithoutApprovalReviewsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutApprovalReviewsInput = {
@@ -3741,6 +3828,7 @@ export type UserUpdateWithoutApprovalsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApprovalsInput = {
@@ -3777,6 +3865,7 @@ export type UserUncheckedUpdateWithoutApprovalsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUpsertWithoutApprovalReviewsInput = {
@@ -3824,6 +3913,7 @@ export type UserUpdateWithoutApprovalReviewsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApprovalReviewsInput = {
@@ -3860,6 +3950,7 @@ export type UserUncheckedUpdateWithoutApprovalReviewsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutApprovalChainApprovalsInput = {
@@ -3896,6 +3987,7 @@ export type UserCreateWithoutApprovalChainApprovalsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutApprovalChainApprovalsInput = {
@@ -3932,6 +4024,7 @@ export type UserUncheckedCreateWithoutApprovalChainApprovalsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutApprovalChainApprovalsInput = {
@@ -3973,6 +4066,7 @@ export type UserCreateWithoutApprovalChainStepsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutApprovalChainStepsInput = {
@@ -4009,6 +4103,7 @@ export type UserUncheckedCreateWithoutApprovalChainStepsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutApprovalChainStepsInput = {
@@ -4061,6 +4156,7 @@ export type UserUpdateWithoutApprovalChainApprovalsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApprovalChainApprovalsInput = {
@@ -4097,6 +4193,7 @@ export type UserUncheckedUpdateWithoutApprovalChainApprovalsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUpsertWithoutApprovalChainStepsInput = {
@@ -4144,6 +4241,7 @@ export type UserUpdateWithoutApprovalChainStepsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApprovalChainStepsInput = {
@@ -4180,6 +4278,7 @@ export type UserUncheckedUpdateWithoutApprovalChainStepsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutSalaryChangesAuthoredInput = {
@@ -4216,6 +4315,7 @@ export type UserCreateWithoutSalaryChangesAuthoredInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutSalaryChangesAuthoredInput = {
@@ -4252,6 +4352,7 @@ export type UserUncheckedCreateWithoutSalaryChangesAuthoredInput = {
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutSalaryChangesAuthoredInput = {
@@ -4304,6 +4405,7 @@ export type UserUpdateWithoutSalaryChangesAuthoredInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSalaryChangesAuthoredInput = {
@@ -4340,6 +4442,7 @@ export type UserUncheckedUpdateWithoutSalaryChangesAuthoredInput = {
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutSubmittedPayrollRunsInput = {
@@ -4376,6 +4479,7 @@ export type UserCreateWithoutSubmittedPayrollRunsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutSubmittedPayrollRunsInput = {
@@ -4412,6 +4516,7 @@ export type UserUncheckedCreateWithoutSubmittedPayrollRunsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutSubmittedPayrollRunsInput = {
@@ -4453,6 +4558,7 @@ export type UserCreateWithoutSubmittedForApprovalPayrollRunsInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutSubmittedForApprovalPayrollRunsInput = {
@@ -4489,6 +4595,7 @@ export type UserUncheckedCreateWithoutSubmittedForApprovalPayrollRunsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutSubmittedForApprovalPayrollRunsInput = {
@@ -4541,6 +4648,7 @@ export type UserUpdateWithoutSubmittedPayrollRunsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubmittedPayrollRunsInput = {
@@ -4577,6 +4685,7 @@ export type UserUncheckedUpdateWithoutSubmittedPayrollRunsInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUpsertWithoutSubmittedForApprovalPayrollRunsInput = {
@@ -4624,6 +4733,7 @@ export type UserUpdateWithoutSubmittedForApprovalPayrollRunsInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubmittedForApprovalPayrollRunsInput = {
@@ -4655,6 +4765,171 @@ export type UserUncheckedUpdateWithoutSubmittedForApprovalPayrollRunsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
+  projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
+}
+
+export type UserCreateWithoutEmployeeTransfersCreatedInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  passwordChangedAt?: Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
+  approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogCreateNestedManyWithoutEditorInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutUserInput
+  employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutUserInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
+  projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  salaryChangesAuthored?: Prisma.SalaryChangeCreateNestedManyWithoutChangedByUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+}
+
+export type UserUncheckedCreateWithoutEmployeeTransfersCreatedInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  organizationId?: string | null
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  passwordChangedAt?: Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutEditorInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutUserInput
+  employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutUserInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
+  projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+}
+
+export type UserCreateOrConnectWithoutEmployeeTransfersCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutEmployeeTransfersCreatedInput, Prisma.UserUncheckedCreateWithoutEmployeeTransfersCreatedInput>
+}
+
+export type UserUpsertWithoutEmployeeTransfersCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutEmployeeTransfersCreatedInput, Prisma.UserUncheckedUpdateWithoutEmployeeTransfersCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutEmployeeTransfersCreatedInput, Prisma.UserUncheckedCreateWithoutEmployeeTransfersCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutEmployeeTransfersCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutEmployeeTransfersCreatedInput, Prisma.UserUncheckedUpdateWithoutEmployeeTransfersCreatedInput>
+}
+
+export type UserUpdateWithoutEmployeeTransfersCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUpdateManyWithoutEditorNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutUserNestedInput
+  employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutUserNestedInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
+  projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUpdateManyWithoutChangedByUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutEmployeeTransfersCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutEditorNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutUserNestedInput
+  employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutUserNestedInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
@@ -4696,6 +4971,7 @@ export type UserCreateWithoutLeaveApplicationsAppliedByAdminInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutLeaveApplicationsAppliedByAdminInput = {
@@ -4732,6 +5008,7 @@ export type UserUncheckedCreateWithoutLeaveApplicationsAppliedByAdminInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutLeaveApplicationsAppliedByAdminInput = {
@@ -4784,6 +5061,7 @@ export type UserUpdateWithoutLeaveApplicationsAppliedByAdminInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeaveApplicationsAppliedByAdminInput = {
@@ -4820,6 +5098,7 @@ export type UserUncheckedUpdateWithoutLeaveApplicationsAppliedByAdminInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutAuditLogActorInput = {
@@ -4856,6 +5135,7 @@ export type UserCreateWithoutAuditLogActorInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditLogActorInput = {
@@ -4892,6 +5172,7 @@ export type UserUncheckedCreateWithoutAuditLogActorInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
   managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogActorInput = {
@@ -4944,6 +5225,7 @@ export type UserUpdateWithoutAuditLogActorInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogActorInput = {
@@ -4980,6 +5262,7 @@ export type UserUncheckedUpdateWithoutAuditLogActorInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateManyOrganizationInput = {
@@ -5028,6 +5311,7 @@ export type UserUpdateWithoutOrganizationInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrganizationInput = {
@@ -5064,6 +5348,7 @@ export type UserUncheckedUpdateWithoutOrganizationInput = {
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
   managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutOrganizationInput = {
@@ -5108,6 +5393,7 @@ export type UserCountOutputType = {
   salaryChangesAuthored: number
   xeroConnections: number
   managedProjects: number
+  employeeTransfersCreated: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5135,6 +5421,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   salaryChangesAuthored?: boolean | UserCountOutputTypeCountSalaryChangesAuthoredArgs
   xeroConnections?: boolean | UserCountOutputTypeCountXeroConnectionsArgs
   managedProjects?: boolean | UserCountOutputTypeCountManagedProjectsArgs
+  employeeTransfersCreated?: boolean | UserCountOutputTypeCountEmployeeTransfersCreatedArgs
 }
 
 /**
@@ -5315,6 +5602,13 @@ export type UserCountOutputTypeCountManagedProjectsArgs<ExtArgs extends runtime.
   where?: Prisma.XeroProjectWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountEmployeeTransfersCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeTransferWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -5352,6 +5646,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   organization?: boolean | Prisma.User$organizationArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.User$xeroConnectionsArgs<ExtArgs>
   managedProjects?: boolean | Prisma.User$managedProjectsArgs<ExtArgs>
+  employeeTransfersCreated?: boolean | Prisma.User$employeeTransfersCreatedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -5397,6 +5692,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   organization?: boolean | Prisma.User$organizationArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.User$xeroConnectionsArgs<ExtArgs>
   managedProjects?: boolean | Prisma.User$managedProjectsArgs<ExtArgs>
+  employeeTransfersCreated?: boolean | Prisma.User$employeeTransfersCreatedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -5436,6 +5732,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     organization: Prisma.$OrganizationPayload<ExtArgs> | null
     xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
     managedProjects: Prisma.$XeroProjectPayload<ExtArgs>[]
+    employeeTransfersCreated: Prisma.$EmployeeTransferPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -5822,6 +6119,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   organization<T extends Prisma.User$organizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$organizationArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   xeroConnections<T extends Prisma.User$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   managedProjects<T extends Prisma.User$managedProjectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$managedProjectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  employeeTransfersCreated<T extends Prisma.User$employeeTransfersCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$employeeTransfersCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeTransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6801,6 +7099,30 @@ export type User$managedProjectsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.XeroProjectScalarFieldEnum | Prisma.XeroProjectScalarFieldEnum[]
+}
+
+/**
+ * User.employeeTransfersCreated
+ */
+export type User$employeeTransfersCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeTransfer
+   */
+  select?: Prisma.EmployeeTransferSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeTransfer
+   */
+  omit?: Prisma.EmployeeTransferOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeTransferInclude<ExtArgs> | null
+  where?: Prisma.EmployeeTransferWhereInput
+  orderBy?: Prisma.EmployeeTransferOrderByWithRelationInput | Prisma.EmployeeTransferOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeTransferWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeTransferScalarFieldEnum | Prisma.EmployeeTransferScalarFieldEnum[]
 }
 
 /**

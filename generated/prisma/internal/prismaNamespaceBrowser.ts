@@ -98,6 +98,7 @@ export const ModelName = {
   Payslip: 'Payslip',
   PayslipLineItem: 'PayslipLineItem',
   EmployeeLoan: 'EmployeeLoan',
+  EmployeeTransfer: 'EmployeeTransfer',
   LeaveType: 'LeaveType',
   PolicyLeaveEntitlement: 'PolicyLeaveEntitlement',
   LeaveEntitlement: 'LeaveEntitlement',
@@ -1140,6 +1141,25 @@ export const EmployeeLoanScalarFieldEnum = {
 export type EmployeeLoanScalarFieldEnum = (typeof EmployeeLoanScalarFieldEnum)[keyof typeof EmployeeLoanScalarFieldEnum]
 
 
+export const EmployeeTransferScalarFieldEnum = {
+  id: 'id',
+  sourceEmployeeProfileId: 'sourceEmployeeProfileId',
+  sourceOrganizationId: 'sourceOrganizationId',
+  targetOrganizationId: 'targetOrganizationId',
+  targetPolicyId: 'targetPolicyId',
+  createdByUserId: 'createdByUserId',
+  effectiveDate: 'effectiveDate',
+  copyPayrollInfo: 'copyPayrollInfo',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  executedAt: 'executedAt',
+  errorMessage: 'errorMessage'
+} as const
+
+export type EmployeeTransferScalarFieldEnum = (typeof EmployeeTransferScalarFieldEnum)[keyof typeof EmployeeTransferScalarFieldEnum]
+
+
 export const LeaveTypeScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -1920,6 +1940,20 @@ export const EmployeeLoanOrderByRelevanceFieldEnum = {
 } as const
 
 export type EmployeeLoanOrderByRelevanceFieldEnum = (typeof EmployeeLoanOrderByRelevanceFieldEnum)[keyof typeof EmployeeLoanOrderByRelevanceFieldEnum]
+
+
+export const EmployeeTransferOrderByRelevanceFieldEnum = {
+  id: 'id',
+  sourceEmployeeProfileId: 'sourceEmployeeProfileId',
+  sourceOrganizationId: 'sourceOrganizationId',
+  targetOrganizationId: 'targetOrganizationId',
+  targetPolicyId: 'targetPolicyId',
+  createdByUserId: 'createdByUserId',
+  notes: 'notes',
+  errorMessage: 'errorMessage'
+} as const
+
+export type EmployeeTransferOrderByRelevanceFieldEnum = (typeof EmployeeTransferOrderByRelevanceFieldEnum)[keyof typeof EmployeeTransferOrderByRelevanceFieldEnum]
 
 
 export const LeaveTypeOrderByRelevanceFieldEnum = {

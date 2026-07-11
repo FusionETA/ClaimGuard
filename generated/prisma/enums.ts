@@ -106,6 +106,16 @@ export const XeroSyncStatus = {
 export type XeroSyncStatus = (typeof XeroSyncStatus)[keyof typeof XeroSyncStatus]
 
 
+export const EmployeeTransferStatus = {
+  PENDING: 'PENDING',
+  EXECUTED: 'EXECUTED',
+  CANCELLED: 'CANCELLED',
+  FAILED: 'FAILED'
+} as const
+
+export type EmployeeTransferStatus = (typeof EmployeeTransferStatus)[keyof typeof EmployeeTransferStatus]
+
+
 export const AttendanceStatus = {
   ON_TIME: 'ON_TIME',
   LATE: 'LATE',

@@ -56,6 +56,7 @@ model User {
   organization                    Organization?          @relation(fields: [organizationId], references: [id])
   xeroConnections                 XeroConnection[]       @relation("XeroConnectedBy")
   managedProjects                 XeroProject[]          @relation("ProjectManager")
+  employeeTransfersCreated        EmployeeTransfer[]     @relation("EmployeeTransferCreatedBy")
 
   @@index([organizationId])
   @@index([email])
@@ -130,6 +131,8 @@ model Organization {
   projects                  XeroProject[]
   shifts                    Shift[]
   orgHolidays               OrgHoliday[]
+  employeeTransfersOut      EmployeeTransfer[]        @relation("EmployeeTransferSourceOrg")
+  employeeTransfersIn       EmployeeTransfer[]        @relation("EmployeeTransferTargetOrg")
   /// Org-wide default working days as a CSV of weekday numbers 1–7
   /// (Mon = 1 … Sun = 7). Null means Mon–Fri (1,2,3,4,5). Projects can
   /// override via XeroProject.workingDays.
@@ -233,6 +236,7 @@ model EmployeePolicy {
   organization                Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employees                   EmployeeProfile[]
   leaveDefaults               PolicyLeaveEntitlement[]
+  targetOfTransfers           EmployeeTransfer[]       @relation("EmployeeTransferTargetPolicy")
 
   @@unique([organizationId, name])
   @@index([organizationId, isDefault])
@@ -495,6 +499,7 @@ model EmployeeProfile {
   payslips              Payslip[]
   salaryChanges         SalaryChange[]
   employeeOrganization  EmployeeOrganization?
+  transfersOut          EmployeeTransfer[]          @relation("EmployeeTransferSource")
 
   @@unique([userId, organizationId])
   @@index([policyId])
@@ -2027,6 +2032,66 @@ model EmployeeLoan {
   @@index([employeeProfileId])
 }
 
+/// Scheduled transfer of an employee from one company to another within
+/// the same Owner account. Rows are created via the "Transfer" wizard
+/// on the employee detail page (alongside "Archive") and executed by a
+/// daily cron on the effective date.
+///
+/// On execute, the source PayrollProfile is archived (leaveDate =
+/// effectiveDate − 1 day, isArchived = true), a new EmployeeProfile +
+/// PayrollProfile + EmployeeOrganization are created at the target org,
+/// and — when `copyPayrollInfo = true` — the source's YTD PCB/EPF/etc.
+/// is copied into the target's "Previous Employment" fields so LHDN
+/// MTD projections at the new employer stay accurate (this treats the
+/// same-Owner move as continuous employment for tax purposes).
+///
+/// Leave entitlements at the target start FRESH — the target company's
+/// policy accruals begin from `effectiveDate`. Company structure (teams,
+/// projects, hierarchy) is never copied.
+///
+/// At most one PENDING row per (sourceEmployeeProfileId) — the app
+/// refuses to create a second while one is queued. CANCELLED /
+/// EXECUTED / FAILED rows accumulate as history.
+model EmployeeTransfer {
+  id                       String                  @id @default(cuid())
+  sourceEmployeeProfileId  String
+  sourceOrganizationId     String
+  targetOrganizationId     String
+  targetPolicyId           String
+  /// Snapshot of which admin scheduled the transfer. Used by the audit
+  /// log + the "created by" line in the pending-transfers UI.
+  createdByUserId          String
+  /// When the transfer becomes active. Cron sweeps daily; any row with
+  /// status = PENDING and effectiveDate <= today gets executed.
+  effectiveDate            DateTime
+  /// When TRUE: salary, EPF/SOCSO/EIS numbers, bank, fixed allowances
+  /// are all cloned to the target profile AND the source's YTD gets
+  /// written to the target's prevEmployment fields for PCB continuity.
+  /// When FALSE: only identity / personal / next-of-kin fields carry
+  /// over — target admin fills in payroll fresh.
+  copyPayrollInfo          Boolean                 @default(false)
+  notes                    String?                 @db.Text
+  status                   EmployeeTransferStatus  @default(PENDING)
+  createdAt                DateTime                @default(now())
+  /// Set on successful execute — used for the audit trail and to
+  /// short-circuit re-execution.
+  executedAt               DateTime?
+  /// Populated when status = FAILED. Free text so the operator can
+  /// diagnose without hunting through logs. Cron will retry once per
+  /// day until the row moves to EXECUTED or is manually cancelled.
+  errorMessage             String?                 @db.Text
+  sourceEmployeeProfile    EmployeeProfile         @relation("EmployeeTransferSource", fields: [sourceEmployeeProfileId], references: [id], onDelete: Cascade)
+  sourceOrganization       Organization            @relation("EmployeeTransferSourceOrg", fields: [sourceOrganizationId], references: [id], onDelete: Cascade)
+  targetOrganization       Organization            @relation("EmployeeTransferTargetOrg", fields: [targetOrganizationId], references: [id], onDelete: Cascade)
+  targetPolicy             EmployeePolicy          @relation("EmployeeTransferTargetPolicy", fields: [targetPolicyId], references: [id])
+  createdByUser            User                    @relation("EmployeeTransferCreatedBy", fields: [createdByUserId], references: [id])
+
+  @@index([status, effectiveDate])
+  @@index([sourceEmployeeProfileId])
+  @@index([sourceOrganizationId])
+  @@index([targetOrganizationId])
+}
+
 /// Admin-configured leave type for an organization (e.g. ANNUAL, SICK,
 /// UNPAID, MATERNITY). `accrualMethod=PRO_RATED` is intended for the
 /// org's annual leave only — UI gates this. `carryForward` likewise
@@ -2301,6 +2366,14 @@ enum XeroSyncStatus {
   NOT_SYNCED
   SYNCED
   ERROR
+}
+
+/// Lifecycle of an EmployeeTransfer row (see model for full docs).
+enum EmployeeTransferStatus {
+  PENDING
+  EXECUTED
+  CANCELLED
+  FAILED
 }
 
 enum AttendanceStatus {

@@ -1095,6 +1095,23 @@ export type EnumLoanStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumLoanStatusFilter<$PrismaModel>
 }
 
+export type EnumEmployeeTransferStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.EmployeeTransferStatus | Prisma.EnumEmployeeTransferStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EmployeeTransferStatus[]
+  notIn?: $Enums.EmployeeTransferStatus[]
+  not?: Prisma.NestedEnumEmployeeTransferStatusFilter<$PrismaModel> | $Enums.EmployeeTransferStatus
+}
+
+export type EnumEmployeeTransferStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EmployeeTransferStatus | Prisma.EnumEmployeeTransferStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EmployeeTransferStatus[]
+  notIn?: $Enums.EmployeeTransferStatus[]
+  not?: Prisma.NestedEnumEmployeeTransferStatusWithAggregatesFilter<$PrismaModel> | $Enums.EmployeeTransferStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEmployeeTransferStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEmployeeTransferStatusFilter<$PrismaModel>
+}
+
 export type EnumLeaveAccrualMethodFilter<$PrismaModel = never> = {
   equals?: $Enums.LeaveAccrualMethod | Prisma.EnumLeaveAccrualMethodFieldRefInput<$PrismaModel>
   in?: $Enums.LeaveAccrualMethod[]
@@ -2221,6 +2238,23 @@ export type NestedEnumLoanStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumLoanStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumLoanStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumEmployeeTransferStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.EmployeeTransferStatus | Prisma.EnumEmployeeTransferStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EmployeeTransferStatus[]
+  notIn?: $Enums.EmployeeTransferStatus[]
+  not?: Prisma.NestedEnumEmployeeTransferStatusFilter<$PrismaModel> | $Enums.EmployeeTransferStatus
+}
+
+export type NestedEnumEmployeeTransferStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EmployeeTransferStatus | Prisma.EnumEmployeeTransferStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EmployeeTransferStatus[]
+  notIn?: $Enums.EmployeeTransferStatus[]
+  not?: Prisma.NestedEnumEmployeeTransferStatusWithAggregatesFilter<$PrismaModel> | $Enums.EmployeeTransferStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEmployeeTransferStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEmployeeTransferStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumLeaveAccrualMethodFilter<$PrismaModel = never> = {

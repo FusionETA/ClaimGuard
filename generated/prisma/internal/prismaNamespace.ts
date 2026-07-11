@@ -431,6 +431,7 @@ export const ModelName = {
   Payslip: 'Payslip',
   PayslipLineItem: 'PayslipLineItem',
   EmployeeLoan: 'EmployeeLoan',
+  EmployeeTransfer: 'EmployeeTransfer',
   LeaveType: 'LeaveType',
   PolicyLeaveEntitlement: 'PolicyLeaveEntitlement',
   LeaveEntitlement: 'LeaveEntitlement',
@@ -451,7 +452,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "otAttachment" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "otAttachment" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "employeeTransfer" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3557,6 +3558,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EmployeeTransfer: {
+      payload: Prisma.$EmployeeTransferPayload<ExtArgs>
+      fields: Prisma.EmployeeTransferFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeTransferFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTransferPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeTransferFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTransferPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeTransferFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTransferPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeTransferFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTransferPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeTransferFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTransferPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeTransferCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTransferPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeTransferCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeeTransferDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTransferPayload>
+        }
+        update: {
+          args: Prisma.EmployeeTransferUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTransferPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeTransferDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeTransferUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeeTransferUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTransferPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeTransferAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeTransfer>
+        }
+        groupBy: {
+          args: Prisma.EmployeeTransferGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeTransferGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeTransferCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeTransferCountAggregateOutputType> | number
+        }
+      }
+    }
     LeaveType: {
       payload: Prisma.$LeaveTypePayload<ExtArgs>
       fields: Prisma.LeaveTypeFieldRefs
@@ -4945,6 +5012,25 @@ export const EmployeeLoanScalarFieldEnum = {
 export type EmployeeLoanScalarFieldEnum = (typeof EmployeeLoanScalarFieldEnum)[keyof typeof EmployeeLoanScalarFieldEnum]
 
 
+export const EmployeeTransferScalarFieldEnum = {
+  id: 'id',
+  sourceEmployeeProfileId: 'sourceEmployeeProfileId',
+  sourceOrganizationId: 'sourceOrganizationId',
+  targetOrganizationId: 'targetOrganizationId',
+  targetPolicyId: 'targetPolicyId',
+  createdByUserId: 'createdByUserId',
+  effectiveDate: 'effectiveDate',
+  copyPayrollInfo: 'copyPayrollInfo',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  executedAt: 'executedAt',
+  errorMessage: 'errorMessage'
+} as const
+
+export type EmployeeTransferScalarFieldEnum = (typeof EmployeeTransferScalarFieldEnum)[keyof typeof EmployeeTransferScalarFieldEnum]
+
+
 export const LeaveTypeScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -5727,6 +5813,20 @@ export const EmployeeLoanOrderByRelevanceFieldEnum = {
 export type EmployeeLoanOrderByRelevanceFieldEnum = (typeof EmployeeLoanOrderByRelevanceFieldEnum)[keyof typeof EmployeeLoanOrderByRelevanceFieldEnum]
 
 
+export const EmployeeTransferOrderByRelevanceFieldEnum = {
+  id: 'id',
+  sourceEmployeeProfileId: 'sourceEmployeeProfileId',
+  sourceOrganizationId: 'sourceOrganizationId',
+  targetOrganizationId: 'targetOrganizationId',
+  targetPolicyId: 'targetPolicyId',
+  createdByUserId: 'createdByUserId',
+  notes: 'notes',
+  errorMessage: 'errorMessage'
+} as const
+
+export type EmployeeTransferOrderByRelevanceFieldEnum = (typeof EmployeeTransferOrderByRelevanceFieldEnum)[keyof typeof EmployeeTransferOrderByRelevanceFieldEnum]
+
+
 export const LeaveTypeOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -6118,6 +6218,13 @@ export type EnumLoanStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
 
 
 /**
+ * Reference to a field of type 'EmployeeTransferStatus'
+ */
+export type EnumEmployeeTransferStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EmployeeTransferStatus'>
+    
+
+
+/**
  * Reference to a field of type 'LeaveAccrualMethod'
  */
 export type EnumLeaveAccrualMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeaveAccrualMethod'>
@@ -6279,6 +6386,7 @@ export type GlobalOmitConfig = {
   payslip?: Prisma.PayslipOmit
   payslipLineItem?: Prisma.PayslipLineItemOmit
   employeeLoan?: Prisma.EmployeeLoanOmit
+  employeeTransfer?: Prisma.EmployeeTransferOmit
   leaveType?: Prisma.LeaveTypeOmit
   policyLeaveEntitlement?: Prisma.PolicyLeaveEntitlementOmit
   leaveEntitlement?: Prisma.LeaveEntitlementOmit
