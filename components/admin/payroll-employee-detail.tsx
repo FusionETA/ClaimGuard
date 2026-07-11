@@ -3223,9 +3223,34 @@ function ArchiveCard(props: {
           {props.profile.isArchived ? "Restore to payroll" : "Archive"}
         </CardTitle>
         <CardDescription>
-          {props.profile.isArchived
-            ? "This employee is currently excluded from payroll runs. Historical payslips are retained."
-            : "Archiving removes this employee from future payroll runs. Their historical payslips stay accessible."}
+          {props.profile.isArchived ? (
+            <>
+              This employee is currently excluded from payroll runs.
+              Historical payslips are retained.
+              {(props.profile.archiveReason || props.profile.leaveDate) && (
+                <span className="mt-2 block rounded-md border border-border/60 bg-muted/40 px-3 py-2 text-xs">
+                  {props.profile.archiveReason ? (
+                    <span className="block">
+                      <span className="font-medium text-foreground">
+                        Reason:
+                      </span>{" "}
+                      {props.profile.archiveReason}
+                    </span>
+                  ) : null}
+                  {props.profile.leaveDate ? (
+                    <span className="block">
+                      <span className="font-medium text-foreground">
+                        Last working day:
+                      </span>{" "}
+                      {props.profile.leaveDate}
+                    </span>
+                  ) : null}
+                </span>
+              )}
+            </>
+          ) : (
+            "Archiving removes this employee from future payroll runs. Their historical payslips stay accessible."
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>

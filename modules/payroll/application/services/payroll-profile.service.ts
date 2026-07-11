@@ -196,21 +196,24 @@ export async function getPayrollEmployeeDetailPageData(input: {
 
   // Scope to this admin's active org — prevents cross-org access via
   // an arbitrary userId in the URL.
-  const user = await prisma.user.findFirst({
-    where: { id: input.userId, organizationId: orgId },
+  //
+  // Gate on EmployeeProfile.organizationId, NOT User.organizationId.
+  // The latter is the employee's ORIGINAL "home" org and never
+  // changes on employee transfer, so scoping by it would 404 the
+  // detail page in the target company right after a transfer
+  // completes. EmployeeProfile.organizationId is the multi-org row
+  // that IS created at the target during the transfer transaction.
+  const detailProfile = await prisma.employeeProfile.findFirst({
+    where: { userId: input.userId, organizationId: orgId },
     select: {
       id: true,
-      email: true,
-      name: true,
-      employeeProfiles: {
-        where: { organizationId: orgId },
-        select: { id: true, employeeId: true, jobTitle: true },
-        take: 1,
-      },
+      employeeId: true,
+      jobTitle: true,
+      user: { select: { id: true, email: true, name: true } },
     },
   })
-  const detailProfile = user?.employeeProfiles[0] ?? null
-  if (!user || !detailProfile) return null
+  if (!detailProfile) return null
+  const user = detailProfile.user
 
   const [profile, settings, salaryHistory] = await Promise.all([
     payrollProfileRepository.getByEmployeeProfileId(detailProfile.id),
