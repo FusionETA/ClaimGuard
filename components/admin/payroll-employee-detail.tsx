@@ -3073,7 +3073,7 @@ function TransferWizard(props: {
               date.
             </DialogDescription>
           </DialogHeader>
-          <form action={action} className="space-y-4 py-2 pl-1 pr-2">
+          <form action={action} className="space-y-4">
             <input
               type="hidden"
               name="userId"
@@ -3086,6 +3086,7 @@ function TransferWizard(props: {
               value={props.sourceEmployeeProfileId}
               hidden
             />
+            <div className="nice-scrollbar -mr-2 max-h-[60vh] space-y-4 overflow-y-auto py-2 pl-1 pr-2">
             <div className="space-y-1.5">
               <Label htmlFor="targetOrganizationId">Target company</Label>
               <NativeSelect
@@ -3177,6 +3178,7 @@ function TransferWizard(props: {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Why the transfer — internal audit trail"
               />
+            </div>
             </div>
             <DialogFooter className="pt-2">
               <Button
