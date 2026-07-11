@@ -1474,6 +1474,15 @@ export async function generatePayrollPayslips(input: {
         const rounded = Math.round(h * 100) / 100
         return Number.isInteger(rounded) ? `${rounded}h` : `${rounded}h`
       }
+      // Snapshot the hourly rate on the label so admins can see the
+      // formula the calc engine used (hours × RM/hour × multiplier).
+      // Without this the payslip just shows the total, forcing the
+      // admin to guess where a bumped OT figure came from.
+      const fmtRate = (r: number) =>
+        `RM ${r.toLocaleString("en-MY", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}/h`
       if (ot.normalHours > 0) {
         const amount =
           Math.round(
@@ -1482,7 +1491,7 @@ export async function generatePayrollPayslips(input: {
         if (amount > 0) {
           oneOffLines.push({
             category: wagesOtCategory,
-            name: `Overtime — ${fmtHours(ot.normalHours)} @ ${policyForOt.otRateNormalDay}×`,
+            name: `Overtime — ${fmtHours(ot.normalHours)} × ${fmtRate(otHourlyRate)} × ${policyForOt.otRateNormalDay}×`,
             amount,
           })
         }
@@ -1495,7 +1504,7 @@ export async function generatePayrollPayslips(input: {
         if (amount > 0) {
           oneOffLines.push({
             category: wagesOtCategory,
-            name: `Overtime (Rest day) — ${fmtHours(ot.restHours)} @ ${policyForOt.otRateRestDay}×`,
+            name: `Overtime (Rest day) — ${fmtHours(ot.restHours)} × ${fmtRate(otHourlyRate)} × ${policyForOt.otRateRestDay}×`,
             amount,
           })
         }
@@ -1511,7 +1520,7 @@ export async function generatePayrollPayslips(input: {
         if (amount > 0) {
           oneOffLines.push({
             category: wagesOtCategory,
-            name: `Overtime (Public holiday) — ${fmtHours(ot.publicHours)} @ ${policyForOt.otRatePublicHoliday}×`,
+            name: `Overtime (Public holiday) — ${fmtHours(ot.publicHours)} × ${fmtRate(otHourlyRate)} × ${policyForOt.otRatePublicHoliday}×`,
             amount,
           })
         }
