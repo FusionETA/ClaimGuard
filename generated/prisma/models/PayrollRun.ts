@@ -177,6 +177,7 @@ export type PayrollRunCountAggregateOutputType = {
   xeroSyncStatus: number
   xeroSyncedAt: number
   policyIds: number
+  excludedEmployeeProfileIds: number
   source: number
   _all: number
 }
@@ -331,6 +332,7 @@ export type PayrollRunCountAggregateInputType = {
   xeroSyncStatus?: true
   xeroSyncedAt?: true
   policyIds?: true
+  excludedEmployeeProfileIds?: true
   source?: true
   _all?: true
 }
@@ -456,6 +458,7 @@ export type PayrollRunGroupByOutputType = {
   xeroSyncStatus: $Enums.XeroSyncStatus
   xeroSyncedAt: Date | null
   policyIds: runtime.JsonValue | null
+  excludedEmployeeProfileIds: runtime.JsonValue | null
   source: $Enums.PayrollRunSource
   _count: PayrollRunCountAggregateOutputType | null
   _avg: PayrollRunAvgAggregateOutputType | null
@@ -517,6 +520,7 @@ export type PayrollRunWhereInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"PayrollRun"> | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
   policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
+  excludedEmployeeProfileIds?: Prisma.JsonNullableFilter<"PayrollRun">
   source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   submittedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -562,6 +566,7 @@ export type PayrollRunOrderByWithRelationInput = {
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   policyIds?: Prisma.SortOrderInput | Prisma.SortOrder
+  excludedEmployeeProfileIds?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   submittedBy?: Prisma.UserOrderByWithRelationInput
@@ -612,6 +617,7 @@ export type PayrollRunWhereUniqueInput = Prisma.AtLeast<{
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"PayrollRun"> | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
   policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
+  excludedEmployeeProfileIds?: Prisma.JsonNullableFilter<"PayrollRun">
   source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   submittedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -657,6 +663,7 @@ export type PayrollRunOrderByWithAggregationInput = {
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   policyIds?: Prisma.SortOrderInput | Prisma.SortOrder
+  excludedEmployeeProfileIds?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrder
   _count?: Prisma.PayrollRunCountOrderByAggregateInput
   _avg?: Prisma.PayrollRunAvgOrderByAggregateInput
@@ -703,6 +710,7 @@ export type PayrollRunScalarWhereWithAggregatesInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusWithAggregatesFilter<"PayrollRun"> | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PayrollRun"> | Date | string | null
   policyIds?: Prisma.JsonNullableWithAggregatesFilter<"PayrollRun">
+  excludedEmployeeProfileIds?: Prisma.JsonNullableWithAggregatesFilter<"PayrollRun">
   source?: Prisma.EnumPayrollRunSourceWithAggregatesFilter<"PayrollRun"> | $Enums.PayrollRunSource
 }
 
@@ -738,6 +746,7 @@ export type PayrollRunCreateInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
@@ -783,6 +792,7 @@ export type PayrollRunUncheckedCreateInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -822,6 +832,7 @@ export type PayrollRunUpdateInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
@@ -867,6 +878,7 @@ export type PayrollRunUncheckedUpdateInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -909,6 +921,7 @@ export type PayrollRunCreateManyInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
 }
 
@@ -944,6 +957,7 @@ export type PayrollRunUpdateManyMutationInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
 }
 
@@ -982,6 +996,7 @@ export type PayrollRunUncheckedUpdateManyInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
 }
 
@@ -1042,6 +1057,7 @@ export type PayrollRunCountOrderByAggregateInput = {
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrder
   policyIds?: Prisma.SortOrder
+  excludedEmployeeProfileIds?: Prisma.SortOrder
   source?: Prisma.SortOrder
 }
 
@@ -1386,6 +1402,7 @@ export type PayrollRunCreateWithoutSubmittedByInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedForApprovalBy?: Prisma.UserCreateNestedOneWithoutSubmittedForApprovalPayrollRunsInput
@@ -1429,6 +1446,7 @@ export type PayrollRunUncheckedCreateWithoutSubmittedByInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -1478,6 +1496,7 @@ export type PayrollRunCreateWithoutSubmittedForApprovalByInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
@@ -1521,6 +1540,7 @@ export type PayrollRunUncheckedCreateWithoutSubmittedForApprovalByInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -1592,6 +1612,7 @@ export type PayrollRunScalarWhereInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"PayrollRun"> | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
   policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
+  excludedEmployeeProfileIds?: Prisma.JsonNullableFilter<"PayrollRun">
   source?: Prisma.EnumPayrollRunSourceFilter<"PayrollRun"> | $Enums.PayrollRunSource
 }
 
@@ -1643,6 +1664,7 @@ export type PayrollRunCreateWithoutOrganizationInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
   submittedForApprovalBy?: Prisma.UserCreateNestedOneWithoutSubmittedForApprovalPayrollRunsInput
@@ -1686,6 +1708,7 @@ export type PayrollRunUncheckedCreateWithoutOrganizationInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -1751,6 +1774,7 @@ export type PayrollRunCreateWithoutReportsInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
@@ -1795,6 +1819,7 @@ export type PayrollRunUncheckedCreateWithoutReportsInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -1849,6 +1874,7 @@ export type PayrollRunUpdateWithoutReportsInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
@@ -1893,6 +1919,7 @@ export type PayrollRunUncheckedUpdateWithoutReportsInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -1931,6 +1958,7 @@ export type PayrollRunCreateWithoutClaimAttachmentsInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
@@ -1975,6 +2003,7 @@ export type PayrollRunUncheckedCreateWithoutClaimAttachmentsInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   reports?: Prisma.PayrollRunReportUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -2029,6 +2058,7 @@ export type PayrollRunUpdateWithoutClaimAttachmentsInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
@@ -2073,6 +2103,7 @@ export type PayrollRunUncheckedUpdateWithoutClaimAttachmentsInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   reports?: Prisma.PayrollRunReportUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2111,6 +2142,7 @@ export type PayrollRunCreateWithoutAdjustmentsInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
@@ -2155,6 +2187,7 @@ export type PayrollRunUncheckedCreateWithoutAdjustmentsInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
   reports?: Prisma.PayrollRunReportUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -2209,6 +2242,7 @@ export type PayrollRunUpdateWithoutAdjustmentsInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
@@ -2253,6 +2287,7 @@ export type PayrollRunUncheckedUpdateWithoutAdjustmentsInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
   reports?: Prisma.PayrollRunReportUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2291,6 +2326,7 @@ export type PayrollRunCreateWithoutPayslipsInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollRunsInput
   submittedBy?: Prisma.UserCreateNestedOneWithoutSubmittedPayrollRunsInput
@@ -2335,6 +2371,7 @@ export type PayrollRunUncheckedCreateWithoutPayslipsInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutPayrollRunInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutPayrollRunInput
@@ -2389,6 +2426,7 @@ export type PayrollRunUpdateWithoutPayslipsInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
@@ -2433,6 +2471,7 @@ export type PayrollRunUncheckedUpdateWithoutPayslipsInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2473,6 +2512,7 @@ export type PayrollRunCreateManySubmittedByInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
 }
 
@@ -2510,6 +2550,7 @@ export type PayrollRunCreateManySubmittedForApprovalByInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
 }
 
@@ -2545,6 +2586,7 @@ export type PayrollRunUpdateWithoutSubmittedByInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedForApprovalBy?: Prisma.UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput
@@ -2588,6 +2630,7 @@ export type PayrollRunUncheckedUpdateWithoutSubmittedByInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2629,6 +2672,7 @@ export type PayrollRunUncheckedUpdateManyWithoutSubmittedByInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
 }
 
@@ -2664,6 +2708,7 @@ export type PayrollRunUpdateWithoutSubmittedForApprovalByInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollRunsNestedInput
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
@@ -2707,6 +2752,7 @@ export type PayrollRunUncheckedUpdateWithoutSubmittedForApprovalByInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2748,6 +2794,7 @@ export type PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
 }
 
@@ -2785,6 +2832,7 @@ export type PayrollRunCreateManyOrganizationInput = {
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncedAt?: Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: $Enums.PayrollRunSource
 }
 
@@ -2820,6 +2868,7 @@ export type PayrollRunUpdateWithoutOrganizationInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   submittedBy?: Prisma.UserUpdateOneWithoutSubmittedPayrollRunsNestedInput
   submittedForApprovalBy?: Prisma.UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput
@@ -2863,6 +2912,7 @@ export type PayrollRunUncheckedUpdateWithoutOrganizationInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
   adjustments?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunNestedInput
   claimAttachments?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput
@@ -2904,6 +2954,7 @@ export type PayrollRunUncheckedUpdateManyWithoutOrganizationInput = {
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  excludedEmployeeProfileIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.EnumPayrollRunSourceFieldUpdateOperationsInput | $Enums.PayrollRunSource
 }
 
@@ -3000,6 +3051,7 @@ export type PayrollRunSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   xeroSyncStatus?: boolean
   xeroSyncedAt?: boolean
   policyIds?: boolean
+  excludedEmployeeProfileIds?: boolean
   source?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   submittedBy?: boolean | Prisma.PayrollRun$submittedByArgs<ExtArgs>
@@ -3048,10 +3100,11 @@ export type PayrollRunSelectScalar = {
   xeroSyncStatus?: boolean
   xeroSyncedAt?: boolean
   policyIds?: boolean
+  excludedEmployeeProfileIds?: boolean
   source?: boolean
 }
 
-export type PayrollRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "periodYear" | "periodMonth" | "status" | "totalGross" | "totalNet" | "totalEmployeeEpf" | "totalEmployerEpf" | "totalEmployeeSocso" | "totalEmployerSocso" | "totalEmployeeEis" | "totalEmployerEis" | "totalPcb" | "totalHrdf" | "totalZakat" | "employeeCount" | "employeesSubjectToHrdf" | "totalWagesSubjectToHrdf" | "totalCostToEmployer" | "submittedAt" | "submittedById" | "createdAt" | "updatedAt" | "lastMutatedAt" | "approvalRejectionReason" | "submittedForApprovalAt" | "submittedForApprovalById" | "xeroJournalNumber" | "xeroManualJournalId" | "xeroSyncError" | "xeroSyncStatus" | "xeroSyncedAt" | "policyIds" | "source", ExtArgs["result"]["payrollRun"]>
+export type PayrollRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "periodYear" | "periodMonth" | "status" | "totalGross" | "totalNet" | "totalEmployeeEpf" | "totalEmployerEpf" | "totalEmployeeSocso" | "totalEmployerSocso" | "totalEmployeeEis" | "totalEmployerEis" | "totalPcb" | "totalHrdf" | "totalZakat" | "employeeCount" | "employeesSubjectToHrdf" | "totalWagesSubjectToHrdf" | "totalCostToEmployer" | "submittedAt" | "submittedById" | "createdAt" | "updatedAt" | "lastMutatedAt" | "approvalRejectionReason" | "submittedForApprovalAt" | "submittedForApprovalById" | "xeroJournalNumber" | "xeroManualJournalId" | "xeroSyncError" | "xeroSyncStatus" | "xeroSyncedAt" | "policyIds" | "excludedEmployeeProfileIds" | "source", ExtArgs["result"]["payrollRun"]>
 export type PayrollRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   submittedBy?: boolean | Prisma.PayrollRun$submittedByArgs<ExtArgs>
@@ -3179,6 +3232,17 @@ export type $PayrollRunPayload<ExtArgs extends runtime.Types.Extensions.Internal
      * useless (no employees), so the picker enforces ≥ 1 entry.
      */
     policyIds: runtime.JsonValue | null
+    /**
+     * JSON array of EmployeeProfile ids to EXCLUDE from this run — a
+     * finer-grained scope layered on top of `policyIds`. Set at draft
+     * creation (the New Run picker lets the admin uncheck individual
+     * members inside each ticked policy). `null` or empty = no
+     * per-employee exclusions = every member of the ticked policies is
+     * included. Once the draft exists this list is frozen; editing
+     * membership after create requires deleting the draft and starting
+     * over, same as `policyIds`.
+     */
+    excludedEmployeeProfileIds: runtime.JsonValue | null
     /**
      * COMPUTED = produced by calc engine (the normal path). IMPORTED =
      * seeded from a YTD migration upload — the payslip numbers are
@@ -3597,6 +3661,7 @@ export interface PayrollRunFieldRefs {
   readonly xeroSyncStatus: Prisma.FieldRef<"PayrollRun", 'XeroSyncStatus'>
   readonly xeroSyncedAt: Prisma.FieldRef<"PayrollRun", 'DateTime'>
   readonly policyIds: Prisma.FieldRef<"PayrollRun", 'Json'>
+  readonly excludedEmployeeProfileIds: Prisma.FieldRef<"PayrollRun", 'Json'>
   readonly source: Prisma.FieldRef<"PayrollRun", 'PayrollRunSource'>
 }
     

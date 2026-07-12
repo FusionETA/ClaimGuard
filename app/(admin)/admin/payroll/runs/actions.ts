@@ -67,6 +67,20 @@ const createSchema = z.object({
         .map((s) => s.trim())
         .filter(Boolean),
     ),
+  /// Comma-separated EmployeeProfile ids to EXCLUDE from the run.
+  /// The picker builds this by starting with every member of the
+  /// ticked policies pre-checked, then adding to the exclude list
+  /// when the admin unticks a specific row. Empty / missing = no
+  /// per-employee exclusions (include everyone in the ticked policies).
+  excludedEmployeeProfileIds: z
+    .string()
+    .optional()
+    .transform((v) =>
+      (v ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
 })
 
 export async function createPayrollRunDraftAction(
@@ -77,6 +91,7 @@ export async function createPayrollRunDraftAction(
     periodYear: formData.get("periodYear"),
     periodMonth: formData.get("periodMonth"),
     policyIds: formData.get("policyIds"),
+    excludedEmployeeProfileIds: formData.get("excludedEmployeeProfileIds"),
   })
 
   if (!parsed.success) {
@@ -94,6 +109,7 @@ export async function createPayrollRunDraftAction(
       periodYear: parsed.data.periodYear,
       periodMonth: parsed.data.periodMonth,
       policyIds: parsed.data.policyIds,
+      excludedEmployeeProfileIds: parsed.data.excludedEmployeeProfileIds,
     })
     runId = run.id
   } catch (err) {
@@ -105,6 +121,7 @@ export async function createPayrollRunDraftAction(
       periodYear: parsed.data.periodYear,
       periodMonth: parsed.data.periodMonth,
       policyIds: parsed.data.policyIds,
+      excludedCount: parsed.data.excludedEmployeeProfileIds.length,
       err,
     })
     return {

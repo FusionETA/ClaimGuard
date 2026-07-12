@@ -30,6 +30,15 @@ function jsonToPolicyIds(value: unknown): string[] | null {
   return value.filter((v): v is string => typeof v === "string")
 }
 
+/// Same coercion for the `excludedEmployeeProfileIds` column. Kept
+/// separate so a future divergence (e.g. object entries with a note
+/// field) doesn't force one helper to grow two shapes.
+function jsonToStringIds(value: unknown): string[] | null {
+  if (value === null || value === undefined) return null
+  if (!Array.isArray(value)) return null
+  return value.filter((v): v is string => typeof v === "string")
+}
+
 /**
  * Module-scoped Prisma accessor for the payroll module. Services call
  * this instead of `getPrismaClient()` from `@/lib/prisma` so all
@@ -76,11 +85,16 @@ export const payrollRunRepository = {
     /// (legacy default). The service is responsible for validating
     /// that every id is one the creating admin has access to.
     policyIds?: string[] | null
+    /// EmployeeProfile ids to EXCLUDE from the run — layered on top
+    /// of `policyIds`. Service validates each id belongs to a member
+    /// of one of the ticked policies. `null` or empty = no exclusions.
+    excludedEmployeeProfileIds?: string[] | null
   }): Promise<PayrollRunData> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
     const policyIds = input.policyIds ?? null
+    const excluded = input.excludedEmployeeProfileIds ?? null
     const row = await prisma.payrollRun.create({
       data: {
         organizationId: input.organizationId,
@@ -88,6 +102,10 @@ export const payrollRunRepository = {
         periodMonth: input.periodMonth,
         status: "DRAFT",
         policyIds: policyIds === null ? Prisma.JsonNull : policyIds,
+        excludedEmployeeProfileIds:
+          excluded === null || excluded.length === 0
+            ? Prisma.JsonNull
+            : excluded,
       },
     })
     return mapPayrollRun(row)
@@ -813,5 +831,6 @@ function mapPayrollRun(row: any): PayrollRunData {
       ? row.xeroSyncedAt.toISOString()
       : null,
     policyIds: jsonToPolicyIds(row.policyIds),
+    excludedEmployeeProfileIds: jsonToStringIds(row.excludedEmployeeProfileIds),
   }
 }

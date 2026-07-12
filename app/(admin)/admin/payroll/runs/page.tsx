@@ -14,7 +14,10 @@ import {
 import { NewPayrollRunForm } from "@/components/admin/new-payroll-run-form"
 import { PayrollYtdImportDialog } from "@/components/admin/payroll-ytd-import-dialog"
 import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
-import { getPayrollRunsPageData } from "@/modules/payroll/application/services/payroll-run.service"
+import {
+  getPayrollRunsPageData,
+  listMembersForPolicies,
+} from "@/modules/payroll/application/services/payroll-run.service"
 import {
   PAYROLL_RUN_STATUS_LABELS,
   currentPeriod,
@@ -48,6 +51,15 @@ export default async function AdminPayrollRunsPage() {
   )
   const defaultPeriod = currentPeriod()
 
+  // Preload the picker's per-policy member lists — the New Draft
+  // dialog expands them inline so the admin can uncheck individuals
+  // without opening a per-policy fetch on click. Empty when the admin
+  // has no accessible policies (the picker button is already disabled
+  // in that case).
+  const membersByPolicy = await listMembersForPolicies({
+    policyIds: data.availablePolicies.map((p) => p.id),
+  })
+
   return (
     <div className="space-y-6">
       <header className="space-y-1">
@@ -75,6 +87,7 @@ export default async function AdminPayrollRunsPage() {
             defaultYear={defaultPeriod.year}
             defaultMonth={defaultPeriod.month}
             availablePolicies={data.availablePolicies}
+            membersByPolicy={membersByPolicy}
           />
           <PayrollYtdImportDialog defaultYear={defaultPeriod.year} />
         </CardContent>

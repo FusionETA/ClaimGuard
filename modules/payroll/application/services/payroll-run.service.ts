@@ -311,6 +311,13 @@ export async function createPayrollRunDraft(input: {
   /// org-wide (kept for backwards-compat with anything still calling
   /// the service without a picker).
   policyIds?: string[]
+  /// EmployeeProfile ids to exclude from this run — layered on top
+  /// of `policyIds`. Empty / omitted = include every member of the
+  /// ticked policies. Only meaningful when `policyIds` is non-empty
+  /// (an org-wide run has no picker to exclude from). Ids that don't
+  /// belong to a member of one of the ticked policies are dropped
+  /// with a validation error — no silent drops.
+  excludedEmployeeProfileIds?: string[]
 }): Promise<PayrollRunData> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
@@ -372,14 +379,126 @@ export async function createPayrollRunDraft(input: {
     policyIds = [...new Set(input.policyIds)].sort()
   }
 
+  // Validate per-employee exclusions AFTER policy validation — the
+  // list of "allowed to exclude" employees is precisely the members
+  // of the ticked policies. Ids outside that set (typo, stale UI
+  // state, or an admin tampering) are rejected loudly rather than
+  // silently dropped, so a would-be paid employee never disappears
+  // from the run without the admin noticing.
+  let excludedEmployeeProfileIds: string[] | null = null
+  if (
+    input.excludedEmployeeProfileIds &&
+    input.excludedEmployeeProfileIds.length > 0
+  ) {
+    if (policyIds === null) {
+      // Excluding from an "org-wide" run has no picker to anchor on —
+      // reject rather than guess which employees the ids belong to.
+      throw new Error(
+        "Per-employee exclusions require at least one policy to be selected.",
+      )
+    }
+    const members = await payrollProfileRepository.listForOrganization(orgId, {
+      policyIdScope: policyIds,
+    })
+    const memberIds = new Set(members.map((m) => m.employeeProfileId))
+    const unknownExclude = input.excludedEmployeeProfileIds.filter(
+      (id) => !memberIds.has(id),
+    )
+    if (unknownExclude.length > 0) {
+      throw new Error(
+        "Some excluded employees aren't members of the selected policies.",
+      )
+    }
+    excludedEmployeeProfileIds = [
+      ...new Set(input.excludedEmployeeProfileIds),
+    ].sort()
+  }
+
   const draft = await payrollRunRepository.createDraft({
     organizationId: orgId,
     periodYear: input.periodYear,
     periodMonth: input.periodMonth,
     policyIds,
+    excludedEmployeeProfileIds,
   })
   await bustPayrollCaches({ organizationId: orgId })
   return draft
+}
+
+/**
+ * Return the members of the given policies (for the current org),
+ * shaped for the "New Draft" picker's per-policy expand list. Wraps
+ * the profile repo so the picker doesn't need to know how to filter
+ * by policy id — same auth + org-scope path the caller already goes
+ * through for the picker's policy list itself.
+ *
+ * Returns `[]` when the admin's session can't be resolved, no active
+ * org, or no policies passed. Restricted admins get their granted
+ * subset only (the repo already scopes by `policyIdScope`, and this
+ * caller pre-filters `policyIds` against the granted policies).
+ */
+export type PayrollRunPickerMember = {
+  employeeProfileId: string
+  userId: string
+  name: string
+  employeeId: string
+  jobTitle: string
+  isArchived: boolean
+  /// True when the employee's salary is set to 0 — surfaced in the
+  /// picker so the admin can see why unticking is a no-op (the run
+  /// engine skips zero-salary profiles at compute anyway).
+  isExcluded: boolean
+}
+
+/**
+ * Return members grouped by policy id, so the "New Draft" picker can
+ * render one expandable list per ticked policy without a second
+ * round trip. Returns an empty map when the admin's session can't be
+ * resolved, no active org, or no policies passed.
+ *
+ * Uses the profile repo's existing `policyIdScope` filter — no new
+ * Prisma query needed here.
+ */
+export async function listMembersForPolicies(input: {
+  policyIds: string[]
+}): Promise<Record<string, PayrollRunPickerMember[]>> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) return {}
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return {}
+  if (input.policyIds.length === 0) return {}
+
+  // Only accept ids the admin can see. Loud rejection lives in
+  // `createPayrollRunDraft`; the picker read shouldn't fail the whole
+  // page if a policy id was renamed mid-session.
+  const adminScope = await getActiveAdminPolicyScope()
+  const allowed =
+    adminScope === null
+      ? input.policyIds
+      : input.policyIds.filter((id) => adminScope.includes(id))
+  if (allowed.length === 0) return {}
+
+  // Fetch one policy at a time so we can bucket members by policyId
+  // in the return shape. Cheap — each policy is a single indexed
+  // Prisma query, and the picker only expands a handful at once.
+  const buckets: Record<string, PayrollRunPickerMember[]> = {}
+  await Promise.all(
+    allowed.map(async (policyId) => {
+      const members = await payrollProfileRepository.listForOrganization(orgId, {
+        policyIdScope: [policyId],
+      })
+      buckets[policyId] = members.map((m) => ({
+        employeeProfileId: m.employeeProfileId,
+        userId: m.userId,
+        name: m.name,
+        employeeId: m.employeeId,
+        jobTitle: m.jobTitle,
+        isArchived: m.isArchived,
+        isExcluded: m.isExcluded,
+      }))
+    }),
+  )
+  return buckets
 }
 
 /**
@@ -1140,6 +1259,18 @@ export async function generatePayrollPayslips(input: {
     adminHrdfEnabled: settings?.hrdfEnabled ?? false,
     adminHrdfRate: settings?.hrdfRate ?? null,
   })
+
+  // Per-employee exclusions picked at draft creation. Layered on top
+  // of `policyIdScope` (which the profile repo already applied). No-op
+  // when the run has no exclusion list.
+  const excludedSet = new Set(run.excludedEmployeeProfileIds ?? [])
+  if (excludedSet.size > 0) {
+    for (let i = employees.length - 1; i >= 0; i--) {
+      if (excludedSet.has(employees[i].employeeProfileId)) {
+        employees.splice(i, 1)
+      }
+    }
+  }
 
   // Active loans grouped by employee — each contributes a
   // `deduct_advance` (Advance Deduction) installment for this run's

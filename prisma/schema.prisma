@@ -1672,6 +1672,15 @@ model PayrollRun {
   /// WHO gets paid in that run. Empty array would be valid but
   /// useless (no employees), so the picker enforces ≥ 1 entry.
   policyIds                Json?
+  /// JSON array of EmployeeProfile ids to EXCLUDE from this run — a
+  /// finer-grained scope layered on top of `policyIds`. Set at draft
+  /// creation (the New Run picker lets the admin uncheck individual
+  /// members inside each ticked policy). `null` or empty = no
+  /// per-employee exclusions = every member of the ticked policies is
+  /// included. Once the draft exists this list is frozen; editing
+  /// membership after create requires deleting the draft and starting
+  /// over, same as `policyIds`.
+  excludedEmployeeProfileIds Json?
   /// COMPUTED = produced by calc engine (the normal path). IMPORTED =
   /// seeded from a YTD migration upload — the payslip numbers are
   /// taken as-typed by the admin, not recomputed. Imported runs are

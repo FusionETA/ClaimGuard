@@ -978,6 +978,7 @@ export const PayrollRunScalarFieldEnum = {
   xeroSyncStatus: 'xeroSyncStatus',
   xeroSyncedAt: 'xeroSyncedAt',
   policyIds: 'policyIds',
+  excludedEmployeeProfileIds: 'excludedEmployeeProfileIds',
   source: 'source'
 } as const
 

@@ -108,6 +108,11 @@ export type PayrollRunData = {
   /// is in this list. Picked from the "Create draft" dialog (a
   /// restricted admin sees only their granted policies).
   policyIds: string[] | null
+  /// EmployeeProfile ids to EXCLUDE from this run — layered on top of
+  /// `policyIds`. `null` or empty = no per-employee exclusions.
+  /// Frozen at create time; changing membership after create requires
+  /// deleting the draft and starting over.
+  excludedEmployeeProfileIds: string[] | null
 }
 
 /**
