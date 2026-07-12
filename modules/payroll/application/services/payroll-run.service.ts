@@ -443,7 +443,6 @@ export type PayrollRunPickerMember = {
   name: string
   employeeId: string
   jobTitle: string
-  isArchived: boolean
   /// True when the employee's salary is set to 0 — surfaced in the
   /// picker so the admin can see why unticking is a no-op (the run
   /// engine skips zero-salary profiles at compute anyway).
@@ -481,21 +480,27 @@ export async function listMembersForPolicies(input: {
   // Fetch one policy at a time so we can bucket members by policyId
   // in the return shape. Cheap — each policy is a single indexed
   // Prisma query, and the picker only expands a handful at once.
+  //
+  // Archived profiles are filtered out here (not just hidden in the
+  // UI): they never get a payslip anyway (run engine skips them),
+  // and surfacing them in the picker just clutters the list with
+  // rows the admin can't meaningfully act on.
   const buckets: Record<string, PayrollRunPickerMember[]> = {}
   await Promise.all(
     allowed.map(async (policyId) => {
       const members = await payrollProfileRepository.listForOrganization(orgId, {
         policyIdScope: [policyId],
       })
-      buckets[policyId] = members.map((m) => ({
-        employeeProfileId: m.employeeProfileId,
-        userId: m.userId,
-        name: m.name,
-        employeeId: m.employeeId,
-        jobTitle: m.jobTitle,
-        isArchived: m.isArchived,
-        isExcluded: m.isExcluded,
-      }))
+      buckets[policyId] = members
+        .filter((m) => !m.isArchived)
+        .map((m) => ({
+          employeeProfileId: m.employeeProfileId,
+          userId: m.userId,
+          name: m.name,
+          employeeId: m.employeeId,
+          jobTitle: m.jobTitle,
+          isExcluded: m.isExcluded,
+        }))
     }),
   )
   return buckets
