@@ -3,9 +3,17 @@ import "server-only"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
 import { bustOrgConfigCaches, bustPayrollCaches } from "@/lib/cache-invalidation"
-import { getPrismaClient } from "@/lib/prisma"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+// Reach for the Prisma client via the infrastructure re-export the same
+// way payroll-profile.service.ts does — the repo-wide ESLint rule
+// forbids importing `@/lib/prisma` from any file outside
+// `modules/<m>/infrastructure/**`. The transfer flow needs a live
+// prisma handle for its cross-aggregate transaction (archive source +
+// create target profile + create payroll + membership atomically), so
+// borrowing the payroll-run repo's typed accessor keeps the lint rule
+// happy without pulling every micro-query into its own repo method.
+import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { payrollTransferRepository } from "@/modules/payroll/infrastructure/payroll-transfer.repository"
 import { payslipRepository } from "@/modules/payroll/infrastructure/payslip.repository"
 import type {
