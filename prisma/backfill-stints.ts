@@ -54,6 +54,7 @@ async function main() {
   const prisma = new PrismaClient({ adapter })
 
   try {
+    // 1) Read every PayrollProfile in one shot.
     const profiles = await prisma.payrollProfile.findMany({
       select: {
         id: true,
@@ -67,41 +68,56 @@ async function main() {
 
     console.log(`[backfill-stints] scanning ${profiles.length} payroll profiles`)
 
-    let created = 0
-    let skipped = 0
-    let missing = 0
+    // 2) Read every already-covered employeeProfileId in one shot.
+    //    O(1) lookup below avoids the per-profile round trip that
+    //    made the first version drag over remote-DB latency.
+    const withProfile = profiles.filter((p) => p.employeeProfileId != null)
+    const missing = profiles.length - withProfile.length
+    const employeeProfileIds = withProfile.map(
+      (p) => p.employeeProfileId as string,
+    )
+    const existing = await prisma.employmentStint.findMany({
+      where: { employeeProfileId: { in: employeeProfileIds } },
+      select: { employeeProfileId: true },
+    })
+    const alreadyCovered = new Set(existing.map((r) => r.employeeProfileId))
 
-    for (const p of profiles) {
-      if (!p.employeeProfileId) {
-        missing += 1
-        continue
-      }
-      const existing = await prisma.employmentStint.findFirst({
-        where: { employeeProfileId: p.employeeProfileId },
-        select: { id: true },
-      })
-      if (existing) {
-        skipped += 1
-        continue
-      }
-
+    // 3) Build the batch of rows to insert.
+    const rows: {
+      employeeProfileId: string
+      joinDate: Date
+      leaveDate: Date | null
+      startReason: string
+      endReason: string | null
+    }[] = []
+    for (const p of withProfile) {
+      const employeeProfileId = p.employeeProfileId as string
+      if (alreadyCovered.has(employeeProfileId)) continue
       const joinDate = p.joinDate ?? LEGACY_JOIN_DATE_SENTINEL
       const shouldBeClosed = p.isArchived === true && p.leaveDate != null
       const leaveDate = shouldBeClosed ? p.leaveDate : null
-
-      await prisma.employmentStint.create({
-        data: {
-          employeeProfileId: p.employeeProfileId,
-          joinDate,
-          leaveDate,
-          startReason: "Migrated from legacy joinDate",
-          endReason: shouldBeClosed
-            ? p.archiveReason ?? "Migrated from legacy leaveDate"
-            : null,
-        },
+      rows.push({
+        employeeProfileId,
+        joinDate,
+        leaveDate,
+        startReason: "Migrated from legacy joinDate",
+        endReason: shouldBeClosed
+          ? p.archiveReason ?? "Migrated from legacy leaveDate"
+          : null,
       })
-      created += 1
     }
+
+    // 4) `createMany` fires a single multi-row INSERT — much faster
+    //    than N sequential creates over network latency. Skipped when
+    //    there's nothing to insert so we don't send an empty query.
+    let created = 0
+    if (rows.length > 0) {
+      const result = await prisma.employmentStint.createMany({
+        data: rows,
+      })
+      created = result.count
+    }
+    const skipped = alreadyCovered.size
 
     console.log(
       `[backfill-stints] done — created=${created} skipped=${skipped} missing_employee_profile=${missing}`,
