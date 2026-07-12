@@ -263,54 +263,66 @@ export function NewPayrollRunForm({
                 className="h-10 pl-9"
               />
             </div>
-            <div className="nice-scrollbar -mr-2 max-h-[45vh] space-y-1.5 overflow-y-auto py-1 pl-1 pr-2">
-              {availablePolicies.map((p) => {
-                const members = membersByPolicy[p.id] ?? []
-                const matchingMembers = members.filter(memberMatchesQuery)
-                // During a search: hide policies whose members don't
-                // match anything (keeps the list tight). Auto-expand
-                // rows that DO have matches so results are visible.
-                if (trimmedQuery && matchingMembers.length === 0) return null
-                const isOpen = trimmedQuery
-                  ? matchingMembers.length > 0
-                  : expanded.has(p.id)
-                const isSelected = selectedIds.has(p.id)
-                const excludedInPolicy = members.filter((m) =>
-                  excluded.has(m.employeeProfileId),
-                ).length
-                return (
-                  <PolicyRow
-                    key={p.id}
-                    policyName={p.name}
-                    isDefault={p.isDefault}
-                    memberCount={members.length}
-                    excludedInPolicy={excludedInPolicy}
-                    isSelected={isSelected}
-                    onTogglePolicy={() => togglePolicy(p.id)}
-                    isOpen={isOpen}
-                    onToggleExpand={() => toggleExpanded(p.id)}
-                    disableExpandToggle={!!trimmedQuery}
-                  >
-                    {matchingMembers.length === 0 ? (
-                      <p className="px-3 py-2 text-xs text-muted-foreground">
-                        No employees under this policy yet.
-                      </p>
-                    ) : (
-                      matchingMembers.map((m) => (
-                        <MemberRow
-                          key={m.employeeProfileId}
-                          member={m}
-                          included={
-                            isSelected && !excluded.has(m.employeeProfileId)
-                          }
-                          disabled={!isSelected}
-                          onToggle={() => toggleExcluded(m.employeeProfileId)}
-                        />
-                      ))
-                    )}
-                  </PolicyRow>
-                )
-              })}
+            {/* Single bordered container. Rows are separated by
+                internal dividers (divide-y) — not individual rounded
+                cards with gaps. Matches the pattern used elsewhere in
+                the admin UI (e.g. the leave-policy detail list). */}
+            <div className="nice-scrollbar max-h-[45vh] overflow-y-auto rounded-lg border border-border/60 bg-card">
+              <div className="divide-y divide-border/60">
+                {availablePolicies.map((p) => {
+                  const members = membersByPolicy[p.id] ?? []
+                  // Hide policies with zero (non-archived) members —
+                  // they contribute nothing to the run and just
+                  // clutter the picker. If the admin later assigns
+                  // employees to this policy, it will show up on the
+                  // NEXT month's picker automatically.
+                  if (members.length === 0) return null
+                  const matchingMembers = members.filter(memberMatchesQuery)
+                  // During a search: hide policies whose members don't
+                  // match anything (keeps the list tight). Auto-expand
+                  // rows that DO have matches so results are visible.
+                  if (trimmedQuery && matchingMembers.length === 0) return null
+                  const isOpen = trimmedQuery
+                    ? matchingMembers.length > 0
+                    : expanded.has(p.id)
+                  const isSelected = selectedIds.has(p.id)
+                  const excludedInPolicy = members.filter((m) =>
+                    excluded.has(m.employeeProfileId),
+                  ).length
+                  return (
+                    <PolicyRow
+                      key={p.id}
+                      policyName={p.name}
+                      isDefault={p.isDefault}
+                      memberCount={members.length}
+                      excludedInPolicy={excludedInPolicy}
+                      isSelected={isSelected}
+                      onTogglePolicy={() => togglePolicy(p.id)}
+                      isOpen={isOpen}
+                      onToggleExpand={() => toggleExpanded(p.id)}
+                      disableExpandToggle={!!trimmedQuery}
+                    >
+                      {matchingMembers.length === 0 ? (
+                        <p className="px-3 py-2 text-xs text-muted-foreground">
+                          No employees under this policy yet.
+                        </p>
+                      ) : (
+                        matchingMembers.map((m) => (
+                          <MemberRow
+                            key={m.employeeProfileId}
+                            member={m}
+                            included={
+                              isSelected && !excluded.has(m.employeeProfileId)
+                            }
+                            disabled={!isSelected}
+                            onToggle={() => toggleExcluded(m.employeeProfileId)}
+                          />
+                        ))
+                      )}
+                    </PolicyRow>
+                  )
+                })}
+              </div>
             </div>
             {noneSelected ? (
               <p className="text-xs text-destructive">
@@ -362,14 +374,11 @@ function PolicyRow(props: {
   disableExpandToggle: boolean
   children: React.ReactNode
 }) {
+  // No per-row border or rounded corners — the outer table container
+  // owns them, and `divide-y` between rows draws the separator.
   return (
-    <div
-      className={cn(
-        "rounded-md border bg-card",
-        props.isSelected ? "border-border/60" : "border-border/30 opacity-70",
-      )}
-    >
-      <div className="flex items-center gap-2 px-3 py-2">
+    <div className={cn(!props.isSelected && "opacity-60")}>
+      <div className="flex items-center gap-2 px-3 py-2.5">
         {/* Policy checkbox — ticked policy contributes its members to
             the run. Un-ticking greys out the row + disables member
             checkboxes below (they still render so the admin can see
@@ -416,7 +425,7 @@ function PolicyRow(props: {
         </button>
       </div>
       {props.isOpen && (
-        <div className="border-t border-border/60 py-1.5">
+        <div className="border-t border-border/60 bg-muted/20 py-1">
           {props.children}
         </div>
       )}
