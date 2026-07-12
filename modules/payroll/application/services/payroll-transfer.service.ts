@@ -13,6 +13,7 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
 // create target profile + create payroll + membership atomically), so
 // borrowing the payroll-run repo's typed accessor keeps the lint rule
 // happy without pulling every micro-query into its own repo method.
+import { employmentStintRepository } from "@/modules/payroll/infrastructure/employment-stint.repository"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { payrollTransferRepository } from "@/modules/payroll/infrastructure/payroll-transfer.repository"
 import { payslipRepository } from "@/modules/payroll/infrastructure/payslip.repository"
@@ -404,6 +405,11 @@ export async function executeEmployeeTransfer(input: {
   if (!targetOrg) {
     throw new Error("Target company no longer exists.")
   }
+  const sourceOrg = await prisma.organization.findUnique({
+    where: { id: source.organizationId },
+    select: { name: true },
+  })
+  const sourceOrgName = sourceOrg?.name ?? "previous company"
 
   // Guard against a race — someone else may have created an active
   // profile at the target between scheduling and execution.
@@ -435,9 +441,8 @@ export async function executeEmployeeTransfer(input: {
     : null
 
   await prisma.$transaction(async (tx) => {
-    // 1) Archive source payroll profile. Same fields the Archive
-    //    button on the employee detail page uses so the auto-archive
-    //    cron doesn't fight us.
+    // 1a) Archive source PayrollProfile. Same fields the Archive
+    //     button uses so the auto-archive cron doesn't fight us.
     if (source.payrollProfile) {
       await tx.payrollProfile.update({
         where: { id: source.payrollProfile.id },
@@ -449,53 +454,42 @@ export async function executeEmployeeTransfer(input: {
         },
       })
     }
-
-    // 2) Create the target EmployeeProfile. Employee code is carried
-    //    over — same person, same identifier — unless there's a
-    //    clash at the target, in which case suffix "-T".
-    const clash = await tx.employeeProfile.findFirst({
-      where: {
-        organizationId: transfer.targetOrganizationId,
-        employeeId: source.employeeId,
+    // 1b) Close the source EmploymentStint. No-op for legacy profiles
+    //     that haven't been backfilled yet — the archive above still
+    //     hides them from the employee list, so the source side is
+    //     safe either way.
+    await employmentStintRepository.closeOpenStint(
+      {
+        employeeProfileId: source.id,
+        leaveDate: lastDayAtSource,
+        endReason: `Transferred to ${targetOrg.name}`,
+        closedByTransferId: transfer.id,
       },
-      select: { id: true },
-    })
-    const targetEmployeeCode = clash
-      ? `${source.employeeId}-T`
-      : source.employeeId
+      tx,
+    )
 
-    const newProfile = await tx.employeeProfile.create({
-      data: {
+    // 2) Reuse OR create at target. Reuse when the employee already
+    //    has an EmployeeProfile at the target org (round-trip
+    //    scenario: A → C → A). This is the whole point of the stint
+    //    model — no duplicate EmployeeProfile at Com A on return.
+    //    The pre-execute guard above (`existingAtTarget`) has already
+    //    refused the case where the reusable profile is currently
+    //    active; anything found here is archived.
+    const reusable = await tx.employeeProfile.findFirst({
+      where: {
         userId: source.userId,
         organizationId: transfer.targetOrganizationId,
-        employeeId: targetEmployeeCode,
-        jobTitle: source.jobTitle,
-        policyId: transfer.targetPolicyId,
-        preferredCurrency: source.preferredCurrency,
       },
+      include: { payrollProfile: true },
     })
 
-    // 3) Create the target PayrollProfile. Identity fields ALWAYS
-    //    copy. Payroll fields copy only when copyPayrollInfo is on.
     const src = source.payrollProfile
-    // Build the target PayrollProfile data. Identity fields always
-    // copy from source. Payroll-side fields copy only when
-    // copyPayrollInfo=true. Prev-employment YTD is written regardless
-    // of the copy flag because it belongs to the person, not the
-    // payroll setup.
-    //
-    // Split into two explicit branches instead of one conditional
-    // spread — the union of two typed literals reads cleanly and
-    // Prisma's Unchecked/Checked create-input discrimination stays
-    // happy (a spread of `Partial<X>` confused it).
-    if (src) {
-      await tx.payrollProfile.create({
-        data: {
-          employeeProfileId: newProfile.id,
-          // payrollDocuments is Json (required, no default). Start
-          // fresh at target — uploaded contracts / offer letters stay
-          // attached to the source profile.
-          payrollDocuments: [],
+
+    /** Payroll-side fields copied from the source PayrollProfile when
+     * `copyPayrollInfo = true`. Extracted so both the reuse and
+     * fresh-create branches produce identical target state. */
+    const payrollFieldsFromSource = src
+      ? {
           phone: src.phone,
           alternateEmail: src.alternateEmail,
           gender: src.gender,
@@ -522,7 +516,9 @@ export async function executeEmployeeTransfer(input: {
           emergencyContactPhone: src.emergencyContactPhone,
           emergencyContactRelation: src.emergencyContactRelation,
           childRelief: src.childRelief ?? undefined,
-          contributeToEpf: transfer.copyPayrollInfo ? src.contributeToEpf : true,
+          contributeToEpf: transfer.copyPayrollInfo
+            ? src.contributeToEpf
+            : true,
           epfMemberBefore1998: transfer.copyPayrollInfo
             ? src.epfMemberBefore1998
             : false,
@@ -538,7 +534,9 @@ export async function executeEmployeeTransfer(input: {
             : undefined,
           socsoNumber: transfer.copyPayrollInfo ? src.socsoNumber : null,
           socsoScheme: transfer.copyPayrollInfo ? src.socsoScheme : null,
-          contributeToEis: transfer.copyPayrollInfo ? src.contributeToEis : true,
+          contributeToEis: transfer.copyPayrollInfo
+            ? src.contributeToEis
+            : true,
           incomeTaxNumber: transfer.copyPayrollInfo
             ? src.incomeTaxNumber
             : null,
@@ -566,35 +564,133 @@ export async function executeEmployeeTransfer(input: {
           prevRemuneration: ytd ? ytd.ytdTaxable : null,
           prevEpf: ytd ? ytd.ytdEpf : null,
           joinDate: effectiveDate,
+          // Explicit re-open of the target profile — clear any
+          // stale archive markers left by a previous outbound
+          // transfer. Safe to set on a create too (defaults).
+          leaveDate: null,
+          isArchived: false,
+          archivedAt: null,
+          archiveReason: null,
+        }
+      : {
+          // No source PayrollProfile (rare — an employee without a
+          // payroll profile shouldn't be transferable, but stay
+          // defensive). Bare-minimum target so the fresh create
+          // path doesn't blow up.
+          payrollDocuments: [],
+          salaryType: "MONTHLY" as const,
+          joinDate: effectiveDate,
+          leaveDate: null,
+          isArchived: false,
+          archivedAt: null,
+          archiveReason: null,
+        }
+
+    let targetProfileId: string
+
+    if (reusable) {
+      // ─── REUSE PATH ─────────────────────────────────────────────
+      // Employee is returning to a company where they previously
+      // worked. Unarchive the existing EmployeeProfile + PayrollProfile
+      // and update fields to reflect the incoming state. No new
+      // EmployeeProfile, no employee code drift, no duplicate rows.
+      targetProfileId = reusable.id
+
+      await tx.employeeProfile.update({
+        where: { id: reusable.id },
+        data: {
+          jobTitle: source.jobTitle,
+          policyId: transfer.targetPolicyId,
+          preferredCurrency: source.preferredCurrency,
         },
       })
+
+      if (reusable.payrollProfile) {
+        await tx.payrollProfile.update({
+          where: { id: reusable.payrollProfile.id },
+          data: payrollFieldsFromSource,
+        })
+      } else {
+        // Reusable EmployeeProfile without a PayrollProfile — rare
+        // (an unfinished onboarding at the target org) but we need
+        // to seed one now so payroll can run there.
+        await tx.payrollProfile.create({
+          data: {
+            employeeProfileId: reusable.id,
+            payrollDocuments: [],
+            ...payrollFieldsFromSource,
+          },
+        })
+      }
+
+      // EmployeeOrganization is 1:1 with EmployeeProfile (unique
+      // constraint on employeeProfileId), so it already exists —
+      // no create/update needed. Un-archiving the PayrollProfile
+      // above is what brings the membership back into
+      // `listActiveMembershipsForUser`.
     } else {
-      // No source PayrollProfile — create a bare-minimum target.
-      // Rare in practice (an employee without a payroll profile
-      // shouldn't be transferable) but keep the branch defensive.
+      // ─── FRESH PATH ─────────────────────────────────────────────
+      // First time at this org. Behaves the same as the pre-stints
+      // implementation: create EmployeeProfile, PayrollProfile, and
+      // EmployeeOrganization from scratch.
+      const clash = await tx.employeeProfile.findFirst({
+        where: {
+          organizationId: transfer.targetOrganizationId,
+          employeeId: source.employeeId,
+        },
+        select: { id: true },
+      })
+      const targetEmployeeCode = clash
+        ? `${source.employeeId}-T`
+        : source.employeeId
+
+      const newProfile = await tx.employeeProfile.create({
+        data: {
+          userId: source.userId,
+          organizationId: transfer.targetOrganizationId,
+          employeeId: targetEmployeeCode,
+          jobTitle: source.jobTitle,
+          policyId: transfer.targetPolicyId,
+          preferredCurrency: source.preferredCurrency,
+        },
+      })
+      targetProfileId = newProfile.id
+
       await tx.payrollProfile.create({
         data: {
           employeeProfileId: newProfile.id,
+          ...payrollFieldsFromSource,
+          // payrollDocuments is Json (required, no default). Fresh
+          // profile → empty; contracts/offer letters stay attached
+          // to the source.
           payrollDocuments: [],
-          salaryType: "MONTHLY",
-          joinDate: effectiveDate,
+        },
+      })
+
+      await tx.employeeOrganization.create({
+        data: {
+          userId: source.userId,
+          employeeProfileId: newProfile.id,
+          organizationId: transfer.targetOrganizationId,
         },
       })
     }
 
-    // 4) Wire the target org into the employee-portal picker so the
-    //    employee sees the new company on next login. The source
-    //    row is already archived (step 1) so `listActiveMemberships`
-    //    filters it out.
-    await tx.employeeOrganization.create({
-      data: {
-        userId: source.userId,
-        employeeProfileId: newProfile.id,
-        organizationId: transfer.targetOrganizationId,
+    // 3) Open a new EmploymentStint on the target profile. Same
+    //    write in both branches — that's the whole point of the
+    //    stint model. Any previous CLOSED stint on this profile
+    //    (from a prior tenure) stays intact for Form EA + audit.
+    await employmentStintRepository.createStint(
+      {
+        employeeProfileId: targetProfileId,
+        joinDate: effectiveDate,
+        startReason: `Transferred from ${sourceOrgName}`,
+        openedByTransferId: transfer.id,
       },
-    })
+      tx,
+    )
 
-    // 5) Flip the queue row to EXECUTED atomically with the writes
+    // 4) Flip the queue row to EXECUTED atomically with the writes
     //    above so a failure anywhere rolls everything back.
     await tx.employeeTransfer.update({
       where: { id: transfer.id },

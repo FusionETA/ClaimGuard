@@ -19,6 +19,7 @@
     "db:backfill-org-addons": "tsx prisma/backfill-org-addons.ts",
     "db:backfill-approval-chains": "tsx prisma/backfill-approval-chains.ts",
     "db:backfill-employee-org": "tsx prisma/backfill-employee-org.ts",
+    "db:backfill-stints": "tsx prisma/backfill-stints.ts",
     "db:diagnose-ytd-duplicates": "tsx scripts/diagnose-ytd-duplicates.ts",
     "db:create-master-key": "tsx prisma/create-master-key.ts",
     "db:migrate": "prisma migrate dev",

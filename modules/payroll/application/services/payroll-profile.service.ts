@@ -16,6 +16,7 @@ import type {
 } from "@/modules/payroll/domain/models"
 import type { SalaryChangeData } from "@/modules/payroll/domain/salary-change"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
+import { employmentStintRepository } from "@/modules/payroll/infrastructure/employment-stint.repository"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-change.repository"
@@ -423,6 +424,16 @@ export async function archivePayrollProfile(input: {
     input.leaveDate,
   )
 
+  // Close the currently-open EmploymentStint. Guarantees the stint
+  // history stays consistent with the denormalized joinDate/leaveDate
+  // on PayrollProfile. No-op when the profile hasn't been backfilled
+  // yet — the archive above still hides the employee from the list.
+  await employmentStintRepository.closeOpenStint({
+    employeeProfileId: archiveProfile.id,
+    leaveDate: input.leaveDate,
+    endReason: input.reason || "Archived",
+  })
+
   void writeAudit({
     organizationId: orgId,
     actor: {
@@ -583,6 +594,19 @@ export async function unarchivePayrollProfile(input: {
     restoreProfile.id,
     input.rehireCarryover ?? null,
   )
+
+  // Open a fresh EmploymentStint starting TODAY. The previous stint
+  // (closed by the earlier archive) stays intact for Form EA + audit;
+  // the new stint captures this rehire so payslip history splits
+  // cleanly across the gap. If the profile hasn't been backfilled
+  // yet the create still succeeds — one stint is better than none.
+  await employmentStintRepository.createStint({
+    employeeProfileId: restoreProfile.id,
+    joinDate: new Date(),
+    startReason: input.rehireCarryover
+      ? "Rehired (with TP3 carryover)"
+      : "Restored to payroll",
+  })
 
   void writeAudit({
     organizationId: orgId,

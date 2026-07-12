@@ -2701,6 +2701,23 @@ export const organizationRepository = {
           organizationId: data.organizationId,
         },
       })
+
+      // Open the initial EmploymentStint for this employee at this
+      // org. Every fresh EmployeeProfile gets exactly one open stint
+      // right after creation; subsequent archive → restore or
+      // A → C → back-to-A transfers add more stint rows on top.
+      // Kept inline (rather than via employmentStintRepository) to
+      // avoid a cross-repo import from the org repo; the stint create
+      // is a single-row write with no cross-cutting logic.
+      await prisma.employmentStint.create({
+        data: {
+          employeeProfileId: newEmployeeProfile.id,
+          joinDate: data.joinDate ?? new Date(),
+          startReason: linkable
+            ? "Added to company (linked from existing user)"
+            : "Initial hire",
+        },
+      })
     }
 
     // Apply the optional extra PayrollProfile fields (v1 create API). Done as a

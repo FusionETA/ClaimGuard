@@ -500,12 +500,90 @@ model EmployeeProfile {
   salaryChanges         SalaryChange[]
   employeeOrganization  EmployeeOrganization?
   transfersOut          EmployeeTransfer[]          @relation("EmployeeTransferSource")
+  stints                EmploymentStint[]
 
   @@unique([userId, organizationId])
   @@index([policyId])
   @@index([employeeId])
   @@index([organizationId])
   @@index([userId])
+}
+
+/// One employment "stint" at an org — a continuous period the person
+/// was on the payroll there. Every non-archived EmployeeProfile has
+/// exactly one OPEN stint (leaveDate = null). Historical tenures live
+/// as additional CLOSED stints (leaveDate populated) on the same
+/// EmployeeProfile — no new EmployeeProfile row is created when
+/// someone returns to a company they previously worked at.
+///
+/// This model unblocks two use cases the two-field
+/// `PayrollProfile.joinDate` / `PayrollProfile.leaveDate` design
+/// couldn't handle cleanly:
+///
+///   1. **Round-trip transfers** — Alvin works at Com A → transfers
+///      to Com C → transfers back to Com A. With stints, his Com A
+///      EmployeeProfile is REUSED (unarchived + new open stint added)
+///      instead of a duplicate profile getting created. Form EA at
+///      year-end then correctly reports one row per employer per
+///      person: the sum across ALL stints under that employer.
+///
+///   2. **Rehire after a real gap** — someone leaves in March, comes
+///      back in September. Instead of overwriting `joinDate` (which
+///      loses the March–September gap) or archiving + creating a new
+///      profile (which fragments payslip history), we close the
+///      first stint on the leave date and open a second stint on the
+///      return date. Everything under the same profile — payslips,
+///      YTD, employee code — stays coherent.
+///
+/// Invariants (enforced in the service layer, not the DB — Prisma
+/// can't express "at most one row with leaveDate=null per
+/// employeeProfileId"):
+///
+///   - At most ONE open stint per employeeProfile at any moment.
+///   - Stints for the same employeeProfile never overlap in date
+///     range.
+///   - `joinDate <= leaveDate` whenever `leaveDate` is non-null.
+///
+/// Legacy `PayrollProfile.joinDate` / `PayrollProfile.leaveDate` are
+/// kept for now as a denormalised "current stint" view so any code
+/// path that hasn't yet migrated to reading stints keeps working. A
+/// follow-up migration drops those two columns once every read has
+/// switched over.
+model EmploymentStint {
+  id                 String            @id @default(cuid())
+  employeeProfileId  String
+  /// First day of this stint. Stored as DATE (no time component) so
+  /// timezone drift can't shift the boundary by a day.
+  joinDate           DateTime          @db.Date
+  /// Last day of this stint. `null` = currently employed (open
+  /// stint). Non-null = the last day the person was on payroll for
+  /// this stint.
+  leaveDate          DateTime?         @db.Date
+  /// How the stint STARTED. Free-form text: "Initial hire", "Rehire",
+  /// "Transferred from Com A", etc. Surfaced on the employment-history
+  /// card on the employee detail page.
+  startReason        String?
+  /// How the stint ENDED. Null while open; populated on close.
+  /// Free-form: "Transferred to Com C", "Resigned", "Contract ended".
+  endReason          String?
+  /// Optional link to the EmployeeTransfer row that OPENED this stint
+  /// (only set when the stint was created by a transfer execute).
+  openedByTransferId String?
+  /// Optional link to the EmployeeTransfer row that CLOSED this stint
+  /// (only set when the stint was ended by a transfer execute).
+  closedByTransferId String?
+
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  employeeProfile    EmployeeProfile   @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  openedByTransfer   EmployeeTransfer? @relation("StintOpenedByTransfer", fields: [openedByTransferId], references: [id])
+  closedByTransfer   EmployeeTransfer? @relation("StintClosedByTransfer", fields: [closedByTransferId], references: [id])
+
+  @@index([employeeProfileId, joinDate])
+  @@index([employeeProfileId, leaveDate])
+  @@index([openedByTransferId])
+  @@index([closedByTransferId])
 }
 
 /// Join table linking an active User to an Organization for the
@@ -2094,6 +2172,8 @@ model EmployeeTransfer {
   targetOrganization       Organization            @relation("EmployeeTransferTargetOrg", fields: [targetOrganizationId], references: [id], onDelete: Cascade)
   targetPolicy             EmployeePolicy          @relation("EmployeeTransferTargetPolicy", fields: [targetPolicyId], references: [id])
   createdByUser            User                    @relation("EmployeeTransferCreatedBy", fields: [createdByUserId], references: [id])
+  openedStints             EmploymentStint[]       @relation("StintOpenedByTransfer")
+  closedStints             EmploymentStint[]       @relation("StintClosedByTransfer")
 
   @@index([status, effectiveDate])
   @@index([sourceEmployeeProfileId])

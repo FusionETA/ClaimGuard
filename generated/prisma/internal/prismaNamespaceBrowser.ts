@@ -63,6 +63,7 @@ export const ModelName = {
   Notification: 'Notification',
   EmployeeImportDraft: 'EmployeeImportDraft',
   EmployeeProfile: 'EmployeeProfile',
+  EmploymentStint: 'EmploymentStint',
   EmployeeOrganization: 'EmployeeOrganization',
   EmployeeProjectAssignment: 'EmployeeProjectAssignment',
   Claim: 'Claim',
@@ -332,6 +333,22 @@ export const EmployeeProfileScalarFieldEnum = {
 } as const
 
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
+
+
+export const EmploymentStintScalarFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  joinDate: 'joinDate',
+  leaveDate: 'leaveDate',
+  startReason: 'startReason',
+  endReason: 'endReason',
+  openedByTransferId: 'openedByTransferId',
+  closedByTransferId: 'closedByTransferId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmploymentStintScalarFieldEnum = (typeof EmploymentStintScalarFieldEnum)[keyof typeof EmploymentStintScalarFieldEnum]
 
 
 export const EmployeeOrganizationScalarFieldEnum = {
@@ -1449,6 +1466,18 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
 } as const
 
 export type EmployeeProfileOrderByRelevanceFieldEnum = (typeof EmployeeProfileOrderByRelevanceFieldEnum)[keyof typeof EmployeeProfileOrderByRelevanceFieldEnum]
+
+
+export const EmploymentStintOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  startReason: 'startReason',
+  endReason: 'endReason',
+  openedByTransferId: 'openedByTransferId',
+  closedByTransferId: 'closedByTransferId'
+} as const
+
+export type EmploymentStintOrderByRelevanceFieldEnum = (typeof EmploymentStintOrderByRelevanceFieldEnum)[keyof typeof EmploymentStintOrderByRelevanceFieldEnum]
 
 
 export const EmployeeOrganizationOrderByRelevanceFieldEnum = {

@@ -123,6 +123,50 @@ export type EmployeeImportDraft = Prisma.EmployeeImportDraftModel
  */
 export type EmployeeProfile = Prisma.EmployeeProfileModel
 /**
+ * Model EmploymentStint
+ * One employment "stint" at an org — a continuous period the person
+ * was on the payroll there. Every non-archived EmployeeProfile has
+ * exactly one OPEN stint (leaveDate = null). Historical tenures live
+ * as additional CLOSED stints (leaveDate populated) on the same
+ * EmployeeProfile — no new EmployeeProfile row is created when
+ * someone returns to a company they previously worked at.
+ * 
+ * This model unblocks two use cases the two-field
+ * `PayrollProfile.joinDate` / `PayrollProfile.leaveDate` design
+ * couldn't handle cleanly:
+ * 
+ * 1. **Round-trip transfers** — Alvin works at Com A → transfers
+ * to Com C → transfers back to Com A. With stints, his Com A
+ * EmployeeProfile is REUSED (unarchived + new open stint added)
+ * instead of a duplicate profile getting created. Form EA at
+ * year-end then correctly reports one row per employer per
+ * person: the sum across ALL stints under that employer.
+ * 
+ * 2. **Rehire after a real gap** — someone leaves in March, comes
+ * back in September. Instead of overwriting `joinDate` (which
+ * loses the March–September gap) or archiving + creating a new
+ * profile (which fragments payslip history), we close the
+ * first stint on the leave date and open a second stint on the
+ * return date. Everything under the same profile — payslips,
+ * YTD, employee code — stays coherent.
+ * 
+ * Invariants (enforced in the service layer, not the DB — Prisma
+ * can't express "at most one row with leaveDate=null per
+ * employeeProfileId"):
+ * 
+ * - At most ONE open stint per employeeProfile at any moment.
+ * - Stints for the same employeeProfile never overlap in date
+ * range.
+ * - `joinDate <= leaveDate` whenever `leaveDate` is non-null.
+ * 
+ * Legacy `PayrollProfile.joinDate` / `PayrollProfile.leaveDate` are
+ * kept for now as a denormalised "current stint" view so any code
+ * path that hasn't yet migrated to reading stints keeps working. A
+ * follow-up migration drops those two columns once every read has
+ * switched over.
+ */
+export type EmploymentStint = Prisma.EmploymentStintModel
+/**
  * Model EmployeeOrganization
  * Join table linking an active User to an Organization for the
  * employee-portal side. Mirrors `AdminOrganization` but for

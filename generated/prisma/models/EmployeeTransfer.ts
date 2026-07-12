@@ -270,6 +270,8 @@ export type EmployeeTransferWhereInput = {
   targetOrganization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   targetPolicy?: Prisma.XOR<Prisma.EmployeePolicyScalarRelationFilter, Prisma.EmployeePolicyWhereInput>
   createdByUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  openedStints?: Prisma.EmploymentStintListRelationFilter
+  closedStints?: Prisma.EmploymentStintListRelationFilter
 }
 
 export type EmployeeTransferOrderByWithRelationInput = {
@@ -291,6 +293,8 @@ export type EmployeeTransferOrderByWithRelationInput = {
   targetOrganization?: Prisma.OrganizationOrderByWithRelationInput
   targetPolicy?: Prisma.EmployeePolicyOrderByWithRelationInput
   createdByUser?: Prisma.UserOrderByWithRelationInput
+  openedStints?: Prisma.EmploymentStintOrderByRelationAggregateInput
+  closedStints?: Prisma.EmploymentStintOrderByRelationAggregateInput
   _relevance?: Prisma.EmployeeTransferOrderByRelevanceInput
 }
 
@@ -316,6 +320,8 @@ export type EmployeeTransferWhereUniqueInput = Prisma.AtLeast<{
   targetOrganization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   targetPolicy?: Prisma.XOR<Prisma.EmployeePolicyScalarRelationFilter, Prisma.EmployeePolicyWhereInput>
   createdByUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  openedStints?: Prisma.EmploymentStintListRelationFilter
+  closedStints?: Prisma.EmploymentStintListRelationFilter
 }, "id">
 
 export type EmployeeTransferOrderByWithAggregationInput = {
@@ -370,6 +376,8 @@ export type EmployeeTransferCreateInput = {
   targetOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersInInput
   targetPolicy: Prisma.EmployeePolicyCreateNestedOneWithoutTargetOfTransfersInput
   createdByUser: Prisma.UserCreateNestedOneWithoutEmployeeTransfersCreatedInput
+  openedStints?: Prisma.EmploymentStintCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferUncheckedCreateInput = {
@@ -386,6 +394,8 @@ export type EmployeeTransferUncheckedCreateInput = {
   createdAt?: Date | string
   executedAt?: Date | string | null
   errorMessage?: string | null
+  openedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferUpdateInput = {
@@ -402,6 +412,8 @@ export type EmployeeTransferUpdateInput = {
   targetOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersInNestedInput
   targetPolicy?: Prisma.EmployeePolicyUpdateOneRequiredWithoutTargetOfTransfersNestedInput
   createdByUser?: Prisma.UserUpdateOneRequiredWithoutEmployeeTransfersCreatedNestedInput
+  openedStints?: Prisma.EmploymentStintUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateInput = {
@@ -418,6 +430,8 @@ export type EmployeeTransferUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   executedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferCreateManyInput = {
@@ -471,6 +485,11 @@ export type EmployeeTransferListRelationFilter = {
 
 export type EmployeeTransferOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type EmployeeTransferNullableScalarRelationFilter = {
+  is?: Prisma.EmployeeTransferWhereInput | null
+  isNot?: Prisma.EmployeeTransferWhereInput | null
 }
 
 export type EmployeeTransferOrderByRelevanceInput = {
@@ -737,6 +756,38 @@ export type EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileNeste
   deleteMany?: Prisma.EmployeeTransferScalarWhereInput | Prisma.EmployeeTransferScalarWhereInput[]
 }
 
+export type EmployeeTransferCreateNestedOneWithoutOpenedStintsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeTransferCreateWithoutOpenedStintsInput, Prisma.EmployeeTransferUncheckedCreateWithoutOpenedStintsInput>
+  connectOrCreate?: Prisma.EmployeeTransferCreateOrConnectWithoutOpenedStintsInput
+  connect?: Prisma.EmployeeTransferWhereUniqueInput
+}
+
+export type EmployeeTransferCreateNestedOneWithoutClosedStintsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeTransferCreateWithoutClosedStintsInput, Prisma.EmployeeTransferUncheckedCreateWithoutClosedStintsInput>
+  connectOrCreate?: Prisma.EmployeeTransferCreateOrConnectWithoutClosedStintsInput
+  connect?: Prisma.EmployeeTransferWhereUniqueInput
+}
+
+export type EmployeeTransferUpdateOneWithoutOpenedStintsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeTransferCreateWithoutOpenedStintsInput, Prisma.EmployeeTransferUncheckedCreateWithoutOpenedStintsInput>
+  connectOrCreate?: Prisma.EmployeeTransferCreateOrConnectWithoutOpenedStintsInput
+  upsert?: Prisma.EmployeeTransferUpsertWithoutOpenedStintsInput
+  disconnect?: Prisma.EmployeeTransferWhereInput | boolean
+  delete?: Prisma.EmployeeTransferWhereInput | boolean
+  connect?: Prisma.EmployeeTransferWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeTransferUpdateToOneWithWhereWithoutOpenedStintsInput, Prisma.EmployeeTransferUpdateWithoutOpenedStintsInput>, Prisma.EmployeeTransferUncheckedUpdateWithoutOpenedStintsInput>
+}
+
+export type EmployeeTransferUpdateOneWithoutClosedStintsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeTransferCreateWithoutClosedStintsInput, Prisma.EmployeeTransferUncheckedCreateWithoutClosedStintsInput>
+  connectOrCreate?: Prisma.EmployeeTransferCreateOrConnectWithoutClosedStintsInput
+  upsert?: Prisma.EmployeeTransferUpsertWithoutClosedStintsInput
+  disconnect?: Prisma.EmployeeTransferWhereInput | boolean
+  delete?: Prisma.EmployeeTransferWhereInput | boolean
+  connect?: Prisma.EmployeeTransferWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeTransferUpdateToOneWithWhereWithoutClosedStintsInput, Prisma.EmployeeTransferUpdateWithoutClosedStintsInput>, Prisma.EmployeeTransferUncheckedUpdateWithoutClosedStintsInput>
+}
+
 export type EnumEmployeeTransferStatusFieldUpdateOperationsInput = {
   set?: $Enums.EmployeeTransferStatus
 }
@@ -754,6 +805,8 @@ export type EmployeeTransferCreateWithoutCreatedByUserInput = {
   sourceOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersOutInput
   targetOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersInInput
   targetPolicy: Prisma.EmployeePolicyCreateNestedOneWithoutTargetOfTransfersInput
+  openedStints?: Prisma.EmploymentStintCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferUncheckedCreateWithoutCreatedByUserInput = {
@@ -769,6 +822,8 @@ export type EmployeeTransferUncheckedCreateWithoutCreatedByUserInput = {
   createdAt?: Date | string
   executedAt?: Date | string | null
   errorMessage?: string | null
+  openedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferCreateOrConnectWithoutCreatedByUserInput = {
@@ -829,6 +884,8 @@ export type EmployeeTransferCreateWithoutSourceOrganizationInput = {
   targetOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersInInput
   targetPolicy: Prisma.EmployeePolicyCreateNestedOneWithoutTargetOfTransfersInput
   createdByUser: Prisma.UserCreateNestedOneWithoutEmployeeTransfersCreatedInput
+  openedStints?: Prisma.EmploymentStintCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferUncheckedCreateWithoutSourceOrganizationInput = {
@@ -844,6 +901,8 @@ export type EmployeeTransferUncheckedCreateWithoutSourceOrganizationInput = {
   createdAt?: Date | string
   executedAt?: Date | string | null
   errorMessage?: string | null
+  openedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferCreateOrConnectWithoutSourceOrganizationInput = {
@@ -869,6 +928,8 @@ export type EmployeeTransferCreateWithoutTargetOrganizationInput = {
   sourceOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersOutInput
   targetPolicy: Prisma.EmployeePolicyCreateNestedOneWithoutTargetOfTransfersInput
   createdByUser: Prisma.UserCreateNestedOneWithoutEmployeeTransfersCreatedInput
+  openedStints?: Prisma.EmploymentStintCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferUncheckedCreateWithoutTargetOrganizationInput = {
@@ -884,6 +945,8 @@ export type EmployeeTransferUncheckedCreateWithoutTargetOrganizationInput = {
   createdAt?: Date | string
   executedAt?: Date | string | null
   errorMessage?: string | null
+  openedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferCreateOrConnectWithoutTargetOrganizationInput = {
@@ -941,6 +1004,8 @@ export type EmployeeTransferCreateWithoutTargetPolicyInput = {
   sourceOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersOutInput
   targetOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersInInput
   createdByUser: Prisma.UserCreateNestedOneWithoutEmployeeTransfersCreatedInput
+  openedStints?: Prisma.EmploymentStintCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferUncheckedCreateWithoutTargetPolicyInput = {
@@ -956,6 +1021,8 @@ export type EmployeeTransferUncheckedCreateWithoutTargetPolicyInput = {
   createdAt?: Date | string
   executedAt?: Date | string | null
   errorMessage?: string | null
+  openedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferCreateOrConnectWithoutTargetPolicyInput = {
@@ -997,6 +1064,8 @@ export type EmployeeTransferCreateWithoutSourceEmployeeProfileInput = {
   targetOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersInInput
   targetPolicy: Prisma.EmployeePolicyCreateNestedOneWithoutTargetOfTransfersInput
   createdByUser: Prisma.UserCreateNestedOneWithoutEmployeeTransfersCreatedInput
+  openedStints?: Prisma.EmploymentStintCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferUncheckedCreateWithoutSourceEmployeeProfileInput = {
@@ -1012,6 +1081,8 @@ export type EmployeeTransferUncheckedCreateWithoutSourceEmployeeProfileInput = {
   createdAt?: Date | string
   executedAt?: Date | string | null
   errorMessage?: string | null
+  openedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutOpenedByTransferInput
+  closedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutClosedByTransferInput
 }
 
 export type EmployeeTransferCreateOrConnectWithoutSourceEmployeeProfileInput = {
@@ -1038,6 +1109,174 @@ export type EmployeeTransferUpdateWithWhereUniqueWithoutSourceEmployeeProfileInp
 export type EmployeeTransferUpdateManyWithWhereWithoutSourceEmployeeProfileInput = {
   where: Prisma.EmployeeTransferScalarWhereInput
   data: Prisma.XOR<Prisma.EmployeeTransferUpdateManyMutationInput, Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileInput>
+}
+
+export type EmployeeTransferCreateWithoutOpenedStintsInput = {
+  id?: string
+  effectiveDate: Date | string
+  copyPayrollInfo?: boolean
+  notes?: string | null
+  status?: $Enums.EmployeeTransferStatus
+  createdAt?: Date | string
+  executedAt?: Date | string | null
+  errorMessage?: string | null
+  sourceEmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutTransfersOutInput
+  sourceOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersOutInput
+  targetOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersInInput
+  targetPolicy: Prisma.EmployeePolicyCreateNestedOneWithoutTargetOfTransfersInput
+  createdByUser: Prisma.UserCreateNestedOneWithoutEmployeeTransfersCreatedInput
+  closedStints?: Prisma.EmploymentStintCreateNestedManyWithoutClosedByTransferInput
+}
+
+export type EmployeeTransferUncheckedCreateWithoutOpenedStintsInput = {
+  id?: string
+  sourceEmployeeProfileId: string
+  sourceOrganizationId: string
+  targetOrganizationId: string
+  targetPolicyId: string
+  createdByUserId: string
+  effectiveDate: Date | string
+  copyPayrollInfo?: boolean
+  notes?: string | null
+  status?: $Enums.EmployeeTransferStatus
+  createdAt?: Date | string
+  executedAt?: Date | string | null
+  errorMessage?: string | null
+  closedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutClosedByTransferInput
+}
+
+export type EmployeeTransferCreateOrConnectWithoutOpenedStintsInput = {
+  where: Prisma.EmployeeTransferWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeTransferCreateWithoutOpenedStintsInput, Prisma.EmployeeTransferUncheckedCreateWithoutOpenedStintsInput>
+}
+
+export type EmployeeTransferCreateWithoutClosedStintsInput = {
+  id?: string
+  effectiveDate: Date | string
+  copyPayrollInfo?: boolean
+  notes?: string | null
+  status?: $Enums.EmployeeTransferStatus
+  createdAt?: Date | string
+  executedAt?: Date | string | null
+  errorMessage?: string | null
+  sourceEmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutTransfersOutInput
+  sourceOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersOutInput
+  targetOrganization: Prisma.OrganizationCreateNestedOneWithoutEmployeeTransfersInInput
+  targetPolicy: Prisma.EmployeePolicyCreateNestedOneWithoutTargetOfTransfersInput
+  createdByUser: Prisma.UserCreateNestedOneWithoutEmployeeTransfersCreatedInput
+  openedStints?: Prisma.EmploymentStintCreateNestedManyWithoutOpenedByTransferInput
+}
+
+export type EmployeeTransferUncheckedCreateWithoutClosedStintsInput = {
+  id?: string
+  sourceEmployeeProfileId: string
+  sourceOrganizationId: string
+  targetOrganizationId: string
+  targetPolicyId: string
+  createdByUserId: string
+  effectiveDate: Date | string
+  copyPayrollInfo?: boolean
+  notes?: string | null
+  status?: $Enums.EmployeeTransferStatus
+  createdAt?: Date | string
+  executedAt?: Date | string | null
+  errorMessage?: string | null
+  openedStints?: Prisma.EmploymentStintUncheckedCreateNestedManyWithoutOpenedByTransferInput
+}
+
+export type EmployeeTransferCreateOrConnectWithoutClosedStintsInput = {
+  where: Prisma.EmployeeTransferWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeTransferCreateWithoutClosedStintsInput, Prisma.EmployeeTransferUncheckedCreateWithoutClosedStintsInput>
+}
+
+export type EmployeeTransferUpsertWithoutOpenedStintsInput = {
+  update: Prisma.XOR<Prisma.EmployeeTransferUpdateWithoutOpenedStintsInput, Prisma.EmployeeTransferUncheckedUpdateWithoutOpenedStintsInput>
+  create: Prisma.XOR<Prisma.EmployeeTransferCreateWithoutOpenedStintsInput, Prisma.EmployeeTransferUncheckedCreateWithoutOpenedStintsInput>
+  where?: Prisma.EmployeeTransferWhereInput
+}
+
+export type EmployeeTransferUpdateToOneWithWhereWithoutOpenedStintsInput = {
+  where?: Prisma.EmployeeTransferWhereInput
+  data: Prisma.XOR<Prisma.EmployeeTransferUpdateWithoutOpenedStintsInput, Prisma.EmployeeTransferUncheckedUpdateWithoutOpenedStintsInput>
+}
+
+export type EmployeeTransferUpdateWithoutOpenedStintsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  copyPayrollInfo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumEmployeeTransferStatusFieldUpdateOperationsInput | $Enums.EmployeeTransferStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  executedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceEmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutTransfersOutNestedInput
+  sourceOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersOutNestedInput
+  targetOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersInNestedInput
+  targetPolicy?: Prisma.EmployeePolicyUpdateOneRequiredWithoutTargetOfTransfersNestedInput
+  createdByUser?: Prisma.UserUpdateOneRequiredWithoutEmployeeTransfersCreatedNestedInput
+  closedStints?: Prisma.EmploymentStintUpdateManyWithoutClosedByTransferNestedInput
+}
+
+export type EmployeeTransferUncheckedUpdateWithoutOpenedStintsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceEmployeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceOrganizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetOrganizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetPolicyId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  copyPayrollInfo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumEmployeeTransferStatusFieldUpdateOperationsInput | $Enums.EmployeeTransferStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  executedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutClosedByTransferNestedInput
+}
+
+export type EmployeeTransferUpsertWithoutClosedStintsInput = {
+  update: Prisma.XOR<Prisma.EmployeeTransferUpdateWithoutClosedStintsInput, Prisma.EmployeeTransferUncheckedUpdateWithoutClosedStintsInput>
+  create: Prisma.XOR<Prisma.EmployeeTransferCreateWithoutClosedStintsInput, Prisma.EmployeeTransferUncheckedCreateWithoutClosedStintsInput>
+  where?: Prisma.EmployeeTransferWhereInput
+}
+
+export type EmployeeTransferUpdateToOneWithWhereWithoutClosedStintsInput = {
+  where?: Prisma.EmployeeTransferWhereInput
+  data: Prisma.XOR<Prisma.EmployeeTransferUpdateWithoutClosedStintsInput, Prisma.EmployeeTransferUncheckedUpdateWithoutClosedStintsInput>
+}
+
+export type EmployeeTransferUpdateWithoutClosedStintsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  copyPayrollInfo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumEmployeeTransferStatusFieldUpdateOperationsInput | $Enums.EmployeeTransferStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  executedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceEmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutTransfersOutNestedInput
+  sourceOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersOutNestedInput
+  targetOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersInNestedInput
+  targetPolicy?: Prisma.EmployeePolicyUpdateOneRequiredWithoutTargetOfTransfersNestedInput
+  createdByUser?: Prisma.UserUpdateOneRequiredWithoutEmployeeTransfersCreatedNestedInput
+  openedStints?: Prisma.EmploymentStintUpdateManyWithoutOpenedByTransferNestedInput
+}
+
+export type EmployeeTransferUncheckedUpdateWithoutClosedStintsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceEmployeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceOrganizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetOrganizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetPolicyId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  copyPayrollInfo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumEmployeeTransferStatusFieldUpdateOperationsInput | $Enums.EmployeeTransferStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  executedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutOpenedByTransferNestedInput
 }
 
 export type EmployeeTransferCreateManyCreatedByUserInput = {
@@ -1068,6 +1307,8 @@ export type EmployeeTransferUpdateWithoutCreatedByUserInput = {
   sourceOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersOutNestedInput
   targetOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersInNestedInput
   targetPolicy?: Prisma.EmployeePolicyUpdateOneRequiredWithoutTargetOfTransfersNestedInput
+  openedStints?: Prisma.EmploymentStintUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateWithoutCreatedByUserInput = {
@@ -1083,6 +1324,8 @@ export type EmployeeTransferUncheckedUpdateWithoutCreatedByUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   executedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserInput = {
@@ -1143,6 +1386,8 @@ export type EmployeeTransferUpdateWithoutSourceOrganizationInput = {
   targetOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersInNestedInput
   targetPolicy?: Prisma.EmployeePolicyUpdateOneRequiredWithoutTargetOfTransfersNestedInput
   createdByUser?: Prisma.UserUpdateOneRequiredWithoutEmployeeTransfersCreatedNestedInput
+  openedStints?: Prisma.EmploymentStintUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateWithoutSourceOrganizationInput = {
@@ -1158,6 +1403,8 @@ export type EmployeeTransferUncheckedUpdateWithoutSourceOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   executedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationInput = {
@@ -1188,6 +1435,8 @@ export type EmployeeTransferUpdateWithoutTargetOrganizationInput = {
   sourceOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersOutNestedInput
   targetPolicy?: Prisma.EmployeePolicyUpdateOneRequiredWithoutTargetOfTransfersNestedInput
   createdByUser?: Prisma.UserUpdateOneRequiredWithoutEmployeeTransfersCreatedNestedInput
+  openedStints?: Prisma.EmploymentStintUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateWithoutTargetOrganizationInput = {
@@ -1203,6 +1452,8 @@ export type EmployeeTransferUncheckedUpdateWithoutTargetOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   executedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationInput = {
@@ -1248,6 +1499,8 @@ export type EmployeeTransferUpdateWithoutTargetPolicyInput = {
   sourceOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersOutNestedInput
   targetOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersInNestedInput
   createdByUser?: Prisma.UserUpdateOneRequiredWithoutEmployeeTransfersCreatedNestedInput
+  openedStints?: Prisma.EmploymentStintUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateWithoutTargetPolicyInput = {
@@ -1263,6 +1516,8 @@ export type EmployeeTransferUncheckedUpdateWithoutTargetPolicyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   executedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateManyWithoutTargetPolicyInput = {
@@ -1308,6 +1563,8 @@ export type EmployeeTransferUpdateWithoutSourceEmployeeProfileInput = {
   targetOrganization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeTransfersInNestedInput
   targetPolicy?: Prisma.EmployeePolicyUpdateOneRequiredWithoutTargetOfTransfersNestedInput
   createdByUser?: Prisma.UserUpdateOneRequiredWithoutEmployeeTransfersCreatedNestedInput
+  openedStints?: Prisma.EmploymentStintUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateWithoutSourceEmployeeProfileInput = {
@@ -1323,6 +1580,8 @@ export type EmployeeTransferUncheckedUpdateWithoutSourceEmployeeProfileInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   executedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutOpenedByTransferNestedInput
+  closedStints?: Prisma.EmploymentStintUncheckedUpdateManyWithoutClosedByTransferNestedInput
 }
 
 export type EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileInput = {
@@ -1340,6 +1599,44 @@ export type EmployeeTransferUncheckedUpdateManyWithoutSourceEmployeeProfileInput
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
+
+/**
+ * Count Type EmployeeTransferCountOutputType
+ */
+
+export type EmployeeTransferCountOutputType = {
+  openedStints: number
+  closedStints: number
+}
+
+export type EmployeeTransferCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  openedStints?: boolean | EmployeeTransferCountOutputTypeCountOpenedStintsArgs
+  closedStints?: boolean | EmployeeTransferCountOutputTypeCountClosedStintsArgs
+}
+
+/**
+ * EmployeeTransferCountOutputType without action
+ */
+export type EmployeeTransferCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeTransferCountOutputType
+   */
+  select?: Prisma.EmployeeTransferCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * EmployeeTransferCountOutputType without action
+ */
+export type EmployeeTransferCountOutputTypeCountOpenedStintsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmploymentStintWhereInput
+}
+
+/**
+ * EmployeeTransferCountOutputType without action
+ */
+export type EmployeeTransferCountOutputTypeCountClosedStintsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmploymentStintWhereInput
+}
 
 
 export type EmployeeTransferSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1361,6 +1658,9 @@ export type EmployeeTransferSelect<ExtArgs extends runtime.Types.Extensions.Inte
   targetOrganization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   targetPolicy?: boolean | Prisma.EmployeePolicyDefaultArgs<ExtArgs>
   createdByUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  openedStints?: boolean | Prisma.EmployeeTransfer$openedStintsArgs<ExtArgs>
+  closedStints?: boolean | Prisma.EmployeeTransfer$closedStintsArgs<ExtArgs>
+  _count?: boolean | Prisma.EmployeeTransferCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["employeeTransfer"]>
 
 
@@ -1388,6 +1688,9 @@ export type EmployeeTransferInclude<ExtArgs extends runtime.Types.Extensions.Int
   targetOrganization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   targetPolicy?: boolean | Prisma.EmployeePolicyDefaultArgs<ExtArgs>
   createdByUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  openedStints?: boolean | Prisma.EmployeeTransfer$openedStintsArgs<ExtArgs>
+  closedStints?: boolean | Prisma.EmployeeTransfer$closedStintsArgs<ExtArgs>
+  _count?: boolean | Prisma.EmployeeTransferCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $EmployeeTransferPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1398,6 +1701,8 @@ export type $EmployeeTransferPayload<ExtArgs extends runtime.Types.Extensions.In
     targetOrganization: Prisma.$OrganizationPayload<ExtArgs>
     targetPolicy: Prisma.$EmployeePolicyPayload<ExtArgs>
     createdByUser: Prisma.$UserPayload<ExtArgs>
+    openedStints: Prisma.$EmploymentStintPayload<ExtArgs>[]
+    closedStints: Prisma.$EmploymentStintPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1782,6 +2087,8 @@ export interface Prisma__EmployeeTransferClient<T, Null = never, ExtArgs extends
   targetOrganization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   targetPolicy<T extends Prisma.EmployeePolicyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeePolicyDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeePolicyClient<runtime.Types.Result.GetResult<Prisma.$EmployeePolicyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   createdByUser<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  openedStints<T extends Prisma.EmployeeTransfer$openedStintsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeTransfer$openedStintsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmploymentStintPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  closedStints<T extends Prisma.EmployeeTransfer$closedStintsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeTransfer$closedStintsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmploymentStintPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2169,6 +2476,54 @@ export type EmployeeTransferDeleteManyArgs<ExtArgs extends runtime.Types.Extensi
    * Limit how many EmployeeTransfers to delete.
    */
   limit?: number
+}
+
+/**
+ * EmployeeTransfer.openedStints
+ */
+export type EmployeeTransfer$openedStintsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmploymentStint
+   */
+  select?: Prisma.EmploymentStintSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmploymentStint
+   */
+  omit?: Prisma.EmploymentStintOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmploymentStintInclude<ExtArgs> | null
+  where?: Prisma.EmploymentStintWhereInput
+  orderBy?: Prisma.EmploymentStintOrderByWithRelationInput | Prisma.EmploymentStintOrderByWithRelationInput[]
+  cursor?: Prisma.EmploymentStintWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmploymentStintScalarFieldEnum | Prisma.EmploymentStintScalarFieldEnum[]
+}
+
+/**
+ * EmployeeTransfer.closedStints
+ */
+export type EmployeeTransfer$closedStintsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmploymentStint
+   */
+  select?: Prisma.EmploymentStintSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmploymentStint
+   */
+  omit?: Prisma.EmploymentStintOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmploymentStintInclude<ExtArgs> | null
+  where?: Prisma.EmploymentStintWhereInput
+  orderBy?: Prisma.EmploymentStintOrderByWithRelationInput | Prisma.EmploymentStintOrderByWithRelationInput[]
+  cursor?: Prisma.EmploymentStintWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmploymentStintScalarFieldEnum | Prisma.EmploymentStintScalarFieldEnum[]
 }
 
 /**

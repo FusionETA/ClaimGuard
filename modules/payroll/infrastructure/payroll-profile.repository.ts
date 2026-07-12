@@ -467,6 +467,12 @@ export const payrollProfileRepository = {
             jobTitle: true,
             policyId: true,
             payrollProfile: true,
+            /// Stint history for the period-window filter below.
+            /// One row per past-or-present tenure at this org.
+            stints: {
+              select: { joinDate: true, leaveDate: true },
+              orderBy: { joinDate: "asc" },
+            },
             projectAssignments: {
               select: {
                 project: {
@@ -525,18 +531,36 @@ export const payrollProfileRepository = {
       // Salary = 0 is an intentional opt-out — skip these employees from
       // the run draft. See `isExcludedFromPayroll` for the rationale.
       if (isExcludedFromPayroll(profile)) continue
-      // Period-aware exclusion. Skip employees who haven't started yet
-      // (joinDate after the period end) or who left before this period
-      // began (leaveDate before period start). Both checks short-circuit
-      // when the caller didn't pass a period.
+      // Period-aware exclusion. Preferred check: does ANY stint
+      // overlap the period window? A stint overlaps when
+      //   stint.joinDate  ≤ periodEnd
+      //   AND (stint.leaveDate IS NULL OR stint.leaveDate ≥ periodStart)
+      //
+      // Fallback for legacy profiles that haven't been backfilled with
+      // any stint row: use the denormalised joinDate/leaveDate on
+      // PayrollProfile — same predicate as before this rollout. Once
+      // the backfill runs everywhere the fallback becomes unreachable.
       if (periodStart && periodEnd) {
-        if (profile.joinDate) {
-          const join = new Date(profile.joinDate)
-          if (join.getTime() > periodEnd.getTime()) continue
-        }
-        if (profile.leaveDate) {
-          const leave = new Date(profile.leaveDate)
-          if (leave.getTime() < periodStart.getTime()) continue
+        if (ep.stints.length > 0) {
+          const anyOverlaps = ep.stints.some((s) => {
+            const join = new Date(s.joinDate)
+            if (join.getTime() > periodEnd.getTime()) return false
+            if (s.leaveDate) {
+              const leave = new Date(s.leaveDate)
+              if (leave.getTime() < periodStart.getTime()) return false
+            }
+            return true
+          })
+          if (!anyOverlaps) continue
+        } else {
+          if (profile.joinDate) {
+            const join = new Date(profile.joinDate)
+            if (join.getTime() > periodEnd.getTime()) continue
+          }
+          if (profile.leaveDate) {
+            const leave = new Date(profile.leaveDate)
+            if (leave.getTime() < periodStart.getTime()) continue
+          }
         }
       }
       const primaryProject = ep.projectAssignments[0]?.project ?? null
