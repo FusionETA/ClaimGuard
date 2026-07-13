@@ -304,9 +304,6 @@ export function PayslipsListPanel({
                       Employer contributions
                     </TableHead>
                     <TableHead className="bg-background"></TableHead>
-                    {showAdjustLink ? (
-                      <TableHead className="bg-background"></TableHead>
-                    ) : null}
                   </TableRow>
                   {/* ── Column heading + total row. The total under
                        each money column matches the PDF style. */}
@@ -344,11 +341,6 @@ export function PayslipsListPanel({
                     <TotalHead label="EIS" total={totals.eisEr} tint="er" />
                     <TotalHead label="HRDF" total={totals.hrdf} tint="er" />
                     <TotalHead label="COST" total={totals.cost} bold />
-                    {showAdjustLink ? (
-                      <TableHead className="text-right">
-                        ·
-                      </TableHead>
-                    ) : null}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -569,28 +561,45 @@ function PayslipRow({
   return (
     <TableRow>
       <TableCell className="sticky left-0 z-10 bg-background border-r border-border/60">
-        <div className="flex flex-col gap-1">
-          <div className="flex flex-col">
-            <span className="text-[12px] font-semibold text-foreground">
-              {payslip.snapshotName}
-            </span>
-            <span className="text-[10px] text-muted-foreground">
-              {payslip.snapshotEmployeeId}
-              {payslip.snapshotPosition ? ` · ${payslip.snapshotPosition}` : ""}
-            </span>
+        {/* Two-column layout inside the sticky cell: employee name +
+            breakdown on the left, adjustment icon top-right. The icon
+            sits inside the sticky column so it's always reachable
+            without scrolling the wide totals grid horizontally. */}
+        <div className="flex items-start gap-2">
+          <div className="flex flex-1 flex-col gap-1">
+            <div className="flex flex-col">
+              <span className="text-[12px] font-semibold text-foreground">
+                {payslip.snapshotName}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {payslip.snapshotEmployeeId}
+                {payslip.snapshotPosition ? ` · ${payslip.snapshotPosition}` : ""}
+              </span>
+            </div>
+            {/* Breakdown lines — kept tight to the name; line items
+                colour-coded by sign. */}
+            <div className="mt-0.5 space-y-0.5 text-[10.5px] leading-tight text-muted-foreground">
+              {breakdown.map((it, i) => (
+                <BreakdownLine
+                  key={`${payslip.id}-${i}`}
+                  label={it.label}
+                  amount={it.amount}
+                  signed={it.signed}
+                />
+              ))}
+            </div>
           </div>
-          {/* Breakdown lines — kept tight to the name; line items
-              colour-coded by sign. */}
-          <div className="mt-0.5 space-y-0.5 text-[10.5px] leading-tight text-muted-foreground">
-            {breakdown.map((it, i) => (
-              <BreakdownLine
-                key={`${payslip.id}-${i}`}
-                label={it.label}
-                amount={it.amount}
-                signed={it.signed}
+          {showAdjustLink ? (
+            <div className="shrink-0">
+              <EditAdjustmentDialog
+                runId={runId}
+                employeeProfileId={payslip.employeeProfileId}
+                employeeName={payslip.snapshotName}
+                employeeCode={payslip.snapshotEmployeeId}
+                readOnly={!runIsDraft}
               />
-            ))}
-          </div>
+            </div>
+          ) : null}
         </div>
       </TableCell>
       {/* HRS = actual clocked hours (both worker types). DAYS + OT are
@@ -628,17 +637,6 @@ function PayslipRow({
       <TableCell className="text-right font-mono font-semibold">
         {fmt(payslip.totalCostToEmployer)}
       </TableCell>
-      {showAdjustLink ? (
-        <TableCell className="text-right">
-          <EditAdjustmentDialog
-            runId={runId}
-            employeeProfileId={payslip.employeeProfileId}
-            employeeName={payslip.snapshotName}
-            employeeCode={payslip.snapshotEmployeeId}
-            readOnly={!runIsDraft}
-          />
-        </TableCell>
-      ) : null}
     </TableRow>
   )
 }
