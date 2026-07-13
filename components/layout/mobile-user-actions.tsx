@@ -35,11 +35,22 @@ export function MobileUserActions({
   // Click-outside + Escape to dismiss. Uses `mousedown` so the menu
   // closes on the SAME tap that clicks another button in the header,
   // avoiding a follow-up flash of the still-open menu.
+  //
+  // IMPORTANT: exempt clicks that land inside any `[role="dialog"]`
+  // (Radix Dialog sets this on DialogContent). Change Password /
+  // Switch Company open a dialog PORTALED to document.body — not
+  // inside `containerRef`. Without this check, tapping the input
+  // fields inside the open dialog looks like an outside-click,
+  // closes the menu, unmounts the ChangePasswordButton (or its
+  // sibling), and destroys the dialog's `useState(open)`. Net
+  // effect: dialog vanishes the moment the user tries to type.
   useEffect(() => {
     if (!open) return
     function onPointerDown(e: MouseEvent | TouchEvent) {
-      const target = e.target as Node | null
-      if (target && containerRef.current?.contains(target)) return
+      const target = e.target as HTMLElement | null
+      if (!target) return
+      if (containerRef.current?.contains(target)) return
+      if (target.closest?.('[role="dialog"]')) return
       close()
     }
     function onKey(e: KeyboardEvent) {
