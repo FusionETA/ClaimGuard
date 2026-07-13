@@ -399,7 +399,7 @@ export function AdminShell({
 
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[300px_1fr]">
-      <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex print:hidden">
+      <aside className="hidden min-h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex print:hidden">
         <Link href="/" className="block self-center text-center">
           <Image
             src="/brand-logo.png"
