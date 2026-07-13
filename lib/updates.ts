@@ -167,6 +167,87 @@ export const UPCOMING_FEATURES: UpcomingFeature[] = []
  */
 export const RECENTLY_SHIPPED: ShippedFeature[] = [
   {
+    id: "ship-employee-transfers-2026-07-13",
+    date: "2026-07-13",
+    title: "Move an employee between companies — no re-onboarding",
+    body:
+      "Transfer someone to another company in your group with a quick " +
+      "wizard: pick the target company, policy, and effective date. If " +
+      "they've worked there before, their existing profile and payroll " +
+      "history are reused instead of creating a duplicate record.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-payroll-run-employee-picker-2026-07-12",
+    date: "2026-07-12",
+    title: "Pick exactly who's in a payroll run",
+    body:
+      "The New Draft picker now lets you include or exclude individual " +
+      "employees, not just whole policies. Search by name or job title, " +
+      "untick anyone who shouldn't be in this month's run, and watch the " +
+      "running “X of Y included” count show the net effect.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-payslip-ot-formula-2026-07-11",
+    date: "2026-07-11",
+    title: "See how your overtime was worked out on the payslip",
+    body:
+      "Overtime lines on your payslip now show the full breakdown — hours " +
+      "× hourly rate × multiplier — instead of just the final amount.",
+    audience: "EMPLOYEE",
+  },
+  {
+    id: "ship-leave-pdf-export-2026-07-09",
+    date: "2026-07-09",
+    title: "Export leave reports as PDF",
+    body:
+      "Download leave reports as a PDF, with a dialog to choose exactly " +
+      "which employees to include.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-payroll-adjustment-import-2026-07-08",
+    date: "2026-07-08",
+    title: "Bulk-import payroll adjustments from a spreadsheet",
+    body:
+      "Upload an XLSX to set manual adjustments for a whole draft run at " +
+      "once (replacing what's already there). Payroll now re-runs " +
+      "automatically after you save, clear, or import adjustments, so the " +
+      "totals always stay in sync.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-overtime-tab-2026-07-07",
+    date: "2026-07-07",
+    title: "New Overtime tab with evidence uploads",
+    body:
+      "Your overtime submissions now live in their own tab, showing each " +
+      "request's status — pending, approved, or rejected. Attach or remove " +
+      "supporting evidence files on pending and approved records.",
+    audience: "EMPLOYEE",
+  },
+  {
+    id: "ship-clock-in-ip-whitelist-2026-07-07",
+    date: "2026-07-07",
+    title: "Restrict clock-in to your office network",
+    body:
+      "Admins can now add a list of allowed IP addresses to a project so " +
+      "staff only clock in from trusted networks. A “Use current IP” " +
+      "button makes adding your office network a single tap.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-epf-senior-band-2026-07-07",
+    date: "2026-07-07",
+    title: "More accurate EPF for older employees",
+    body:
+      "Refined the KWSP/EPF calculation so Malaysian citizens aged 60 and " +
+      "over land on the correct contribution rate, and the employer's EPF " +
+      "now follows the same official band table.",
+    audience: "ADMIN",
+  },
+  {
     id: "ship-edit-pending-claim-2026-06-10",
     date: "2026-06-10",
     title: "Edit a pending claim",
