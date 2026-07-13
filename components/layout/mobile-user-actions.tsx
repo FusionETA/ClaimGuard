@@ -86,25 +86,36 @@ export function MobileUserActions({
             "[&_button]:rounded-xl [&_button]:px-3",
             "[&_form]:w-full",
           )}
-          // Defer the close by one tick. React's synthetic events
-          // bubble child → parent, so a naive `onClick={close}` here
-          // fires AFTER the child button's onClick — which reads fine
-          // in isolation. BUT for children that rely on the browser's
-          // DEFAULT action (form submit for LogoutButton, opening a
-          // dialog for ChangePasswordButton), React commits our
-          // `setOpen(false)` synchronously and unmounts the whole
-          // menu before the browser fires those defaults. The result
-          // is the form vanishes before it can submit / the dialog
-          // state is destroyed before it can render. Punting the
-          // close to the next macrotask lets the browser's default
-          // action fire against a still-mounted DOM node first.
-          onClick={() => setTimeout(close, 0)}
+          // Auto-close the menu on any child click SO the user gets
+          // one-tap navigation for Logout (form → submit → next page).
+          //
+          // BUT dialog triggers (SwitchCompany, ChangePassword) can't
+          // close the menu — closing unmounts the trigger, which
+          // destroys its dialog `useState(open)` before the dialog
+          // gets a chance to render, so the dialog pops open and
+          // instantly disappears. For those rows, we mark the wrapper
+          // with `data-menu-keep-open` and skip the close.
+          //
+          // Once the user is done with the dialog, they can dismiss
+          // the still-open menu with an outside tap or Escape — both
+          // wired in the effect above.
+          onClick={(event) => {
+            const target = event.target as HTMLElement | null
+            if (target?.closest("[data-menu-keep-open]")) return
+            setTimeout(close, 0)
+          }}
         >
-          {hasMultipleCompanies ? <SwitchCompanyButton showLabel /> : null}
-          <ChangePasswordButton
-            hasMultipleCompanies={hasMultipleCompanies}
-            showLabel
-          />
+          {hasMultipleCompanies ? (
+            <div data-menu-keep-open>
+              <SwitchCompanyButton showLabel />
+            </div>
+          ) : null}
+          <div data-menu-keep-open>
+            <ChangePasswordButton
+              hasMultipleCompanies={hasMultipleCompanies}
+              showLabel
+            />
+          </div>
           <LogoutButton showLabel />
         </div>
       ) : null}
