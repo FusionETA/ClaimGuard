@@ -125,40 +125,37 @@ export async function GET(request: NextRequest) {
       : []
     const isReauth = existingConnections.length > 0
 
+    // Unified selectable-tenants filter for both fresh-connect AND
+    // reconnect (a.k.a. reauth). Prior behavior FORCED reconnect to
+    // stick with the currently-connected tenant, which meant admins
+    // clicking Reconnect to switch to a different Xero tenant would
+    // silently get the SAME one re-upserted with a stale tenantName
+    // — no way to switch without disconnecting first. Now the filter
+    // just drops tenants already taken by OTHER AltomateHR orgs (via
+    // getInUseTenantIds, which excludes the current org's own
+    // connections), so the current tenant AND any new ones the user
+    // just authorised are BOTH selectable. If only one survives →
+    // auto-connect. If multiple → show the picker.
     let selectableTenants = tenants
-
-    if (isReauth) {
-      const existingTenantIds = new Set(
-        existingConnections.map((c) => c.tenantId)
-      )
-      const matched = tenants.find((t) => existingTenantIds.has(t.tenantId))
-      if (!matched) {
-        const existingNames = existingConnections
-          .map((c) => `"${c.tenantName}"`)
-          .join(", ")
-        return finish(
-          `/admin/settings?xero=error&reason=${encodeURIComponent(
-            `The Xero account you signed in with doesn't include ${existingNames}. Sign out of Xero in another tab (or use an incognito window), then click "Update permissions" again with the Xero account that owns ${existingNames}.`
-          )}`
-        )
-      }
-      selectableTenants = [matched]
-    } else if (activeOrgId && tenants.length > 1) {
+    if (activeOrgId) {
       const takenTenantIds = new Set(
         await organizationRepository.getInUseTenantIds(
           tenants.map((t) => t.tenantId),
           activeOrgId
         )
       )
-      const available = tenants.filter((t) => !takenTenantIds.has(t.tenantId))
-      if (available.length === 0) {
+      selectableTenants = tenants.filter(
+        (t) => !takenTenantIds.has(t.tenantId)
+      )
+      if (selectableTenants.length === 0) {
         return finish(
           `/admin/settings?xero=error&reason=${encodeURIComponent(
-            "Every Xero organisation you authorised is already connected to another company in AltomateHR. Disconnect from the other company first, or sign in with a Xero account that has access to an unconnected organisation."
+            isReauth
+              ? "Every Xero organisation you signed in with is currently connected to another company in AltomateHR. Sign in with a Xero account that has access to an unconnected organisation."
+              : "Every Xero organisation you authorised is already connected to another company in AltomateHR. Disconnect from the other company first, or sign in with a Xero account that has access to an unconnected organisation."
           )}`
         )
       }
-      selectableTenants = available
     }
 
     // More than one connectable org → let the admin pick. Store the token set +
