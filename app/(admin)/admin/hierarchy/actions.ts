@@ -13,7 +13,12 @@ import {
   type HierarchyFormState,
 } from "@/app/(admin)/admin/hierarchy/form-state"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
+import {
+  bustAttendanceCaches,
+  bustClaimCaches,
+  bustLeaveCaches,
+  bustOrgConfigCaches,
+} from "@/lib/cache-invalidation"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { upsertPayrollProfile } from "@/modules/payroll/application/services/payroll-profile.service"
@@ -467,8 +472,19 @@ export async function createHierarchyMemberAction(
   revalidatePath("/admin/hierarchy")
   revalidatePath("/admin/company-structure")
 
+  // New hire → the org's attendance / leave / claim admin overviews
+  // need to pick the person up on the next request. Same coarse sweep
+  // as archive/restore/transfer; org-scoped only (no user-scope needed
+  // because a fresh user has no per-user cache to invalidate — and
+  // the link path's existing-user caches at their OTHER org stay
+  // correct).
   if (organizationId) {
-    await bustOrgConfigCaches({ organizationId })
+    await Promise.all([
+      bustOrgConfigCaches({ organizationId }),
+      bustAttendanceCaches({ organizationId }),
+      bustLeaveCaches({ organizationId }),
+      bustClaimCaches({ organizationId }),
+    ])
   }
 
   return {

@@ -2,7 +2,13 @@ import "server-only"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
-import { bustOrgConfigCaches, bustPayrollCaches } from "@/lib/cache-invalidation"
+import {
+  bustAttendanceCaches,
+  bustClaimCaches,
+  bustLeaveCaches,
+  bustOrgConfigCaches,
+  bustPayrollCaches,
+} from "@/lib/cache-invalidation"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 // Reach for the Prisma client via the infrastructure re-export the same
@@ -704,11 +710,36 @@ export async function executeEmployeeTransfer(input: {
 
   // Bust caches at BOTH orgs — source's employee list needs the row
   // to disappear as archived; target's needs it to appear as fresh.
+  // A transfer touches every surface the employee shows up on, so we
+  // sweep all five feature areas (payroll, org config, attendance,
+  // leave, claims) on both ends + the employee's own dashboard cache.
   await Promise.all([
     bustPayrollCaches({ organizationId: transfer.sourceOrganizationId }),
     bustPayrollCaches({ organizationId: transfer.targetOrganizationId }),
     bustOrgConfigCaches({ organizationId: transfer.sourceOrganizationId }),
     bustOrgConfigCaches({ organizationId: transfer.targetOrganizationId }),
+    // Attendance: admin overview / roll-call / stats at both orgs
+    // + the employee's own dashboard cache (their active-org
+    // membership just changed).
+    bustAttendanceCaches({ organizationId: transfer.sourceOrganizationId }),
+    bustAttendanceCaches({ organizationId: transfer.targetOrganizationId }),
+    bustAttendanceCaches({ employeeUserId: source.userId }),
+    // Leave: "on leave today" counts + exec-overview at both orgs.
+    // Target's leave-type list also drives dropdowns; source drops
+    // the transferred employee from active counts.
+    bustLeaveCaches({ organizationId: transfer.sourceOrganizationId }),
+    bustLeaveCaches({ organizationId: transfer.targetOrganizationId }),
+    // Claims: admin queue + exec-overview at both orgs; the per-user
+    // submission-data cache (spend-limit dropdowns) resets so the
+    // employee sees the target org's account list on next submit.
+    bustClaimCaches({
+      organizationId: transfer.sourceOrganizationId,
+      userId: source.userId,
+    }),
+    bustClaimCaches({
+      organizationId: transfer.targetOrganizationId,
+      userId: source.userId,
+    }),
   ])
 
   // Execution audit uses the SYSTEM actor — the cron / inline execute

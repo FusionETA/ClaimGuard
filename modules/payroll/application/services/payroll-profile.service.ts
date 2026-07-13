@@ -3,7 +3,13 @@ import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
-import { bustOrgConfigCaches, bustPayrollCaches } from "@/lib/cache-invalidation"
+import {
+  bustAttendanceCaches,
+  bustClaimCaches,
+  bustLeaveCaches,
+  bustOrgConfigCaches,
+  bustPayrollCaches,
+} from "@/lib/cache-invalidation"
 import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 import {
   getPayrollPrismaClientSafe as getPrismaClient,
@@ -453,8 +459,18 @@ export async function archivePayrollProfile(input: {
     },
   })
 
-  await bustOrgConfigCaches({ organizationId: orgId })
-  await bustPayrollCaches({ organizationId: orgId })
+  // Broad sweep across every surface the archived employee appears
+  // on so counts, lists, and dashboards drop them within the same
+  // request. Same shape as `executeEmployeeTransfer` — an archive is
+  // the "leaving" half of a transfer.
+  await Promise.all([
+    bustOrgConfigCaches({ organizationId: orgId }),
+    bustPayrollCaches({ organizationId: orgId }),
+    bustAttendanceCaches({ organizationId: orgId }),
+    bustAttendanceCaches({ employeeUserId: input.userId }),
+    bustLeaveCaches({ organizationId: orgId }),
+    bustClaimCaches({ organizationId: orgId, userId: input.userId }),
+  ])
 }
 
 /// Update the employee's primary (login) email. Validates that the new
@@ -625,6 +641,16 @@ export async function unarchivePayrollProfile(input: {
     targetId: input.userId,
   })
 
-  await bustOrgConfigCaches({ organizationId: orgId })
-  await bustPayrollCaches({ organizationId: orgId })
+  // Restore is the mirror of archive — every surface the employee
+  // used to appear on has to pick them up again. Same sweep as
+  // archive above so admin dashboards and the employee's own
+  // dashboard reflect the return without waiting for TTL.
+  await Promise.all([
+    bustOrgConfigCaches({ organizationId: orgId }),
+    bustPayrollCaches({ organizationId: orgId }),
+    bustAttendanceCaches({ organizationId: orgId }),
+    bustAttendanceCaches({ employeeUserId: input.userId }),
+    bustLeaveCaches({ organizationId: orgId }),
+    bustClaimCaches({ organizationId: orgId, userId: input.userId }),
+  ])
 }
