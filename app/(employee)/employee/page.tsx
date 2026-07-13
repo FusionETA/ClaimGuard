@@ -324,7 +324,7 @@ export default async function EmployeeDashboardPage() {
       </Link>
 
       {moduleAccess.claims && claimsData ? (
-        <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+        <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.25fr_0.75fr] xl:items-start">
           <Card className="overflow-hidden border border-border/70 bg-card/94 text-foreground shadow-ambient backdrop-blur-sm">
             <CardHeader className="p-5 sm:p-8 xl:p-6">
               <div>
