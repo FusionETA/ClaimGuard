@@ -12,6 +12,7 @@ import {
   type TableFilterValue,
 } from "@/components/attendance/table-filter-bar"
 import type { AttendanceSessionView } from "@/modules/attendance/domain/models"
+import { formatDistance } from "@/lib/geo"
 import { cn } from "@/lib/utils"
 
 export type DailyActivityDerivedStatus =
@@ -307,7 +308,7 @@ export function DailyActivityTable({
                       <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-destructive">
                         Off-site
                         {row.clockInDistanceMeters != null
-                          ? ` · ${Math.round(row.clockInDistanceMeters)}m`
+                          ? ` · ${formatDistance(row.clockInDistanceMeters)}`
                           : ""}
                       </p>
                     ) : null}

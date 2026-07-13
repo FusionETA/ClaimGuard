@@ -6,6 +6,7 @@ import {
   TableFilterBar,
   type TableFilterValue,
 } from "@/components/attendance/table-filter-bar"
+import { formatDistance } from "@/lib/geo"
 
 export type OffSiteRow = {
   id: string
@@ -86,7 +87,7 @@ export function OffSiteLogCard({
                   <div className="flex items-baseline justify-between gap-3">
                     <p className="truncate text-sm font-bold">{r.employeeName}</p>
                     <span className="shrink-0 text-xs font-semibold text-destructive">
-                      {Math.round(r.clockInDistanceMeters)}m from site
+                      {formatDistance(r.clockInDistanceMeters)} from site
                     </span>
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">

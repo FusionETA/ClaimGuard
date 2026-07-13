@@ -17,7 +17,7 @@ import type {
   AttendanceRecordView,
   ClockEventLite,
 } from "@/modules/attendance/domain/models"
-import { checkGeofence, type GeofenceCheck } from "@/lib/geo"
+import { checkGeofence, formatDistance, type GeofenceCheck } from "@/lib/geo"
 import { parseWorkingDays, isoWeekday } from "@/modules/attendance/domain/hours-summary"
 
 import {
@@ -1192,7 +1192,7 @@ function RemarkPanel({
       ? "Location unavailable — add a remark"
       : fence.reason === "no_project_coords"
         ? "Project has no coordinates set — add a remark"
-        : `You're ${fence.distanceMeters ? Math.round(fence.distanceMeters) : "?"}m from ${projectName ?? "the project"}`
+        : `You're ${fence.distanceMeters != null ? formatDistance(fence.distanceMeters) : "?m"} from ${projectName ?? "the project"}`
   const body = offNetwork
     ? "Add a remark explaining why you're off-network (site visit / WFH). Your approver will see it."
     : "Add a remark explaining why you're off-site. Your approver will see it."
@@ -1281,8 +1281,7 @@ function DistanceIndicator({
       </p>
     )
   } else {
-    const meters = Math.round(fence.distanceMeters ?? 0)
-    const display = meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`
+    const display = formatDistance(fence.distanceMeters ?? 0)
     status = fence.withinRadius ? (
       <p className="inline-flex items-center gap-1 text-[11px] font-semibold text-success">
         <span className="h-1.5 w-1.5 rounded-full bg-success" />

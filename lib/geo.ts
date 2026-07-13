@@ -44,3 +44,15 @@ export function checkGeofence(
   }
   return { withinRadius: false, distanceMeters: distance, reason: "outside_radius" }
 }
+
+/**
+ * Human-readable distance label. Meters when small enough to be
+ * meaningful, km when the number would otherwise be a wall of digits.
+ * Threshold is 1000m — "28409m" reads as a phone number; "28.41 km"
+ * reads as a distance. Rounds to a whole meter under 1km and two
+ * decimals above.
+ */
+export function formatDistance(meters: number): string {
+  if (meters < 1000) return `${Math.round(meters)}m`
+  return `${(meters / 1000).toFixed(2)} km`
+}
