@@ -375,8 +375,8 @@ export function EmployeeShell({
                             className={cn(
                               "flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
                               childActive
-                                ? "text-primary"
-                                : "text-muted-foreground hover:text-foreground"
+                                ? "bg-primary/10 text-primary"
+                                : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
                             )}
                           >
                             <span>{child.label}</span>

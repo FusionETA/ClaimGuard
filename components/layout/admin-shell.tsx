@@ -466,18 +466,39 @@ export function AdminShell({
                 {item.children && parentActive ? (
                   <div className="mt-1 space-y-0.5 border-l border-border/60 pl-4 ml-5">
                     {item.children.map((child) => {
-                      // Support both path-based and ?tab= query-param-based children
-                      const childTabMatch = child.href.match(/[?&]tab=([^&]+)/)
-                      const childSectionMatch = child.href.match(/[?&]section=([^&]+)/)
-                      const childTab = childTabMatch?.[1] ?? null
-                      const childSection = childSectionMatch?.[1] ?? null
-                      const currentTab = searchParams.get("tab") ?? "organization"
-                      const currentSection = searchParams.get("section")
-                      const childActive = childTab
-                        ? pathname === item.href &&
-                          currentTab === childTab &&
-                          (childSection ? currentSection === childSection : true)
-                        : pathname === child.href
+                      // Robust URL-based match. Split child href into
+                      // (path, params) via URL parser instead of hand-
+                      // rolled regex. A child is active when:
+                      //   - its path === current pathname, AND
+                      //   - every query key the child specifies matches
+                      //     the current URL's value for that key
+                      //     (default-fallback: ?tab=organization is
+                      //     considered present when the URL has no
+                      //     tab param — the Settings page's default).
+                      const [childPathRaw, childQueryRaw = ""] = child.href.split(
+                        "?",
+                      )
+                      const childParams = new URLSearchParams(childQueryRaw)
+                      const childHasParams = [...childParams.keys()].length > 0
+                      const pathMatches = pathname === childPathRaw
+                      const paramsMatch = childHasParams
+                        ? [...childParams.entries()].every(([key, expected]) => {
+                            const actual = searchParams.get(key)
+                            if (actual !== null) return actual === expected
+                            // Fallback: /admin/settings with no ?tab= still
+                            // renders the Organization tab, so treat
+                            // ?tab=organization as present-by-default.
+                            if (
+                              key === "tab" &&
+                              expected === "organization" &&
+                              childPathRaw === "/admin/settings"
+                            ) {
+                              return true
+                            }
+                            return false
+                          })
+                        : true
+                      const childActive = pathMatches && paramsMatch
                       return (
                         <Link
                           key={child.href}
@@ -485,8 +506,8 @@ export function AdminShell({
                           className={cn(
                             "block rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
                             childActive
-                              ? "text-primary"
-                              : "text-muted-foreground hover:text-foreground"
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
                           )}
                         >
                           {child.label}
