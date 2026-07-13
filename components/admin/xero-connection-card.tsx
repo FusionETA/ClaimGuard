@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Building2, CircleAlert, Link2, Loader2, ShieldCheck, Unplug } from "lucide-react"
+import { Building2, CircleAlert, Link2, Loader2, RefreshCw, ShieldCheck, Unplug } from "lucide-react"
 
 import { disconnectXeroAction } from "@/app/(admin)/admin/settings/actions"
 import { Button } from "@/components/ui/button"
@@ -65,20 +65,39 @@ function ConnectionRow({ connection }: { connection: XeroConnectionInfo }) {
           ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {connection.requiresReauth ? (
-            <Button
-              asChild
-              type="button"
-              variant="outline"
-              size="sm"
-              className="border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950"
-            >
-              <a href="/api/xero/connect">
-                <ShieldCheck className="mr-1.5 h-4 w-4" />
-                Update permissions
-              </a>
-            </Button>
-          ) : null}
+          {/* Re-run the OAuth flow without disconnecting. When
+              `requiresReauth` is true (Xero pushed a scope change and
+              our stored token no longer covers it) the button gets
+              the amber "Update permissions" treatment; otherwise it's
+              a neutral "Reconnect" that admins can use to swap the
+              signed-in Xero user, refresh a stale refresh token, or
+              re-establish a connection after revoking access on the
+              Xero side. Same href either way. */}
+          <Button
+            asChild
+            type="button"
+            variant="outline"
+            size="sm"
+            className={
+              connection.requiresReauth
+                ? "border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950"
+                : undefined
+            }
+          >
+            <a href="/api/xero/connect">
+              {connection.requiresReauth ? (
+                <>
+                  <ShieldCheck className="mr-1.5 h-4 w-4" />
+                  Update permissions
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-1.5 h-4 w-4" />
+                  Reconnect
+                </>
+              )}
+            </a>
+          </Button>
           <Button
             type="button"
             variant="ghost"
