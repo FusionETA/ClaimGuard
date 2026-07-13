@@ -51,7 +51,13 @@ import { cn, formatShortDate } from "@/lib/utils"
  *     full-page outage page — no point doubling up), /login (don't
  *     distract first-time-visit-of-the-session users from signing in).
  */
-const EXCLUDED_PATHS = ["/maintenance", "/login"]
+/// Prefixes to suppress the banner + pill on. `startsWith` match, so
+/// entries like `/login` also cover `/login/reset`, `/login/verify`, etc.
+const EXCLUDED_PREFIXES = ["/maintenance", "/login"]
+/// Exact paths to suppress. Kept separate from `EXCLUDED_PREFIXES`
+/// because a `startsWith("/")` match would silently hide the pill on
+/// every route — the root only needs an exact match.
+const EXCLUDED_EXACT = ["/"]
 
 /**
  * Props:
@@ -113,9 +119,12 @@ export function UpdatesAnnouncer({
     [audience],
   )
 
-  // Suppress on /maintenance and /login. The banner / pill add no
-  // value on those routes and only steal screen real estate.
-  const onExcludedPath = EXCLUDED_PATHS.some((p) => pathname?.startsWith(p))
+  // Suppress on / (Company Login splash), /login, and /maintenance.
+  // The banner / pill add no value on pre-auth or downtime screens
+  // and only steal screen real estate.
+  const onExcludedPath =
+    EXCLUDED_EXACT.includes(pathname ?? "") ||
+    EXCLUDED_PREFIXES.some((p) => pathname?.startsWith(p))
 
   // Nothing visible to this audience? Render nothing — no DOM, no JS work.
   const hasAnyContent =
