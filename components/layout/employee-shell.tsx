@@ -398,7 +398,7 @@ export function EmployeeShell({
         </nav>
       </aside>
 
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen min-w-0 flex-col">
         <header className="sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-xl print:hidden">
           <div className="container flex items-center justify-between py-4">
             <div>
