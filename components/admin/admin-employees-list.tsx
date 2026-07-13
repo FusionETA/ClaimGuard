@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { ChevronRight, Search } from "lucide-react"
 
@@ -15,9 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import { HoursProgressInline } from "@/components/attendance/hours-progress"
 import { attendanceStatusMeta } from "@/modules/attendance/domain/metadata"
 import type { AttendanceStatus } from "@/modules/attendance/domain/models"
+
+const PAGE_SIZE = 20
 
 type Employee = {
   id: string
@@ -75,6 +78,24 @@ export function AdminEmployeesList({ employees }: { employees: Employee[] }) {
   const isFiltered =
     searchTerm.trim().length > 0 || projectFilter !== ALL_PROJECTS
 
+  // Pagination. Reset to page 1 whenever the filter set changes so the
+  // user isn't stranded on a page number that no longer exists after
+  // narrowing/expanding the visible set.
+  const [page, setPage] = useState(1)
+  useEffect(() => {
+    setPage(1)
+  }, [searchTerm, projectFilter])
+  const totalPages = Math.max(1, Math.ceil(filteredEmployees.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const pagedEmployees = useMemo(
+    () =>
+      filteredEmployees.slice(
+        (clampedPage - 1) * PAGE_SIZE,
+        clampedPage * PAGE_SIZE,
+      ),
+    [filteredEmployees, clampedPage],
+  )
+
   return (
     <div className="space-y-4">
       <div>
@@ -126,7 +147,7 @@ export function AdminEmployeesList({ employees }: { employees: Employee[] }) {
             </p>
           ) : (
             <div className="space-y-1">
-              {filteredEmployees.map((e) => (
+              {pagedEmployees.map((e) => (
                 <Link
                   key={e.id}
                   href={`/admin/attendance/employees/${e.id}`}
@@ -187,6 +208,14 @@ export function AdminEmployeesList({ employees }: { employees: Employee[] }) {
               ))}
             </div>
           )}
+          <PaginationControls
+            className="mt-3 flex flex-col items-start justify-between gap-2 border-t border-border/60 pt-3 sm:flex-row sm:items-center"
+            currentPage={clampedPage}
+            pageSize={PAGE_SIZE}
+            totalItems={filteredEmployees.length}
+            itemLabel="employees"
+            onPageChange={setPage}
+          />
         </CardContent>
       </Card>
     </div>
