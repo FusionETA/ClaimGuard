@@ -106,7 +106,7 @@ export function ChangePasswordDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="bottom-auto flex max-h-[calc(100dvh-2rem)] w-[min(92vw,440px)] flex-col overflow-y-auto px-5 pb-5 pt-5 sm:max-h-none sm:max-w-[440px] sm:px-6 sm:pb-6 sm:pt-6"
+        className="left-[50%] top-[50%] bottom-auto flex max-h-[calc(100dvh-2rem)] w-[min(92vw,440px)] -translate-x-[50%] -translate-y-[50%] flex-col overflow-y-auto px-5 pb-5 pt-5 sm:max-h-none sm:max-w-[440px] sm:px-6 sm:pb-6 sm:pt-6"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
           <DialogHeader className="shrink-0 pr-8">
