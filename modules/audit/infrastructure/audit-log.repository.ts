@@ -145,4 +145,59 @@ export const auditLogRepository = {
     })
     return { deleted: result.count }
   },
+
+  /**
+   * Cross-org lookup of recent audit entries filtered by `action` +
+   * (optional) `actorRole IN (…)`. Used by cron / reporting paths
+   * that need a slice across every org — the caller is expected to
+   * be an OPERATOR flow (bearer-authed cron endpoint), not a per-org
+   * admin request. Ordered newest-first.
+   *
+   * Returns lightweight rows (org name + actor identity fields) —
+   * enough for a WhatsApp / email summary without dragging the full
+   * AuditLogEntry mapper into the shape.
+   */
+  async listRecentByAction(input: {
+    action: string
+    actorRoles?: string[]
+    since: Date
+  }): Promise<
+    Array<{
+      createdAt: Date
+      actorUserId: string | null
+      actorName: string
+      actorEmail: string
+      actorRole: string | null
+      organizationName: string
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const rows = await prisma.organizationAuditLog.findMany({
+      where: {
+        action: input.action,
+        createdAt: { gte: input.since },
+        ...(input.actorRoles && input.actorRoles.length > 0
+          ? { actorRole: { in: input.actorRoles } }
+          : {}),
+      },
+      select: {
+        createdAt: true,
+        actorUserId: true,
+        actorName: true,
+        actorEmail: true,
+        actorRole: true,
+        organization: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    })
+    return rows.map((r) => ({
+      createdAt: r.createdAt,
+      actorUserId: r.actorUserId,
+      actorName: r.actorName,
+      actorEmail: r.actorEmail,
+      actorRole: r.actorRole,
+      organizationName: r.organization?.name ?? "",
+    }))
+  },
 }

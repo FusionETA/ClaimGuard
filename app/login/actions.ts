@@ -100,6 +100,30 @@ export async function loginAction(
   // 2. Create the session cookie.
   await createUserSession(result.user)
 
+  // 2.5. Record the login in the audit trail. Fire-and-forget — the
+  //      redirect shouldn't wait on the audit write, and the audit
+  //      service swallows its own failures. The daily WhatsApp login
+  //      report (routine `daily-login-report`) reads these rows to
+  //      summarise who signed in over the past 24h.
+  const auditOrgId =
+    result.user.activeOrganizationId ?? result.user.organizationId
+  if (auditOrgId) {
+    void writeAudit({
+      organizationId: auditOrgId,
+      actor: {
+        userId: result.user.userId,
+        email: result.user.email,
+        name: result.user.name,
+        role: result.user.role,
+      },
+      action: "auth.login",
+      status: "SUCCESS",
+      summary: `Signed in`,
+      targetType: "user",
+      targetId: result.user.userId,
+    })
+  }
+
   // 3. Redirect to the correct portal.
   // NOTE: We intentionally do NOT prefetch data here. The prefetch was
   // blocking DB connections during login (causing pool exhaustion / 504s
