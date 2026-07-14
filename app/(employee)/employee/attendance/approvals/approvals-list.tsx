@@ -92,6 +92,56 @@ function fmtUploadedAt(iso: string): string {
   })
 }
 
+function AttachmentLink({ a }: { a: ApprovalRequestView["attachments"][number] }) {
+  return (
+    <a
+      href={a.fileUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 text-xs text-primary hover:underline"
+    >
+      <FileText className="h-3.5 w-3.5 shrink-0" />
+      <div className="min-w-0">
+        <span className="truncate block">{a.fileName}</span>
+        {a.uploadedAt ? (
+          <span className="text-[10px] text-muted-foreground font-normal not-italic">
+            {fmtUploadedAt(a.uploadedAt)}
+          </span>
+        ) : null}
+      </div>
+    </a>
+  )
+}
+
+function OtAttachmentSplit({ attachments }: { attachments: ApprovalRequestView["attachments"] }) {
+  const justification = attachments.filter((a) => a.kind === "JUSTIFICATION")
+  const evidence = attachments.filter((a) => a.kind === "EVIDENCE")
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Before (Justification)
+        </p>
+        {justification.length === 0 ? (
+          <p className="text-xs text-muted-foreground">None uploaded.</p>
+        ) : (
+          justification.map((a) => <AttachmentLink key={a.id} a={a} />)
+        )}
+      </div>
+      <div className="space-y-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          After (Evidence)
+        </p>
+        {evidence.length === 0 ? (
+          <p className="text-xs text-muted-foreground">None uploaded.</p>
+        ) : (
+          evidence.map((a) => <AttachmentLink key={a.id} a={a} />)
+        )}
+      </div>
+    </div>
+  )
+}
+
 type Props = {
   items: ApprovalRequestView[]
   reviewedOt: ApprovalRequestView[]
@@ -775,32 +825,7 @@ function OtCard({ item }: { item: ApprovalRequestView }) {
         </div>
       </div>
 
-      {item.attachments.length > 0 && (
-        <div className="space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Evidence
-          </p>
-          {item.attachments.map((a) => (
-            <a
-              key={a.id}
-              href={a.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-xs text-primary hover:underline"
-            >
-              <FileText className="h-3.5 w-3.5 shrink-0" />
-              <div className="min-w-0">
-                <span className="truncate block">{a.fileName}</span>
-                {a.uploadedAt ? (
-                  <span className="text-[10px] text-muted-foreground font-normal not-italic">
-                    {fmtUploadedAt(a.uploadedAt)}
-                  </span>
-                ) : null}
-              </div>
-            </a>
-          ))}
-        </div>
-      )}
+      <OtAttachmentSplit attachments={item.attachments} />
 
       <div className="flex gap-2 pt-1">
         <Button
@@ -862,32 +887,7 @@ function OtReviewedCard({ item }: { item: ApprovalRequestView }) {
         ) : null}
       </dl>
 
-      {item.attachments.length > 0 && (
-        <div className="space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Evidence
-          </p>
-          {item.attachments.map((a) => (
-            <a
-              key={a.id}
-              href={a.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-xs text-primary hover:underline"
-            >
-              <FileText className="h-3.5 w-3.5 shrink-0" />
-              <div className="min-w-0">
-                <span className="truncate block">{a.fileName}</span>
-                {a.uploadedAt ? (
-                  <span className="text-[10px] text-muted-foreground font-normal not-italic">
-                    {fmtUploadedAt(a.uploadedAt)}
-                  </span>
-                ) : null}
-              </div>
-            </a>
-          ))}
-        </div>
-      )}
+      <OtAttachmentSplit attachments={item.attachments} />
     </div>
   )
 }

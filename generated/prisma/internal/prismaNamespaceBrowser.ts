@@ -732,6 +732,7 @@ export const OtAttachmentScalarFieldEnum = {
   fileUrl: 'fileUrl',
   mimeType: 'mimeType',
   sizeBytes: 'sizeBytes',
+  kind: 'kind',
   createdAt: 'createdAt'
 } as const
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
-import { Clock, Plus } from "lucide-react"
+import { Clock, Paperclip, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -376,6 +376,9 @@ function OtSubmitDialog({
   const [endTime, setEndTime] = useState("")
   const [projectId, setProjectId] = useState("")
   const [notes, setNotes] = useState("")
+  const [justificationFile, setJustificationFile] = useState<File | null>(null)
+  const [justificationError, setJustificationError] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -388,6 +391,9 @@ function OtSubmitDialog({
     setEndTime("")
     setProjectId("")
     setNotes("")
+    setJustificationFile(null)
+    setJustificationError(false)
+    if (fileInputRef.current) fileInputRef.current.value = ""
     setMessage(null)
   }
 
@@ -401,6 +407,12 @@ function OtSubmitDialog({
       setMessage("End time must be after start time.")
       return
     }
+    if (!justificationFile) {
+      setJustificationError(true)
+      setMessage("Please attach a justification document before submitting.")
+      return
+    }
+    setJustificationError(false)
     setMessage(null)
     const fd = new FormData()
     fd.set("date", date)
@@ -408,6 +420,7 @@ function OtSubmitDialog({
     fd.set("otEndAtUtc", new Date(`${date}T${endTime}:00`).toISOString())
     if (projectId) fd.set("otProjectId", projectId)
     if (notes.trim()) fd.set("notes", notes.trim())
+    fd.set("justificationFile", justificationFile)
     startTransition(async () => {
       const res = await submitOtAction(fd)
       if (!res.ok) {
@@ -501,6 +514,42 @@ function OtSubmitDialog({
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="ot-justification" className={justificationError ? "text-destructive" : undefined}>
+              Work area / justification <span className="text-destructive">*</span>
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Upload a document or photo showing the area or tasks planned for this OT session. You can upload completion evidence after the session on the Overtime tab.
+            </p>
+            <label
+              htmlFor="ot-justification"
+              className={cn(
+                "flex cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:bg-muted",
+                justificationError && "border-destructive",
+              )}
+            >
+              <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className={cn("truncate", justificationFile ? "text-foreground" : "text-muted-foreground")}>
+                {justificationFile ? justificationFile.name : "Choose file…"}
+              </span>
+              <input
+                ref={fileInputRef}
+                id="ot-justification"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                className="sr-only"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null
+                  setJustificationFile(f)
+                  if (f) setJustificationError(false)
+                }}
+              />
+            </label>
+            {justificationError ? (
+              <p className="text-xs text-destructive">Justification attachment is required.</p>
+            ) : null}
           </div>
 
           {message ? (

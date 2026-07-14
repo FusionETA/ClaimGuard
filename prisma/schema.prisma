@@ -1265,16 +1265,22 @@ model ApprovalRequest {
 }
 
 model OtAttachment {
-  id                String          @id @default(cuid())
+  id                String            @id @default(cuid())
   approvalRequestId String
   fileName          String
   fileUrl           String
   mimeType          String
   sizeBytes         Int
-  createdAt         DateTime        @default(now())
-  approvalRequest   ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+  kind              OtAttachmentKind  @default(EVIDENCE)
+  createdAt         DateTime          @default(now())
+  approvalRequest   ApprovalRequest   @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
 
   @@index([approvalRequestId])
+}
+
+enum OtAttachmentKind {
+  JUSTIFICATION
+  EVIDENCE
 }
 
 model ApprovalChainStep {

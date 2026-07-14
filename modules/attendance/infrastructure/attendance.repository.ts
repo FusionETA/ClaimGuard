@@ -1418,13 +1418,14 @@ export const attendanceRepository = {
         fileUrl: a.fileUrl,
         mimeType: a.mimeType,
         uploadedAt: a.createdAt.toISOString(),
+        kind: a.kind as "JUSTIFICATION" | "EVIDENCE",
       })),
     }))
   },
 
   async addOtAttachment(
     approvalRequestId: string,
-    data: { fileName: string; fileUrl: string; mimeType: string; sizeBytes: number },
+    data: { fileName: string; fileUrl: string; mimeType: string; sizeBytes: number; kind?: "JUSTIFICATION" | "EVIDENCE" },
   ): Promise<string> {
     const prisma = getClient()
     const row = await prisma.otAttachment.create({
@@ -2540,6 +2541,7 @@ export const attendanceRepository = {
         fileUrl: a.fileUrl,
         mimeType: a.mimeType,
         uploadedAt: a.createdAt.toISOString(),
+        kind: a.kind as "JUSTIFICATION" | "EVIDENCE",
       })),
     }))
     const withContext = await attachChainContext(baseViews)
@@ -2578,6 +2580,7 @@ export const attendanceRepository = {
         fileUrl: a.fileUrl,
         mimeType: a.mimeType,
         uploadedAt: a.createdAt.toISOString(),
+        kind: a.kind as "JUSTIFICATION" | "EVIDENCE",
       })),
     }))
   },
@@ -3374,6 +3377,7 @@ export const attendanceRepository = {
           fileUrl: a.fileUrl,
           mimeType: a.mimeType,
           uploadedAt: a.createdAt.toISOString(),
+          kind: a.kind as "JUSTIFICATION" | "EVIDENCE",
         })),
       })),
     )
@@ -4599,7 +4603,7 @@ export const attendanceRepository = {
       submittedAt: string
       reviewerName: string | null
       reviewedAt: string | null
-      attachments: { id: string; fileName: string; fileUrl: string; mimeType: string; uploadedAt: string }[]
+      attachments: { id: string; fileName: string; fileUrl: string; mimeType: string; uploadedAt: string; kind: "JUSTIFICATION" | "EVIDENCE" }[]
     }>
   > {
     const prisma = getClient()
@@ -4648,6 +4652,7 @@ export const attendanceRepository = {
         fileUrl: a.fileUrl,
         mimeType: a.mimeType,
         uploadedAt: a.createdAt.toISOString(),
+        kind: a.kind as "JUSTIFICATION" | "EVIDENCE",
       })),
     }))
   },

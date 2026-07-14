@@ -67,6 +67,9 @@ export function OtRecordCard({
 
   const canAttach = record.status === "PENDING" || record.status === "APPROVED"
 
+  const justificationAttachments = attachments.filter((a) => a.kind === "JUSTIFICATION")
+  const evidenceAttachments = attachments.filter((a) => a.kind === "EVIDENCE")
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -129,13 +132,50 @@ export function OtRecordCard({
           </Badge>
         </div>
 
-        {/* Attachments section — only for pending/approved */}
+        {/* Justification — always shown, read-only */}
+        <div className="border-t border-border/50 pt-3 space-y-1.5">
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+            <Paperclip className="h-3.5 w-3.5" />
+            Before (Justification)
+          </span>
+          {justificationAttachments.length === 0 ? (
+            <p className="text-xs text-muted-foreground">None uploaded.</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {justificationAttachments.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex items-center gap-2 rounded-lg border border-border/50 bg-surface-low px-3 py-2"
+                >
+                  <a
+                    href={a.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex min-w-0 flex-1 items-center gap-2 text-xs font-medium text-foreground hover:underline"
+                  >
+                    <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0">
+                      <span className="truncate block">{a.fileName}</span>
+                      {a.uploadedAt ? (
+                        <span className="text-[10px] text-muted-foreground font-normal">
+                          {fmtUploadedAt(a.uploadedAt)}
+                        </span>
+                      ) : null}
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Evidence — upload/delete only for pending/approved */}
         {canAttach ? (
           <div className="border-t border-border/50 pt-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <Paperclip className="h-3.5 w-3.5" />
-                Evidence
+                After (Evidence)
               </span>
               <button
                 type="button"
@@ -154,12 +194,13 @@ export function OtRecordCard({
                 onChange={handleFileChange}
               />
             </div>
+            <p className="text-xs text-muted-foreground">Upload photos or documents showing the work completed during this OT session.</p>
 
-            {attachments.length === 0 ? (
+            {evidenceAttachments.length === 0 ? (
               <p className="text-xs text-muted-foreground">No evidence uploaded yet.</p>
             ) : (
               <ul className="space-y-1.5">
-                {attachments.map((a) => (
+                {evidenceAttachments.map((a) => (
                   <li
                     key={a.id}
                     className="flex items-center justify-between gap-2 rounded-lg border border-border/50 bg-surface-low px-3 py-2"
@@ -173,7 +214,7 @@ export function OtRecordCard({
                       <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       <div className="min-w-0">
                         <span className="truncate block">{a.fileName}</span>
-                        {"uploadedAt" in a && a.uploadedAt ? (
+                        {a.uploadedAt ? (
                           <span className="text-[10px] text-muted-foreground font-normal">
                             {fmtUploadedAt(a.uploadedAt)}
                           </span>

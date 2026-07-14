@@ -41,6 +41,7 @@ export type OtAttachmentMinAggregateOutputType = {
   fileUrl: string | null
   mimeType: string | null
   sizeBytes: number | null
+  kind: $Enums.OtAttachmentKind | null
   createdAt: Date | null
 }
 
@@ -51,6 +52,7 @@ export type OtAttachmentMaxAggregateOutputType = {
   fileUrl: string | null
   mimeType: string | null
   sizeBytes: number | null
+  kind: $Enums.OtAttachmentKind | null
   createdAt: Date | null
 }
 
@@ -61,6 +63,7 @@ export type OtAttachmentCountAggregateOutputType = {
   fileUrl: number
   mimeType: number
   sizeBytes: number
+  kind: number
   createdAt: number
   _all: number
 }
@@ -81,6 +84,7 @@ export type OtAttachmentMinAggregateInputType = {
   fileUrl?: true
   mimeType?: true
   sizeBytes?: true
+  kind?: true
   createdAt?: true
 }
 
@@ -91,6 +95,7 @@ export type OtAttachmentMaxAggregateInputType = {
   fileUrl?: true
   mimeType?: true
   sizeBytes?: true
+  kind?: true
   createdAt?: true
 }
 
@@ -101,6 +106,7 @@ export type OtAttachmentCountAggregateInputType = {
   fileUrl?: true
   mimeType?: true
   sizeBytes?: true
+  kind?: true
   createdAt?: true
   _all?: true
 }
@@ -198,6 +204,7 @@ export type OtAttachmentGroupByOutputType = {
   fileUrl: string
   mimeType: string
   sizeBytes: number
+  kind: $Enums.OtAttachmentKind
   createdAt: Date
   _count: OtAttachmentCountAggregateOutputType | null
   _avg: OtAttachmentAvgAggregateOutputType | null
@@ -231,6 +238,7 @@ export type OtAttachmentWhereInput = {
   fileUrl?: Prisma.StringFilter<"OtAttachment"> | string
   mimeType?: Prisma.StringFilter<"OtAttachment"> | string
   sizeBytes?: Prisma.IntFilter<"OtAttachment"> | number
+  kind?: Prisma.EnumOtAttachmentKindFilter<"OtAttachment"> | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeFilter<"OtAttachment"> | Date | string
   approvalRequest?: Prisma.XOR<Prisma.ApprovalRequestScalarRelationFilter, Prisma.ApprovalRequestWhereInput>
 }
@@ -242,6 +250,7 @@ export type OtAttachmentOrderByWithRelationInput = {
   fileUrl?: Prisma.SortOrder
   mimeType?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   approvalRequest?: Prisma.ApprovalRequestOrderByWithRelationInput
   _relevance?: Prisma.OtAttachmentOrderByRelevanceInput
@@ -257,6 +266,7 @@ export type OtAttachmentWhereUniqueInput = Prisma.AtLeast<{
   fileUrl?: Prisma.StringFilter<"OtAttachment"> | string
   mimeType?: Prisma.StringFilter<"OtAttachment"> | string
   sizeBytes?: Prisma.IntFilter<"OtAttachment"> | number
+  kind?: Prisma.EnumOtAttachmentKindFilter<"OtAttachment"> | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeFilter<"OtAttachment"> | Date | string
   approvalRequest?: Prisma.XOR<Prisma.ApprovalRequestScalarRelationFilter, Prisma.ApprovalRequestWhereInput>
 }, "id">
@@ -268,6 +278,7 @@ export type OtAttachmentOrderByWithAggregationInput = {
   fileUrl?: Prisma.SortOrder
   mimeType?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.OtAttachmentCountOrderByAggregateInput
   _avg?: Prisma.OtAttachmentAvgOrderByAggregateInput
@@ -286,6 +297,7 @@ export type OtAttachmentScalarWhereWithAggregatesInput = {
   fileUrl?: Prisma.StringWithAggregatesFilter<"OtAttachment"> | string
   mimeType?: Prisma.StringWithAggregatesFilter<"OtAttachment"> | string
   sizeBytes?: Prisma.IntWithAggregatesFilter<"OtAttachment"> | number
+  kind?: Prisma.EnumOtAttachmentKindWithAggregatesFilter<"OtAttachment"> | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"OtAttachment"> | Date | string
 }
 
@@ -295,6 +307,7 @@ export type OtAttachmentCreateInput = {
   fileUrl: string
   mimeType: string
   sizeBytes: number
+  kind?: $Enums.OtAttachmentKind
   createdAt?: Date | string
   approvalRequest: Prisma.ApprovalRequestCreateNestedOneWithoutOtAttachmentsInput
 }
@@ -306,6 +319,7 @@ export type OtAttachmentUncheckedCreateInput = {
   fileUrl: string
   mimeType: string
   sizeBytes: number
+  kind?: $Enums.OtAttachmentKind
   createdAt?: Date | string
 }
 
@@ -315,6 +329,7 @@ export type OtAttachmentUpdateInput = {
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
+  kind?: Prisma.EnumOtAttachmentKindFieldUpdateOperationsInput | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approvalRequest?: Prisma.ApprovalRequestUpdateOneRequiredWithoutOtAttachmentsNestedInput
 }
@@ -326,6 +341,7 @@ export type OtAttachmentUncheckedUpdateInput = {
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
+  kind?: Prisma.EnumOtAttachmentKindFieldUpdateOperationsInput | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -336,6 +352,7 @@ export type OtAttachmentCreateManyInput = {
   fileUrl: string
   mimeType: string
   sizeBytes: number
+  kind?: $Enums.OtAttachmentKind
   createdAt?: Date | string
 }
 
@@ -345,6 +362,7 @@ export type OtAttachmentUpdateManyMutationInput = {
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
+  kind?: Prisma.EnumOtAttachmentKindFieldUpdateOperationsInput | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -355,6 +373,7 @@ export type OtAttachmentUncheckedUpdateManyInput = {
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
+  kind?: Prisma.EnumOtAttachmentKindFieldUpdateOperationsInput | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -381,6 +400,7 @@ export type OtAttachmentCountOrderByAggregateInput = {
   fileUrl?: Prisma.SortOrder
   mimeType?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -395,6 +415,7 @@ export type OtAttachmentMaxOrderByAggregateInput = {
   fileUrl?: Prisma.SortOrder
   mimeType?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -405,6 +426,7 @@ export type OtAttachmentMinOrderByAggregateInput = {
   fileUrl?: Prisma.SortOrder
   mimeType?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -454,12 +476,17 @@ export type OtAttachmentUncheckedUpdateManyWithoutApprovalRequestNestedInput = {
   deleteMany?: Prisma.OtAttachmentScalarWhereInput | Prisma.OtAttachmentScalarWhereInput[]
 }
 
+export type EnumOtAttachmentKindFieldUpdateOperationsInput = {
+  set?: $Enums.OtAttachmentKind
+}
+
 export type OtAttachmentCreateWithoutApprovalRequestInput = {
   id?: string
   fileName: string
   fileUrl: string
   mimeType: string
   sizeBytes: number
+  kind?: $Enums.OtAttachmentKind
   createdAt?: Date | string
 }
 
@@ -469,6 +496,7 @@ export type OtAttachmentUncheckedCreateWithoutApprovalRequestInput = {
   fileUrl: string
   mimeType: string
   sizeBytes: number
+  kind?: $Enums.OtAttachmentKind
   createdAt?: Date | string
 }
 
@@ -508,6 +536,7 @@ export type OtAttachmentScalarWhereInput = {
   fileUrl?: Prisma.StringFilter<"OtAttachment"> | string
   mimeType?: Prisma.StringFilter<"OtAttachment"> | string
   sizeBytes?: Prisma.IntFilter<"OtAttachment"> | number
+  kind?: Prisma.EnumOtAttachmentKindFilter<"OtAttachment"> | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeFilter<"OtAttachment"> | Date | string
 }
 
@@ -517,6 +546,7 @@ export type OtAttachmentCreateManyApprovalRequestInput = {
   fileUrl: string
   mimeType: string
   sizeBytes: number
+  kind?: $Enums.OtAttachmentKind
   createdAt?: Date | string
 }
 
@@ -526,6 +556,7 @@ export type OtAttachmentUpdateWithoutApprovalRequestInput = {
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
+  kind?: Prisma.EnumOtAttachmentKindFieldUpdateOperationsInput | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -535,6 +566,7 @@ export type OtAttachmentUncheckedUpdateWithoutApprovalRequestInput = {
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
+  kind?: Prisma.EnumOtAttachmentKindFieldUpdateOperationsInput | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -544,6 +576,7 @@ export type OtAttachmentUncheckedUpdateManyWithoutApprovalRequestInput = {
   fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   sizeBytes?: Prisma.IntFieldUpdateOperationsInput | number
+  kind?: Prisma.EnumOtAttachmentKindFieldUpdateOperationsInput | $Enums.OtAttachmentKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -556,6 +589,7 @@ export type OtAttachmentSelect<ExtArgs extends runtime.Types.Extensions.Internal
   fileUrl?: boolean
   mimeType?: boolean
   sizeBytes?: boolean
+  kind?: boolean
   createdAt?: boolean
   approvalRequest?: boolean | Prisma.ApprovalRequestDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["otAttachment"]>
@@ -569,10 +603,11 @@ export type OtAttachmentSelectScalar = {
   fileUrl?: boolean
   mimeType?: boolean
   sizeBytes?: boolean
+  kind?: boolean
   createdAt?: boolean
 }
 
-export type OtAttachmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "approvalRequestId" | "fileName" | "fileUrl" | "mimeType" | "sizeBytes" | "createdAt", ExtArgs["result"]["otAttachment"]>
+export type OtAttachmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "approvalRequestId" | "fileName" | "fileUrl" | "mimeType" | "sizeBytes" | "kind" | "createdAt", ExtArgs["result"]["otAttachment"]>
 export type OtAttachmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   approvalRequest?: boolean | Prisma.ApprovalRequestDefaultArgs<ExtArgs>
 }
@@ -589,6 +624,7 @@ export type $OtAttachmentPayload<ExtArgs extends runtime.Types.Extensions.Intern
     fileUrl: string
     mimeType: string
     sizeBytes: number
+    kind: $Enums.OtAttachmentKind
     createdAt: Date
   }, ExtArgs["result"]["otAttachment"]>
   composites: {}
@@ -966,6 +1002,7 @@ export interface OtAttachmentFieldRefs {
   readonly fileUrl: Prisma.FieldRef<"OtAttachment", 'String'>
   readonly mimeType: Prisma.FieldRef<"OtAttachment", 'String'>
   readonly sizeBytes: Prisma.FieldRef<"OtAttachment", 'Int'>
+  readonly kind: Prisma.FieldRef<"OtAttachment", 'OtAttachmentKind'>
   readonly createdAt: Prisma.FieldRef<"OtAttachment", 'DateTime'>
 }
     

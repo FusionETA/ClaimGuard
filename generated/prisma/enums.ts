@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const OtAttachmentKind = {
+  JUSTIFICATION: 'JUSTIFICATION',
+  EVIDENCE: 'EVIDENCE'
+} as const
+
+export type OtAttachmentKind = (typeof OtAttachmentKind)[keyof typeof OtAttachmentKind]
+
+
 export const NotificationType = {
   CLAIM_SUBMITTED: 'CLAIM_SUBMITTED',
   CLAIM_REVIEWED: 'CLAIM_REVIEWED',

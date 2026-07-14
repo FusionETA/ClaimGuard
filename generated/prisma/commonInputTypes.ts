@@ -823,6 +823,23 @@ export type EnumOtPayoutMethodNullableWithAggregatesFilter<$PrismaModel = never>
   _max?: Prisma.NestedEnumOtPayoutMethodNullableFilter<$PrismaModel>
 }
 
+export type EnumOtAttachmentKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.OtAttachmentKind | Prisma.EnumOtAttachmentKindFieldRefInput<$PrismaModel>
+  in?: $Enums.OtAttachmentKind[]
+  notIn?: $Enums.OtAttachmentKind[]
+  not?: Prisma.NestedEnumOtAttachmentKindFilter<$PrismaModel> | $Enums.OtAttachmentKind
+}
+
+export type EnumOtAttachmentKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OtAttachmentKind | Prisma.EnumOtAttachmentKindFieldRefInput<$PrismaModel>
+  in?: $Enums.OtAttachmentKind[]
+  notIn?: $Enums.OtAttachmentKind[]
+  not?: Prisma.NestedEnumOtAttachmentKindWithAggregatesFilter<$PrismaModel> | $Enums.OtAttachmentKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOtAttachmentKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOtAttachmentKindFilter<$PrismaModel>
+}
+
 export type EnumGenderNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.Gender | Prisma.EnumGenderFieldRefInput<$PrismaModel> | null
   in?: $Enums.Gender[] | null
@@ -1966,6 +1983,23 @@ export type NestedEnumOtPayoutMethodNullableWithAggregatesFilter<$PrismaModel = 
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumOtPayoutMethodNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumOtPayoutMethodNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumOtAttachmentKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.OtAttachmentKind | Prisma.EnumOtAttachmentKindFieldRefInput<$PrismaModel>
+  in?: $Enums.OtAttachmentKind[]
+  notIn?: $Enums.OtAttachmentKind[]
+  not?: Prisma.NestedEnumOtAttachmentKindFilter<$PrismaModel> | $Enums.OtAttachmentKind
+}
+
+export type NestedEnumOtAttachmentKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OtAttachmentKind | Prisma.EnumOtAttachmentKindFieldRefInput<$PrismaModel>
+  in?: $Enums.OtAttachmentKind[]
+  notIn?: $Enums.OtAttachmentKind[]
+  not?: Prisma.NestedEnumOtAttachmentKindWithAggregatesFilter<$PrismaModel> | $Enums.OtAttachmentKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOtAttachmentKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOtAttachmentKindFilter<$PrismaModel>
 }
 
 export type NestedEnumGenderNullableFilter<$PrismaModel = never> = {

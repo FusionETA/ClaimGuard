@@ -9,15 +9,15 @@ import { employeeAttendanceService } from "@/modules/attendance/application/serv
 export async function uploadOtAttachmentAction(
   approvalId: string,
   formData: FormData,
-): Promise<{ ok: true; attachment: { id: string; fileName: string; fileUrl: string; mimeType: string; uploadedAt: string } } | { error: string }> {
+): Promise<{ ok: true; attachment: { id: string; fileName: string; fileUrl: string; mimeType: string; uploadedAt: string; kind: "JUSTIFICATION" | "EVIDENCE" } } | { error: string }> {
   const session = await requirePortalSession("EMPLOYEE")
   const file = formData.get("file")
   if (!(file instanceof File) || file.size === 0) {
     return { error: "No file provided." }
   }
-  let attachment: { id: string; fileName: string; fileUrl: string; mimeType: string; uploadedAt: string }
+  let attachment: { id: string; fileName: string; fileUrl: string; mimeType: string; uploadedAt: string; kind: "JUSTIFICATION" | "EVIDENCE" }
   try {
-    attachment = await employeeAttendanceService.addOtAttachment(session.userId, approvalId, file)
+    attachment = await employeeAttendanceService.addOtAttachment(session.userId, approvalId, file, "EVIDENCE")
   } catch (err) {
     return { error: safeErrorMessage(err, "Could not upload attachment.") }
   }

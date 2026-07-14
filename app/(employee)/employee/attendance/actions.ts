@@ -230,6 +230,11 @@ export async function submitOtAction(
   const otProjectId = String(formData.get("otProjectId") ?? "").trim() || null
   const notes = String(formData.get("notes") ?? "").trim() || undefined
 
+  const justificationFile = formData.get("justificationFile")
+  if (!justificationFile || !(justificationFile instanceof File) || justificationFile.size === 0) {
+    return { error: "A justification attachment is required." }
+  }
+
   if (!dateStr || !otStartAtIso || !otEndAtIso) {
     return { error: "Date, start time, and end time are required." }
   }
@@ -240,8 +245,9 @@ export async function submitOtAction(
     return { error: "Invalid date or time values." }
   }
 
+  let approvalId: string
   try {
-    await employeeAttendanceService.submitOtApplication({
+    const result = await employeeAttendanceService.submitOtApplication({
       employeeId: session.userId,
       date,
       otStartAt,
@@ -249,9 +255,23 @@ export async function submitOtAction(
       otProjectId,
       notes,
     })
+    approvalId = result.approvalId
   } catch (err) {
     return { error: safeErrorMessage(err, "Could not submit OT.") }
   }
+
+  try {
+    await employeeAttendanceService.addOtAttachment(
+      session.userId,
+      approvalId,
+      justificationFile,
+      "JUSTIFICATION",
+    )
+  } catch (err) {
+    // Attachment failed but OT was already created — surface the error without rolling back.
+    return { error: safeErrorMessage(err, "OT submitted but justification upload failed. Please add it from the Overtime tab.") }
+  }
+
   await revalidateAll({
     userId: session.userId,
     organizationId: session.organizationId,

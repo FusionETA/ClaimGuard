@@ -4669,6 +4669,7 @@ export const OtAttachmentScalarFieldEnum = {
   fileUrl: 'fileUrl',
   mimeType: 'mimeType',
   sizeBytes: 'sizeBytes',
+  kind: 'kind',
   createdAt: 'createdAt'
 } as const
 
@@ -6198,6 +6199,13 @@ export type EnumApprovalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
  * Reference to a field of type 'OTSubtype'
  */
 export type EnumOTSubtypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OTSubtype'>
+    
+
+
+/**
+ * Reference to a field of type 'OtAttachmentKind'
+ */
+export type EnumOtAttachmentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OtAttachmentKind'>
     
 
 

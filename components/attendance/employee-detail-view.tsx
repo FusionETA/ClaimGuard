@@ -382,26 +382,38 @@ export function EmployeeDetailView({
                     ) : null}
                     <p className="mt-1 text-xs text-muted-foreground">{r.detail}</p>
                     {r.attachments.length > 0 && (
-                      <div className="mt-1.5 flex flex-wrap gap-2">
-                        {r.attachments.map((a) => (
-                          <a
-                            key={a.id}
-                            href={a.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-xs text-primary hover:underline"
-                          >
-                            <FileText className="h-3 w-3 shrink-0" />
-                            <div className="min-w-0">
-                              <span className="max-w-[160px] truncate block">{a.fileName}</span>
-                              {a.uploadedAt ? (
-                                <span className="text-[10px] text-muted-foreground font-normal">
-                                  {fmtUploadedAt(a.uploadedAt)}
-                                </span>
-                              ) : null}
+                      <div className="mt-2 flex gap-6">
+                        {(["JUSTIFICATION", "EVIDENCE"] as const).map((kind) => {
+                          const items = r.attachments.filter((a) => a.kind === kind)
+                          return (
+                            <div key={kind} className="space-y-0.5 min-w-0">
+                              <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {kind === "JUSTIFICATION" ? "Before" : "After"}
+                              </p>
+                              {items.length === 0 ? (
+                                <p className="text-[10px] text-muted-foreground">None</p>
+                              ) : items.map((a) => (
+                                <a
+                                  key={a.id}
+                                  href={a.fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-xs text-primary hover:underline"
+                                >
+                                  <FileText className="h-3 w-3 shrink-0" />
+                                  <div className="min-w-0">
+                                    <span className="max-w-[160px] truncate block">{a.fileName}</span>
+                                    {a.uploadedAt ? (
+                                      <span className="text-[10px] text-muted-foreground font-normal">
+                                        {fmtUploadedAt(a.uploadedAt)}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                </a>
+                              ))}
                             </div>
-                          </a>
-                        ))}
+                          )
+                        })}
                       </div>
                     )}
                   </div>

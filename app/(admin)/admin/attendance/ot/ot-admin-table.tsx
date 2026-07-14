@@ -316,27 +316,39 @@ export function OtAdminTable({ initialRows, initialFrom, initialTo }: Props) {
                     </tr>
                     {expandedId === row.id && row.attachments.length > 0 && (
                       <tr className="border-b border-border/30 bg-secondary/20">
-                        <td colSpan={8} className="px-3 py-2">
-                          <div className="flex flex-wrap gap-3">
-                            {row.attachments.map((a) => (
-                              <a
-                                key={a.id}
-                                href={a.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 text-xs text-primary hover:underline"
-                              >
-                                <FileText className="h-3.5 w-3.5 shrink-0" />
-                                <div className="min-w-0">
-                                  <span className="max-w-[200px] truncate block">{a.fileName}</span>
-                                  {a.uploadedAt ? (
-                                    <span className="text-[10px] text-muted-foreground font-normal">
-                                      {fmtUploadedAt(a.uploadedAt)}
-                                    </span>
-                                  ) : null}
+                        <td colSpan={8} className="px-3 py-3">
+                          <div className="flex gap-8">
+                            {(["JUSTIFICATION", "EVIDENCE"] as const).map((kind) => {
+                              const items = row.attachments.filter((a) => a.kind === kind)
+                              return (
+                                <div key={kind} className="space-y-1 min-w-0">
+                                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                    {kind === "JUSTIFICATION" ? "Before (Justification)" : "After (Evidence)"}
+                                  </p>
+                                  {items.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground">None uploaded.</p>
+                                  ) : items.map((a) => (
+                                    <a
+                                      key={a.id}
+                                      href={a.fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                                    >
+                                      <FileText className="h-3.5 w-3.5 shrink-0" />
+                                      <div className="min-w-0">
+                                        <span className="max-w-[200px] truncate block">{a.fileName}</span>
+                                        {a.uploadedAt ? (
+                                          <span className="text-[10px] text-muted-foreground font-normal">
+                                            {fmtUploadedAt(a.uploadedAt)}
+                                          </span>
+                                        ) : null}
+                                      </div>
+                                    </a>
+                                  ))}
                                 </div>
-                              </a>
-                            ))}
+                              )
+                            })}
                           </div>
                         </td>
                       </tr>
