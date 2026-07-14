@@ -37,33 +37,14 @@ export function ChangePasswordButton({
   hasMultipleCompanies = false,
   /// Force a "Change password" text label next to the icon. Default
   /// `false` keeps the icon-only round button used inline in the
-  /// header pill. Set to `true` inside the mobile popover menu so the
-  /// row reads as a full-width labelled action.
+  /// header pill. Set to `true` where the action should read as a
+  /// full-width labelled row.
   showLabel = false,
 }: {
   hasMultipleCompanies?: boolean
   showLabel?: boolean
 }) {
   const [open, setOpen] = useState(false)
-  const [state, action, pending] = useActionState(
-    changePasswordAction,
-    initialChangePasswordFormState,
-  )
-  // Mirror the action state into the toast hook's required shape. For
-  // idle / error-without-message we pass status "idle" with an empty
-  // message so the hook stays quiet.
-  useToastOnAction(
-    state.status === "success"
-      ? { status: "success" as const, message: state.message ?? "Password updated." }
-      : state.status === "error" && state.message
-        ? { status: "error" as const, message: state.message }
-        : { status: "idle" as const, message: "" },
-  )
-
-  // Close the dialog automatically on success.
-  useEffect(() => {
-    if (state.status === "success") setOpen(false)
-  }, [state.status])
 
   return (
     <>
@@ -84,11 +65,50 @@ export function ChangePasswordButton({
         {showLabel ? <span>Change password</span> : null}
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent
-          className="flex w-[min(92vw,440px)] flex-col overflow-hidden px-6 pb-6 pt-6 sm:max-w-[440px]"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
+      <ChangePasswordDialog
+        open={open}
+        onOpenChange={setOpen}
+        hasMultipleCompanies={hasMultipleCompanies}
+      />
+    </>
+  )
+}
+
+export function ChangePasswordDialog({
+  open,
+  onOpenChange,
+  hasMultipleCompanies = false,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  hasMultipleCompanies?: boolean
+}) {
+  const [state, action, pending] = useActionState(
+    changePasswordAction,
+    initialChangePasswordFormState,
+  )
+  // Mirror the action state into the toast hook's required shape. For
+  // idle / error-without-message we pass status "idle" with an empty
+  // message so the hook stays quiet.
+  useToastOnAction(
+    state.status === "success"
+      ? { status: "success" as const, message: state.message ?? "Password updated." }
+      : state.status === "error" && state.message
+        ? { status: "error" as const, message: state.message }
+        : { status: "idle" as const, message: "" },
+  )
+
+  // Close the dialog automatically on success.
+  useEffect(() => {
+    if (state.status === "success") onOpenChange(false)
+  }, [state.status, onOpenChange])
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="bottom-auto flex max-h-[calc(100dvh-2rem)] w-[min(92vw,440px)] flex-col overflow-y-auto px-5 pb-5 pt-5 sm:max-h-none sm:max-w-[440px] sm:px-6 sm:pb-6 sm:pt-6"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
           <DialogHeader className="shrink-0 pr-8">
             <DialogTitle>Change password</DialogTitle>
             <DialogDescription>
@@ -170,7 +190,7 @@ export function ChangePasswordButton({
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => setOpen(false)}
+                onClick={() => onOpenChange(false)}
                 disabled={pending}
               >
                 Cancel
@@ -187,8 +207,7 @@ export function ChangePasswordButton({
               </Button>
             </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
-    </>
+      </DialogContent>
+    </Dialog>
   )
 }

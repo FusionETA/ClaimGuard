@@ -1,9 +1,9 @@
 "use client"
 
-import { MoreVertical } from "lucide-react"
+import { KeyRound, MoreVertical } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { ChangePasswordButton } from "@/components/layout/change-password-button"
+import { ChangePasswordDialog } from "@/components/layout/change-password-button"
 import { LogoutButton } from "@/components/layout/logout-button"
 import { SwitchCompanyButton } from "@/components/layout/switch-company-button"
 import { Button } from "@/components/ui/button"
@@ -18,9 +18,9 @@ import { cn } from "@/lib/utils"
  * into a small floating card with the same three actions as full-
  * width rows (icon + label).
  *
- * The underlying buttons are reused verbatim — they carry their own
- * pending state, dialogs, aria labels, etc. — so behaviour stays
- * identical across the two viewports.
+ * Switch Company and Logout reuse their desktop buttons. Change
+ * Password owns its dialog state here so closing this floating menu
+ * cannot unmount the password form while a user is typing.
  */
 export function MobileUserActions({
   hasMultipleCompanies,
@@ -28,6 +28,7 @@ export function MobileUserActions({
   hasMultipleCompanies?: boolean
 }) {
   const [open, setOpen] = useState(false)
+  const [passwordOpen, setPasswordOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   const close = useCallback(() => setOpen(false), [])
@@ -36,24 +37,20 @@ export function MobileUserActions({
   // closes on the SAME tap that clicks another button in the header,
   // avoiding a follow-up flash of the still-open menu.
   //
-  // IMPORTANT: exempt clicks that land inside any `[role="dialog"]`
-  // (Radix Dialog sets this on DialogContent). Change Password /
-  // Switch Company open a dialog PORTALED to document.body — not
-  // inside `containerRef`. Without this check, tapping the input
-  // fields inside the open dialog looks like an outside-click,
-  // closes the menu, unmounts the ChangePasswordButton (or its
-  // sibling), and destroys the dialog's `useState(open)`. Net
-  // effect: dialog vanishes the moment the user tries to type.
+  // IMPORTANT: Switch Company opens a dialog portaled to document.body,
+  // not inside `containerRef`. Do not treat dialog interactions as
+  // outside taps for this menu.
   useEffect(() => {
     if (!open) return
     function onPointerDown(e: MouseEvent | TouchEvent) {
       const target = e.target as HTMLElement | null
       if (!target) return
+      if (document.querySelector('[role="dialog"]')) return
       if (containerRef.current?.contains(target)) return
-      if (target.closest?.('[role="dialog"]')) return
       close()
     }
     function onKey(e: KeyboardEvent) {
+      if (document.querySelector('[role="dialog"]')) return
       if (e.key === "Escape") close()
     }
     document.addEventListener("mousedown", onPointerDown)
@@ -67,69 +64,70 @@ export function MobileUserActions({
   }, [open, close])
 
   return (
-    <div ref={containerRef} className="relative sm:hidden">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => setOpen((v) => !v)}
-        title="More actions"
-        aria-label="More actions"
-        aria-expanded={open}
-        aria-haspopup="menu"
-        className="h-9 w-9 shrink-0 rounded-full p-0"
-      >
-        <MoreVertical className="h-4 w-4" />
-      </Button>
-
-      {open ? (
-        <div
-          role="menu"
-          className={cn(
-            "absolute right-0 top-[calc(100%+8px)] z-40 min-w-[204px]",
-            "rounded-2xl border border-border/60 bg-card p-2 shadow-panel",
-            // Each child (`SwitchCompanyButton`, `LogoutButton`'s form,
-            // `ChangePasswordButton`) exposes its button as the first
-            // element — force it to full width + left-aligned + a
-            // rounded row look so all three read as a proper menu.
-            "flex flex-col gap-1",
-            "[&_button]:w-full [&_button]:justify-start",
-            "[&_button]:rounded-xl [&_button]:px-3",
-            "[&_form]:w-full",
-          )}
-          // Auto-close the menu on any child click SO the user gets
-          // one-tap navigation for Logout (form → submit → next page).
-          //
-          // BUT dialog triggers (SwitchCompany, ChangePassword) can't
-          // close the menu — closing unmounts the trigger, which
-          // destroys its dialog `useState(open)` before the dialog
-          // gets a chance to render, so the dialog pops open and
-          // instantly disappears. For those rows, we mark the wrapper
-          // with `data-menu-keep-open` and skip the close.
-          //
-          // Once the user is done with the dialog, they can dismiss
-          // the still-open menu with an outside tap or Escape — both
-          // wired in the effect above.
-          onClick={(event) => {
-            const target = event.target as HTMLElement | null
-            if (target?.closest("[data-menu-keep-open]")) return
-            setTimeout(close, 0)
-          }}
+    <>
+      <div ref={containerRef} className="relative sm:hidden">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setOpen((v) => !v)}
+          title="More actions"
+          aria-label="More actions"
+          aria-expanded={open}
+          aria-haspopup="menu"
+          className="h-9 w-9 shrink-0 rounded-full p-0"
         >
-          {hasMultipleCompanies ? (
-            <div data-menu-keep-open>
-              <SwitchCompanyButton showLabel />
-            </div>
-          ) : null}
-          <div data-menu-keep-open>
-            <ChangePasswordButton
-              hasMultipleCompanies={hasMultipleCompanies}
-              showLabel
-            />
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+
+        {open ? (
+          <div
+            role="menu"
+            className={cn(
+              "absolute right-0 top-[calc(100%+8px)] z-40 min-w-[204px]",
+              "rounded-2xl border border-border/60 bg-card p-2 shadow-panel",
+              // Each child exposes its button as the first element —
+              // force it to full width + left-aligned + a rounded row
+              // look so all three read as a proper menu.
+              "flex flex-col gap-1",
+              "[&_button]:w-full [&_button]:justify-start",
+              "[&_button]:rounded-xl [&_button]:px-3",
+              "[&_form]:w-full",
+            )}
+            onClick={(event) => {
+              const target = event.target as HTMLElement | null
+              if (target?.closest("[data-menu-keep-open]")) return
+              setTimeout(close, 0)
+            }}
+          >
+            {hasMultipleCompanies ? (
+              <div data-menu-keep-open>
+                <SwitchCompanyButton showLabel />
+              </div>
+            ) : null}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setPasswordOpen(true)
+                close()
+              }}
+              aria-label="Change password"
+              className="shrink-0 rounded-full"
+            >
+              <KeyRound className="h-4 w-4" />
+              <span>Change password</span>
+            </Button>
+            <LogoutButton showLabel />
           </div>
-          <LogoutButton showLabel />
-        </div>
-      ) : null}
-    </div>
+        ) : null}
+      </div>
+      <ChangePasswordDialog
+        open={passwordOpen}
+        onOpenChange={setPasswordOpen}
+        hasMultipleCompanies={hasMultipleCompanies}
+      />
+    </>
   )
 }
