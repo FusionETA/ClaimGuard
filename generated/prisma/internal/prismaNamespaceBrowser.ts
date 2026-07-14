@@ -706,7 +706,6 @@ export const ApprovalRequestScalarFieldEnum = {
   title: 'title',
   detail: 'detail',
   location: 'location',
-  otSubtype: 'otSubtype',
   lateMinutes: 'lateMinutes',
   offsetRef: 'offsetRef',
   reviewNotes: 'reviewNotes',

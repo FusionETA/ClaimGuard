@@ -8,7 +8,6 @@ import { SessionEditorDialog } from "@/components/attendance/session-editor-dial
 import {
   approvalStatusMeta,
   attendanceStatusMeta,
-  otSubtypeMeta,
 } from "@/modules/attendance/domain/metadata"
 import type {
   ApprovalRequestView,
@@ -373,7 +372,7 @@ export function EmployeeDetailView({
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-foreground">{r.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {r.otSubtype ? otSubtypeMeta[r.otSubtype].label : "OT"} • {r.date}
+                      OT • {r.date}
                     </p>
                     {r.otStartAt && r.otEndAt ? (
                       <p className="text-xs font-medium text-foreground">

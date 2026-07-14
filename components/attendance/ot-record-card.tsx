@@ -7,7 +7,6 @@ import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import {
   approvalStatusMeta,
-  otSubtypeMeta,
 } from "@/modules/attendance/domain/metadata"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
 import {
@@ -107,7 +106,7 @@ export function OtRecordCard({
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-foreground">{record.title}</p>
             <p className="text-xs text-muted-foreground">
-              {record.otSubtype ? otSubtypeMeta[record.otSubtype].label : "OT"} · {record.date}
+              OT · {record.date}
               {record.project ? ` · ${record.project}` : ""}
             </p>
             {record.otStartAt && record.otEndAt ? (

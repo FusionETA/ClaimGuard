@@ -9,12 +9,9 @@ export const attendanceStatuses = [
 
 export const approvalKinds = ["CLOCK_IN", "CLOCK_OUT", "BREAK", "OT"] as const
 export const approvalStatuses = ["PENDING", "APPROVED", "REJECTED"] as const
-export const otSubtypes = ["LATE_REPLACEMENT", "OT_OFFSET", "UNRESOLVED"] as const
-
 export type AttendanceStatus = (typeof attendanceStatuses)[number]
 export type ApprovalKind = (typeof approvalKinds)[number]
 export type ApprovalStatus = (typeof approvalStatuses)[number]
-export type OTSubtype = (typeof otSubtypes)[number]
 
 export type AttendanceSessionView = {
   id: string
@@ -88,7 +85,6 @@ export type ApprovalRequestView = {
   detail: string
   location: string | null
   project: string | null
-  otSubtype: OTSubtype | null
   /// CASH or TIME_BANK snapshot for OT requests. Null for non-OT or legacy
   /// rows submitted before the snapshot was added.
   otPayoutMethod: "CASH" | "TIME_BANK" | null

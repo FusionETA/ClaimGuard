@@ -11,7 +11,6 @@ import type {
   AttendanceSessionView,
   AttendanceStatus,
   ClockEventLite,
-  OTSubtype,
   RollCallPerson,
   SupervisorTeamOverview,
   TodayRollCall,
@@ -359,7 +358,6 @@ type PrismaApproval = {
   detail: string
   location: string | null
   project: string | null
-  otSubtype: string | null
   otPayoutMethod: string | null
   otStartAt: Date | null
   otEndAt: Date | null
@@ -391,7 +389,6 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
     detail: r.detail,
     location: r.location,
     project: r.project,
-    otSubtype: (r.otSubtype as OTSubtype | null) ?? null,
     otPayoutMethod:
       r.otPayoutMethod === "TIME_BANK" || r.otPayoutMethod === "CASH"
         ? r.otPayoutMethod
@@ -3088,7 +3085,6 @@ export const attendanceRepository = {
     status: "APPROVED" | "REJECTED",
     notes?: string,
     overrideEventAt?: Date | null,
-    otSubtype?: OTSubtype | null,
   ): Promise<{
     employeeUserId: string
     kind: string
@@ -3209,7 +3205,6 @@ export const attendanceRepository = {
         reviewNotes: notes ?? null,
         chainHistory: nextHistory as unknown as object,
         ...(carriesOverride ? { eventAt: overrideEventAt } : {}),
-        ...(otSubtype && request.kind === "OT" ? { otSubtype } : {}),
       },
     })
 
@@ -4598,7 +4593,6 @@ export const attendanceRepository = {
       otStartAt: string | null
       otEndAt: string | null
       status: "PENDING" | "APPROVED" | "REJECTED"
-      otSubtype: string | null
       detail: string
       submittedAt: string
       reviewerName: string | null
@@ -4641,7 +4635,6 @@ export const attendanceRepository = {
       otStartAt: r.otStartAt?.toISOString() ?? null,
       otEndAt: r.otEndAt?.toISOString() ?? null,
       status: r.status as "PENDING" | "APPROVED" | "REJECTED",
-      otSubtype: r.otSubtype,
       detail: r.detail,
       submittedAt: r.submittedAt.toISOString(),
       reviewerName: r.reviewer?.name ?? null,
@@ -4928,7 +4921,6 @@ export const attendanceRepository = {
         otStartAt: args.otStartAt,
         otEndAt: args.otEndAt,
         otProjectId: args.otProjectId ?? null,
-        otSubtype: null,
         otPayoutMethod: payout,
         ...(autoApprove
           ? {

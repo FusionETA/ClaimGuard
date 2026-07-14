@@ -4643,7 +4643,6 @@ export const ApprovalRequestScalarFieldEnum = {
   title: 'title',
   detail: 'detail',
   location: 'location',
-  otSubtype: 'otSubtype',
   lateMinutes: 'lateMinutes',
   offsetRef: 'offsetRef',
   reviewNotes: 'reviewNotes',
@@ -6192,13 +6191,6 @@ export type EnumApprovalKindFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'ApprovalStatus'
  */
 export type EnumApprovalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ApprovalStatus'>
-    
-
-
-/**
- * Reference to a field of type 'OTSubtype'
- */
-export type EnumOTSubtypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OTSubtype'>
     
 
 

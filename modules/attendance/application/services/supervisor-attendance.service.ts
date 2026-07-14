@@ -64,21 +64,14 @@ export const supervisorAttendanceService = {
     supervisorId: string,
     approvalId: string,
     status: "APPROVED" | "REJECTED",
-    options?: { notes?: string | null; overrideEventAt?: Date | null; otSubtype?: string | null },
+    options?: { notes?: string | null; overrideEventAt?: Date | null },
   ): Promise<void> {
-    const validSubtypes = ["LATE_REPLACEMENT", "OT_OFFSET", "UNRESOLVED"] as const
-    type OTSubtype = (typeof validSubtypes)[number]
-    const otSubtype =
-      options?.otSubtype && (validSubtypes as readonly string[]).includes(options.otSubtype)
-        ? (options.otSubtype as OTSubtype)
-        : null
     const result = await attendanceRepository.reviewApproval(
       approvalId,
       supervisorId,
       status,
       options?.notes ?? undefined,
       options?.overrideEventAt ?? null,
-      otSubtype,
     )
 
     // Realtime fan-out:

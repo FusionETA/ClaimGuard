@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/select"
 import {
   approvalStatusMeta,
-  otSubtypeMeta,
 } from "@/modules/attendance/domain/metadata"
 
 import type { OtSubmissionRow } from "./actions"
@@ -230,7 +229,6 @@ export function OtAdminTable({ initialRows, initialFrom, initialTo }: Props) {
                   <th className="bg-card py-2 pr-3 font-semibold">Date</th>
                   <th className="bg-card py-2 pr-3 font-semibold">Time range</th>
                   <th className="bg-card py-2 pr-3 font-semibold">Duration</th>
-                  <th className="bg-card py-2 pr-3 font-semibold">Type</th>
                   <th className="bg-card py-2 pr-3 font-semibold">Reviewed by</th>
                   <th className="bg-card py-2 pr-3 font-semibold">Status</th>
                   <th className="bg-card py-2 pr-3 font-semibold"></th>
@@ -269,13 +267,6 @@ export function OtAdminTable({ initialRows, initialFrom, initialTo }: Props) {
                         {row.otStartAt && row.otEndAt
                           ? fmtDuration(row.otStartAt, row.otEndAt)
                           : "—"}
-                      </td>
-                      <td className="py-2.5 pr-3 text-xs">
-                        {row.otSubtype ? (
-                          otSubtypeMeta[row.otSubtype as keyof typeof otSubtypeMeta]?.label
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
                       </td>
                       <td className="py-2.5 pr-3 text-xs">
                         {row.reviewerName ? (

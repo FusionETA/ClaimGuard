@@ -1227,7 +1227,7 @@ model ApprovalRequest {
   title          String
   detail         String          @db.Text
   location       String?
-  otSubtype      OTSubtype?
+
   lateMinutes    Int?
   offsetRef      String?
   reviewNotes    String?         @db.Text
@@ -2493,11 +2493,6 @@ enum ApprovalStatus {
   REJECTED
 }
 
-enum OTSubtype {
-  LATE_REPLACEMENT
-  OT_OFFSET
-  UNRESOLVED
-}
 
 enum ClaimType {
   EXPENSE

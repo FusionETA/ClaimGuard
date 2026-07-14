@@ -12,8 +12,6 @@ import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
 import { CoordsLink } from "@/components/attendance/coords-link"
 import { useToast } from "@/components/ui/toaster"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
-import { otSubtypes } from "@/modules/attendance/domain/models"
-import { otSubtypeMeta } from "@/modules/attendance/domain/metadata"
 import { cn } from "@/lib/utils"
 
 import { notifyBadgeRefresh } from "@/lib/badge-refresh"
@@ -721,12 +719,9 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
 
 // ─── OT tab ───────────────────────────────────────────────────────────────────
 
-type OtSubtypeValue = (typeof otSubtypes)[number]
-
 function OtCard({ item }: { item: ApprovalRequestView }) {
   const { toast } = useToast()
   const [hidden, setHidden] = useState(false)
-  const [subtype, setSubtype] = useState<OtSubtypeValue | "">("")
   const [isPending, startTransition] = useTransition()
 
   function submit(status: "APPROVED" | "REJECTED") {
@@ -734,7 +729,6 @@ function OtCard({ item }: { item: ApprovalRequestView }) {
       const fd = new FormData()
       fd.set("approvalId", item.id)
       fd.set("status", status)
-      if (subtype) fd.set("otSubtype", subtype)
       const result = await reviewApprovalAction({}, fd)
       if (result.error) {
         toast({ title: result.error, variant: "error" })
@@ -802,29 +796,6 @@ function OtCard({ item }: { item: ApprovalRequestView }) {
         </div>
       ) : null}
 
-      <div className="space-y-1.5">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          OT type
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {otSubtypes.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setSubtype(s)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                subtype === s
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {otSubtypeMeta[s].label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <OtAttachmentSplit attachments={item.attachments} />
 
       <div className="flex gap-2 pt-1">
@@ -872,9 +843,6 @@ function OtReviewedCard({ item }: { item: ApprovalRequestView }) {
               {fmtDuration(item.otStartAt, item.otEndAt)}
             </DetailRow>
           </>
-        ) : null}
-        {item.otSubtype ? (
-          <DetailRow label="Type">{otSubtypeMeta[item.otSubtype].label}</DetailRow>
         ) : null}
         {item.project ? (
           <DetailRow label="Project">{item.project}</DetailRow>

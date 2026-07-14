@@ -2,7 +2,6 @@ import type {
   ApprovalKind,
   ApprovalStatus,
   AttendanceStatus,
-  OTSubtype,
 } from "@/modules/attendance/domain/models"
 
 export const attendanceStatusMeta: Record<
@@ -51,23 +50,6 @@ export const approvalKindMeta: Record<
   OT: { label: "Overtime", description: "Overtime / replacement request" },
 }
 
-export const otSubtypeMeta: Record<
-  OTSubtype,
-  { label: string; description: string }
-> = {
-  LATE_REPLACEMENT: {
-    label: "Late replacement",
-    description: "Make up time for a late clock-in.",
-  },
-  OT_OFFSET: {
-    label: "OT offset",
-    description: "Offset overtime against a future absence.",
-  },
-  UNRESOLVED: {
-    label: "Unresolved",
-    description: "Outstanding entry awaiting follow-up.",
-  },
-}
 
 export const approvalStatusMeta: Record<
   ApprovalStatus,

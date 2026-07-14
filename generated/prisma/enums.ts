@@ -155,15 +155,6 @@ export const ApprovalStatus = {
 export type ApprovalStatus = (typeof ApprovalStatus)[keyof typeof ApprovalStatus]
 
 
-export const OTSubtype = {
-  LATE_REPLACEMENT: 'LATE_REPLACEMENT',
-  OT_OFFSET: 'OT_OFFSET',
-  UNRESOLVED: 'UNRESOLVED'
-} as const
-
-export type OTSubtype = (typeof OTSubtype)[keyof typeof OTSubtype]
-
-
 export const ClaimType = {
   EXPENSE: 'EXPENSE',
   MILEAGE: 'MILEAGE'
