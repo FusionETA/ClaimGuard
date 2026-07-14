@@ -186,3 +186,111 @@ export async function pruneAuditLog(): Promise<{
   const { deleted } = await auditLogRepository.deleteOlderThan(cutoff)
   return { deleted, cutoffIso: cutoff.toISOString() }
 }
+
+/**
+ * Build the daily-login report — a summary of every EMPLOYEE /
+ * SUPERVISOR sign-in in the last N hours, grouped by user and
+ * formatted for a plain-text WhatsApp / SMS message.
+ *
+ * Used by the `/api/cron/daily-login-report` endpoint. Cross-org
+ * scan — the endpoint's caller is a bearer-authed operator, not
+ * a per-org admin.
+ *
+ * Returns `{ message, uniqueUsers, totalSessions }`. Even when
+ * zero rows match the filter, `message` is populated with a
+ * "no sign-ins" line so the caller can still deliver a beat
+ * (silence would be ambiguous — did the routine fail or was it
+ * genuinely quiet?).
+ */
+export async function buildDailyLoginReport(input?: {
+  lookbackHours?: number
+}): Promise<{
+  message: string
+  uniqueUsers: number
+  totalSessions: number
+}> {
+  const hours = input?.lookbackHours ?? 24
+  const now = new Date()
+  const since = new Date(now.getTime() - hours * 60 * 60 * 1000)
+
+  const rows = await auditLogRepository.listRecentByAction({
+    action: "auth.login",
+    actorRoles: ["EMPLOYEE", "SUPERVISOR"],
+    since,
+  })
+
+  // Dedupe by user — one row per person with total-session count.
+  type Row = (typeof rows)[number]
+  const perUser = new Map<string, { latest: Row; count: number }>()
+  for (const r of rows) {
+    const key = r.actorUserId ?? r.actorEmail
+    if (!key) continue
+    const entry = perUser.get(key)
+    if (entry) entry.count += 1
+    else perUser.set(key, { latest: r, count: 1 })
+  }
+
+  const uniqueUsers = perUser.size
+  const totalSessions = rows.length
+  const rangeLabel = `${fmtMyt(since)} → ${fmtMyt(now)}`
+
+  if (uniqueUsers === 0) {
+    return {
+      message: `🔒 Daily login report (${rangeLabel})\n\nNo employee or supervisor sign-ins in the last ${hours}h.`,
+      uniqueUsers: 0,
+      totalSessions: 0,
+    }
+  }
+
+  // Supervisors first, then employees; within each group latest-first.
+  const sorted = [...perUser.values()].sort((a, b) => {
+    const roleA = a.latest.actorRole ?? ""
+    const roleB = b.latest.actorRole ?? ""
+    if (roleA !== roleB) {
+      if (roleA === "SUPERVISOR") return -1
+      if (roleB === "SUPERVISOR") return 1
+    }
+    return b.latest.createdAt.getTime() - a.latest.createdAt.getTime()
+  })
+
+  const lines = sorted.map((u) => {
+    const name = u.latest.actorName || u.latest.actorEmail || "(unknown)"
+    const role = u.latest.actorRole ?? ""
+    const org = u.latest.organizationName
+    const time = fmtMytTime(u.latest.createdAt)
+    const times = u.count > 1 ? ` ×${u.count}` : ""
+    return `• ${name} (${role})${times} — last ${time}${org ? ` [${org}]` : ""}`
+  })
+
+  const message = [
+    `🔒 Daily login report (${rangeLabel})`,
+    ``,
+    `${uniqueUsers} people, ${totalSessions} sessions in the last ${hours}h.`,
+    ``,
+    ...lines,
+  ].join("\n")
+
+  return { message, uniqueUsers, totalSessions }
+}
+
+/// Format Date as "13 Jul 19:00" in Asia/Kuala_Lumpur.
+function fmtMyt(d: Date): string {
+  return new Intl.DateTimeFormat("en-MY", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Kuala_Lumpur",
+  }).format(d)
+}
+
+/// Format Date as "19:00" in Asia/Kuala_Lumpur.
+function fmtMytTime(d: Date): string {
+  return new Intl.DateTimeFormat("en-MY", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Kuala_Lumpur",
+  }).format(d)
+}
