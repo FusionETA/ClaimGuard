@@ -30,9 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToastOnAction } from "@/components/ui/toaster"
+
+const MEMBERS_PAGE_SIZE = 20
 import { cn } from "@/lib/utils"
 import {
   defaultModuleConfig,
@@ -839,6 +842,27 @@ function TeamMembersTable(props: {
     [props.team.members],
   )
 
+  // Paginate large teams (~200 members). Reset to page 1 when the
+  // team changes or when the member list shrinks past the current
+  // page (e.g. admin just removed the last row on page 3).
+  const [membersPage, setMembersPage] = useState(1)
+  useEffect(() => {
+    setMembersPage(1)
+  }, [props.team.id])
+  const membersTotalPages = Math.max(
+    1,
+    Math.ceil(sortedMembers.length / MEMBERS_PAGE_SIZE),
+  )
+  const membersClampedPage = Math.min(membersPage, membersTotalPages)
+  const pagedMembers = useMemo(
+    () =>
+      sortedMembers.slice(
+        (membersClampedPage - 1) * MEMBERS_PAGE_SIZE,
+        membersClampedPage * MEMBERS_PAGE_SIZE,
+      ),
+    [sortedMembers, membersClampedPage],
+  )
+
   const inTeamProfileIds = useMemo(
     () => new Set(props.team.members.map((m) => m.employeeProfileId)),
     [props.team.members],
@@ -1014,7 +1038,7 @@ function TeamMembersTable(props: {
                   </td>
                 </tr>
               ) : (
-                sortedMembers.map((m) => {
+                pagedMembers.map((m) => {
                   // Find the source member entry to get email + employeeId
                   // for richer table rows. Fall back to the membership
                   // payload when not found (e.g. recently-deleted user).
@@ -1113,6 +1137,14 @@ function TeamMembersTable(props: {
             </tbody>
           </table>
         </ScrollArea>
+        <PaginationControls
+          className="flex flex-col items-start justify-between gap-2 pt-1 sm:flex-row sm:items-center"
+          currentPage={membersClampedPage}
+          pageSize={MEMBERS_PAGE_SIZE}
+          totalItems={sortedMembers.length}
+          itemLabel="members"
+          onPageChange={setMembersPage}
+        />
       </CardContent>
     </Card>
   )
