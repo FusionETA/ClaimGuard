@@ -4,6 +4,7 @@ import { getPrismaClient } from "@/lib/prisma"
 import { verifyPassword } from "@/lib/auth/password"
 import { getPrimaryEmployeeProfile } from "@/lib/auth/employee-profile"
 import type {
+  AppRole,
   SessionUser,
 } from "@/lib/auth/types"
 import { isAdminRole } from "@/lib/auth/types"
@@ -248,4 +249,29 @@ export async function buildSessionUserForEmail(
       loggedInViaSso: true,
     } satisfies SessionUser,
   }
+}
+
+/**
+ * Fetch the CURRENT `User.role` from the DB. Called on every
+ * `getCurrentSession()` so the session cookie's stamped-at-login
+ * role doesn't go stale when an admin promotes / demotes the user
+ * (via team-layer assignment) or an owner grants / revokes admin.
+ * Cheap — a single indexed `findUnique` on the primary key.
+ *
+ * Returns null when Prisma isn't configured (dev without a DB) OR
+ * the user id no longer exists (deleted account — caller should
+ * clear the cookie and force a re-login). Otherwise returns just
+ * the role so the caller can compare against its cached value and
+ * decide whether to rewrite the cookie.
+ */
+export async function getFreshUserRole(
+  userId: string,
+): Promise<AppRole | null> {
+  const prisma = getPrismaClient()
+  if (!prisma) return null
+  const row = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  })
+  return (row?.role as AppRole | undefined) ?? null
 }

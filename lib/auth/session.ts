@@ -178,7 +178,31 @@ export async function getCurrentSession() {
     return null
   }
 
-  return decodeSession(token)
+  const session = decodeSession(token)
+  if (!session) return null
+
+  // Refresh `role` from the DB so a stale login cookie doesn't hide
+  // sidebar items the user should now see (e.g. admin just promoted
+  // them to L2 in a team — User.role flips EMPLOYEE → SUPERVISOR,
+  // but their cookie still says EMPLOYEE until they logout / login).
+  // Cheap indexed lookup on User.id; done here so every consumer
+  // (`getCurrentSession()` is called from ~every server component)
+  // stays consistent without each caller opting in.
+  //
+  // Lazy import to keep the module dep-graph small on cold start
+  // — most requests never touch auth internals beyond decoding.
+  const { getFreshUserRole } = await import("@/lib/auth/authenticate")
+  const freshRole = await getFreshUserRole(session.userId)
+  if (freshRole && freshRole !== session.role) {
+    // Rewrite the cookie in-place so subsequent requests see the
+    // new role without another DB roundtrip. Same expiry window as
+    // the original login — we're refreshing, not renewing.
+    const updated: SessionUser = { ...session, role: freshRole }
+    const { name, value, options } = buildSessionCookie(updated)
+    cookieStore.set(name, value, options)
+    return updated as AuthenticatedSession
+  }
+  return session
 }
 
 /**
