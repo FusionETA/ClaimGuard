@@ -230,9 +230,11 @@ export async function submitOtAction(
   const otProjectId = String(formData.get("otProjectId") ?? "").trim() || null
   const notes = String(formData.get("notes") ?? "").trim() || undefined
 
-  const justificationFile = formData.get("justificationFile")
-  if (!justificationFile || !(justificationFile instanceof File) || justificationFile.size === 0) {
-    return { error: "A justification attachment is required." }
+  const justificationFiles = formData.getAll("justificationFile").filter(
+    (f): f is File => f instanceof File && f.size > 0,
+  )
+  if (justificationFiles.length === 0) {
+    return { error: "At least one justification attachment is required." }
   }
 
   if (!dateStr || !otStartAtIso || !otEndAtIso) {
@@ -260,16 +262,18 @@ export async function submitOtAction(
     return { error: safeErrorMessage(err, "Could not submit OT.") }
   }
 
-  try {
-    await employeeAttendanceService.addOtAttachment(
-      session.userId,
-      approvalId,
-      justificationFile,
-      "JUSTIFICATION",
-    )
-  } catch (err) {
-    // Attachment failed but OT was already created — surface the error without rolling back.
-    return { error: safeErrorMessage(err, "OT submitted but justification upload failed. Please add it from the Overtime tab.") }
+  for (const file of justificationFiles) {
+    try {
+      await employeeAttendanceService.addOtAttachment(
+        session.userId,
+        approvalId,
+        file,
+        "JUSTIFICATION",
+      )
+    } catch (err) {
+      // Attachment failed but OT was already created — surface the error without rolling back.
+      return { error: safeErrorMessage(err, "OT submitted but a justification file upload failed. Please add it from the Overtime tab.") }
+    }
   }
 
   await revalidateAll({

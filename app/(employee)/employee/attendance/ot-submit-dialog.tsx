@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
-import { Clock, Paperclip, Plus } from "lucide-react"
+import { Camera, Clock, FileUp, Paperclip, Plus, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import type { AttendanceProjectView } from "@/modules/attendance/domain/models"
 
+import { CameraCaptureModal } from "@/components/attendance/camera-capture-modal"
 import { submitOtAction } from "./actions"
 
 // ─── helpers ───────────────────────────────────────────────────────────────
@@ -376,14 +377,40 @@ function OtSubmitDialog({
   const [endTime, setEndTime] = useState("")
   const [projectId, setProjectId] = useState("")
   const [notes, setNotes] = useState("")
-  const [justificationFile, setJustificationFile] = useState<File | null>(null)
+  const [justificationFiles, setJustificationFiles] = useState<File[]>([])
   const [justificationError, setJustificationError] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [cameraOpen, setCameraOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const pickerRef = useRef<HTMLDivElement>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const duration = computeDuration(startTime, endTime)
   const timeError = startTime && endTime && !duration
+
+  // Close picker on outside click
+  useEffect(() => {
+    if (!pickerOpen) return
+    function handleDown(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setPickerOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleDown)
+    return () => document.removeEventListener("mousedown", handleDown)
+  }, [pickerOpen])
+
+  function addJustificationFiles(files: FileList | File[] | null) {
+    if (!files || files.length === 0) return
+    setJustificationFiles((prev) => [...prev, ...Array.from(files)])
+    setJustificationError(false)
+    setPickerOpen(false)
+  }
+
+  function removeJustificationFile(idx: number) {
+    setJustificationFiles((prev) => prev.filter((_, i) => i !== idx))
+  }
 
   function reset() {
     setDate(todayIso())
@@ -391,8 +418,9 @@ function OtSubmitDialog({
     setEndTime("")
     setProjectId("")
     setNotes("")
-    setJustificationFile(null)
+    setJustificationFiles([])
     setJustificationError(false)
+    setPickerOpen(false)
     if (fileInputRef.current) fileInputRef.current.value = ""
     setMessage(null)
   }
@@ -407,9 +435,9 @@ function OtSubmitDialog({
       setMessage("End time must be after start time.")
       return
     }
-    if (!justificationFile) {
+    if (justificationFiles.length === 0) {
       setJustificationError(true)
-      setMessage("Please attach a justification document before submitting.")
+      setMessage("Please attach at least one justification file before submitting.")
       return
     }
     setJustificationError(false)
@@ -420,7 +448,7 @@ function OtSubmitDialog({
     fd.set("otEndAtUtc", new Date(`${date}T${endTime}:00`).toISOString())
     if (projectId) fd.set("otProjectId", projectId)
     if (notes.trim()) fd.set("notes", notes.trim())
-    fd.set("justificationFile", justificationFile)
+    for (const file of justificationFiles) fd.append("justificationFile", file)
     startTransition(async () => {
       const res = await submitOtAction(fd)
       if (!res.ok) {
@@ -433,6 +461,7 @@ function OtSubmitDialog({
   }
 
   return (
+    <>
     <Dialog
       open={open}
       onOpenChange={(v) => {
@@ -517,38 +546,80 @@ function OtSubmitDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="ot-justification" className={justificationError ? "text-destructive" : undefined}>
+            <Label className={justificationError ? "text-destructive" : undefined}>
               Work area / justification <span className="text-destructive">*</span>
             </Label>
             <p className="text-xs text-muted-foreground">
               Upload a document or photo showing the area or tasks planned for this OT session. You can upload completion evidence after the session on the Overtime tab.
             </p>
-            <label
-              htmlFor="ot-justification"
-              className={cn(
-                "flex cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:bg-muted",
-                justificationError && "border-destructive",
+
+            {/* Hidden file input (attach) */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+              multiple
+              className="sr-only"
+              onChange={(e) => { setPickerOpen(false); addJustificationFiles(e.target.files) }}
+            />
+
+            {/* Picker trigger + inline options */}
+            <div ref={pickerRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setPickerOpen((o) => !o)}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:bg-muted",
+                  justificationError && "border-destructive",
+                )}
+              >
+                <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="text-muted-foreground">Add file…</span>
+              </button>
+              {pickerOpen && (
+                <div className="absolute left-0 top-[calc(100%+4px)] z-50 flex gap-2 rounded-xl border border-border bg-background p-2 shadow-lg">
+                  <button
+                    type="button"
+                    onClick={() => { setPickerOpen(false); setCameraOpen(true) }}
+                    className="flex flex-col items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-medium text-foreground hover:bg-muted"
+                  >
+                    <Camera className="h-5 w-5 text-muted-foreground" />
+                    Take photo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setPickerOpen(false); fileInputRef.current?.click() }}
+                    className="flex flex-col items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-medium text-foreground hover:bg-muted"
+                  >
+                    <FileUp className="h-5 w-5 text-muted-foreground" />
+                    Attach file
+                  </button>
+                </div>
               )}
-            >
-              <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <span className={cn("truncate", justificationFile ? "text-foreground" : "text-muted-foreground")}>
-                {justificationFile ? justificationFile.name : "Choose file…"}
-              </span>
-              <input
-                ref={fileInputRef}
-                id="ot-justification"
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
-                className="sr-only"
-                onChange={(e) => {
-                  const f = e.target.files?.[0] ?? null
-                  setJustificationFile(f)
-                  if (f) setJustificationError(false)
-                }}
-              />
-            </label>
+            </div>
+
+            {/* Selected file list */}
+            {justificationFiles.length > 0 && (
+              <ul className="space-y-1">
+                {justificationFiles.map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 rounded-md border border-border/50 bg-muted/40 px-3 py-1.5 text-xs">
+                    <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="min-w-0 flex-1 truncate text-foreground">{f.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeJustificationFile(i)}
+                      className="shrink-0 rounded p-0.5 text-muted-foreground hover:text-destructive"
+                      aria-label="Remove file"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
             {justificationError ? (
-              <p className="text-xs text-destructive">Justification attachment is required.</p>
+              <p className="text-xs text-destructive">At least one justification file is required.</p>
             ) : null}
           </div>
 
@@ -576,5 +647,12 @@ function OtSubmitDialog({
         </form>
       </DialogContent>
     </Dialog>
+    {cameraOpen && (
+      <CameraCaptureModal
+        onConfirm={(file) => { setCameraOpen(false); addJustificationFiles([file]) }}
+        onCancel={() => setCameraOpen(false)}
+      />
+    )}
+    </>
   )
 }

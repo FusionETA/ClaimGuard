@@ -1,7 +1,9 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
-import { FileText, Paperclip, Trash2, Upload } from "lucide-react"
+import { useEffect, useRef, useState, useTransition } from "react"
+import { Camera, FileText, FileUp, Paperclip, Trash2 } from "lucide-react"
+
+import { CameraCaptureModal } from "@/components/attendance/camera-capture-modal"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
@@ -62,6 +64,9 @@ export function OtRecordCard({
   const [attachments, setAttachments] = useState(record.attachments)
   const [uploadPending, startUpload] = useTransition()
   const [deletePending, startDelete] = useTransition()
+  const [evidencePickerOpen, setEvidencePickerOpen] = useState(false)
+  const [cameraOpen, setCameraOpen] = useState(false)
+  const evidencePickerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const canAttach = record.status === "PENDING" || record.status === "APPROVED"
@@ -69,9 +74,18 @@ export function OtRecordCard({
   const justificationAttachments = attachments.filter((a) => a.kind === "JUSTIFICATION")
   const evidenceAttachments = attachments.filter((a) => a.kind === "EVIDENCE")
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  useEffect(() => {
+    if (!evidencePickerOpen) return
+    function handleDown(e: MouseEvent) {
+      if (evidencePickerRef.current && !evidencePickerRef.current.contains(e.target as Node)) {
+        setEvidencePickerOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleDown)
+    return () => document.removeEventListener("mousedown", handleDown)
+  }, [evidencePickerOpen])
+
+  function uploadFile(file: File) {
     const fd = new FormData()
     fd.set("file", file)
     startUpload(async () => {
@@ -99,6 +113,7 @@ export function OtRecordCard({
   const isPending = uploadPending || deletePending
 
   return (
+    <>
     <Card>
       <CardContent className="p-4 space-y-3">
         {/* Header row */}
@@ -171,27 +186,49 @@ export function OtRecordCard({
         {/* Evidence — upload/delete only for pending/approved */}
         {canAttach ? (
           <div className="border-t border-border/50 pt-3 space-y-2">
+            {/* Hidden file input (attach) */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+              className="sr-only"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f) }}
+            />
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <Paperclip className="h-3.5 w-3.5" />
                 After (Evidence)
               </span>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-1 rounded-lg border border-border/60 bg-surface-low px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted/50 disabled:opacity-50"
-              >
-                <Upload className="h-3 w-3" />
-                {uploadPending ? "Uploading…" : "Upload"}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
-                className="hidden"
-                onChange={handleFileChange}
-              />
+              <div ref={evidencePickerRef} className="relative">
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => setEvidencePickerOpen((o) => !o)}
+                  className="flex items-center gap-1 rounded-lg border border-border/60 bg-surface-low px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted/50 disabled:opacity-50"
+                >
+                  {uploadPending ? "Uploading…" : "Upload"}
+                </button>
+                {evidencePickerOpen && (
+                  <div className="absolute right-0 top-[calc(100%+4px)] z-50 flex gap-2 rounded-xl border border-border bg-background p-2 shadow-lg">
+                    <button
+                      type="button"
+                      onClick={() => { setEvidencePickerOpen(false); setCameraOpen(true) }}
+                      className="flex flex-col items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
+                    >
+                      <Camera className="h-4 w-4 text-muted-foreground" />
+                      Take photo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setEvidencePickerOpen(false); fileInputRef.current?.click() }}
+                      className="flex flex-col items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
+                    >
+                      <FileUp className="h-4 w-4 text-muted-foreground" />
+                      Attach file
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">Upload photos or documents showing the work completed during this OT session.</p>
 
@@ -237,5 +274,12 @@ export function OtRecordCard({
         ) : null}
       </CardContent>
     </Card>
+    {cameraOpen && (
+      <CameraCaptureModal
+        onConfirm={(file) => { setCameraOpen(false); uploadFile(file) }}
+        onCancel={() => setCameraOpen(false)}
+      />
+    )}
+    </>
   )
 }

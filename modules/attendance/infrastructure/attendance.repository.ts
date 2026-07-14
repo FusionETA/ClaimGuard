@@ -4907,6 +4907,20 @@ export const attendanceRepository = {
     const durationMin = Math.round(
       (args.otEndAt.getTime() - args.otStartAt.getTime()) / 60_000,
     )
+    const overlapping = await prisma.approvalRequest.findFirst({
+      where: {
+        employeeId: args.employeeId,
+        kind: "OT",
+        status: { in: ["PENDING", "APPROVED"] },
+        otStartAt: { lt: args.otEndAt },
+        otEndAt: { gt: args.otStartAt },
+      },
+      select: { id: true },
+    })
+    if (overlapping) {
+      throw new Error("You already have an OT submission that overlaps this time range.")
+    }
+
     const approval = await prisma.approvalRequest.create({
       data: {
         employeeId: args.employeeId,
