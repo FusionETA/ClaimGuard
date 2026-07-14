@@ -6,7 +6,12 @@ import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
+import {
+  bustAttendanceCaches,
+  bustClaimCaches,
+  bustLeaveCaches,
+  bustOrgConfigCaches,
+} from "@/lib/cache-invalidation"
 import type { BaseFormState } from "@/lib/form-state"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import {
@@ -304,7 +309,18 @@ export async function assignTeamMemberAction(
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
-  await bustOrgConfigCaches({ organizationId })
+  // Full 5-area sweep — an assign at layer ≥ 2 flips User.role
+  // EMPLOYEE → SUPERVISOR inside `assignTeamMember`, which means
+  // the person now has approval authority in attendance + leave +
+  // claims. Their supervisor dashboards and the admin queues that
+  // count "approvers per module" need to see this immediately;
+  // exec-overview headcounts do too.
+  await Promise.all([
+    bustOrgConfigCaches({ organizationId }),
+    bustAttendanceCaches({ organizationId }),
+    bustLeaveCaches({ organizationId }),
+    bustClaimCaches({ organizationId }),
+  ])
 
   return { status: "success", message: "Member updated." }
 }
@@ -353,7 +369,16 @@ export async function removeTeamMemberAction(
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
-  await bustOrgConfigCaches({ organizationId })
+  // Mirror of the assign bust — remove can demote SUPERVISOR back
+  // to EMPLOYEE (if this was their only ≥ L2 seat), so sweep the
+  // same attendance / leave / claim caches to drop them from
+  // supervisor-facing views immediately.
+  await Promise.all([
+    bustOrgConfigCaches({ organizationId }),
+    bustAttendanceCaches({ organizationId }),
+    bustLeaveCaches({ organizationId }),
+    bustClaimCaches({ organizationId }),
+  ])
 
   return { status: "success", message: "Member removed." }
 }
