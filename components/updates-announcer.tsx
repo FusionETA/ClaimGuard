@@ -11,6 +11,7 @@ import {
   formatMaintenanceWindow,
   formatMaintenanceWindowCompact,
   getImminentMaintenance,
+  groupShippedByDate,
   matchesAudience,
   type MaintenanceWindow,
   type ShippedFeature,
@@ -58,6 +59,10 @@ const EXCLUDED_PREFIXES = ["/maintenance", "/login"]
 /// because a `startsWith("/")` match would silently hide the pill on
 /// every route — the root only needs an exact match.
 const EXCLUDED_EXACT = ["/"]
+/// How many recent ship-dates the "Recently shipped" section shows
+/// before the "Show more" toggle. Grouping is per-day now (the
+/// changelog updates daily), so this counts days, not individual cards.
+const DEFAULT_SHIPPED_DAYS = 2
 
 /**
  * Props:
@@ -304,9 +309,17 @@ function UpdatesSheet({
   upcoming: UpcomingFeature[]
   shipped: ShippedFeature[]
 }) {
-  // "Show more" toggle for the shipped list. Default: top 3.
+  // Shipped features are shown grouped by ship date — one header per
+  // day, its updates listed underneath. "Show more" reveals older
+  // days; default shows the most recent `DEFAULT_SHIPPED_DAYS`.
   const [showAllShipped, setShowAllShipped] = useState(false)
-  const shippedToShow = showAllShipped ? shipped : shipped.slice(0, 3)
+  const shippedGroups = useMemo(() => groupShippedByDate(shipped), [shipped])
+  const groupsToShow = showAllShipped
+    ? shippedGroups
+    : shippedGroups.slice(0, DEFAULT_SHIPPED_DAYS)
+  const hiddenShippedCount =
+    shipped.length -
+    groupsToShow.reduce((sum, group) => sum + group.items.length, 0)
 
   const hasAnyContent =
     maintenance.length > 0 || upcoming.length > 0 || shipped.length > 0
@@ -407,29 +420,46 @@ function UpdatesSheet({
               title="Recently shipped"
               accentClass="text-emerald-700 dark:text-emerald-300"
             >
-              <div className="space-y-3">
-                {shippedToShow.map((f) => (
-                  <article
-                    key={f.id}
-                    className="relative overflow-hidden rounded-2xl border border-emerald-200/70 bg-emerald-50/40 p-4 shadow-sm transition-colors hover:bg-emerald-50/70 dark:border-emerald-800/40 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/30"
-                  >
-                    <span
-                      aria-hidden
-                      className="absolute inset-y-0 left-0 w-1 bg-emerald-500"
-                    />
-                    <span className="inline-flex items-center rounded-full bg-emerald-200/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:bg-emerald-800/30 dark:text-emerald-200">
-                      {formatShortDate(f.date)}
-                    </span>
-                    <p className="mt-2 text-sm font-semibold text-foreground">
-                      {f.title}
-                    </p>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      {f.body}
-                    </p>
-                  </article>
+              <div className="space-y-5">
+                {groupsToShow.map((group) => (
+                  <div key={group.date} className="space-y-2.5">
+                    {/* Date header — one per day, its updates listed below */}
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center rounded-full bg-emerald-200/60 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:bg-emerald-800/40 dark:text-emerald-200">
+                        {formatShortDate(group.date)}
+                      </span>
+                      <span
+                        aria-hidden
+                        className="h-px flex-1 bg-emerald-200/60 dark:bg-emerald-800/40"
+                      />
+                      <span className="text-[10px] font-medium text-emerald-700/70 dark:text-emerald-300/60">
+                        {group.items.length}{" "}
+                        {group.items.length === 1 ? "update" : "updates"}
+                      </span>
+                    </div>
+                    <div className="space-y-2.5">
+                      {group.items.map((f) => (
+                        <article
+                          key={f.id}
+                          className="relative overflow-hidden rounded-2xl border border-emerald-200/70 bg-emerald-50/40 p-4 shadow-sm transition-colors hover:bg-emerald-50/70 dark:border-emerald-800/40 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/30"
+                        >
+                          <span
+                            aria-hidden
+                            className="absolute inset-y-0 left-0 w-1 bg-emerald-500"
+                          />
+                          <p className="text-sm font-semibold text-foreground">
+                            {f.title}
+                          </p>
+                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                            {f.body}
+                          </p>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
-              {shipped.length > 3 ? (
+              {shippedGroups.length > DEFAULT_SHIPPED_DAYS ? (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -438,7 +468,7 @@ function UpdatesSheet({
                 >
                   {showAllShipped
                     ? "Show less"
-                    : `Show ${shipped.length - 3} more`}
+                    : `Show ${hiddenShippedCount} more`}
                 </Button>
               ) : null}
             </Section>

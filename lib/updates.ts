@@ -88,6 +88,16 @@ export type ShippedFeature = {
   audience?: UpdateAudience
 }
 
+/// One day's worth of shipped features, produced by
+/// `groupShippedByDate`. The sheet renders each group under a single
+/// date header so the viewer reads "what changed on this date" at a
+/// glance instead of a flat list with the date repeated on every card.
+export type ShippedDateGroup = {
+  /// "YYYY-MM-DD" — the shared ship date for every item in `items`.
+  date: string
+  items: ShippedFeature[]
+}
+
 // ─── Edit these arrays when you have news to share ────────────────────
 
 /**
@@ -301,6 +311,30 @@ export function matchesAudience(
   if (tag === "ALL") return true
   if (viewer === "ALL") return true
   return tag === viewer
+}
+
+/**
+ * Collapse a flat, newest-first list of shipped features into one
+ * dated block per calendar day. Same-date entries are already
+ * consecutive in `RECENTLY_SHIPPED` (the daily changelog routine
+ * prepends each day's entries as a contiguous run), so a single linear
+ * pass preserves both the across-date and within-date newest-first
+ * ordering without re-sorting. The sheet renders one date header per
+ * returned group.
+ */
+export function groupShippedByDate(
+  shipped: ShippedFeature[],
+): ShippedDateGroup[] {
+  const groups: ShippedDateGroup[] = []
+  for (const feature of shipped) {
+    const current = groups[groups.length - 1]
+    if (current && current.date === feature.date) {
+      current.items.push(feature)
+    } else {
+      groups.push({ date: feature.date, items: [feature] })
+    }
+  }
+  return groups
 }
 
 /**
