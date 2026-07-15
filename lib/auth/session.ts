@@ -194,13 +194,14 @@ export async function getCurrentSession() {
   const { getFreshUserRole } = await import("@/lib/auth/authenticate")
   const freshRole = await getFreshUserRole(session.userId)
   if (freshRole && freshRole !== session.role) {
-    // Rewrite the cookie in-place so subsequent requests see the
-    // new role without another DB roundtrip. Same expiry window as
-    // the original login — we're refreshing, not renewing.
-    const updated: SessionUser = { ...session, role: freshRole }
-    const { name, value, options } = buildSessionCookie(updated)
-    cookieStore.set(name, value, options)
-    return updated as AuthenticatedSession
+    // Return the fresh role for THIS request only. Do NOT rewrite the
+    // cookie here: `getCurrentSession()` runs during page/layout render
+    // (~every server component), and Next 16 forbids `cookies().set(...)`
+    // outside a Server Action / Route Handler — doing so throws and
+    // crashes the render (see the note in `requirePortalSession`).
+    // No persistence needed: `getFreshUserRole()` re-checks the DB on
+    // every call, so the fresh role is always reflected regardless.
+    return { ...session, role: freshRole } as AuthenticatedSession
   }
   return session
 }
