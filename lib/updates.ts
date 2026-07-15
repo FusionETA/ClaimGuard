@@ -177,6 +177,35 @@ export const UPCOMING_FEATURES: UpcomingFeature[] = []
  */
 export const RECENTLY_SHIPPED: ShippedFeature[] = [
   {
+    id: "ship-auth-render-crash-fix-2026-07-15",
+    date: "2026-07-15",
+    title: "Fixed a crash that stopped some pages from loading",
+    body:
+      "Resolved an error that could stop certain pages from opening for " +
+      "some people right after signing in. Pages now load reliably.",
+    audience: "ALL",
+  },
+  {
+    id: "ship-ot-camera-multifile-2026-07-14",
+    date: "2026-07-14",
+    title: "Overtime: in-app camera and multiple evidence files",
+    body:
+      "Submitting overtime now opens the in-app camera to snap evidence, " +
+      "just like clock-in. Attach several justification files and remove " +
+      "any one before submitting. Overtime that overlaps a request you've " +
+      "already sent for the same period is now blocked with a clear message.",
+    audience: "EMPLOYEE",
+  },
+  {
+    id: "ship-audit-login-events-2026-07-14",
+    date: "2026-07-14",
+    title: "Sign-ins now recorded in the audit log",
+    body:
+      "Successful sign-ins are now written to your company's audit log, so " +
+      "you can review who logged in and when alongside other activity.",
+    audience: "ADMIN",
+  },
+  {
     id: "ship-employee-transfers-2026-07-13",
     date: "2026-07-13",
     title: "Move an employee between companies — no re-onboarding",
@@ -255,26 +284,6 @@ export const RECENTLY_SHIPPED: ShippedFeature[] = [
       "Refined the KWSP/EPF calculation so Malaysian citizens aged 60 and " +
       "over land on the correct contribution rate, and the employer's EPF " +
       "now follows the same official band table.",
-    audience: "ADMIN",
-  },
-  {
-    id: "ship-edit-pending-claim-2026-06-10",
-    date: "2026-06-10",
-    title: "Edit a pending claim",
-    body:
-      "Tap the pencil on any claim row to fix typos, swap the receipt, " +
-      "or attach more supporting documents — without deleting and " +
-      "resubmitting.",
-    audience: "EMPLOYEE",
-  },
-  {
-    id: "ship-xero-expense-types-2026-06-10",
-    date: "2026-06-10",
-    title:
-      "Chart-of-accounts now includes Direct Costs / Overheads / Depreciation",
-    body:
-      "Re-sync your Xero connection to pull in account types beyond plain " +
-      "EXPENSE.",
     audience: "ADMIN",
   },
 ]
