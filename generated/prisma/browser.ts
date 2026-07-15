@@ -547,3 +547,20 @@ export type LeaveApplication = Prisma.LeaveApplicationModel
  * just notes the entry point.
  */
 export type OrganizationAuditLog = Prisma.OrganizationAuditLogModel
+/**
+ * Model SuperadminAuditLog
+ * Fusioneta-side accountability trail for the SUPERADMIN
+ * support-mode feature. When a designated support user (email in
+ * SUPERADMIN_EMAILS) acts inside a customer's org, the customer's
+ * OrganizationAuditLog row is rewritten to actor = "System (Support)"
+ * so the customer isn't tipped off to which specific Fusioneta staff
+ * member accessed their data — but the REAL actor + target org +
+ * action lands here for internal audit / compliance.
+ * 
+ * No retention prune: keep indefinitely. Only rows are inserts (never
+ * updates / deletes) so the table only grows on genuine support usage.
+ * 
+ * Never exposed to customer admins in the UI. Only surfaced to
+ * Fusioneta staff via a dedicated internal page.
+ */
+export type SuperadminAuditLog = Prisma.SuperadminAuditLogModel

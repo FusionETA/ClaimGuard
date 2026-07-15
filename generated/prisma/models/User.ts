@@ -239,6 +239,7 @@ export type UserWhereInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   auditLogActor?: Prisma.OrganizationAuditLogListRelationFilter
+  superadminAuditActor?: Prisma.SuperadminAuditLogListRelationFilter
   submittedPayrollRuns?: Prisma.PayrollRunListRelationFilter
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunListRelationFilter
   projectManagerOf?: Prisma.ProjectManagerListRelationFilter
@@ -278,6 +279,7 @@ export type UserOrderByWithRelationInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   auditLogActor?: Prisma.OrganizationAuditLogOrderByRelationAggregateInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogOrderByRelationAggregateInput
   submittedPayrollRuns?: Prisma.PayrollRunOrderByRelationAggregateInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunOrderByRelationAggregateInput
   projectManagerOf?: Prisma.ProjectManagerOrderByRelationAggregateInput
@@ -321,6 +323,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   auditLogActor?: Prisma.OrganizationAuditLogListRelationFilter
+  superadminAuditActor?: Prisma.SuperadminAuditLogListRelationFilter
   submittedPayrollRuns?: Prisma.PayrollRunListRelationFilter
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunListRelationFilter
   projectManagerOf?: Prisma.ProjectManagerListRelationFilter
@@ -391,6 +394,7 @@ export type UserCreateInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -430,6 +434,7 @@ export type UserUncheckedCreateInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -467,6 +472,7 @@ export type UserUpdateInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -506,6 +512,7 @@ export type UserUncheckedUpdateInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -1049,6 +1056,22 @@ export type UserUpdateOneWithoutAuditLogActorNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditLogActorInput, Prisma.UserUpdateWithoutAuditLogActorInput>, Prisma.UserUncheckedUpdateWithoutAuditLogActorInput>
 }
 
+export type UserCreateNestedOneWithoutSuperadminAuditActorInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSuperadminAuditActorInput, Prisma.UserUncheckedCreateWithoutSuperadminAuditActorInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSuperadminAuditActorInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutSuperadminAuditActorNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSuperadminAuditActorInput, Prisma.UserUncheckedCreateWithoutSuperadminAuditActorInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSuperadminAuditActorInput
+  upsert?: Prisma.UserUpsertWithoutSuperadminAuditActorInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSuperadminAuditActorInput, Prisma.UserUpdateWithoutSuperadminAuditActorInput>, Prisma.UserUncheckedUpdateWithoutSuperadminAuditActorInput>
+}
+
 export type UserCreateWithoutOrganizationInput = {
   id?: string
   email: string
@@ -1076,6 +1099,7 @@ export type UserCreateWithoutOrganizationInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -1113,6 +1137,7 @@ export type UserUncheckedCreateWithoutOrganizationInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -1191,6 +1216,7 @@ export type UserCreateWithoutAdminOrganizationsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -1229,6 +1255,7 @@ export type UserUncheckedCreateWithoutAdminOrganizationsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -1281,6 +1308,7 @@ export type UserUpdateWithoutAdminOrganizationsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -1319,6 +1347,7 @@ export type UserUncheckedUpdateWithoutAdminOrganizationsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -1356,6 +1385,7 @@ export type UserCreateWithoutPushSubscriptionsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -1394,6 +1424,7 @@ export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -1446,6 +1477,7 @@ export type UserUpdateWithoutPushSubscriptionsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -1484,6 +1516,7 @@ export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -1519,6 +1552,7 @@ export type UserCreateWithoutNotificationsInput = {
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutUserInput
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -1557,6 +1591,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutUserInput
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -1609,6 +1644,7 @@ export type UserUpdateWithoutNotificationsInput = {
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutUserNestedInput
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -1647,6 +1683,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutUserNestedInput
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -1683,6 +1720,7 @@ export type UserCreateWithoutEmployeeImportDraftsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -1721,6 +1759,7 @@ export type UserUncheckedCreateWithoutEmployeeImportDraftsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -1773,6 +1812,7 @@ export type UserUpdateWithoutEmployeeImportDraftsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -1811,6 +1851,7 @@ export type UserUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -1847,6 +1888,7 @@ export type UserCreateWithoutEmployeeProfilesInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -1885,6 +1927,7 @@ export type UserUncheckedCreateWithoutEmployeeProfilesInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -1937,6 +1980,7 @@ export type UserUpdateWithoutEmployeeProfilesInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -1975,6 +2019,7 @@ export type UserUncheckedUpdateWithoutEmployeeProfilesInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -2011,6 +2056,7 @@ export type UserCreateWithoutEmployeeOrganizationsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -2049,6 +2095,7 @@ export type UserUncheckedCreateWithoutEmployeeOrganizationsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -2101,6 +2148,7 @@ export type UserUpdateWithoutEmployeeOrganizationsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -2139,6 +2187,7 @@ export type UserUncheckedUpdateWithoutEmployeeOrganizationsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -2175,6 +2224,7 @@ export type UserCreateWithoutClaimsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -2213,6 +2263,7 @@ export type UserUncheckedCreateWithoutClaimsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -2254,6 +2305,7 @@ export type UserCreateWithoutReviewsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -2292,6 +2344,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -2344,6 +2397,7 @@ export type UserUpdateWithoutClaimsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -2382,6 +2436,7 @@ export type UserUncheckedUpdateWithoutClaimsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -2429,6 +2484,7 @@ export type UserUpdateWithoutReviewsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -2467,6 +2523,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -2503,6 +2560,7 @@ export type UserCreateWithoutClaimApprovalEntriesInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -2541,6 +2599,7 @@ export type UserUncheckedCreateWithoutClaimApprovalEntriesInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -2593,6 +2652,7 @@ export type UserUpdateWithoutClaimApprovalEntriesInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -2631,6 +2691,7 @@ export type UserUncheckedUpdateWithoutClaimApprovalEntriesInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -2668,6 +2729,7 @@ export type UserCreateWithoutXeroConnectionsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -2706,6 +2768,7 @@ export type UserUncheckedCreateWithoutXeroConnectionsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -2758,6 +2821,7 @@ export type UserUpdateWithoutXeroConnectionsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -2796,6 +2860,7 @@ export type UserUncheckedUpdateWithoutXeroConnectionsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -2832,6 +2897,7 @@ export type UserCreateWithoutManagedProjectsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -2870,6 +2936,7 @@ export type UserUncheckedCreateWithoutManagedProjectsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -2922,6 +2989,7 @@ export type UserUpdateWithoutManagedProjectsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -2960,6 +3028,7 @@ export type UserUncheckedUpdateWithoutManagedProjectsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -2996,6 +3065,7 @@ export type UserCreateWithoutProjectManagerOfInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
@@ -3034,6 +3104,7 @@ export type UserUncheckedCreateWithoutProjectManagerOfInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -3086,6 +3157,7 @@ export type UserUpdateWithoutProjectManagerOfInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
@@ -3124,6 +3196,7 @@ export type UserUncheckedUpdateWithoutProjectManagerOfInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -3159,6 +3232,7 @@ export type UserCreateWithoutAttendanceInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -3197,6 +3271,7 @@ export type UserUncheckedCreateWithoutAttendanceInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -3249,6 +3324,7 @@ export type UserUpdateWithoutAttendanceInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -3287,6 +3363,7 @@ export type UserUncheckedUpdateWithoutAttendanceInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -3323,6 +3400,7 @@ export type UserCreateWithoutAttendanceEditsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -3361,6 +3439,7 @@ export type UserUncheckedCreateWithoutAttendanceEditsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -3413,6 +3492,7 @@ export type UserUpdateWithoutAttendanceEditsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -3451,6 +3531,7 @@ export type UserUncheckedUpdateWithoutAttendanceEditsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -3487,6 +3568,7 @@ export type UserCreateWithoutBreakSessionEditsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -3525,6 +3607,7 @@ export type UserUncheckedCreateWithoutBreakSessionEditsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -3577,6 +3660,7 @@ export type UserUpdateWithoutBreakSessionEditsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -3615,6 +3699,7 @@ export type UserUncheckedUpdateWithoutBreakSessionEditsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -3651,6 +3736,7 @@ export type UserCreateWithoutApprovalsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -3689,6 +3775,7 @@ export type UserUncheckedCreateWithoutApprovalsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -3730,6 +3817,7 @@ export type UserCreateWithoutApprovalReviewsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -3768,6 +3856,7 @@ export type UserUncheckedCreateWithoutApprovalReviewsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -3820,6 +3909,7 @@ export type UserUpdateWithoutApprovalsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -3858,6 +3948,7 @@ export type UserUncheckedUpdateWithoutApprovalsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -3905,6 +3996,7 @@ export type UserUpdateWithoutApprovalReviewsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -3943,6 +4035,7 @@ export type UserUncheckedUpdateWithoutApprovalReviewsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -3979,6 +4072,7 @@ export type UserCreateWithoutApprovalChainApprovalsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -4017,6 +4111,7 @@ export type UserUncheckedCreateWithoutApprovalChainApprovalsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -4058,6 +4153,7 @@ export type UserCreateWithoutApprovalChainStepsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -4096,6 +4192,7 @@ export type UserUncheckedCreateWithoutApprovalChainStepsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -4148,6 +4245,7 @@ export type UserUpdateWithoutApprovalChainApprovalsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -4186,6 +4284,7 @@ export type UserUncheckedUpdateWithoutApprovalChainApprovalsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -4233,6 +4332,7 @@ export type UserUpdateWithoutApprovalChainStepsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -4271,6 +4371,7 @@ export type UserUncheckedUpdateWithoutApprovalChainStepsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -4308,6 +4409,7 @@ export type UserCreateWithoutSalaryChangesAuthoredInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -4346,6 +4448,7 @@ export type UserUncheckedCreateWithoutSalaryChangesAuthoredInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -4398,6 +4501,7 @@ export type UserUpdateWithoutSalaryChangesAuthoredInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -4436,6 +4540,7 @@ export type UserUncheckedUpdateWithoutSalaryChangesAuthoredInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -4472,6 +4577,7 @@ export type UserCreateWithoutSubmittedPayrollRunsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
   pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
@@ -4510,6 +4616,7 @@ export type UserUncheckedCreateWithoutSubmittedPayrollRunsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -4551,6 +4658,7 @@ export type UserCreateWithoutSubmittedForApprovalPayrollRunsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
   pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
@@ -4589,6 +4697,7 @@ export type UserUncheckedCreateWithoutSubmittedForApprovalPayrollRunsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -4641,6 +4750,7 @@ export type UserUpdateWithoutSubmittedPayrollRunsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
@@ -4679,6 +4789,7 @@ export type UserUncheckedUpdateWithoutSubmittedPayrollRunsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -4726,6 +4837,7 @@ export type UserUpdateWithoutSubmittedForApprovalPayrollRunsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
@@ -4764,6 +4876,7 @@ export type UserUncheckedUpdateWithoutSubmittedForApprovalPayrollRunsInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -4800,6 +4913,7 @@ export type UserCreateWithoutEmployeeTransfersCreatedInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -4838,6 +4952,7 @@ export type UserUncheckedCreateWithoutEmployeeTransfersCreatedInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -4890,6 +5005,7 @@ export type UserUpdateWithoutEmployeeTransfersCreatedInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -4928,6 +5044,7 @@ export type UserUncheckedUpdateWithoutEmployeeTransfersCreatedInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -4963,6 +5080,7 @@ export type UserCreateWithoutLeaveApplicationsAppliedByAdminInput = {
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -5001,6 +5119,7 @@ export type UserUncheckedCreateWithoutLeaveApplicationsAppliedByAdminInput = {
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -5053,6 +5172,7 @@ export type UserUpdateWithoutLeaveApplicationsAppliedByAdminInput = {
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -5091,6 +5211,7 @@ export type UserUncheckedUpdateWithoutLeaveApplicationsAppliedByAdminInput = {
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -5127,6 +5248,7 @@ export type UserCreateWithoutAuditLogActorInput = {
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutUserInput
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
@@ -5165,6 +5287,7 @@ export type UserUncheckedCreateWithoutAuditLogActorInput = {
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutUserInput
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutActorInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
@@ -5217,6 +5340,7 @@ export type UserUpdateWithoutAuditLogActorInput = {
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutUserNestedInput
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -5255,6 +5379,175 @@ export type UserUncheckedUpdateWithoutAuditLogActorInput = {
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutUserNestedInput
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
+  projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutCreatedByUserNestedInput
+}
+
+export type UserCreateWithoutSuperadminAuditActorInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  passwordChangedAt?: Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationCreateNestedManyWithoutUserInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
+  approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogCreateNestedManyWithoutEditorInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutUserInput
+  employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutUserInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationCreateNestedManyWithoutAppliedByAdminInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
+  submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
+  projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  salaryChangesAuthored?: Prisma.SalaryChangeCreateNestedManyWithoutChangedByUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferCreateNestedManyWithoutCreatedByUserInput
+}
+
+export type UserUncheckedCreateWithoutSuperadminAuditActorInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  organizationId?: string | null
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  passwordChangedAt?: Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutUserInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutEditorInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutUserInput
+  employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutUserInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedCreateNestedManyWithoutAppliedByAdminInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
+  submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
+  projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutCreatedByUserInput
+}
+
+export type UserCreateOrConnectWithoutSuperadminAuditActorInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSuperadminAuditActorInput, Prisma.UserUncheckedCreateWithoutSuperadminAuditActorInput>
+}
+
+export type UserUpsertWithoutSuperadminAuditActorInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSuperadminAuditActorInput, Prisma.UserUncheckedUpdateWithoutSuperadminAuditActorInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSuperadminAuditActorInput, Prisma.UserUncheckedCreateWithoutSuperadminAuditActorInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSuperadminAuditActorInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSuperadminAuditActorInput, Prisma.UserUncheckedUpdateWithoutSuperadminAuditActorInput>
+}
+
+export type UserUpdateWithoutSuperadminAuditActorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUpdateManyWithoutUserNestedInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUpdateManyWithoutEditorNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutUserNestedInput
+  employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutUserNestedInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
+  projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUpdateManyWithoutChangedByUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+  employeeTransfersCreated?: Prisma.EmployeeTransferUpdateManyWithoutCreatedByUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSuperadminAuditActorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  employeeOrganizations?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutEditorNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutUserNestedInput
+  employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutUserNestedInput
+  leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -5304,6 +5597,7 @@ export type UserUpdateWithoutOrganizationInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
@@ -5341,6 +5635,7 @@ export type UserUncheckedUpdateWithoutOrganizationInput = {
   leaveApplicationsAppliedByAdmin?: Prisma.LeaveApplicationUncheckedUpdateManyWithoutAppliedByAdminNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  superadminAuditActor?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
   submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
@@ -5386,6 +5681,7 @@ export type UserCountOutputType = {
   leaveApplicationsAppliedByAdmin: number
   notifications: number
   auditLogActor: number
+  superadminAuditActor: number
   submittedPayrollRuns: number
   submittedForApprovalPayrollRuns: number
   projectManagerOf: number
@@ -5414,6 +5710,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   leaveApplicationsAppliedByAdmin?: boolean | UserCountOutputTypeCountLeaveApplicationsAppliedByAdminArgs
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
   auditLogActor?: boolean | UserCountOutputTypeCountAuditLogActorArgs
+  superadminAuditActor?: boolean | UserCountOutputTypeCountSuperadminAuditActorArgs
   submittedPayrollRuns?: boolean | UserCountOutputTypeCountSubmittedPayrollRunsArgs
   submittedForApprovalPayrollRuns?: boolean | UserCountOutputTypeCountSubmittedForApprovalPayrollRunsArgs
   projectManagerOf?: boolean | UserCountOutputTypeCountProjectManagerOfArgs
@@ -5556,6 +5853,13 @@ export type UserCountOutputTypeCountAuditLogActorArgs<ExtArgs extends runtime.Ty
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountSuperadminAuditActorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SuperadminAuditLogWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountSubmittedPayrollRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.PayrollRunWhereInput
 }
@@ -5638,6 +5942,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   leaveApplicationsAppliedByAdmin?: boolean | Prisma.User$leaveApplicationsAppliedByAdminArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   auditLogActor?: boolean | Prisma.User$auditLogActorArgs<ExtArgs>
+  superadminAuditActor?: boolean | Prisma.User$superadminAuditActorArgs<ExtArgs>
   submittedPayrollRuns?: boolean | Prisma.User$submittedPayrollRunsArgs<ExtArgs>
   submittedForApprovalPayrollRuns?: boolean | Prisma.User$submittedForApprovalPayrollRunsArgs<ExtArgs>
   projectManagerOf?: boolean | Prisma.User$projectManagerOfArgs<ExtArgs>
@@ -5684,6 +5989,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   leaveApplicationsAppliedByAdmin?: boolean | Prisma.User$leaveApplicationsAppliedByAdminArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   auditLogActor?: boolean | Prisma.User$auditLogActorArgs<ExtArgs>
+  superadminAuditActor?: boolean | Prisma.User$superadminAuditActorArgs<ExtArgs>
   submittedPayrollRuns?: boolean | Prisma.User$submittedPayrollRunsArgs<ExtArgs>
   submittedForApprovalPayrollRuns?: boolean | Prisma.User$submittedForApprovalPayrollRunsArgs<ExtArgs>
   projectManagerOf?: boolean | Prisma.User$projectManagerOfArgs<ExtArgs>
@@ -5724,6 +6030,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     leaveApplicationsAppliedByAdmin: Prisma.$LeaveApplicationPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     auditLogActor: Prisma.$OrganizationAuditLogPayload<ExtArgs>[]
+    superadminAuditActor: Prisma.$SuperadminAuditLogPayload<ExtArgs>[]
     submittedPayrollRuns: Prisma.$PayrollRunPayload<ExtArgs>[]
     submittedForApprovalPayrollRuns: Prisma.$PayrollRunPayload<ExtArgs>[]
     projectManagerOf: Prisma.$ProjectManagerPayload<ExtArgs>[]
@@ -6111,6 +6418,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   leaveApplicationsAppliedByAdmin<T extends Prisma.User$leaveApplicationsAppliedByAdminArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$leaveApplicationsAppliedByAdminArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogActor<T extends Prisma.User$auditLogActorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogActorArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  superadminAuditActor<T extends Prisma.User$superadminAuditActorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$superadminAuditActorArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SuperadminAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   submittedPayrollRuns<T extends Prisma.User$submittedPayrollRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$submittedPayrollRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   submittedForApprovalPayrollRuns<T extends Prisma.User$submittedForApprovalPayrollRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$submittedForApprovalPayrollRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectManagerOf<T extends Prisma.User$projectManagerOfArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectManagerOfArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectManagerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -6912,6 +7220,30 @@ export type User$auditLogActorArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.OrganizationAuditLogScalarFieldEnum | Prisma.OrganizationAuditLogScalarFieldEnum[]
+}
+
+/**
+ * User.superadminAuditActor
+ */
+export type User$superadminAuditActorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SuperadminAuditLog
+   */
+  select?: Prisma.SuperadminAuditLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SuperadminAuditLog
+   */
+  omit?: Prisma.SuperadminAuditLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SuperadminAuditLogInclude<ExtArgs> | null
+  where?: Prisma.SuperadminAuditLogWhereInput
+  orderBy?: Prisma.SuperadminAuditLogOrderByWithRelationInput | Prisma.SuperadminAuditLogOrderByWithRelationInput[]
+  cursor?: Prisma.SuperadminAuditLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SuperadminAuditLogScalarFieldEnum | Prisma.SuperadminAuditLogScalarFieldEnum[]
 }
 
 /**

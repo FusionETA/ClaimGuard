@@ -22,6 +22,7 @@ import { ChangePasswordButton } from "@/components/layout/change-password-button
 import { LogoutButton } from "@/components/layout/logout-button"
 import { NotificationBell } from "@/components/layout/notification-bell"
 import { RealtimeListener } from "@/components/layout/realtime-listener"
+import { SupportModeBanner } from "@/components/admin/support-mode-banner"
 import {
   createOrganizationAction,
   switchActiveOrganizationAction,
@@ -301,6 +302,15 @@ type AdminShellProps = {
   /// server-side by the layout and threaded down; the client doesn't
   /// re-fetch it.
   accessModules?: ReadonlyArray<string> | null
+  /// Populated when this session is a superadmin currently acting
+  /// against a target org OTHER than their own home. Triggers the
+  /// yellow banner + Exit button at the top of the shell. Null when
+  /// the user is not a superadmin, or is in their own home org.
+  supportModeTarget?: {
+    id: string
+    name: string
+    ownerEmail: string | null
+  } | null
 }
 
 export function AdminShell({
@@ -309,6 +319,7 @@ export function AdminShell({
   organizationName,
   activeOrganizationId,
   accessModules,
+  supportModeTarget,
 }: AdminShellProps) {
   // Filter the full nav down to what this admin is allowed to see.
   // `null` (default) → keep everything (owner / legacy admin).
@@ -360,7 +371,11 @@ export function AdminShell({
   const activeOrg =
     adminOrganizations.find((o) => o.id === resolvedActiveOrganizationId) ??
     adminOrganizations[0]
-  const displayName = activeOrg?.name ?? organizationName
+  // Support-mode override: when a superadmin is acting inside a target
+  // org, that org is NOT in their AdminOrganization list — so the
+  // dropdown would otherwise fall back to their own home name. Prefer
+  // the support-mode target so the header title tracks reality.
+  const displayName = supportModeTarget?.name ?? activeOrg?.name ?? organizationName
 
   function handleOrgSwitch(orgId: string) {
     setResolvedActiveOrganizationId(orgId)
@@ -576,6 +591,22 @@ export function AdminShell({
                           </SelectItem>
                         </>
                       )}
+                      {/* Superadmin escape hatch — jump into any org
+                          on the platform for support. Only rendered
+                          for whitelisted Fusioneta-side accounts. */}
+                      {user.isSuperadmin ? (
+                        <>
+                          <SelectSeparator />
+                          <div className="px-2 py-1.5">
+                            <Link
+                              href={"/admin/support" as Route}
+                              className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                            >
+                              🛠 Support: switch to any org →
+                            </Link>
+                          </div>
+                        </>
+                      ) : null}
                     </SelectContent>
                   </Select>
                 </div>
@@ -608,6 +639,13 @@ export function AdminShell({
             </div>
           </div>
         </header>
+
+        {supportModeTarget ? (
+          <SupportModeBanner
+            targetOrgName={supportModeTarget.name}
+            targetOrgOwnerEmail={supportModeTarget.ownerEmail}
+          />
+        ) : null}
 
         <main className="flex-1 pb-28 lg:pb-10">
           <div className="container py-6 lg:py-8">{children}</div>

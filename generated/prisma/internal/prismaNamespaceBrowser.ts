@@ -104,7 +104,8 @@ export const ModelName = {
   PolicyLeaveEntitlement: 'PolicyLeaveEntitlement',
   LeaveEntitlement: 'LeaveEntitlement',
   LeaveApplication: 'LeaveApplication',
-  OrganizationAuditLog: 'OrganizationAuditLog'
+  OrganizationAuditLog: 'OrganizationAuditLog',
+  SuperadminAuditLog: 'SuperadminAuditLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1283,6 +1284,22 @@ export const OrganizationAuditLogScalarFieldEnum = {
 export type OrganizationAuditLogScalarFieldEnum = (typeof OrganizationAuditLogScalarFieldEnum)[keyof typeof OrganizationAuditLogScalarFieldEnum]
 
 
+export const SuperadminAuditLogScalarFieldEnum = {
+  id: 'id',
+  actorUserId: 'actorUserId',
+  actorEmail: 'actorEmail',
+  actorName: 'actorName',
+  targetOrganizationId: 'targetOrganizationId',
+  targetOrganizationName: 'targetOrganizationName',
+  action: 'action',
+  summary: 'summary',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type SuperadminAuditLogScalarFieldEnum = (typeof SuperadminAuditLogScalarFieldEnum)[keyof typeof SuperadminAuditLogScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2048,4 +2065,18 @@ export const OrganizationAuditLogOrderByRelevanceFieldEnum = {
 } as const
 
 export type OrganizationAuditLogOrderByRelevanceFieldEnum = (typeof OrganizationAuditLogOrderByRelevanceFieldEnum)[keyof typeof OrganizationAuditLogOrderByRelevanceFieldEnum]
+
+
+export const SuperadminAuditLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  actorUserId: 'actorUserId',
+  actorEmail: 'actorEmail',
+  actorName: 'actorName',
+  targetOrganizationId: 'targetOrganizationId',
+  targetOrganizationName: 'targetOrganizationName',
+  action: 'action',
+  summary: 'summary'
+} as const
+
+export type SuperadminAuditLogOrderByRelevanceFieldEnum = (typeof SuperadminAuditLogOrderByRelevanceFieldEnum)[keyof typeof SuperadminAuditLogOrderByRelevanceFieldEnum]
 

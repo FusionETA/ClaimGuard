@@ -48,6 +48,7 @@ model User {
   leaveApplicationsAppliedByAdmin LeaveApplication[]     @relation("LeaveAppliedByAdmin")
   notifications                   Notification[]
   auditLogActor                   OrganizationAuditLog[] @relation("OrgAuditLogActor")
+  superadminAuditActor            SuperadminAuditLog[]   @relation("SuperadminAuditActor")
   submittedPayrollRuns            PayrollRun[]           @relation("PayrollRunSubmittedBy")
   submittedForApprovalPayrollRuns PayrollRun[]           @relation("PayrollRunSubmittedForApprovalBy")
   projectManagerOf                ProjectManager[]       @relation("ProjectManagerOf")
@@ -121,6 +122,7 @@ model Organization {
   employeePolicies          EmployeePolicy[]
   leaveTypes                LeaveType[]
   auditLog                  OrganizationAuditLog[]
+  superadminAuditTarget     SuperadminAuditLog[]      @relation("SuperadminAuditTarget")
   payrollAnnualReports      PayrollAnnualReport[]
   payrollCompanyInfo        PayrollCompanyInfo?
   payrollPortalCredentials  PayrollPortalCredential[]
@@ -2405,6 +2407,45 @@ model OrganizationAuditLog {
   @@index([organizationId, createdAt(sort: Desc)])
   @@index([createdAt])
   @@index([actorUserId], map: "OrganizationAuditLog_actorUserId_fkey")
+}
+
+/// Fusioneta-side accountability trail for the SUPERADMIN
+/// support-mode feature. When a designated support user (email in
+/// SUPERADMIN_EMAILS) acts inside a customer's org, the customer's
+/// OrganizationAuditLog row is rewritten to actor = "System (Support)"
+/// so the customer isn't tipped off to which specific Fusioneta staff
+/// member accessed their data — but the REAL actor + target org +
+/// action lands here for internal audit / compliance.
+///
+/// No retention prune: keep indefinitely. Only rows are inserts (never
+/// updates / deletes) so the table only grows on genuine support usage.
+///
+/// Never exposed to customer admins in the UI. Only surfaced to
+/// Fusioneta staff via a dedicated internal page.
+model SuperadminAuditLog {
+  id                    String       @id @default(cuid())
+  /// Real actor identity — the Fusioneta staff member who was in
+  /// support mode when the action happened. Snapshotted so the row
+  /// stays interpretable if the User row is later deleted.
+  actorUserId           String?
+  actorEmail            String
+  actorName             String
+  /// The customer org whose data was accessed. Snapshotted org name
+  /// so the row is readable even if the org is deleted later.
+  targetOrganizationId  String
+  targetOrganizationName String
+  /// Same `module.verb` naming as OrganizationAuditLog.action.
+  action                String
+  summary               String       @db.Text
+  metadata              Json?
+  createdAt             DateTime     @default(now())
+
+  actor                 User?        @relation("SuperadminAuditActor", fields: [actorUserId], references: [id])
+  targetOrganization    Organization @relation("SuperadminAuditTarget", fields: [targetOrganizationId], references: [id], onDelete: Cascade)
+
+  @@index([actorEmail, createdAt(sort: Desc)])
+  @@index([targetOrganizationId, createdAt(sort: Desc)])
+  @@index([createdAt])
 }
 
 enum NotificationType {

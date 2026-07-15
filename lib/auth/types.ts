@@ -20,6 +20,15 @@ export type SessionUser = {
   /// parent system), not log out here and end up on our /login.
   /// Undefined / false for normal password logins.
   loggedInViaSso?: boolean
+  /// True when this user's email is in SUPERADMIN_EMAILS — a
+  /// Fusioneta-side "support mode" flag that lets them switch into
+  /// ANY organisation to act as admin. Recomputed on every
+  /// `getCurrentSession()` from the cookie's email, so removing an
+  /// email from the env whitelist takes effect on the next request
+  /// (no cookie flush needed). See `lib/auth/superadmin.ts` for the
+  /// gate + `modules/audit/...` for the audit-rewrite behaviour that
+  /// hides support actions from the target org's activity feed.
+  isSuperadmin?: boolean
 }
 
 export type AuthenticatedSession = SessionUser & {

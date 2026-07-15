@@ -2,6 +2,7 @@ import { AdminShell } from "@/components/layout/admin-shell"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { deriveOrgEnabledModulesFromRow } from "@/modules/organization/domain/plan"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { getSupportTargetOrg } from "@/modules/organization/application/services/superadmin-support.service"
 
 export default async function AdminLayout({
   children,
@@ -49,12 +50,27 @@ export default async function AdminLayout({
     }
   }
 
+  // Support-mode context — only populated when this session belongs
+  // to a superadmin AND is currently acting inside a DIFFERENT org
+  // than their own home. The shell renders the yellow "you're in
+  // support mode" banner + Exit button when this is present. When
+  // the superadmin is inside their own home org, no banner shows
+  // (they're just using the app normally).
+  const inSupportMode =
+    session.isSuperadmin === true &&
+    activeOrganizationId != null &&
+    activeOrganizationId !== session.organizationId
+  const supportModeTarget = inSupportMode
+    ? await getSupportTargetOrg(activeOrganizationId!)
+    : null
+
   return (
     <AdminShell
       user={session}
       organizationName={session.organizationName}
       activeOrganizationId={activeOrganizationId}
       accessModules={accessModules}
+      supportModeTarget={supportModeTarget}
     >
       {children}
     </AdminShell>

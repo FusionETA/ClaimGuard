@@ -12,6 +12,7 @@ import type {
   SessionUser,
 } from "@/lib/auth/types"
 import { isAdminRole, isEmployeePortalRole } from "@/lib/auth/types"
+import { isSuperadminEmail } from "@/lib/auth/superadmin"
 
 const SESSION_COOKIE_NAME = "claimguard_session"
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 7
@@ -28,6 +29,13 @@ const sessionSchema = z.object({
   activeOrganizationId: z.string().min(1).optional(),
   activeXeroConnectionId: z.string().min(1).optional(),
   loggedInViaSso: z.boolean().optional(),
+  // isSuperadmin is intentionally NOT persisted in the cookie —
+  // recomputed from `email` on every getCurrentSession() call so
+  // removing an email from SUPERADMIN_EMAILS revokes access on the
+  // next request, no cookie flush needed. `.optional()` here means
+  // "silently drop if present" — older cookies that happen to have
+  // it round-trip cleanly.
+  isSuperadmin: z.boolean().optional(),
   expiresAt: z.number().int().positive(),
 })
 
@@ -193,6 +201,12 @@ export async function getCurrentSession() {
   // — most requests never touch auth internals beyond decoding.
   const { getFreshUserRole } = await import("@/lib/auth/authenticate")
   const freshRole = await getFreshUserRole(session.userId)
+  // Derive isSuperadmin fresh from the email + current env whitelist
+  // — this is what makes rotation instant: removing an email from
+  // SUPERADMIN_EMAILS revokes god-mode on the very next request, no
+  // cookie flush or logout needed. The env is read synchronously so
+  // no extra cost beyond a Map lookup.
+  const isSuperadmin = isSuperadminEmail(session.email)
   if (freshRole && freshRole !== session.role) {
     // Return the fresh role for THIS request only. Do NOT rewrite the
     // cookie here: `getCurrentSession()` runs during page/layout render
@@ -201,9 +215,9 @@ export async function getCurrentSession() {
     // crashes the render (see the note in `requirePortalSession`).
     // No persistence needed: `getFreshUserRole()` re-checks the DB on
     // every call, so the fresh role is always reflected regardless.
-    return { ...session, role: freshRole } as AuthenticatedSession
+    return { ...session, role: freshRole, isSuperadmin } as AuthenticatedSession
   }
-  return session
+  return { ...session, isSuperadmin } as AuthenticatedSession
 }
 
 /**

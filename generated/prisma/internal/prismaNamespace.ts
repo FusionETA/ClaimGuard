@@ -437,7 +437,8 @@ export const ModelName = {
   PolicyLeaveEntitlement: 'PolicyLeaveEntitlement',
   LeaveEntitlement: 'LeaveEntitlement',
   LeaveApplication: 'LeaveApplication',
-  OrganizationAuditLog: 'OrganizationAuditLog'
+  OrganizationAuditLog: 'OrganizationAuditLog',
+  SuperadminAuditLog: 'SuperadminAuditLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -453,7 +454,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employmentStint" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "otAttachment" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "employeeTransfer" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employmentStint" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "otAttachment" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "employeeTransfer" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog" | "superadminAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4021,6 +4022,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SuperadminAuditLog: {
+      payload: Prisma.$SuperadminAuditLogPayload<ExtArgs>
+      fields: Prisma.SuperadminAuditLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SuperadminAuditLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperadminAuditLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SuperadminAuditLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperadminAuditLogPayload>
+        }
+        findFirst: {
+          args: Prisma.SuperadminAuditLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperadminAuditLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SuperadminAuditLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperadminAuditLogPayload>
+        }
+        findMany: {
+          args: Prisma.SuperadminAuditLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperadminAuditLogPayload>[]
+        }
+        create: {
+          args: Prisma.SuperadminAuditLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperadminAuditLogPayload>
+        }
+        createMany: {
+          args: Prisma.SuperadminAuditLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.SuperadminAuditLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperadminAuditLogPayload>
+        }
+        update: {
+          args: Prisma.SuperadminAuditLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperadminAuditLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.SuperadminAuditLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SuperadminAuditLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.SuperadminAuditLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperadminAuditLogPayload>
+        }
+        aggregate: {
+          args: Prisma.SuperadminAuditLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSuperadminAuditLog>
+        }
+        groupBy: {
+          args: Prisma.SuperadminAuditLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SuperadminAuditLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SuperadminAuditLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SuperadminAuditLogCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -5220,6 +5287,22 @@ export const OrganizationAuditLogScalarFieldEnum = {
 export type OrganizationAuditLogScalarFieldEnum = (typeof OrganizationAuditLogScalarFieldEnum)[keyof typeof OrganizationAuditLogScalarFieldEnum]
 
 
+export const SuperadminAuditLogScalarFieldEnum = {
+  id: 'id',
+  actorUserId: 'actorUserId',
+  actorEmail: 'actorEmail',
+  actorName: 'actorName',
+  targetOrganizationId: 'targetOrganizationId',
+  targetOrganizationName: 'targetOrganizationName',
+  action: 'action',
+  summary: 'summary',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type SuperadminAuditLogScalarFieldEnum = (typeof SuperadminAuditLogScalarFieldEnum)[keyof typeof SuperadminAuditLogScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -5987,6 +6070,20 @@ export const OrganizationAuditLogOrderByRelevanceFieldEnum = {
 export type OrganizationAuditLogOrderByRelevanceFieldEnum = (typeof OrganizationAuditLogOrderByRelevanceFieldEnum)[keyof typeof OrganizationAuditLogOrderByRelevanceFieldEnum]
 
 
+export const SuperadminAuditLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  actorUserId: 'actorUserId',
+  actorEmail: 'actorEmail',
+  actorName: 'actorName',
+  targetOrganizationId: 'targetOrganizationId',
+  targetOrganizationName: 'targetOrganizationName',
+  action: 'action',
+  summary: 'summary'
+} as const
+
+export type SuperadminAuditLogOrderByRelevanceFieldEnum = (typeof SuperadminAuditLogOrderByRelevanceFieldEnum)[keyof typeof SuperadminAuditLogOrderByRelevanceFieldEnum]
+
+
 
 /**
  * Field references
@@ -6491,6 +6588,7 @@ export type GlobalOmitConfig = {
   leaveEntitlement?: Prisma.LeaveEntitlementOmit
   leaveApplication?: Prisma.LeaveApplicationOmit
   organizationAuditLog?: Prisma.OrganizationAuditLogOmit
+  superadminAuditLog?: Prisma.SuperadminAuditLogOmit
 }
 
 /* Types for Logging */

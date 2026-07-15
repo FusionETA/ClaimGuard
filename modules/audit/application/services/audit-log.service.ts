@@ -1,7 +1,9 @@
 import "server-only"
 
 import type { AppRole } from "@/lib/auth/types"
+import { getCurrentSession } from "@/lib/auth/session"
 import { auditLogRepository } from "@/modules/audit/infrastructure/audit-log.repository"
+import { superadminAuditRepository } from "@/modules/audit/infrastructure/superadmin-audit.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import type {
   AuditActorRole,
@@ -60,6 +62,16 @@ export type WriteAuditInput = {
 /// Write a single audit row. Fire-and-forget — failures log to console
 /// but never throw. Callers should NOT await this in a way that
 /// affects user-visible latency for critical paths.
+///
+/// SUPERADMIN INTERCEPT — when the calling request's session belongs
+/// to a Fusioneta-side support user (`session.isSuperadmin`) and the
+/// target org isn't their own, the actor written to the customer's
+/// OrganizationAuditLog is rewritten to `System (Support)` so the
+/// customer can't tell which specific staff member touched their
+/// data. A parallel row lands in SuperadminAuditLog with the REAL
+/// actor for internal accountability. This intercept is transparent
+/// to callers — every existing `writeAudit({ actor: {userId,...} })`
+/// callsite works unchanged.
 export async function writeAudit(input: WriteAuditInput): Promise<void> {
   try {
     let actorUserId: string | null = null
@@ -85,6 +97,47 @@ export async function writeAudit(input: WriteAuditInput): Promise<void> {
       partnerInitiated = true
     }
 
+    // Superadmin transparency intercept. Only kicks in when:
+    //   (1) the request has a session,
+    //   (2) that session is flagged as a superadmin, AND
+    //   (3) the action targets an org OTHER than the superadmin's
+    //       own home org (so his day-to-day actions inside Fusioneta
+    //       stay attributed normally).
+    // When all three hold: rewrite the customer-visible actor to
+    // "System (Support)" AND log the real actor into
+    // SuperadminAuditLog for internal accountability.
+    let superadminActor: {
+      userId: string | null
+      email: string
+      name: string
+      targetOrgId: string
+    } | null = null
+    try {
+      const session = await getCurrentSession()
+      if (
+        session?.isSuperadmin &&
+        session.organizationId !== input.organizationId
+      ) {
+        superadminActor = {
+          userId: session.userId,
+          email: session.email,
+          name: session.name,
+          targetOrgId: input.organizationId,
+        }
+        // Rewrite the actor written to the customer's org log.
+        actorUserId = null
+        actorRole = "SYSTEM"
+        actorEmail = "system@altomatehr"
+        actorName = "System (Support)"
+      }
+    } catch {
+      // Session read failure (e.g. audit fired from a cron with no
+      // cookie context) — fall through with the caller-supplied
+      // actor. Non-fatal: the audit row still writes, just without
+      // the superadmin rewrite. Very unlikely to fire for admin
+      // action paths (which all have a session).
+    }
+
     await auditLogRepository.create({
       organizationId: input.organizationId,
       actorUserId,
@@ -101,6 +154,36 @@ export async function writeAudit(input: WriteAuditInput): Promise<void> {
       ipAddress: input.ipAddress ?? null,
       partnerInitiated,
     })
+
+    // Fire the parallel superadmin trail AFTER the org row lands, so
+    // an audit-repo failure doesn't leave the two logs out of sync.
+    if (superadminActor) {
+      try {
+        // Look up the target org name for a self-contained row —
+        // the internal audit page shouldn't need a JOIN to render.
+        const targetOrg = await organizationRepository.getOrganizationById(
+          superadminActor.targetOrgId,
+        )
+        await superadminAuditRepository.create({
+          actorUserId: superadminActor.userId,
+          actorEmail: superadminActor.email,
+          actorName: superadminActor.name,
+          targetOrganizationId: superadminActor.targetOrgId,
+          targetOrganizationName: targetOrg?.name ?? "(unknown org)",
+          action: input.action,
+          summary: input.summary,
+          metadata: input.metadata ?? null,
+        })
+      } catch (err) {
+        // Never let the accountability log's failure hide the fact
+        // that the customer's audit was rewritten. Log loud enough
+        // for the Fusioneta staff to notice.
+        console.error(
+          "[audit] SUPERADMIN accountability write failed — customer log was rewritten to System but internal trail is MISSING for this row:",
+          err,
+        )
+      }
+    }
   } catch (err) {
     console.error("[audit] failed to write row:", err)
   }

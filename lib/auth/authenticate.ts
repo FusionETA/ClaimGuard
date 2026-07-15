@@ -8,6 +8,7 @@ import type {
   SessionUser,
 } from "@/lib/auth/types"
 import { isAdminRole } from "@/lib/auth/types"
+import { isSuperadminEmail } from "@/lib/auth/superadmin"
 import { buildInitials } from "@/lib/utils"
 import { employeeOrganizationRepository } from "@/modules/organization/infrastructure/employee-organization.repository"
 
@@ -142,6 +143,12 @@ export async function authenticateUser({
       organizationName: user.organization?.name ?? undefined,
       activeOrganizationId,
       activeXeroConnectionId,
+      // Support-mode gate — email membership in SUPERADMIN_EMAILS.
+      // Re-derived on every getCurrentSession() call from the cookie's
+      // email, so this initial value is essentially a hint (the
+      // session read path is the source of truth). Set here to keep
+      // the cookie payload self-consistent.
+      isSuperadmin: isSuperadminEmail(user.email),
     } satisfies SessionUser,
   }
 }
@@ -247,6 +254,7 @@ export async function buildSessionUserForEmail(
       // customers should sign out from Altomate Accounting (the
       // parent system) instead of landing on our /login.
       loggedInViaSso: true,
+      isSuperadmin: isSuperadminEmail(user.email),
     } satisfies SessionUser,
   }
 }

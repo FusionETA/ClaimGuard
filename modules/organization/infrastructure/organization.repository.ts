@@ -294,6 +294,59 @@ export const organizationRepository = {
   },
 
   /**
+   * Global list of every organisation, used ONLY by the superadmin
+   * support-mode picker at `/admin/support`. Bypasses normal per-
+   * admin scoping (`getAdminOrganizations`) because the caller is a
+   * Fusioneta-side support user with god-mode access. Cheap
+   * projection — id / name / plan / owner email / employee count.
+   *
+   * Sorted by name for the picker's UX. No pagination in v1: even
+   * a few hundred rows render fine on one page and the search box
+   * on the client handles the filtering. Add a `take` cap when this
+   * outgrows a single-page fetch.
+   */
+  async listAllForSuperadmin(): Promise<
+    Array<{
+      id: string
+      name: string
+      plan: string
+      tier: string | null
+      ownerEmail: string | null
+      employeeCount: number
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const rows = await prisma.organization.findMany({
+      select: {
+        id: true,
+        name: true,
+        plan: true,
+        tier: true,
+        users: {
+          where: { role: "OWNER" },
+          select: { email: true },
+          take: 1,
+        },
+        _count: {
+          select: {
+            employeeProfiles: true,
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    })
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      plan: r.plan,
+      tier: r.tier,
+      ownerEmail: r.users[0]?.email ?? null,
+      employeeCount: r._count.employeeProfiles,
+    }))
+  },
+
+  /**
    * Lightweight projection of an org's subscription plan + addons,
    * used by the admin / employee layout shells to gate navigation
    * by what the org actually pays for. Cheap — three columns, no
