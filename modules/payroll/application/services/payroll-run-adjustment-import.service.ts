@@ -71,6 +71,7 @@ export async function generateAdjustmentImportTemplate(input: {
       const adj = existingAdjustments.get(e.employeeProfileId)
       const items = (adj?.manualLineItems ?? []).map((li) => ({
         categoryLabel: codeToLabel.get(li.category) ?? li.category,
+        treatAsRecurring: li.treatAsRecurring,
         label: li.label,
         amount: li.amount,
       }))
@@ -218,6 +219,12 @@ export async function importPayrollRunAdjustments(input: {
       category: row.category,
       label: row.label,
       amount: row.amount,
+      // Only persist the flag when the admin explicitly ticked/unticked
+      // — leaving it undefined keeps the default AR behaviour for
+      // AR-flagged categories, matching pre-column behaviour.
+      ...(row.treatAsRecurring != null
+        ? { treatAsRecurring: row.treatAsRecurring }
+        : {}),
     })
     groupedByProfile.set(profileId, items)
   }

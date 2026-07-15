@@ -13,7 +13,14 @@ import {
  * profiles and applying the changes is the import service's job.
  *
  * Expected shape (first sheet, header row 1):
- *   | Full Name | Category | Label | Amount |
+ *   | Full Name | Category | Label | Amount | Treat as recurring |
+ *
+ * `Treat as recurring` is optional — omit the column entirely if you
+ * don't need it, or leave individual cells blank. Accepted values:
+ * TRUE / FALSE / Y / N / 1 / 0 (case-insensitive). When set, the
+ * flag flips PCB from the AR (one-off spike) formula to the recurring
+ * (annualised, smooth) formula for that specific line — see
+ * `ManualLineItem.treatAsRecurring` for the full explanation.
  *
  * Column matching is done by lowercased header text so admins can
  * safely reorder columns.
@@ -35,6 +42,13 @@ export type ParsedAdjustmentRow = {
   category: PayrollAdjustmentCategory
   label: string
   amount: number
+  /// LHDN Additional Remuneration override — see
+  /// `ManualLineItem.treatAsRecurring`. `null` when the column is
+  /// absent or the cell is blank (default = AR formula on AR-flagged
+  /// categories). Only meaningful for AR-flagged categories
+  /// (Gratuity, Director Fee, Commission, Bonus, Arrears, etc.) —
+  /// ignored on non-AR categories.
+  treatAsRecurring: boolean | null
 }
 
 export type ParsedAdjustmentImport = {
@@ -121,6 +135,13 @@ export async function parseAdjustmentImport(
   const categoryCol = columnByHeader.get("category")
   const labelCol = columnByHeader.get("label")
   const amountCol = columnByHeader.get("amount")
+  // Optional — missing header is fine (behaves like the pre-column
+  // template did). Accept a few variants so admins don't get stuck
+  // on trivia.
+  const treatCol =
+    columnByHeader.get("treat as recurring") ??
+    columnByHeader.get("treat_as_recurring") ??
+    columnByHeader.get("treatasrecurring")
 
   const missing: string[] = []
   if (!nameCol) missing.push("Full Name")
@@ -153,6 +174,7 @@ export async function parseAdjustmentImport(
     const rawCategory = cellText(row.getCell(categoryCol!))
     const rawLabel = cellText(row.getCell(labelCol!))
     const rawAmount = cellNumeric(row.getCell(amountCol!))
+    const rawTreat = treatCol ? cellBool(row.getCell(treatCol)) : null
 
     // Template pre-fills every eligible employee's name so admins can
     // add lines to any of them without inserting new rows manually.
@@ -203,6 +225,7 @@ export async function parseAdjustmentImport(
       // Round to 2dp — sheet floats sometimes come through as 500.0000001
       // and we don't want to persist those.
       amount: Math.round(rawAmount * 100) / 100,
+      treatAsRecurring: rawTreat,
     })
   }
 
@@ -254,4 +277,28 @@ function isRowBlank(row: ExcelJS.Row, columns: number[]): boolean {
     if (v != null && String(v).trim().length > 0) return false
   }
   return true
+}
+
+/**
+ * Boolean cell reader that accepts the common truthy/falsy strings
+ * admins actually type: TRUE/FALSE, Y/N, YES/NO, 1/0, T/F. Case-
+ * insensitive. Returns `null` when the cell is blank OR the value
+ * doesn't match a known shape (silently ignored rather than errored —
+ * the column is optional so an unrecognised value degrades to "no
+ * opinion" rather than blocking the whole import).
+ */
+function cellBool(cell: ExcelJS.Cell): boolean | null {
+  const v = cell.value
+  if (v == null || v === "") return null
+  if (typeof v === "boolean") return v
+  if (typeof v === "number") {
+    if (v === 1) return true
+    if (v === 0) return false
+    return null
+  }
+  const s = String(v).trim().toLowerCase()
+  if (s.length === 0) return null
+  if (["true", "y", "yes", "t", "1", "✓", "✔"].includes(s)) return true
+  if (["false", "n", "no", "f", "0", "-", "—"].includes(s)) return false
+  return null
 }

@@ -36,6 +36,11 @@ export async function renderAdjustmentImportTemplate(input: {
       categoryLabel: string
       label: string
       amount: number
+      /// LHDN Additional Remuneration override — see
+      /// `ManualLineItem.treatAsRecurring`. Rendered as `TRUE`/`FALSE`
+      /// in the 5th column so admins see the current state and can
+      /// flip it before re-uploading. Undefined = default (blank cell).
+      treatAsRecurring?: boolean
     }>
   }>
 }): Promise<Buffer> {
@@ -144,6 +149,12 @@ export async function renderAdjustmentImportTemplate(input: {
     { header: "Category", key: "category", width: 40 },
     { header: "Label", key: "label", width: 32 },
     { header: "Amount", key: "amount", width: 14 },
+    // Optional 5th column. Accepts TRUE/FALSE/Y/N. Meaningful only for
+    // AR-flagged categories (Gratuity, Director Fee, Bonus, Commission,
+    // Arrears, Ex-gratia, Overtime, Incentive) — tick when the line
+    // is actually paid every month, so PCB uses the recurring formula
+    // instead of the AR one-off formula.
+    { header: "Treat as recurring", key: "treatAsRecurring", width: 20 },
   ]
 
   const headerRow = sheet.getRow(1)
@@ -165,7 +176,8 @@ export async function renderAdjustmentImportTemplate(input: {
           `Uploading this file REPLACES every existing one-off adjustment on the run — so anything you delete here disappears from the run.\n\n` +
           `Multiple adjustments per employee — just add another row with the same Full Name. ` +
           `E.g. one row for bonus, another row for loan repayment.\n\n` +
-          `Category column has a dropdown — see the "Categories" tab for what each option is subject to.`,
+          `Category column has a dropdown — see the "Categories" tab for what each option is subject to.\n\n` +
+          `Treat as recurring (last column, optional): tick with TRUE/Y for AR-flagged categories that are actually paid every month (e.g. a monthly directors' fee) so PCB spreads them across the year instead of spiking. Leave blank for genuine one-off bonuses / gratuities.`,
       },
     ],
   }
@@ -181,12 +193,17 @@ export async function renderAdjustmentImportTemplate(input: {
     input.employees.length > 0
       ? input.employees.flatMap((e) => {
           const existing = e.existingLines ?? []
-          if (existing.length === 0) return [[e.name, "", "", ""]]
+          if (existing.length === 0) return [[e.name, "", "", "", ""]]
           return existing.map((li) => [
             e.name,
             li.categoryLabel,
             li.label,
             li.amount,
+            li.treatAsRecurring == null
+              ? ""
+              : li.treatAsRecurring
+                ? "TRUE"
+                : "FALSE",
           ])
         })
       : [
@@ -195,6 +212,7 @@ export async function renderAdjustmentImportTemplate(input: {
             "Standard Allowance",
             "January transport top-up",
             250.0,
+            "",
           ],
         ]
 
@@ -226,7 +244,27 @@ export async function renderAdjustmentImportTemplate(input: {
 
   sheet.autoFilter = {
     from: { row: 1, column: 1 },
-    to: { row: 1, column: 4 },
+    to: { row: 1, column: 5 },
+  }
+
+  // Column E (Treat as recurring): TRUE/FALSE dropdown validation so
+  // admins pick from a list instead of typing free-text variants.
+  // Applied to the same row buffer as the Category dropdown for
+  // consistency.
+  for (let r = 2; r <= dropdownLastRow; r++) {
+    sheet.getCell(`E${r}`).dataValidation = {
+      type: "list",
+      allowBlank: true,
+      formulae: ['"TRUE,FALSE"'],
+      showErrorMessage: true,
+      errorStyle: "warning",
+      errorTitle: "Treat as recurring",
+      error: "Pick TRUE or FALSE (or leave blank for the default).",
+      showInputMessage: true,
+      promptTitle: "Treat as recurring",
+      prompt:
+        "AR-flagged categories only. Tick TRUE for lines actually paid every month; leave blank / FALSE for one-off bonuses & gratuities.",
+    }
   }
 
   const arrayBuffer = await wb.xlsx.writeBuffer()
