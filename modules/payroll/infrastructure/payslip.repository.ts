@@ -67,6 +67,12 @@ export type CreatePayslipInput = {
   /// Capped wage used for the SKBBK lookup. Same value as the SOCSO
   /// wage in current code; persisted separately for forward-compat.
   skbbkWage: number
+  /// Snapshot of the employee's SKBBK opt-in at time of run — frozen
+  /// so a re-edit of an existing submitted run reads this instead of
+  /// the live profile toggle, preventing already-remitted SKBBK
+  /// contributions from silently disappearing when admin re-opens a
+  /// run for an unrelated adjustment.
+  contributeToSkbbk: boolean
   pcb: number
   /// CP38 arrears (LHDN court order) — kept separate from `pcb` per
   /// LHDN MTD Spec 2026 page 14. Remitted in the dedicated CP38 field
@@ -167,6 +173,7 @@ export const payslipRepository = {
           eisEmployer: p.eisEmployer,
           skbbkEmployee: p.skbbkEmployee,
           skbbkWage: p.skbbkWage,
+          contributeToSkbbk: p.contributeToSkbbk,
           pcb: p.pcb,
           cp38: p.cp38,
           pcbCalculation: (p.pcbCalculation ?? null) as Prisma.InputJsonValue,
@@ -268,6 +275,7 @@ export const payslipRepository = {
             eisEmployer: p.eisEmployer,
             skbbkEmployee: p.skbbkEmployee,
             skbbkWage: p.skbbkWage,
+            contributeToSkbbk: p.contributeToSkbbk,
             pcb: p.pcb,
             // Cast through Prisma's JSON-input shape — `pcbCalculation`
             // is `unknown` at this layer so the calc.ts type doesn't
@@ -361,6 +369,27 @@ export const payslipRepository = {
         employeesSubjectToHrdf: hrdfCount,
       },
     })
+  },
+
+  /**
+   * Read the SKBBK opt-in snapshot for every existing payslip on a
+   * run, keyed by employeeProfileId. Called by the run service before
+   * a recompute so we can preserve the toggle decision that was made
+   * when the run was first written — see the freeze semantics in
+   * `Payslip.contributeToSkbbk`. Returns an empty map for fresh runs
+   * (no prior payslips) → recompute falls back to the live profile
+   * toggle, which is the intended "fresh calc" behaviour.
+   */
+  async getSkbbkSnapshotsForRun(
+    payrollRunId: string,
+  ): Promise<Map<string, boolean>> {
+    const prisma = getPrismaClient()
+    if (!prisma) return new Map()
+    const rows = await prisma.payslip.findMany({
+      where: { payrollRunId },
+      select: { employeeProfileId: true, contributeToSkbbk: true },
+    })
+    return new Map(rows.map((r) => [r.employeeProfileId, r.contributeToSkbbk]))
   },
 
   /**
@@ -893,6 +922,10 @@ function mapPayslip(row: any, lineItems: PayslipLineItemData[]): PayslipData {
     // historical payslips still map cleanly.
     skbbkEmployee: toNumber(row.skbbkEmployee, 0),
     skbbkWage: toNumber(row.skbbkWage, 0),
+    // Snapshot defaults false on rows written before the column
+    // existed; the backfill script flips it TRUE where skbbkEmployee
+    // > 0 so already-remitted amounts stay attributed correctly.
+    contributeToSkbbk: row.contributeToSkbbk === true,
     pcb: toNumber(row.pcb, 0),
     // CP38 arrears — new column, defaults to 0 on rows written before
     // the column existed so historical payslips map cleanly.

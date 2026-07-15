@@ -63,6 +63,7 @@ function makeProfile(overrides: Partial<CalcPayslipInput["profile"]> = {}): Calc
     epfEmployerVoluntary: 0,
     socsoScheme: "EMPLOYMENT_INJURY_INVALIDITY",
     contributeToEis: true,
+    contributeToSkbbk: false,
     incomeTaxNumber: "OG12345678",
     epfNumber: "EPF12345",
     socsoNumber: "SOC12345",
@@ -963,7 +964,15 @@ describe("calcPayslip — unpaid leave reduces gross (not just net)", () => {
 })
 
 describe("calcSocso — age auto-flip to Cat 2 at 60+", () => {
-  const base = { wage: 3000, periodYear: 2026, periodMonth: 5 }
+  // Age-flip tests focus on the Cat 1 → Cat 2 boundary. SKBBK is
+  // orthogonal (its own opt-in) so we pin it to false here to keep the
+  // arithmetic focused on the age behaviour under test.
+  const base = {
+    wage: 3000,
+    periodYear: 2026,
+    periodMonth: 5,
+    contributeToSkbbk: false,
+  }
 
   it("under 60 in Cat 1 → both sides contribute", () => {
     const r = calcSocso({
@@ -1037,6 +1046,72 @@ describe("calcSocso — age auto-flip to Cat 2 at 60+", () => {
       ageAtPeriodEnd: 72,
     })
     expect(r).toEqual({ employee: 0, employer: 0, employeeSkbbk: 0 })
+  })
+})
+
+describe("calcSocso — SKBBK (Skim LINDUNG 24 Jam) opt-in", () => {
+  // Post-Jun-2026 period so `lookupSkbbk` returns a non-zero row —
+  // the tests focus purely on the opt-in toggle, not the phase gate.
+  const base = {
+    wage: 3000,
+    scheme: "EMPLOYMENT_INJURY_INVALIDITY" as const,
+    periodYear: 2026,
+    periodMonth: 7,
+    ageAtPeriodEnd: 35,
+  }
+
+  it("toggle ON → employeeSkbbk > 0", () => {
+    const r = calcSocso({ ...base, contributeToSkbbk: true })
+    expect(r.employeeSkbbk).toBeGreaterThan(0)
+  })
+
+  it("toggle OFF → employeeSkbbk exactly 0 even in Jun 2026+", () => {
+    // Regression against the earlier auto-calc design: any employee
+    // with a SOCSO scheme in >= Jun 2026 would have SKBBK fired for
+    // them, opt-in or not. The rework makes the toggle authoritative.
+    const r = calcSocso({ ...base, contributeToSkbbk: false })
+    expect(r.employeeSkbbk).toBe(0)
+    // Non-SKBBK columns must be unaffected — the toggle doesn't
+    // gate SOCSO itself.
+    expect(r.employee).toBeGreaterThan(0)
+    expect(r.employer).toBeGreaterThan(0)
+  })
+
+  it("toggle ON but null scheme → still 0 (SOCSO membership is a hard prerequisite)", () => {
+    // SKBBK sits on top of PERKESO coverage. An employee with no
+    // scheme can't opt into SKBBK alone — the gate remains.
+    const r = calcSocso({
+      ...base,
+      scheme: null,
+      contributeToSkbbk: true,
+    })
+    expect(r.employeeSkbbk).toBe(0)
+  })
+
+  it("toggle ON but period < Jun 2026 → 0 (the phase gate still wins)", () => {
+    // The rate table's period gate is orthogonal to the opt-in.
+    // Historical reruns must not back-bill SKBBK even for opted-in
+    // employees.
+    const r = calcSocso({
+      ...base,
+      periodYear: 2026,
+      periodMonth: 5,
+      contributeToSkbbk: true,
+    })
+    expect(r.employeeSkbbk).toBe(0)
+  })
+
+  it("Cat 2 (Employment Injury Only) + toggle ON → SKBBK still fires", () => {
+    // SKBBK amounts are identical between Cat 1 and Cat 2 — PERKESO
+    // publishes one Non-Employment Injury column both categories read
+    // off. So a 60+ Cat 2 employee who's opted in still contributes.
+    const r = calcSocso({
+      ...base,
+      scheme: "EMPLOYMENT_INJURY_ONLY",
+      ageAtPeriodEnd: 65,
+      contributeToSkbbk: true,
+    })
+    expect(r.employeeSkbbk).toBeGreaterThan(0)
   })
 })
 

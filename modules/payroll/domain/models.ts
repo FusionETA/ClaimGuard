@@ -1204,6 +1204,11 @@ export type PayrollProfileData = {
   socsoNumber: string | null
   socsoScheme: SocsoScheme | null
   contributeToEis: boolean
+  /// Per-employee opt-in for SKBBK (Skim LINDUNG 24 Jam). Default false —
+  /// admin must explicitly enable each employee. Snapshotted on
+  /// `Payslip.contributeToSkbbk` at run-submit time so re-edits of
+  /// existing runs don't unwind an already-remitted contribution.
+  contributeToSkbbk: boolean
   incomeTaxNumber: string | null
   pcbBorneByEmployer: boolean
   ssfwNumber: string | null

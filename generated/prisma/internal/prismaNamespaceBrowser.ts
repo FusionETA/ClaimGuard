@@ -823,6 +823,7 @@ export const PayrollProfileScalarFieldEnum = {
   socsoNumber: 'socsoNumber',
   socsoScheme: 'socsoScheme',
   contributeToEis: 'contributeToEis',
+  contributeToSkbbk: 'contributeToSkbbk',
   incomeTaxNumber: 'incomeTaxNumber',
   pcbBorneByEmployer: 'pcbBorneByEmployer',
   ssfwNumber: 'ssfwNumber',
@@ -1114,7 +1115,8 @@ export const PayslipScalarFieldEnum = {
   unpaidLeaveDays: 'unpaidLeaveDays',
   pcbCalculation: 'pcbCalculation',
   skbbkEmployee: 'skbbkEmployee',
-  skbbkWage: 'skbbkWage'
+  skbbkWage: 'skbbkWage',
+  contributeToSkbbk: 'contributeToSkbbk'
 } as const
 
 export type PayslipScalarFieldEnum = (typeof PayslipScalarFieldEnum)[keyof typeof PayslipScalarFieldEnum]

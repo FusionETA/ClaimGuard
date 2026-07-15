@@ -17,6 +17,7 @@
     "db:backfill-project-managers": "tsx prisma/backfill-project-managers.ts",
     "db:backfill-policies": "tsx prisma/backfill-policies.ts",
     "db:backfill-org-addons": "tsx prisma/backfill-org-addons.ts",
+    "db:backfill-skbbk-snapshot": "tsx prisma/backfill-skbbk-snapshot.ts",
     "db:backfill-approval-chains": "tsx prisma/backfill-approval-chains.ts",
     "db:backfill-employee-org": "tsx prisma/backfill-employee-org.ts",
     "db:backfill-stints": "tsx prisma/backfill-stints.ts",

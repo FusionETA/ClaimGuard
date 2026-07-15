@@ -251,6 +251,12 @@ export type PayslipData = {
   /// current code; persisted separately so historical payslips
   /// remain interpretable if PERKESO ever decouples them.
   skbbkWage: number
+  /// Snapshot of the employee's SKBBK opt-in decision at time of run.
+  /// Frozen so a re-edit of a submitted run for an unrelated reason
+  /// (bonus, claim correction) never silently unwinds an already-
+  /// remitted SKBBK line. Defaults false on rows written before the
+  /// snapshot column existed.
+  contributeToSkbbk: boolean
   pcb: number
   /// CP38 arrears (LHDN court order) — kept separate from `pcb` per
   /// LHDN MTD Spec 2026 page 14 X-definition. 0 when no `deduct_cp38`

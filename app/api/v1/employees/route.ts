@@ -159,6 +159,12 @@ const createEmployeeSchema = z
       .optional(),
     socsoNumber: z.string().trim().optional(),
     contributeToEis: z.boolean().default(true),
+    /// SKBBK (Skim LINDUNG 24 Jam) — per-employee opt-in for the new
+    /// PERKESO scheme (effective 1 Jun 2026). Default false; admin
+    /// must explicitly enable per employee. Mirrors the toggle model
+    /// used on `contributeToEis`, not the auto-eligibility used by
+    /// EPF / SOCSO scheme.
+    contributeToSkbbk: z.boolean().default(false),
     ssfwNumber: z.string().trim().optional(),
     paymentMethod: z.enum(["BANK_TRANSFER", "CASH", "CHEQUE"]).default("BANK_TRANSFER"),
     bankName: z.string().trim().optional(),
@@ -285,6 +291,7 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
     contributeToEpf: d.contributeToEpf,
     epfMemberBefore1998: d.epfMemberBefore1998,
     contributeToEis: d.contributeToEis,
+    contributeToSkbbk: d.contributeToSkbbk,
     paymentMethod: d.paymentMethod,
     alternateEmail: d.alternateEmail,
     race: d.race,

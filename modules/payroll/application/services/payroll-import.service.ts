@@ -270,6 +270,9 @@ const rowSchema = z
     // PERKESO SOCSO number = 12 digits (mirrors NRIC); pad if zero-stripped.
     socsoNumber: paddedDigitString(12),
     contributeToEis: booleanCell,
+    // SKBBK opt-in — default false when the cell is blank. Same pattern
+    // as EIS but starts unchecked because the scheme is voluntary.
+    contributeToSkbbk: booleanCell,
     // SSFW = i-Saraan / EPF self-contribution = 12 digits; same as SOCSO.
     ssfwNumber: paddedDigitString(12),
     // ── Bank ──
@@ -616,6 +619,9 @@ function buildPayrollProfileCreate(
     // number" button on the Manage Employee statutory tab.
     socsoNumber: row.socsoNumber ?? row.idNumber,
     contributeToEis: row.contributeToEis ?? true,
+    // Default OFF on import — SKBBK is opt-in per employee, admins
+    // enable it individually rather than at ingest time.
+    contributeToSkbbk: row.contributeToSkbbk ?? false,
     ssfwNumber: row.ssfwNumber,
     bankName: row.bankName,
     bankAccountHolderName: row.bankAccountHolderName ?? row.name,
@@ -729,6 +735,9 @@ function buildPayrollProfileUpdate(row: RowWithChildren) {
         : {}),
     ...(row.contributeToEis !== null
       ? { contributeToEis: row.contributeToEis }
+      : {}),
+    ...(row.contributeToSkbbk !== null
+      ? { contributeToSkbbk: row.contributeToSkbbk }
       : {}),
     ...(row.ssfwNumber !== null ? { ssfwNumber: row.ssfwNumber } : {}),
     ...(row.bankName !== null ? { bankName: row.bankName } : {}),

@@ -769,6 +769,7 @@ function mapPayrollProfile(row: any): PayrollProfileData {
     socsoNumber: row.socsoNumber ?? null,
     socsoScheme: row.socsoScheme ?? null,
     contributeToEis: row.contributeToEis,
+    contributeToSkbbk: row.contributeToSkbbk,
     incomeTaxNumber: row.incomeTaxNumber ?? null,
     pcbBorneByEmployer: row.pcbBorneByEmployer,
     ssfwNumber: row.ssfwNumber ?? null,
@@ -879,6 +880,7 @@ function toPrismaUpsertData(
   copy("socsoNumber")
   copy("socsoScheme")
   copy("contributeToEis")
+  copy("contributeToSkbbk")
   copy("incomeTaxNumber")
   copy("pcbBorneByEmployer")
   copy("ssfwNumber")

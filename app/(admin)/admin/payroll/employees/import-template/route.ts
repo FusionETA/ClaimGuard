@@ -92,6 +92,7 @@ const COLUMNS: Column[] = [
   { key: "socsoScheme", required: false, description: "EMPLOYMENT_INJURY_INVALIDITY | EMPLOYMENT_INJURY_ONLY — auto-derived from date of birth when blank (under 55 → INVALIDITY, 60+ → INJURY_ONLY; 55–59 must be set manually)" },
   { key: "socsoNumber", required: false, description: "PERKESO number — defaults to the idNumber (NRIC / passport) when blank, since they're usually the same in Malaysia" },
   { key: "contributeToEis", required: false, description: "TRUE/FALSE — default TRUE for Malaysians" },
+  { key: "contributeToSkbbk", required: false, description: "TRUE/FALSE — opt-in for SKBBK (Skim LINDUNG 24 Jam, effective Jun 2026); default FALSE" },
   { key: "ssfwNumber", required: false, description: "SSFW number — foreign workers only" },
   // ── Bank ──
   { key: "bankName", required: false, description: "e.g. Maybank, CIMB, RHB" },

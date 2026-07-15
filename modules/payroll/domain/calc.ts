@@ -375,6 +375,11 @@ export function calcSocso(input: {
   /// flip at age 60+. Optional so legacy callers stay working; when
   /// omitted the raw scheme is used (pre-fix behaviour).
   ageAtPeriodEnd?: number
+  /// Per-employee opt-in for SKBBK. Required (no default) so callers
+  /// can't silently disable / enable a statutory contribution by
+  /// forgetting to pass it. When false, `employeeSkbbk` is always 0
+  /// even for periods ≥ Jun 2026.
+  contributeToSkbbk: boolean
 }): { employee: number; employer: number; employeeSkbbk: number } {
   if (!input.scheme) {
     return { employee: 0, employer: 0, employeeSkbbk: 0 }
@@ -396,11 +401,21 @@ export function calcSocso(input: {
   // publishes one Non-Employment Injury column that both categories
   // read off. Period gate inside lookupSkbbk returns 0 for periods
   // before Jun 2026 so historical reruns don't accidentally back-bill.
-  const employeeSkbbk = lookupSkbbk({
-    wage: input.wage,
-    periodYear: input.periodYear,
-    periodMonth: input.periodMonth,
-  })
+  //
+  // Per-employee opt-in: SKBBK is voluntary per PERKESO's Skim LINDUNG
+  // 24 Jam gazette wording. Employees who haven't ticked
+  // `contributeToSkbbk` get 0 even if their scheme + period would
+  // otherwise qualify. Callers must resolve the effective value
+  // themselves (fresh calc reads profile toggle; re-edit of an
+  // existing submitted payslip reads the snapshot on that Payslip
+  // row so a paid-out contribution can't silently vanish).
+  const employeeSkbbk = input.contributeToSkbbk
+    ? lookupSkbbk({
+        wage: input.wage,
+        periodYear: input.periodYear,
+        periodMonth: input.periodMonth,
+      })
+    : 0
   return { employee, employer, employeeSkbbk }
 }
 
@@ -649,6 +664,7 @@ export type CalcPayslipInput = {
     | "epfEmployerVoluntary"
     | "socsoScheme"
     | "contributeToEis"
+    | "contributeToSkbbk"
     | "incomeTaxNumber"
     | "epfNumber"
     | "socsoNumber"
@@ -1330,6 +1346,11 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     // Schedule already applies — moved into the calc so a stale
     // profile can't misfire.
     ageAtPeriodEnd,
+    // SKBBK opt-in — the run service resolves this from the payslip
+    // snapshot (re-edit) or the profile toggle (fresh calc) before
+    // calling calcPayslip; we just pass through whatever the caller
+    // set on the profile.
+    contributeToSkbbk: profile.contributeToSkbbk,
   })
 
   // EIS eligibility per PERKESO EIS Act 2017 + the EIS coverage flyer:

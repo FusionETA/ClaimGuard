@@ -543,6 +543,12 @@ export async function executeEmployeeTransfer(input: {
           contributeToEis: transfer.copyPayrollInfo
             ? src.contributeToEis
             : true,
+          // SKBBK opt-in follows the same "copy vs reset" rule as EIS.
+          // Reset default is FALSE (matches the schema default and the
+          // "admin explicitly opts each employee in" model).
+          contributeToSkbbk: transfer.copyPayrollInfo
+            ? src.contributeToSkbbk
+            : false,
           incomeTaxNumber: transfer.copyPayrollInfo
             ? src.incomeTaxNumber
             : null,

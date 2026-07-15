@@ -554,8 +554,15 @@ function buildImportedPayslipInput(input: {
     // so we have no historical data to import. Stays 0 on imported
     // payslips — when the org's first computed run in Jun 2026 lands,
     // SKBBK gets deducted there.
+    //
+    // `contributeToSkbbk` snapshot false — the payslip was imported,
+    // not computed against a live opt-in decision. If admin later
+    // re-edits this run, the recompute will read this false snapshot
+    // and leave SKBBK at 0 (matching what was imported); admin can
+    // enable SKBBK for future runs via the profile toggle instead.
     skbbkEmployee: 0,
     skbbkWage: 0,
+    contributeToSkbbk: false,
     pcb: a.pcb,
     // YTD imports don't split out CP38 — historical payroll data
     // typically already merged it into the PCB total. Leave 0 unless

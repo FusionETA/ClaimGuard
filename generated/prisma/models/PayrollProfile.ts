@@ -98,6 +98,7 @@ export type PayrollProfileMinAggregateOutputType = {
   socsoNumber: string | null
   socsoScheme: $Enums.SocsoScheme | null
   contributeToEis: boolean | null
+  contributeToSkbbk: boolean | null
   incomeTaxNumber: string | null
   pcbBorneByEmployer: boolean | null
   ssfwNumber: string | null
@@ -168,6 +169,7 @@ export type PayrollProfileMaxAggregateOutputType = {
   socsoNumber: string | null
   socsoScheme: $Enums.SocsoScheme | null
   contributeToEis: boolean | null
+  contributeToSkbbk: boolean | null
   incomeTaxNumber: string | null
   pcbBorneByEmployer: boolean | null
   ssfwNumber: string | null
@@ -239,6 +241,7 @@ export type PayrollProfileCountAggregateOutputType = {
   socsoNumber: number
   socsoScheme: number
   contributeToEis: number
+  contributeToSkbbk: number
   incomeTaxNumber: number
   pcbBorneByEmployer: number
   ssfwNumber: number
@@ -342,6 +345,7 @@ export type PayrollProfileMinAggregateInputType = {
   socsoNumber?: true
   socsoScheme?: true
   contributeToEis?: true
+  contributeToSkbbk?: true
   incomeTaxNumber?: true
   pcbBorneByEmployer?: true
   ssfwNumber?: true
@@ -412,6 +416,7 @@ export type PayrollProfileMaxAggregateInputType = {
   socsoNumber?: true
   socsoScheme?: true
   contributeToEis?: true
+  contributeToSkbbk?: true
   incomeTaxNumber?: true
   pcbBorneByEmployer?: true
   ssfwNumber?: true
@@ -483,6 +488,7 @@ export type PayrollProfileCountAggregateInputType = {
   socsoNumber?: true
   socsoScheme?: true
   contributeToEis?: true
+  contributeToSkbbk?: true
   incomeTaxNumber?: true
   pcbBorneByEmployer?: true
   ssfwNumber?: true
@@ -644,6 +650,7 @@ export type PayrollProfileGroupByOutputType = {
   socsoNumber: string | null
   socsoScheme: $Enums.SocsoScheme | null
   contributeToEis: boolean
+  contributeToSkbbk: boolean
   incomeTaxNumber: string | null
   pcbBorneByEmployer: boolean
   ssfwNumber: string | null
@@ -741,6 +748,7 @@ export type PayrollProfileWhereInput = {
   socsoNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   socsoScheme?: Prisma.EnumSocsoSchemeNullableFilter<"PayrollProfile"> | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFilter<"PayrollProfile"> | boolean
+  contributeToSkbbk?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   incomeTaxNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   pcbBorneByEmployer?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   ssfwNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
@@ -817,6 +825,7 @@ export type PayrollProfileOrderByWithRelationInput = {
   socsoNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   socsoScheme?: Prisma.SortOrderInput | Prisma.SortOrder
   contributeToEis?: Prisma.SortOrder
+  contributeToSkbbk?: Prisma.SortOrder
   incomeTaxNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   pcbBorneByEmployer?: Prisma.SortOrder
   ssfwNumber?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -897,6 +906,7 @@ export type PayrollProfileWhereUniqueInput = Prisma.AtLeast<{
   socsoNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   socsoScheme?: Prisma.EnumSocsoSchemeNullableFilter<"PayrollProfile"> | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFilter<"PayrollProfile"> | boolean
+  contributeToSkbbk?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   incomeTaxNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   pcbBorneByEmployer?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   ssfwNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
@@ -973,6 +983,7 @@ export type PayrollProfileOrderByWithAggregationInput = {
   socsoNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   socsoScheme?: Prisma.SortOrderInput | Prisma.SortOrder
   contributeToEis?: Prisma.SortOrder
+  contributeToSkbbk?: Prisma.SortOrder
   incomeTaxNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   pcbBorneByEmployer?: Prisma.SortOrder
   ssfwNumber?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -1055,6 +1066,7 @@ export type PayrollProfileScalarWhereWithAggregatesInput = {
   socsoNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
   socsoScheme?: Prisma.EnumSocsoSchemeNullableWithAggregatesFilter<"PayrollProfile"> | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
+  contributeToSkbbk?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
   incomeTaxNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
   pcbBorneByEmployer?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
   ssfwNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
@@ -1128,6 +1140,7 @@ export type PayrollProfileCreateInput = {
   socsoNumber?: string | null
   socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
+  contributeToSkbbk?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
@@ -1204,6 +1217,7 @@ export type PayrollProfileUncheckedCreateInput = {
   socsoNumber?: string | null
   socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
+  contributeToSkbbk?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
@@ -1278,6 +1292,7 @@ export type PayrollProfileUpdateInput = {
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  contributeToSkbbk?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1354,6 +1369,7 @@ export type PayrollProfileUncheckedUpdateInput = {
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  contributeToSkbbk?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1429,6 +1445,7 @@ export type PayrollProfileCreateManyInput = {
   socsoNumber?: string | null
   socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
+  contributeToSkbbk?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
@@ -1502,6 +1519,7 @@ export type PayrollProfileUpdateManyMutationInput = {
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  contributeToSkbbk?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1576,6 +1594,7 @@ export type PayrollProfileUncheckedUpdateManyInput = {
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  contributeToSkbbk?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1661,6 +1680,7 @@ export type PayrollProfileCountOrderByAggregateInput = {
   socsoNumber?: Prisma.SortOrder
   socsoScheme?: Prisma.SortOrder
   contributeToEis?: Prisma.SortOrder
+  contributeToSkbbk?: Prisma.SortOrder
   incomeTaxNumber?: Prisma.SortOrder
   pcbBorneByEmployer?: Prisma.SortOrder
   ssfwNumber?: Prisma.SortOrder
@@ -1748,6 +1768,7 @@ export type PayrollProfileMaxOrderByAggregateInput = {
   socsoNumber?: Prisma.SortOrder
   socsoScheme?: Prisma.SortOrder
   contributeToEis?: Prisma.SortOrder
+  contributeToSkbbk?: Prisma.SortOrder
   incomeTaxNumber?: Prisma.SortOrder
   pcbBorneByEmployer?: Prisma.SortOrder
   ssfwNumber?: Prisma.SortOrder
@@ -1818,6 +1839,7 @@ export type PayrollProfileMinOrderByAggregateInput = {
   socsoNumber?: Prisma.SortOrder
   socsoScheme?: Prisma.SortOrder
   contributeToEis?: Prisma.SortOrder
+  contributeToSkbbk?: Prisma.SortOrder
   incomeTaxNumber?: Prisma.SortOrder
   pcbBorneByEmployer?: Prisma.SortOrder
   ssfwNumber?: Prisma.SortOrder
@@ -1974,6 +1996,7 @@ export type PayrollProfileCreateWithoutEmployeeProfileInput = {
   socsoNumber?: string | null
   socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
+  contributeToSkbbk?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
@@ -2048,6 +2071,7 @@ export type PayrollProfileUncheckedCreateWithoutEmployeeProfileInput = {
   socsoNumber?: string | null
   socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
+  contributeToSkbbk?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
@@ -2138,6 +2162,7 @@ export type PayrollProfileUpdateWithoutEmployeeProfileInput = {
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  contributeToSkbbk?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2212,6 +2237,7 @@ export type PayrollProfileUncheckedUpdateWithoutEmployeeProfileInput = {
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  contributeToSkbbk?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2286,6 +2312,7 @@ export type PayrollProfileCreateWithoutPayslipsInput = {
   socsoNumber?: string | null
   socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
+  contributeToSkbbk?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
@@ -2361,6 +2388,7 @@ export type PayrollProfileUncheckedCreateWithoutPayslipsInput = {
   socsoNumber?: string | null
   socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
+  contributeToSkbbk?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
@@ -2450,6 +2478,7 @@ export type PayrollProfileUpdateWithoutPayslipsInput = {
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  contributeToSkbbk?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2525,6 +2554,7 @@ export type PayrollProfileUncheckedUpdateWithoutPayslipsInput = {
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  contributeToSkbbk?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2630,6 +2660,7 @@ export type PayrollProfileSelect<ExtArgs extends runtime.Types.Extensions.Intern
   socsoNumber?: boolean
   socsoScheme?: boolean
   contributeToEis?: boolean
+  contributeToSkbbk?: boolean
   incomeTaxNumber?: boolean
   pcbBorneByEmployer?: boolean
   ssfwNumber?: boolean
@@ -2709,6 +2740,7 @@ export type PayrollProfileSelectScalar = {
   socsoNumber?: boolean
   socsoScheme?: boolean
   contributeToEis?: boolean
+  contributeToSkbbk?: boolean
   incomeTaxNumber?: boolean
   pcbBorneByEmployer?: boolean
   ssfwNumber?: boolean
@@ -2742,7 +2774,7 @@ export type PayrollProfileSelectScalar = {
   temporaryReviewDate?: boolean
 }
 
-export type PayrollProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "phone" | "alternateEmail" | "gender" | "dateOfBirth" | "nationality" | "race" | "hasPr" | "idType" | "idNumber" | "maritalStatus" | "isResident" | "isOku" | "spouseWorking" | "spouseDisabled" | "spousePcbNumber" | "spouseIdNumber" | "addressLine1" | "addressLine2" | "addressLine3" | "city" | "postcode" | "state" | "emergencyContactName" | "emergencyContactPhone" | "emergencyContactRelation" | "childRelief" | "prevEmploymentYear" | "prevRemuneration" | "prevEpf" | "contributeToEpf" | "epfMemberBefore1998" | "epfNumber" | "epfEmployeeRate" | "epfEmployeeVoluntary" | "epfEmployerVoluntary" | "socsoNumber" | "socsoScheme" | "contributeToEis" | "incomeTaxNumber" | "pcbBorneByEmployer" | "ssfwNumber" | "paymentMethod" | "bankName" | "bankAccountHolderName" | "bankAccountNumber" | "salaryType" | "monthlySalary" | "hourlyRate" | "fixedAllowances" | "joinDate" | "leaveDate" | "archiveReason" | "reportedToLhdn" | "department" | "location" | "workSchedule" | "payrollPolicy" | "payrollCycle" | "leaveEntitlement" | "isArchived" | "archivedAt" | "createdAt" | "updatedAt" | "payrollDocuments" | "prevAllowableDeductions" | "prevPcb" | "prevZakat" | "prevIncludesPriorThisOrgPeriod" | "temporaryReviewDate", ExtArgs["result"]["payrollProfile"]>
+export type PayrollProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "phone" | "alternateEmail" | "gender" | "dateOfBirth" | "nationality" | "race" | "hasPr" | "idType" | "idNumber" | "maritalStatus" | "isResident" | "isOku" | "spouseWorking" | "spouseDisabled" | "spousePcbNumber" | "spouseIdNumber" | "addressLine1" | "addressLine2" | "addressLine3" | "city" | "postcode" | "state" | "emergencyContactName" | "emergencyContactPhone" | "emergencyContactRelation" | "childRelief" | "prevEmploymentYear" | "prevRemuneration" | "prevEpf" | "contributeToEpf" | "epfMemberBefore1998" | "epfNumber" | "epfEmployeeRate" | "epfEmployeeVoluntary" | "epfEmployerVoluntary" | "socsoNumber" | "socsoScheme" | "contributeToEis" | "contributeToSkbbk" | "incomeTaxNumber" | "pcbBorneByEmployer" | "ssfwNumber" | "paymentMethod" | "bankName" | "bankAccountHolderName" | "bankAccountNumber" | "salaryType" | "monthlySalary" | "hourlyRate" | "fixedAllowances" | "joinDate" | "leaveDate" | "archiveReason" | "reportedToLhdn" | "department" | "location" | "workSchedule" | "payrollPolicy" | "payrollCycle" | "leaveEntitlement" | "isArchived" | "archivedAt" | "createdAt" | "updatedAt" | "payrollDocuments" | "prevAllowableDeductions" | "prevPcb" | "prevZakat" | "prevIncludesPriorThisOrgPeriod" | "temporaryReviewDate", ExtArgs["result"]["payrollProfile"]>
 export type PayrollProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   payslips?: boolean | Prisma.PayrollProfile$payslipsArgs<ExtArgs>
@@ -2830,6 +2862,17 @@ export type $PayrollProfilePayload<ExtArgs extends runtime.Types.Extensions.Inte
     socsoNumber: string | null
     socsoScheme: $Enums.SocsoScheme | null
     contributeToEis: boolean
+    /**
+     * SKBBK (Skim LINDUNG 24 Jam) — Non-Employment Injury Scheme
+     * effective 1 Jun 2026. Employee-only contribution (0.75% → 1.0% →
+     * 1.25%, capped at RM 6,000 wage). Per PERKESO's own gazette wording
+     * the scheme is voluntary at the employee level — hence a per-
+     * employee opt-in toggle (mirrors `contributeToEis`) rather than an
+     * auto-fire. Default FALSE so admin must explicitly enable each
+     * employee. Snapshot lives on `Payslip.contributeToSkbbk` to freeze
+     * submitted runs against later toggle changes.
+     */
+    contributeToSkbbk: boolean
     incomeTaxNumber: string | null
     pcbBorneByEmployer: boolean
     ssfwNumber: string | null
@@ -3340,6 +3383,7 @@ export interface PayrollProfileFieldRefs {
   readonly socsoNumber: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly socsoScheme: Prisma.FieldRef<"PayrollProfile", 'SocsoScheme'>
   readonly contributeToEis: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
+  readonly contributeToSkbbk: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
   readonly incomeTaxNumber: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly pcbBorneByEmployer: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
   readonly ssfwNumber: Prisma.FieldRef<"PayrollProfile", 'String'>

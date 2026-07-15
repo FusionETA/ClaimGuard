@@ -1360,10 +1360,11 @@ function SkbbkInfoCard() {
         </CardTitle>
         <CardDescription>
           PERKESO&apos;s Non-Employment Injury Security Scheme. Employee-
-          only contribution, capped at RM 6,000/month wage. Rate is set
-          by PERKESO and rolls out in phases — admin can&apos;t change
-          it here. Calc engine picks the right phase automatically based
-          on each payroll run&apos;s period.
+          only, capped at RM 6,000/month wage. <strong>Opt-in per
+          employee</strong> — flip the toggle on each employee&apos;s
+          statutory tab (Manage Employee → Statutory → SKBBK card) to
+          include them. Rate is set by PERKESO and rolls out in phases —
+          admin can&apos;t change it here.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">
@@ -1383,6 +1384,11 @@ function SkbbkInfoCard() {
               label="Employer share"
               value="0% (none)"
               note="SKBBK is fully borne by the employee — distinct from SOCSO + EIS where both sides contribute."
+            />
+            <LockedDisplay
+              label="Enrolment"
+              value="Opt-in per employee"
+              note="Default OFF. Admin enables per employee on the statutory tab. Snapshot is frozen when the payroll run is submitted — re-editing a submitted run for an unrelated reason won't unwind an already-remitted SKBBK contribution."
             />
             <LockedDisplay
               label="Next phase"

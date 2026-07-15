@@ -2385,6 +2385,75 @@ function StatutoryTab(props: {
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-base">
+            SKBBK — Skim LINDUNG 24 Jam
+          </CardTitle>
+          <CardDescription>
+            PERKESO&apos;s Non-Employment Injury Security Scheme (effective
+            1 Jun 2026). Voluntary per employee — flip this toggle on to
+            include the SKBBK deduction on the next payroll run. Employee-
+            only, capped at RM 6,000 wage. Rate is set by PERKESO in
+            phases and can&apos;t be changed here.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <Toggle
+            name="contributeToSkbbk"
+            question="Contributing to SKBBK?"
+            defaultChecked={props.profile?.contributeToSkbbk ?? false}
+          />
+          {(() => {
+            // Preview mirrors the calc: fires only when the toggle is
+            // ON AND the employee has a SOCSO scheme AND the period has
+            // a published SKBBK phase (Jun 2026 onwards). Uses the
+            // employee's current monthly salary to preview the amount
+            // the run engine would deduct, so admins can see what
+            // enabling the toggle actually costs the employee.
+            const optIn = props.profile?.contributeToSkbbk ?? false
+            const hasScheme = Boolean(props.profile?.socsoScheme)
+            const previewNow = new Date()
+            const monthly = props.profile?.monthlySalary ?? 0
+            const skbbkAmount =
+              optIn && hasScheme && monthly > 0
+                ? lookupSkbbk({
+                    wage: monthly,
+                    periodYear: previewNow.getFullYear(),
+                    periodMonth: previewNow.getMonth() + 1,
+                  })
+                : 0
+            const noteWhenNotFiring = !optIn
+              ? "Toggle is off — no SKBBK deduction. Employee can opt in whenever they choose."
+              : !hasScheme
+                ? "Employee has no SOCSO scheme — SKBBK requires PERKESO coverage."
+                : monthly === 0
+                  ? "Set monthly salary to preview the deduction amount."
+                  : "SKBBK will start from the next payroll run onwards."
+            return (
+              <StatutoryDisplay
+                label="SKBBK preview"
+                value={
+                  skbbkAmount > 0
+                    ? `RM ${skbbkAmount.toLocaleString("en-MY", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })} / month`
+                    : optIn && hasScheme && monthly > 0
+                      ? "RM 0.00 / month"
+                      : "Not applied this run"
+                }
+                note={
+                  skbbkAmount > 0
+                    ? "Employee-only. Deducted on top of SOCSO + EIS. Feeds the RM 350/year combined PCB relief."
+                    : noteWhenNotFiring
+                }
+              />
+            )
+          })()}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base">HRDF (HRD Corp levy)</CardTitle>
           <CardDescription>
             Per PSMB Act Sec. 2, the HRD Corp levy applies to Malaysian
@@ -2541,13 +2610,19 @@ function StatutoryTab(props: {
                   ? lookupEis(monthly).employee
                   : 0
                 const previewNow = new Date()
-                const skbbkMonth = props.profile?.socsoScheme
-                  ? lookupSkbbk({
-                      wage: monthly,
-                      periodYear: previewNow.getFullYear(),
-                      periodMonth: previewNow.getMonth() + 1,
-                    })
-                  : 0
+                // SKBBK gates on both the SOCSO scheme (PERKESO
+                // membership) AND the per-employee opt-in — matches
+                // the calc engine. Employees who haven't opted in
+                // don't contribute, so the RM 350 relief bucket
+                // shouldn't count SKBBK for them.
+                const skbbkMonth =
+                  props.profile?.contributeToSkbbk && props.profile?.socsoScheme
+                    ? lookupSkbbk({
+                        wage: monthly,
+                        periodYear: previewNow.getFullYear(),
+                        periodMonth: previewNow.getMonth() + 1,
+                      })
+                    : 0
                 const estSocsoEisRelief = Math.min(
                   SOCSO_EIS_RELIEF_CAP,
                   Math.round((socsoMonth + eisMonth + skbbkMonth) * 12 * 100) /
