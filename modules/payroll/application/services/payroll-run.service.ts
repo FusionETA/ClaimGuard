@@ -2292,20 +2292,62 @@ export async function getPayrollAdjustmentPageData(input: {
   })
   if (!profileRow) return null
 
-  const [org, adjustment, payrollProfile, activeLoans] = await Promise.all([
-    prisma.organization.findUnique({
-      where: { id: orgId },
-      select: { name: true },
-    }),
-    payrollRunAdjustmentRepository.getOne({
+  const [org, storedAdjustment, payrollProfile, activeLoans] =
+    await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: orgId },
+        select: { name: true },
+      }),
+      payrollRunAdjustmentRepository.getOne({
+        payrollRunId: run.id,
+        employeeProfileId: input.employeeProfileId,
+      }),
+      // Pulled via the repo so the JSON column is already parsed +
+      // typed. Used by the form to render the per-run overrides card.
+      payrollProfileRepository.getByEmployeeProfileId(input.employeeProfileId),
+      employeeLoanRepository.listActiveForOrganization(orgId),
+    ])
+
+  // IMPORTED runs never own a PayrollRunAdjustment row — their per-
+  // employee allowances / deductions live on Payslip.lineItems instead
+  // (the YTD importer writes them there). Synthesize a read-only
+  // adjustment from those line items so the "View adjustments" modal
+  // renders the imported breakdown instead of a misleading empty state.
+  let adjustment = storedAdjustment
+  if (!adjustment && run.source === "IMPORTED") {
+    const payslip = await payslipRepository.getByRunAndEmployee({
       payrollRunId: run.id,
       employeeProfileId: input.employeeProfileId,
-    }),
-    // Pulled via the repo so the JSON column is already parsed +
-    // typed. Used by the form to render the per-run overrides card.
-    payrollProfileRepository.getByEmployeeProfileId(input.employeeProfileId),
-    employeeLoanRepository.listActiveForOrganization(orgId),
-  ])
+    })
+    if (payslip && payslip.lineItems.length > 0) {
+      adjustment = {
+        id: `imported:${payslip.id}`,
+        payrollRunId: run.id,
+        employeeProfileId: input.employeeProfileId,
+        otNormalHours: payslip.otNormalHours,
+        otRestHours: payslip.otRestHours,
+        otPublicHours: payslip.otPublicHours,
+        workedHours: null,
+        expectedHours: null,
+        manualLineItems: payslip.lineItems.map((li) => ({
+          kind: li.kind,
+          category:
+            li.category ??
+            (li.kind === "DEDUCTION"
+              ? "deduct_salary_adjustment"
+              : li.kind === "REIMBURSEMENT"
+                ? "wages_expense_claim"
+                : "allowance_standard"),
+          label: li.label,
+          amount: li.amount,
+        })),
+        fixedAllowanceOverrides: {},
+        notes: null,
+        createdAt: payslip.createdAt,
+        updatedAt: payslip.updatedAt,
+      }
+    }
+  }
 
   // Loan installments that fall on this run's period for this employee.
   // Surfaced read-only in the modal with a link to the Loans page.

@@ -843,6 +843,34 @@ export const payslipRepository = {
   },
 
   /**
+   * Fetch the payslip for one employee in one run, with line items.
+   * Used by the adjustment-view modal on IMPORTED runs, where the
+   * per-employee allowances live on Payslip.lineItems instead of
+   * PayrollRunAdjustment.manualLineItems.
+   */
+  async getByRunAndEmployee(input: {
+    payrollRunId: string
+    employeeProfileId: string
+  }): Promise<PayslipData | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const row = await prisma.payslip.findFirst({
+      where: {
+        payrollRunId: input.payrollRunId,
+        employeeProfileId: input.employeeProfileId,
+      },
+      include: {
+        lineItems: { orderBy: { id: "asc" } },
+      },
+    })
+    if (!row) return null
+
+    const lineItems = row.lineItems.map((li) => mapPayslipLineItem(li))
+    return mapPayslip(row, lineItems)
+  },
+
+  /**
    * Fetch a single payslip with line items, scoped to an org via the
    * parent run. Returns null on cross-org access.
    */

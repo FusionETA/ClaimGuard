@@ -73,6 +73,11 @@ export function PayrollAdjustmentForm(props: {
   /// Shown read-only — editing happens on the Loans page.
   loans?: Array<{ id: string; label: string; amount: number }>
   readOnly: boolean
+  /// True when the underlying run was seeded from a YTD import (source
+  /// = IMPORTED). Suppresses PCB-projection UI (AR-vs-recurring toggle,
+  /// "PCB: Additional Remuneration formula" hint) on line items — those
+  /// affect only the current-month calc, which imports skip entirely.
+  isImported?: boolean
   /// Optional — fires once after a save action lands "success".
   /// Used by the modal-dialog wrapper to close itself.
   onSaved?: () => void
@@ -622,9 +627,9 @@ export function PayrollAdjustmentForm(props: {
           <div>
             <CardTitle className="text-base">One-off line items</CardTitle>
             <CardDescription>
-              Allowances and deductions that apply to this run only.
-              Recurring allowances live on the employee&apos;s payroll
-              profile.
+              {props.isImported
+                ? "Imported from the YTD upload — PCB was stored as-typed, so the recurring-vs-one-off flag doesn't apply here. To make an allowance recur going forward, add it to the employee's payroll profile."
+                : "Allowances and deductions that apply to this run only. Recurring allowances live on the employee's payroll profile."}
             </CardDescription>
           </div>
           {!props.readOnly && (
@@ -692,6 +697,7 @@ export function PayrollAdjustmentForm(props: {
                     onChange={(p) => patchLine(i, p)}
                     onRemove={() => removeLine(i)}
                     readOnly={props.readOnly}
+                    isImported={props.isImported === true}
                   />
                 )
               })}
@@ -710,6 +716,7 @@ export function PayrollAdjustmentForm(props: {
                     onChange={(p) => patchLine(i, p)}
                     onRemove={() => removeLine(i)}
                     readOnly={props.readOnly}
+                    isImported={props.isImported === true}
                   />
                 )
               })}
@@ -728,6 +735,7 @@ export function PayrollAdjustmentForm(props: {
                     onChange={(p) => patchLine(i, p)}
                     onRemove={() => removeLine(i)}
                     readOnly={props.readOnly}
+                    isImported={props.isImported === true}
                   />
                 )
               })}
@@ -792,6 +800,10 @@ function LineRow(props: {
   onChange: (p: Partial<ManualLineItem>) => void
   onRemove: () => void
   readOnly: boolean
+  /// Imported YTD row — hide the AR-vs-recurring toggle + PCB
+  /// projection hint, since PCB was stored as-typed and the current-
+  /// month calc that consumes those flags never runs for imports.
+  isImported: boolean
 }) {
   const category =
     PAYROLL_ADJUSTMENT_CATEGORY_META[
@@ -922,7 +934,7 @@ function LineRow(props: {
           monthly PCB — correct for monthly commission / director fee).
           Hidden for non-AR categories since the toggle would have no
           effect. */}
-      {category.isAdditionalRemuneration ? (
+      {category.isAdditionalRemuneration && !props.isImported ? (
         <label className="mt-2 flex items-start gap-2 rounded-md border border-amber-200/70 bg-amber-50/40 px-2.5 py-2 text-[11px] leading-4 text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-100">
           <input
             type="checkbox"
@@ -966,12 +978,16 @@ function LineRow(props: {
           </span>
         ) : null}
         {category.offsetsPcb ? <span>Offsets PCB</span> : null}
-        {category.isAdditionalRemuneration && !props.line.treatAsRecurring ? (
+        {category.isAdditionalRemuneration &&
+        !props.isImported &&
+        !props.line.treatAsRecurring ? (
           <span className="text-amber-700 dark:text-amber-300">
             PCB: Additional Remuneration formula
           </span>
         ) : null}
-        {category.isAdditionalRemuneration && props.line.treatAsRecurring ? (
+        {category.isAdditionalRemuneration &&
+        !props.isImported &&
+        props.line.treatAsRecurring ? (
           <span className="text-emerald-700 dark:text-emerald-300">
             PCB: treated as recurring (smoothed)
           </span>

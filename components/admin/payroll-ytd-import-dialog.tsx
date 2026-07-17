@@ -315,6 +315,7 @@ export function PayrollYtdImportDialog({
                 }.`,
           variant: "success",
         })
+        setOpen(false)
       } else {
         toast({ title: r.message, variant: "error" })
       }
@@ -693,7 +694,7 @@ function ColumnMappingPanel({
               key={col.normalized}
               className="grid items-center gap-2 sm:grid-cols-[1fr_1.4fr]"
             >
-              <div className="flex items-center gap-2 text-xs">
+              <div className="flex flex-col items-start gap-1 text-xs">
                 <span className="font-mono font-semibold">{col.rawText}</span>
                 {isMandatory ? (
                   <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">

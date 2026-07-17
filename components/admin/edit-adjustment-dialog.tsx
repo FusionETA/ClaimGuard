@@ -88,6 +88,7 @@ export function EditAdjustmentDialog({
       publicHours: number
     }
     loans: Array<{ id: string; label: string; amount: number }>
+    isImported: boolean
   } | null>(null)
   const [loading, startLoading] = useTransition()
   /// Pending state lifted from the form so the dialog-footer's Save
@@ -181,6 +182,7 @@ export function EditAdjustmentDialog({
               autoOt={data.autoOt}
               loans={data.loans}
               readOnly={readOnly}
+              isImported={data.isImported}
               saveFormId={saveFormId}
               hideActions
               onPendingChange={setSavePending}

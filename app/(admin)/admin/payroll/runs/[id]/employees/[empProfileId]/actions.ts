@@ -340,6 +340,7 @@ export async function fetchAdjustmentForDialogAction(input: {
     publicHours: number
   }
   loans: Array<{ id: string; label: string; amount: number }>
+  isImported: boolean
 } | null> {
   const data = await getPayrollAdjustmentPageData(input)
   if (!data) return null
@@ -350,5 +351,6 @@ export async function fetchAdjustmentForDialogAction(input: {
     autoHours: data.autoHours,
     autoOt: data.autoOt,
     loans: data.loans,
+    isImported: data.run.source === "IMPORTED",
   }
 }
