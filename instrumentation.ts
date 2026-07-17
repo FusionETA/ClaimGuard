@@ -45,14 +45,17 @@ function isLikelyBotPath(path: string): boolean {
  *   1. `TypeError: Failed to parse body as FormData` — undici choked on a
  *      garbage / non-multipart body. Always a malformed request.
  *   2. `Error: Failed to find Server Action …` — the request referenced a
- *      Server Action ID that isn't in the live build. On a real route this
- *      can mean genuine post-deploy version skew (a real user with a stale
- *      tab), which we DO want to know about; on a bot path it's just a
- *      scanner sending a made-up action ID.
+ *      Server Action ID that isn't in the live build. Either a scanner
+ *      sending a made-up ID, or post-deploy version skew: a real user whose
+ *      tab predates the current build clicked something. Skew is an expected
+ *      consequence of every deploy, isn't actionable while it's happening,
+ *      and clears itself on refresh — so it is never page-worthy, on any
+ *      path. (It IS still a real papercut for that user; the fix is
+ *      `deploymentId` + a guarded reload, not an alert.)
  *
  * Returns true only for noise we should downgrade to a stdout-only
- * `log.error` (no WhatsApp). Error (1) is always noise; error (2) is noise
- * only when the path looks like a scanner probe — real routes still page.
+ * `log.error` (no WhatsApp). Error (1) is noise on scanner paths; error (2)
+ * is always noise.
  */
 function isRequestNoise(err: unknown, path: string): boolean {
   if (!(err instanceof Error)) return false
@@ -66,7 +69,7 @@ function isRequestNoise(err: unknown, path: string): boolean {
   const missingServerAction = msg.includes("Failed to find Server Action")
 
   if (malformedBody) return isLikelyBotPath(path)
-  if (missingServerAction) return isLikelyBotPath(path)
+  if (missingServerAction) return true
   return false
 }
 
