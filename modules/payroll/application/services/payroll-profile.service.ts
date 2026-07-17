@@ -566,6 +566,59 @@ export async function updateEmployeeEmail(input: {
   return { changed: true }
 }
 
+/**
+ * Rename an employee — updates `User.name`. Called from the Personal
+ * tab's save action; the tab lets admins fix name typos or strip
+ * legacy asterisk-padding that leaked in via older imports.
+ *
+ * Historical payslips are NOT touched — each payslip snapshots
+ * `snapshotName` at compute time, so old runs continue to show the
+ * name that was on file when they were generated. New runs pick up
+ * the new name automatically.
+ *
+ * No uniqueness check — Malaysian workplaces routinely have multiple
+ * employees with the same name; only `email` + `idNumber` need to be
+ * unique.
+ */
+export async function updateEmployeeName(input: {
+  userId: string
+  newName: string
+}): Promise<{ changed: boolean }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    throw new Error("Session expired. Please log in again.")
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) throw new Error("No active organisation.")
+
+  const prisma = getPrismaClient()
+  if (!prisma) throw new Error("Database is not configured.")
+
+  const next = input.newName.trim()
+  if (next.length === 0) {
+    throw new Error("Name cannot be blank.")
+  }
+
+  const target = await prisma.user.findFirst({
+    where: { id: input.userId, organizationId: orgId },
+    select: { id: true, name: true },
+  })
+  if (!target) {
+    throw new Error("Employee not found in this organisation.")
+  }
+  if (target.name === next) {
+    return { changed: false }
+  }
+
+  await prisma.user.update({
+    where: { id: target.id },
+    data: { name: next },
+  })
+
+  await bustOrgConfigCaches({ organizationId: orgId })
+  return { changed: true }
+}
+
 export async function unarchivePayrollProfile(input: {
   userId: string
   /// When set, admin indicated the employee worked elsewhere during

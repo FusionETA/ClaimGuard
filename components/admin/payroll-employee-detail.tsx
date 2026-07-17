@@ -278,6 +278,7 @@ export function PayrollEmployeeDetail(props: {
       {tab === "personal" && (
         <PersonalTab
           userId={props.userId}
+          name={props.identity.name}
           email={props.identity.email}
           // Pass the LIVE mirror so the tab's own inline red helpers
           // also update as the admin types — not just the tab pill.
@@ -653,6 +654,12 @@ function useStaleDraftRunsToast(state: {
 
 function PersonalTab(props: {
   userId: string
+  /// Current full name (on `User.name`). Editable field below — used
+  /// on payslip generation, LHDN filing, and displayed everywhere
+  /// the employee is listed. New payslips pick up the new name via
+  /// `snapshotName` at run time; historical payslips keep the name
+  /// that was stamped when they were computed.
+  name: string
   /// Current primary (login) email. Rendered as an editable field below
   /// — admins can change it; uniqueness is enforced server-side via the
   /// `User.email` unique constraint.
@@ -747,6 +754,19 @@ function PersonalTab(props: {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
+          <Field label="Full name">
+            <Input
+              name="name"
+              defaultValue={props.name}
+              required
+              placeholder="As shown on IC / passport"
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Used on new payslips, LHDN filings, and everywhere the
+              employee appears. Historical payslips keep the name that
+              was stamped at run time.
+            </p>
+          </Field>
           <Field label="Email (login)">
             <Input
               name="email"

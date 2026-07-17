@@ -26,6 +26,7 @@ import {
   archivePayrollProfile,
   unarchivePayrollProfile,
   updateEmployeeEmail,
+  updateEmployeeName,
   upsertPayrollProfile,
 } from "@/modules/payroll/application/services/payroll-profile.service"
 import {
@@ -46,6 +47,14 @@ import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-
 // ─── Personal tab ─────────────────────────────────────────────────────────
 
 const personalSchema = z.object({
+  /// Full name — lives on `User.name`. Persisted via a separate
+  /// `updateEmployeeName` service call inside the action (same
+  /// split-persistence pattern as `email` below).
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required.")
+    .max(120, "Name is too long."),
   /// Primary (login) email. Required + validated here; persistence is
   /// split into a separate `updateEmployeeEmail` service call inside the
   /// action because this field lives on `User`, not `PayrollProfile`.
@@ -93,6 +102,7 @@ export async function savePayrollPersonalAction(
   }
 
   const parsed = personalSchema.safeParse({
+    name: formData.get("name"),
     email: formData.get("email"),
     phone: formData.get("phone"),
     alternateEmail: formData.get("alternateEmail"),
@@ -138,10 +148,10 @@ export async function savePayrollPersonalAction(
   // Parse child relief from repeated form fields child0.age / child0.abilityStatus / ...
   const childRelief = parseChildReliefFromForm(formData)
 
-  // Strip `email` from the PayrollProfile patch — it lives on `User`
-  // and is persisted via the separate `updateEmployeeEmail` service
-  // below. The rest of `parsed.data` is shaped for PayrollProfile.
-  const { email: newEmail, ...payrollPatch } = parsed.data
+  // Strip `name` + `email` from the PayrollProfile patch — both live on
+  // `User` and are persisted via separate service calls below. The
+  // rest of `parsed.data` is shaped for PayrollProfile.
+  const { name: newName, email: newEmail, ...payrollPatch } = parsed.data
 
   let staleDraftRuns:
     | Array<{ id: string; periodYear: number; periodMonth: number }>
@@ -159,6 +169,17 @@ export async function savePayrollPersonalAction(
     return {
       status: "error",
       message: safeErrorMessage(err, "Could not save profile."),
+    }
+  }
+
+  // Persist the name change on User. Cheap — no uniqueness check
+  // needed (names aren't unique keys); the service just runs an update.
+  try {
+    await updateEmployeeName({ userId, newName })
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not update name."),
     }
   }
 

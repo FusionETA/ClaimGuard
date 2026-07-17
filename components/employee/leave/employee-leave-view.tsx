@@ -109,13 +109,6 @@ export function EmployeeLeaveView(props: {
   return (
     <>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-xl font-semibold">Leave</h1>
-          <p className="text-sm text-muted-foreground">
-            Your balances and applications for {props.year}.
-          </p>
-        </div>
-
         <ApplicationsCard
           applications={props.applications}
           balances={props.balances}

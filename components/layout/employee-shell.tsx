@@ -82,47 +82,16 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
 ]
 
 function getSectionTitle(pathname: string) {
-  if (pathname.startsWith("/employee/account")) {
-    return "Account"
-  }
-
-  if (pathname.startsWith("/employee/claims/new")) {
-    return "Submit Claim"
-  }
-
-  if (pathname.startsWith("/employee/claims")) {
-    return "My Claims"
-  }
-
-  if (pathname.startsWith("/employee/review")) {
-    return "Claims Queue"
-  }
-
-  if (pathname.startsWith("/employee/leave")) {
-    return "Leave"
-  }
-
-  if (pathname.startsWith("/employee/payslips")) {
-    return "Payslips"
-  }
-
-  if (pathname.startsWith("/employee/attendance/history")) {
-    return "Attendance History"
-  }
-
-  if (pathname.startsWith("/employee/attendance/team")) {
-    return "Team Attendance"
-  }
-
-  if (pathname.startsWith("/employee/attendance/approvals")) {
-    return "Approvals"
-  }
-
-  if (pathname.startsWith("/employee/attendance")) {
-    return "My Attendance"
-  }
-
-  return "Employee Portal"
+  // Titles are intentionally single words / short so the mobile header
+  // never wraps to two lines — that was producing inconsistent header
+  // heights across routes.
+  if (pathname.startsWith("/employee/account")) return "Account"
+  if (pathname.startsWith("/employee/claims")) return "Claims"
+  if (pathname.startsWith("/employee/review")) return "Claims"
+  if (pathname.startsWith("/employee/leave")) return "Leave"
+  if (pathname.startsWith("/employee/payslips")) return "Payslips"
+  if (pathname.startsWith("/employee/attendance")) return "Attendance"
+  return "Employee"
 }
 
 type EmployeeShellProps = {
@@ -403,7 +372,7 @@ export function EmployeeShell({
           <div className="container flex items-center justify-between py-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                AltomateHR
+                Employee
               </p>
               <h1 className="font-headline text-2xl font-black tracking-tight">
                 {getSectionTitle(pathname)}

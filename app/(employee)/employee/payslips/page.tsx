@@ -1,7 +1,7 @@
 import Link from "next/link"
 import type { Route } from "next"
 import { redirect } from "next/navigation"
-import { ChevronRight, FileText } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 
 import {
   Card,
@@ -24,17 +24,6 @@ export default async function EmployeePayslipsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
-          <FileText className="h-6 w-6 text-primary" />
-          Payslips
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Your finalised monthly payslips. New ones appear here when
-          payroll submits the run.
-        </p>
-      </header>
-
       {data.payslips.length === 0 ? (
         <Card>
           <CardHeader>

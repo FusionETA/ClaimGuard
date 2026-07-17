@@ -5,7 +5,6 @@ import { attendanceRepository } from "@/modules/attendance/infrastructure/attend
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { formatHm } from "@/modules/attendance/domain/hours-summary"
 import { requireModuleAccess } from "@/modules/policy/application/guards"
-import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 
 import { EmployeeAttendanceDashboardView } from "./dashboard-view"
 import { loadMyHoursSummaryAction } from "./hours-summary-actions"
@@ -27,53 +26,29 @@ export default async function EmployeeAttendancePage() {
   const orgId = resolveActiveOrgId(session) ?? null
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
-  const [dashboard, workingHours, projects, hoursSummary, profileExtras, policy, progress, timezone] = await Promise.all([
+  // ClockCard now lives ONLY on /employee (the landing dashboard) —
+  // no clock-in fetches needed here. This page is history + today's
+  // remark + recent shifts + hours summary. All the policy / selfie /
+  // geofence / project-picker plumbing that used to feed <ClockCard />
+  // has been dropped along with the component itself.
+  const [dashboard, workingHours, hoursSummary, profileExtras, progress, timezone] = await Promise.all([
     employeeAttendanceService.getEmployeeDashboard(session.userId),
     employeeAttendanceService.getWorkingHours(session.userId),
-    employeeAttendanceService.getAvailableProjects(
-      session.userId,
-      orgId ?? undefined,
-    ),
     employeeAttendanceService.getHoursSummary(
       session.userId,
       new Date(initialFrom),
       new Date(initialTo),
     ),
     employeeAttendanceService.getProfileExtras(session.userId),
-    policyRepository.findForUserId(session.userId),
     employeeAttendanceService.getProgress(session.userId),
     attendanceRepository.getOrgTimezone(orgId),
   ])
-  // Default to enforcing geofence when no policy is assigned (legacy
-  // behavior). Admins disable it per-policy in Settings → Policies.
-  const enforceGeofence = policy?.requireGeofence ?? true
-  const requiresSelfieOnClockIn = policy?.requireSelfie ?? profileExtras?.requiresSelfieOnClockIn ?? false
-  const requiresSelfieOnClockOut = policy?.requireClockOutSelfie ?? false
-  const otDailyThresholdMinutes = policy?.otDailyThresholdMinutes ?? 480
-  // GPS capture flags — drive whether the client attaches coords to
-  // each event regardless of geofence enforcement.
-  const captureLocationEnabled = policy?.geolocationEnabled ?? true
-  const captureLocationOnClockIn = policy?.captureLocationOnClockIn ?? true
-  const captureLocationOnClockOut = policy?.captureLocationOnClockOut ?? true
-  const captureLocationOnBreakStart = policy?.captureLocationOnBreakStart ?? true
-  const captureLocationOnBreakEnd = policy?.captureLocationOnBreakEnd ?? true
 
   return (
     <div className="space-y-4">
       <EmployeeAttendanceDashboardView
-        firstName={session.name.split(" ")[0] ?? session.name}
         dashboard={dashboard}
         workingHours={workingHours}
-        projects={projects}
-        requiresSelfieOnClockIn={requiresSelfieOnClockIn}
-        requiresSelfieOnClockOut={requiresSelfieOnClockOut}
-        otDailyThresholdMinutes={otDailyThresholdMinutes}
-        enforceGeofence={enforceGeofence}
-        captureLocationEnabled={captureLocationEnabled}
-        captureLocationOnClockIn={captureLocationOnClockIn}
-        captureLocationOnClockOut={captureLocationOnClockOut}
-        captureLocationOnBreakStart={captureLocationOnBreakStart}
-        captureLocationOnBreakEnd={captureLocationOnBreakEnd}
         timezone={timezone}
       />
       <HoursProgress

@@ -3,31 +3,22 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import type {
-  AttendanceProjectView,
   ClockEventLite,
   EmployeeAttendanceDashboard,
 } from "@/modules/attendance/domain/models"
 import { cn } from "@/lib/utils"
 
-import { ClockCard } from "./clock-card"
 import { TodayRemarkCard } from "./today-remark-card"
 
+// The clock-in card lives on the dashboard (`/employee`) so the
+// landing page is the single entry point for the fingerprint action.
+// This attendance tab is history + today's remark + recent shifts;
+// no clock-in surface here — kills the duplicate UI users saw when
+// both routes rendered the same <ClockCard />.
+
 type Props = {
-  firstName: string
   dashboard: EmployeeAttendanceDashboard
   workingHours: { start: string; end: string }
-  projects: AttendanceProjectView[]
-  requiresSelfieOnClockIn: boolean
-  requiresSelfieOnClockOut: boolean
-  otDailyThresholdMinutes: number
-  enforceGeofence: boolean
-  /// Master + per-event GPS capture flags from the employee's policy.
-  /// Drive whether the ClockCard attaches coords to each event.
-  captureLocationEnabled: boolean
-  captureLocationOnClockIn: boolean
-  captureLocationOnClockOut: boolean
-  captureLocationOnBreakStart: boolean
-  captureLocationOnBreakEnd: boolean
   timezone: string
 }
 
@@ -41,15 +32,6 @@ function fmtTime(iso: string | null, tz: string) {
     : "—"
 }
 
-function fmtDate(d: Date, tz: string) {
-  return d.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    timeZone: tz,
-  })
-}
-
 function deriveState(events: ClockEventLite[]): "IN" | "OUT" {
   const last = [...events]
     .reverse()
@@ -61,50 +43,15 @@ function deriveState(events: ClockEventLite[]): "IN" | "OUT" {
   return last?.kind === "CLOCK_IN" ? "IN" : "OUT"
 }
 
-/**
- * Latest CLOCK_IN/CLOCK_OUT for today that ended in REJECTED, only if it
- * hasn't been superseded by a later APPROVED event of the same kind. This
- * is what powers the warning banner on the clock card.
- */
-function deriveLatestRejection(events: ClockEventLite[]): ClockEventLite | null {
-  const clockEvents = events.filter(
-    (e) => e.kind === "CLOCK_IN" || e.kind === "CLOCK_OUT",
-  )
-  const last = [...clockEvents].reverse()[0]
-  return last && last.status === "REJECTED" ? last : null
-}
-
 export function EmployeeAttendanceDashboardView({
-  firstName,
   dashboard,
   workingHours,
-  projects,
-  requiresSelfieOnClockIn,
-  requiresSelfieOnClockOut,
-  otDailyThresholdMinutes,
-  enforceGeofence,
-  captureLocationEnabled,
-  captureLocationOnClockIn,
-  captureLocationOnClockOut,
-  captureLocationOnBreakStart,
-  captureLocationOnBreakEnd,
   timezone,
 }: Props) {
   const state = deriveState(dashboard.todayEvents)
-  const latestRejection = deriveLatestRejection(dashboard.todayEvents)
-  const now = new Date()
 
   return (
     <div className="space-y-4">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {fmtDate(now, timezone)}
-        </p>
-        <h2 className="mt-0.5 text-xl font-bold text-foreground">
-          Hello, {firstName} 👋
-        </h2>
-      </div>
-
       <Card className="p-4">
         <div className="flex items-center justify-between">
           <div>
@@ -120,31 +67,6 @@ export function EmployeeAttendanceDashboardView({
           </Badge>
         </div>
       </Card>
-
-      <ClockCard
-        state={state}
-        projects={projects}
-        activeProject={dashboard.today?.project ?? null}
-        activeLocation={dashboard.today?.location ?? null}
-        activeProjectLat={dashboard.activeProjectCoords?.latitude ?? null}
-        activeProjectLng={dashboard.activeProjectCoords?.longitude ?? null}
-        geofenceRadiusMeters={dashboard.geofenceRadiusMeters}
-        now={now.toISOString()}
-        onBreak={dashboard.today?.onBreak ?? false}
-        currentBreakStartedAt={dashboard.today?.currentBreakStartedAt ?? null}
-        requiresSelfieOnClockIn={requiresSelfieOnClockIn}
-        requiresSelfieOnClockOut={requiresSelfieOnClockOut}
-        otDailyThresholdMinutes={otDailyThresholdMinutes}
-        enforceGeofence={enforceGeofence}
-        captureLocationEnabled={captureLocationEnabled}
-        captureLocationOnClockIn={captureLocationOnClockIn}
-        captureLocationOnClockOut={captureLocationOnClockOut}
-        captureLocationOnBreakStart={captureLocationOnBreakStart}
-        captureLocationOnBreakEnd={captureLocationOnBreakEnd}
-        todayRecord={dashboard.today}
-        latestRejection={latestRejection}
-        pendingApproval={dashboard.pendingApproval}
-      />
 
       {dashboard.today ? (
         <TodayRemarkCard
