@@ -34,6 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { ConfirmSubmitButton } from "@/components/ui/confirm-action-dialog"
+import { ResetEmployeePasswordButton } from "@/components/admin/reset-employee-password-button"
 import {
   Card,
   CardContent,
@@ -746,12 +747,25 @@ function PersonalTab(props: {
       <input type="hidden" name="userId" value={props.userId} hidden />
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Personal details</CardTitle>
-          <CardDescription>
-            Identification, contact, and family info used for payslip
-            generation, PCB reliefs, and LHDN filing.
-          </CardDescription>
+        <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
+          <div>
+            <CardTitle className="text-base">Personal details</CardTitle>
+            <CardDescription>
+              Identification, contact, and family info used for payslip
+              generation, PCB reliefs, and LHDN filing.
+            </CardDescription>
+          </div>
+          {/* Admin fallback for the resigned-employee / forgotten-
+              password case. Resets to `<email><MMDD>` per the seed
+              formula used by the XLSX import. See
+              `resetEmployeePasswordToDefault` for the full guardrail
+              list (no self-reset, no owner reset, DOB required, audit
+              trail). */}
+          <ResetEmployeePasswordButton
+            userId={props.userId}
+            employeeName={props.name}
+            employeeEmail={props.email}
+          />
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <Field label="Full name">

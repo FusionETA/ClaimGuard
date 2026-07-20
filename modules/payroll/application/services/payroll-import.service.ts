@@ -4,7 +4,7 @@ import { isAdminRole } from "@/lib/auth/types"
 import { z } from "zod"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { hashPassword } from "@/lib/auth/password"
+import { defaultPassword, hashPassword } from "@/lib/auth/password"
 import { assertEmailAvailableForNewUser } from "@/lib/auth/email-uniqueness"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { safeErrorMessage } from "@/lib/errors"
@@ -1306,9 +1306,13 @@ export async function bulkImportPayrollEmployees(input: {
           // New row — validate the email isn't claimed by an active
           // user globally, or by an archived one in THIS org.
           await assertEmailAvailableForNewUser({ email: row.email, orgId })
-          const passwordHash = hashPassword(
-            defaultPassword(row.email, row.dateOfBirth),
-          )
+          const pw = defaultPassword(row.email, row.dateOfBirth)
+          if (!pw) {
+            // Zod dateString validation should make this unreachable;
+            // guarded to avoid seeding an unusable password.
+            throw new Error(`Cannot derive default password for ${row.email}: DOB missing.`)
+          }
+          const passwordHash = hashPassword(pw)
           const u = await tx.user.create({
             data: {
               email: row.email,
@@ -1477,15 +1481,6 @@ export async function bulkImportPayrollEmployees(input: {
     total: dataRows.length,
     errors: rowErrors,
   }
-}
-
-/**
- * Derive the default password: `<email><MMDD>` from the employee's
- * DOB. Born 23 Nov → `<email>1123`.
- */
-function defaultPassword(email: string, dateOfBirth: string): string {
-  const [, month, day] = dateOfBirth.split("-")
-  return `${email}${month}${day}`
 }
 
 // ─── AI-mapped import flow ──────────────────────────────────────────────
@@ -2331,9 +2326,13 @@ export async function importMappedCsv(input: {
           outcome = "linked"
         } else {
           await assertEmailAvailableForNewUser({ email: row.email, orgId })
-          const passwordHash = hashPassword(
-            defaultPassword(row.email, row.dateOfBirth),
-          )
+          const pw = defaultPassword(row.email, row.dateOfBirth)
+          if (!pw) {
+            // Zod dateString validation should make this unreachable;
+            // guarded to avoid seeding an unusable password.
+            throw new Error(`Cannot derive default password for ${row.email}: DOB missing.`)
+          }
+          const passwordHash = hashPassword(pw)
           const u = await tx.user.create({
             data: {
               email: row.email,

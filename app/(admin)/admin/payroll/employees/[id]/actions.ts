@@ -24,6 +24,7 @@ import {
 import { SALARY_CHANGE_REASONS } from "@/modules/payroll/domain/salary-change"
 import {
   archivePayrollProfile,
+  resetEmployeePasswordToDefault,
   unarchivePayrollProfile,
   updateEmployeeEmail,
   updateEmployeeName,
@@ -593,6 +594,43 @@ export async function unarchivePayrollProfileAction(
   revalidatePath("/admin/payroll/employees")
   revalidatePath(`/admin/payroll/employees/${userId}`)
   return { status: "success", message: "Employee restored to payroll." }
+}
+
+// ─── Password reset (admin fallback) ────────────────────────────────────
+
+export type ResetPasswordActionResult =
+  | { ok: true; newPassword: string; message: string }
+  | { ok: false; message: string }
+
+/**
+ * Reset an employee's login password to the well-known default
+ * (`<email><MMDD-of-DOB>`). Called from the Personal tab as a fallback
+ * for when the employee resigns / forgets and admin needs to view
+ * their portal.
+ *
+ * NOT a `useActionState` action — returns a discriminated union so the
+ * caller can render the new password inline in a toast/dialog. All
+ * safety checks (self-reset, owner, DOB, org scope) live in the service.
+ */
+export async function resetEmployeePasswordAction(input: {
+  userId: string
+}): Promise<ResetPasswordActionResult> {
+  const userId = input.userId.trim()
+  if (!userId) return { ok: false, message: "Missing employee id." }
+  try {
+    const result = await resetEmployeePasswordToDefault({ userId })
+    revalidatePath(`/admin/payroll/employees/${userId}`)
+    return {
+      ok: true,
+      newPassword: result.newPassword,
+      message: "Password reset to default.",
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: safeErrorMessage(err, "Could not reset password."),
+    }
+  }
 }
 
 // ─── Transfer actions ────────────────────────────────────────────────────
