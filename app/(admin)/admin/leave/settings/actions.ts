@@ -6,6 +6,7 @@ import type { AuthenticatedSession } from "@/lib/auth/types"
 import { redirect } from "next/navigation"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { bustLeaveCaches } from "@/lib/cache-invalidation"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import {
   archiveLeaveType,
@@ -180,6 +181,7 @@ export async function setPolicyDefaultAction(input: {
     input.leaveTypeId,
     patch,
   )
+  await bustLeaveCaches({ organizationId: orgId })
   revalidatePath("/admin/leave/settings")
 }
 
@@ -189,6 +191,7 @@ export async function clearPolicyDefaultAction(input: {
 }) {
   const { orgId } = await requireAdminOrg()
   await leaveRepository.clearPolicyDefault(orgId, input.policyId, input.leaveTypeId)
+  await bustLeaveCaches({ organizationId: orgId })
   revalidatePath("/admin/leave/settings")
 }
 
@@ -230,6 +233,7 @@ export async function setEmployeeEntitlementAction(input: {
     days,
     input.accrualMethod,
   )
+  await bustLeaveCaches({ organizationId: adminOrgId })
   revalidatePath("/admin/leave/settings")
 }
 
@@ -238,11 +242,12 @@ export async function resetEmployeeEntitlementAction(input: {
   leaveTypeId: string
   year: number
 }) {
-  await requireAdminOrg()
+  const { orgId } = await requireAdminOrg()
   await resetEmployeeEntitlementToDefault(
     input.employeeId,
     input.leaveTypeId,
     input.year,
   )
+  await bustLeaveCaches({ organizationId: orgId })
   revalidatePath("/admin/leave/settings")
 }

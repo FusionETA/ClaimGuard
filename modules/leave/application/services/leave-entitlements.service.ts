@@ -1,5 +1,7 @@
 import "server-only"
 
+import { getOrSetCache } from "@/lib/cache"
+import { key } from "@/lib/redis"
 import {
   availableDaysFor,
   initialProRatedAccrual,
@@ -286,27 +288,48 @@ export async function listEmployeeBalancesForUser(
     organizationId,
   )
   if (!profileId) return []
-  return listEmployeeBalances(profileId, year)
+  // Cache under org:{orgId}:leave:balances:user:{userId}:{year}. Auto-
+  // busted by `bustLeaveCaches({orgId})` — every leave apply / approve
+  // / reject / cancel / entitlement change / type change already calls
+  // that (see lib/cache-invalidation.ts, pattern `org:{orgId}:leave:*`).
+  // Skips the cache when we don't know the org (would key without a
+  // bust hook — better to just read fresh).
+  if (!organizationId) {
+    return listEmployeeBalances(profileId, year)
+  }
+  return getOrSetCache(
+    key("org", organizationId, "leave", "balances", "user", userId, year),
+    120,
+    () => listEmployeeBalances(profileId, year),
+  )
 }
 
 /// List a single employee's balances for the current year, including
 /// computed `availableDays` per entitlement.
+///
+/// `skipEnsure` is set by callers that have already bulk-seeded missing
+/// entitlements for a whole batch (org-wide balances view) — lets this
+/// function skip its per-employee ensure loop (N×M queries → 0) and
+/// just read.
 export async function listEmployeeBalances(
   employeeId: string,
   year: number,
+  opts: { skipEnsure?: boolean } = {},
 ): Promise<LeaveEntitlementView[]> {
   const prisma = getLeavePrismaClientSafe()
   if (!prisma) return []
 
-  // Ensure rows exist for every non-archived leave type before reading.
-  const types = await prisma.leaveType.findMany({
-    where: {
-      archivedAt: null,
-      organization: { users: { some: { employeeProfiles: { some: { id: employeeId } } } } },
-    },
-    select: { id: true },
-  })
-  await Promise.all(types.map((t) => ensureEntitlement(employeeId, t.id, year)))
+  if (!opts.skipEnsure) {
+    // Ensure rows exist for every non-archived leave type before reading.
+    const types = await prisma.leaveType.findMany({
+      where: {
+        archivedAt: null,
+        organization: { users: { some: { employeeProfiles: { some: { id: employeeId } } } } },
+      },
+      select: { id: true },
+    })
+    await Promise.all(types.map((t) => ensureEntitlement(employeeId, t.id, year)))
+  }
 
   const rows = await leaveRepository.listEntitlementsForEmployee(employeeId, year)
   return rows.map((r) => ({
@@ -739,6 +762,72 @@ export async function listAllEmployeeBalancesForOrg(
   const policyIdScope = await getActiveAdminPolicyScope()
   if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
 
+  // Cache the full org-wide balance grid. Per-admin policy grants
+  // partition the result so two admins with different scopes don't
+  // share entries. Auto-busted by `bustLeaveCaches({orgId})` — every
+  // leave apply / approve / reject / cancel / entitlement change /
+  // type change fires that. 120s TTL is the safety net for missed busts.
+  const scopeTag =
+    policyIdScope === null ? "_all" : `p:${[...policyIdScope].sort().join(",")}`
+  return getOrSetCache(
+    key("org", organizationId, "leave", "balances", "org", scopeTag, year),
+    120,
+    () => loadAllEmployeeBalancesForOrg(prisma, organizationId, policyIdScope, year),
+  )
+}
+
+/// Bulk-check + bulk-seed missing entitlement rows across a whole org
+/// for one year. Called once at the top of the org-wide balances view
+/// to eliminate the per-employee ensureEntitlement N+1.
+///
+/// Runs one SELECT to find the existing (employee, leaveType) pairs,
+/// diffs against the full grid, then only calls `ensureEntitlement` for
+/// the missing pairs. On a stable org where every employee already has
+/// entitlements, that's 2 queries total (types + existing) — vs the
+/// old N×M SELECT storm.
+async function ensureEntitlementsForOrgYear(input: {
+  prisma: NonNullable<ReturnType<typeof getLeavePrismaClientSafe>>
+  organizationId: string
+  employeeIds: string[]
+  year: number
+}): Promise<void> {
+  const { prisma, organizationId, employeeIds, year } = input
+  if (employeeIds.length === 0) return
+  const types = await prisma.leaveType.findMany({
+    where: { organizationId, archivedAt: null },
+    select: { id: true },
+  })
+  if (types.length === 0) return
+  const existing = await prisma.leaveEntitlement.findMany({
+    where: {
+      year,
+      employeeId: { in: employeeIds },
+      leaveTypeId: { in: types.map((t) => t.id) },
+    },
+    select: { employeeId: true, leaveTypeId: true },
+  })
+  const seen = new Set(existing.map((e) => `${e.employeeId}:${e.leaveTypeId}`))
+  const missing: Array<{ employeeId: string; leaveTypeId: string }> = []
+  for (const empId of employeeIds) {
+    for (const t of types) {
+      if (!seen.has(`${empId}:${t.id}`)) {
+        missing.push({ employeeId: empId, leaveTypeId: t.id })
+      }
+    }
+  }
+  if (missing.length === 0) return
+  // ensureEntitlement handles the P2002 race — safe to fire in parallel.
+  await Promise.all(
+    missing.map((m) => ensureEntitlement(m.employeeId, m.leaveTypeId, year)),
+  )
+}
+
+async function loadAllEmployeeBalancesForOrg(
+  prisma: NonNullable<ReturnType<typeof getLeavePrismaClientSafe>>,
+  organizationId: string,
+  policyIdScope: string[] | null,
+  year: number,
+): Promise<EmployeeLeaveBalances[]> {
   const employees = await prisma.employeeProfile.findMany({
     where: {
       user: { organizationId, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
@@ -755,6 +844,17 @@ export async function listAllEmployeeBalancesForOrg(
     orderBy: { user: { name: "asc" } },
   })
 
+  // Bulk pre-seed missing entitlements for the (employee × type) grid.
+  // Kills the N+1 that the per-employee `listEmployeeBalances` used to
+  // trigger — used to fire N×M ensureEntitlement SELECTs (~1,000+ for a
+  // 190-employee, 5-type org) even when every row already existed.
+  await ensureEntitlementsForOrgYear({
+    prisma,
+    organizationId,
+    employeeIds: employees.map((e) => e.id),
+    year,
+  })
+
   // Pre-load type-defaults and policy-overrides once for the org so
   // computeLeaveSource doesn't need N×T extra queries.
   const ctx = await loadLeaveSourceContext(prisma, organizationId)
@@ -767,7 +867,8 @@ export async function listAllEmployeeBalancesForOrg(
       email: e.user.email,
       role: e.user.role as EmployeeLeaveBalances["role"],
       jobTitle: e.jobTitle,
-      balances: await listEmployeeBalances(e.id, year),
+      // `skipEnsure` — bulk pre-seed above already covered this employee.
+      balances: await listEmployeeBalances(e.id, year, { skipEnsure: true }),
       leaveSource: await computeLeaveSourceForEmployee({
         prisma,
         employeeProfileId: e.id,

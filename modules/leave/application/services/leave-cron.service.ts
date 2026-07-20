@@ -1,5 +1,7 @@
 import "server-only"
 
+import { deleteCacheMany } from "@/lib/cache"
+import { key } from "@/lib/redis"
 import { getLeavePrismaClient } from "@/modules/leave/infrastructure/leave-repository"
 import {
   carryForwardAmount,
@@ -11,6 +13,14 @@ import {
   resolveAccrualMethodFromLayers,
   resolveDefaultEntitledDays,
 } from "./leave-entitlements.service"
+
+/// Wipe every org's `leave:*` cache namespace. Called at the end of the
+/// two leave crons — they touch entitlements globally and we don't
+/// track which orgs actually saw a change cheaply, so a wildcard bust
+/// is the pragmatic option. Runs at most a few times a day.
+async function bustAllLeaveCachesGlobally(): Promise<void> {
+  await deleteCacheMany([key("org", "*", "leave", "*")])
+}
 
 /// Year-rollover: for each active employee × non-archived leave type,
 /// create next-year's LeaveEntitlement row using:
@@ -150,6 +160,7 @@ export async function runYearRollover(targetYear: number): Promise<{
     }
   }
 
+  await bustAllLeaveCachesGlobally()
   return { ok: true, created, updated, skipped }
 }
 
@@ -268,5 +279,6 @@ export async function runMonthlyAccrual(now: Date = new Date()): Promise<{
     expiredCount += 1
   }
 
+  await bustAllLeaveCachesGlobally()
   return { ok: true, accruedCount, expiredCount }
 }
