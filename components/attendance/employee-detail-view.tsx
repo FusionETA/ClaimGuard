@@ -1,6 +1,5 @@
 import { AlertTriangle, CheckCircle2, FileText } from "lucide-react"
 
-import { Avatar, AvatarFallback } from "@/components/attendance/ui/avatar"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { CoordsLink } from "@/components/attendance/coords-link"
@@ -92,9 +91,6 @@ export function EmployeeDetailView({
     <div className="space-y-5">
       <Card className="p-5">
         <div className="flex items-start gap-4">
-          <Avatar className="h-14 w-14">
-            <AvatarFallback className="text-base">{profile.initials}</AvatarFallback>
-          </Avatar>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h2 className="font-headline text-xl font-extrabold text-foreground">

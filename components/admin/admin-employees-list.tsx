@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { ChevronRight, Search } from "lucide-react"
 
-import { Avatar, AvatarFallback } from "@/components/attendance/ui/avatar"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/attendance/ui/input"
@@ -153,9 +152,6 @@ export function AdminEmployeesList({ employees }: { employees: Employee[] }) {
                   href={`/admin/attendance/employees/${e.id}`}
                   className="flex items-center gap-3 rounded-xl border border-transparent px-2 py-2 transition hover:border-border/60 hover:bg-secondary/30"
                 >
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback>{e.initials}</AvatarFallback>
-                  </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="truncate text-sm font-semibold text-foreground">

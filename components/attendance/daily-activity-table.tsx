@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import { CoordsLink } from "@/components/attendance/coords-link"
 import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
 import {
@@ -201,6 +202,7 @@ export function DailyActivityTable({
   }).format(new Date())
 
   const [statusFilter, setStatusFilter] = useState<"all" | StatusGroup>("all")
+  const [page, setPage] = useState(1)
 
   const counts = useMemo(() => {
     const c = { all: rows.length, clocked_in: 0, not_clocked_in: 0, on_leave: 0 }
@@ -227,6 +229,17 @@ export function DailyActivityTable({
       return oa - ob
     })
   }, [rows, statusFilter])
+
+  const PAGE_SIZE = 15
+  // Clamp `page` after visibleRows shrinks (filter tightens or a
+  // re-fetch drops rows) so we don't render a blank page.
+  const totalPages = Math.max(1, Math.ceil(visibleRows.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pagedRows = useMemo(
+    () =>
+      visibleRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [visibleRows, currentPage],
+  )
 
   return (
     <Card>
@@ -258,7 +271,12 @@ export function DailyActivityTable({
                   <button
                     key={f.key}
                     type="button"
-                    onClick={() => setStatusFilter(f.key)}
+                    onClick={() => {
+                      setStatusFilter(f.key)
+                      // Reset to page 1 whenever the filter changes so
+                      // admins don't land on an empty tail page.
+                      setPage(1)
+                    }}
                     className={cn(
                       "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                       statusFilter === f.key
@@ -284,7 +302,7 @@ export function DailyActivityTable({
                   <span>Clock out</span>
                   <span>Status</span>
                 </div>
-                {visibleRows.map((row) => {
+                {pagedRows.map((row) => {
               const inLabel = formatTime(row.timeIn, timezone)
               const outLabel = formatTime(row.timeOut, timezone)
               const meta =
@@ -300,7 +318,7 @@ export function DailyActivityTable({
                     <Link
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       href={`/admin/attendance/employees/${row.id}` as any}
-                      className="truncate text-sm font-bold hover:underline"
+                      className="block truncate text-sm font-bold hover:underline"
                     >
                       {row.name}
                     </Link>
@@ -316,7 +334,7 @@ export function DailyActivityTable({
                       <SessionsExpander sessions={sessions} timezone={timezone} />
                     ) : null}
                   </div>
-                  <p className="truncate text-xs text-muted-foreground sm:text-sm sm:pt-0.5">
+                  <p className="min-w-0 truncate text-xs text-muted-foreground sm:text-sm sm:pt-0.5">
                     {meta}
                   </p>
                   <div className="text-sm">
@@ -381,6 +399,14 @@ export function DailyActivityTable({
                 </div>
               )
             })}
+                <PaginationControls
+                  className="flex flex-wrap items-center justify-between gap-3 pt-2"
+                  currentPage={currentPage}
+                  pageSize={PAGE_SIZE}
+                  totalItems={visibleRows.length}
+                  itemLabel="employees"
+                  onPageChange={setPage}
+                />
               </div>
             )}
           </>
