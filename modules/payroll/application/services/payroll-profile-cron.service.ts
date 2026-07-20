@@ -1,5 +1,7 @@
 import "server-only"
 
+import { deleteCacheMany } from "@/lib/cache"
+import { key } from "@/lib/redis"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 
 /**
@@ -83,6 +85,19 @@ export async function runAutoArchivePastLeavers(): Promise<{
         err,
       )
     }
+  }
+
+  // Archiving flips the profile out of the Active Manage-Employees
+  // list (`org:{orgId}:config:page:manage-employees:*`) and out of the
+  // payroll-run rollups (`org:{orgId}:payroll:page:*`). We don't track
+  // which orgs the archived profiles belonged to cheaply, so a
+  // wildcard bust across all orgs is the pragmatic option — this cron
+  // fires once a day.
+  if (archived > 0) {
+    await deleteCacheMany([
+      key("org", "*", "config", "*"),
+      key("org", "*", "payroll", "*"),
+    ])
   }
 
   return {

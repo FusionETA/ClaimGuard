@@ -12,7 +12,10 @@ import type {
 } from "@/app/(admin)/admin/settings/form-state"
 import { generateApiToken } from "@/lib/api-auth"
 import { isKnownApiScope, type ApiScope } from "@/lib/api-scopes"
-import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
+import {
+  bustAttendanceCaches,
+  bustOrgConfigCaches,
+} from "@/lib/cache-invalidation"
 import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
 import { isKnownCurrency } from "@/lib/currencies"
 import type { XeroTenant } from "@/lib/xero"
@@ -1644,6 +1647,7 @@ export async function saveOrgWorkingHoursAction(
     metadata: { start, end },
   })
 
+  await bustAttendanceCaches({ organizationId })
   await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Default working hours saved." }
 }
@@ -1690,6 +1694,7 @@ export async function saveOrgTimezoneAction(
     metadata: { timezone },
   })
 
+  await bustAttendanceCaches({ organizationId })
   await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Timezone saved." }
 }
@@ -1879,6 +1884,7 @@ export async function saveGeofenceRadiusAction(
     metadata: { meters: Math.round(meters) },
   })
 
+  await bustAttendanceCaches({ organizationId })
   await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: `Geofence radius set to ${Math.round(meters)} m.` }
 }

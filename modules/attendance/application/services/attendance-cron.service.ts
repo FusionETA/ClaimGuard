@@ -1,5 +1,7 @@
 import "server-only"
 
+import { deleteCacheMany } from "@/lib/cache"
+import { key } from "@/lib/redis"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 
 /**
@@ -75,6 +77,18 @@ export async function runAutoClockOutSweep({
         err,
       )
     }
+  }
+
+  // Closing a session flips the employee's roll-call from
+  // CLOCKED_IN → CLOCKED_OUT and updates the per-employee dashboard.
+  // We don't track affected orgs cheaply here, so wildcard-bust
+  // across all orgs + all users. The cron typically runs every 15
+  // min so the extra bust cost is negligible.
+  if (clockedOut > 0) {
+    await deleteCacheMany([
+      key("org", "*", "attendance", "*"),
+      key("user", "*", "attendance", "*"),
+    ])
   }
 
   return {

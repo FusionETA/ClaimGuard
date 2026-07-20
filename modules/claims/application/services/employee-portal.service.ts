@@ -54,30 +54,26 @@ export async function getEmployeeDashboard(): Promise<EmployeeDashboardData | nu
   // profile, and org config. Cache key uses the active org (not
   // legacy home org) so switching companies produces a distinct key.
   const orgId = resolveActiveOrgId(session)
+  // No active org → skip cache. A cache under "_none" can't be busted
+  // by any of the org-scoped helpers, so the safer default is to just
+  // read fresh (this branch is rare — multi-org user with no picked
+  // company yet).
+  const loader = async () => {
+    const [employee, claims] = await Promise.all([
+      claimRepository.getEmployeeWithProfile(session.email, orgId),
+      claimRepository.getClaimsByEmployee(session.email, orgId),
+    ])
+    if (!employee) return null
+    const organization = employee.organizationId
+      ? await organizationRepository.getOrganizationById(employee.organizationId)
+      : null
+    return buildEmployeeDashboard(employee, claims, organization ?? undefined)
+  }
+  if (!orgId) return loader()
   return getOrSetCache(
-    key(
-      "org",
-      orgId ?? "_none",
-      "user",
-      session.userId,
-      "claims",
-      "dashboard",
-    ),
+    key("org", orgId, "user", session.userId, "claims", "dashboard"),
     60,
-    async () => {
-      // Two independent reads, run in parallel: the employee profile
-      // (for header chrome + xeroConnectionId) and their claims (for
-      // the analytics block below).
-      const [employee, claims] = await Promise.all([
-        claimRepository.getEmployeeWithProfile(session.email, orgId),
-        claimRepository.getClaimsByEmployee(session.email, orgId),
-      ])
-      if (!employee) return null
-      const organization = employee.organizationId
-        ? await organizationRepository.getOrganizationById(employee.organizationId)
-        : null
-      return buildEmployeeDashboard(employee, claims, organization ?? undefined)
-    },
+    loader,
   )
 }
 
@@ -86,15 +82,9 @@ export async function getEmployeeClaimHistory(): Promise<ClaimRecord[] | null> {
   if (!session) return null
 
   const orgId = resolveActiveOrgId(session)
+  if (!orgId) return claimRepository.getClaimsByEmployee(session.email, orgId)
   return getOrSetCache(
-    key(
-      "org",
-      orgId ?? "_none",
-      "user",
-      session.userId,
-      "claims",
-      "history",
-    ),
+    key("org", orgId, "user", session.userId, "claims", "history"),
     60,
     () => claimRepository.getClaimsByEmployee(session.email, orgId),
   )
@@ -109,35 +99,30 @@ export async function getEmployeeAccount(): Promise<EmployeeAccountData | null> 
   // on every hierarchy/settings change, so the TTL only matters if a
   // bust slips past (which our audit covered).
   const orgId = resolveActiveOrgId(session)
+  const loader = async () => {
+    const employee = await claimRepository.getEmployeeWithProfile(
+      session.email,
+      orgId,
+    )
+    if (!employee) return null
+    const organization = employee.organizationId
+      ? await organizationRepository.getOrganizationById(employee.organizationId)
+      : null
+    return {
+      employee,
+      organization: organization ?? undefined,
+      preferences: {
+        notifications: true,
+        weeklyDigest: true,
+        expensePolicyVersion: "2026.1",
+      },
+    }
+  }
+  if (!orgId) return loader()
   return getOrSetCache(
-    key(
-      "org",
-      orgId ?? "_none",
-      "user",
-      session.userId,
-      "config",
-      "account",
-    ),
+    key("org", orgId, "user", session.userId, "config", "account"),
     1800,
-    async () => {
-      const employee = await claimRepository.getEmployeeWithProfile(
-        session.email,
-        orgId,
-      )
-      if (!employee) return null
-      const organization = employee.organizationId
-        ? await organizationRepository.getOrganizationById(employee.organizationId)
-        : null
-      return {
-        employee,
-        organization: organization ?? undefined,
-        preferences: {
-          notifications: true,
-          weeklyDigest: true,
-          expensePolicyVersion: "2026.1",
-        },
-      }
-    },
+    loader,
   )
 }
 
@@ -151,15 +136,9 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
   // safe because the bust is the primary invalidation path, not the
   // TTL.
   const orgId = resolveActiveOrgId(session)
+  if (!orgId) return loadEmployeeClaimSubmissionData(session.email, orgId)
   return getOrSetCache(
-    key(
-      "org",
-      orgId ?? "_none",
-      "user",
-      session.userId,
-      "config",
-      "claim-submission-data",
-    ),
+    key("org", orgId, "user", session.userId, "config", "claim-submission-data"),
     1800,
     () => loadEmployeeClaimSubmissionData(session.email, orgId),
   )

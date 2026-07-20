@@ -178,15 +178,35 @@ export const adminAttendanceService = {
     q?: string | null,
   ) {
     const policyIdScope = await getActiveAdminPolicyScope()
-    return attendanceRepository.getHoursSummary({
-      orgId,
-      from,
-      to,
-      projectId,
-      teamId,
-      q,
-      policyIdScope,
-    })
+    // 60s TTL, keyed by the exact filter tuple. Auto-busted by
+    // `bustAttendanceCaches` on attendance mutations — every clock-in
+    // / clock-out / OT approval / working-hours edit already calls it,
+    // which wipes `org:{orgId}:attendance:*`.
+    return getOrSetCache(
+      key(
+        "org",
+        seg(orgId),
+        "attendance",
+        "hours-summary",
+        from.toISOString(),
+        to.toISOString(),
+        seg(projectId),
+        seg(teamId),
+        seg(q),
+        scopeSeg(policyIdScope),
+      ),
+      60,
+      () =>
+        attendanceRepository.getHoursSummary({
+          orgId,
+          from,
+          to,
+          projectId,
+          teamId,
+          q,
+          policyIdScope,
+        }),
+    )
   },
 
   async getEmployeeHoursSummary(employeeId: string, from: Date, to: Date) {
