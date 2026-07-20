@@ -65,18 +65,23 @@ export default async function AdminEmployeeDetailPage({
           Back to employees
         </Link>
         <div className="flex items-center gap-2">
+          {/* Plain download anchors — no target="_blank" — so the
+              browser triggers a direct save from the server's
+              Content-Disposition: attachment header instead of
+              briefly opening + auto-closing a new tab. Empty
+              `download` lets the server-supplied filename win. */}
           <a
             href={`/api/admin/export/attendance-report?employeeId=${employeeId}&from=${initialFrom}&to=${initialTo}`}
-            target="_blank"
-            rel="noopener noreferrer"
+            download=""
+            rel="noopener"
             className="inline-flex items-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
           >
             Export Attendance PDF
           </a>
           <a
             href={`/api/admin/export/leave-summary?employeeId=${employeeId}&year=${year}`}
-            target="_blank"
-            rel="noopener noreferrer"
+            download=""
+            rel="noopener"
             className="inline-flex items-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
           >
             Export Leave PDF

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search } from "lucide-react"
+import { Loader2, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useToast } from "@/components/ui/toaster"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,12 +41,29 @@ export type ExportPdfDialogProps = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ExportPdfDialog(props: ExportPdfDialogProps) {
-  const { employees } = props
+  // Callers occasionally pass duplicate ids — e.g. the leave balances
+  // page pulls from listAllEmployeeBalancesForOrg which can surface the
+  // same userId twice if a user has multiple EmployeeProfile rows in
+  // the same org. Dedupe here so every consumer is safe from the
+  // React "same key" warning and the map()->checkbox flow doesn't
+  // render broken duplicate rows.
+  const employees = useMemo(() => {
+    const seen = new Set<string>()
+    const out: ExportEmployee[] = []
+    for (const e of props.employees) {
+      if (seen.has(e.id)) continue
+      seen.add(e.id)
+      out.push(e)
+    }
+    return out
+  }, [props.employees])
 
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [downloading, setDownloading] = useState(false)
   const allSelected = selectedIds.size === employees.length && employees.length > 0
+  const { toast } = useToast()
 
   const [from, setFrom] = useState(
     props.kind === "attendance" ? props.initialFrom : "",
@@ -118,22 +135,58 @@ export function ExportPdfDialog(props: ExportPdfDialogProps) {
     return !isNaN(y) && y >= 2000 && y <= 2100
   }
 
-  function handleDownload() {
-    if (!canDownload()) return
-    // Use a hidden anchor with `download` instead of window.open — the
-    // API returns Content-Disposition: attachment, so a new tab briefly
-    // opens then auto-closes once the browser sees the disposition
-    // header. An anchor with `download` triggers the save directly with
-    // no tab flicker (same pattern as the YTD import template download).
-    const a = document.createElement("a")
-    a.href = buildUrl()
-    a.rel = "noopener"
-    // Empty `download` lets the server's Content-Disposition filename win.
-    a.download = ""
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    setOpen(false)
+  async function handleDownload() {
+    if (!canDownload() || downloading) return
+    setDownloading(true)
+    try {
+      // Fetch the file ourselves (instead of `a.click()` and hoping)
+      // so we can show a spinner + disabled button while the server
+      // renders. Bulk ZIPs can take 60-90s for 190-employee runs;
+      // without this the modal used to close instantly and the admin
+      // had no indication anything was happening.
+      const response = await fetch(buildUrl(), {
+        method: "GET",
+        credentials: "same-origin",
+      })
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null
+        toast({
+          title:
+            body?.error ??
+            `Download failed (HTTP ${response.status}).`,
+          variant: "error",
+        })
+        return
+      }
+      // Pull filename out of Content-Disposition; the server sends
+      // e.g. `attachment; filename="attendance-reports-...zip"`.
+      const cd = response.headers.get("Content-Disposition") ?? ""
+      const match = cd.match(/filename="?([^";]+)"?/i)
+      const filename = match?.[1] ?? "download"
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename
+      a.rel = "noopener"
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 1500)
+      setOpen(false)
+    } catch (err) {
+      toast({
+        title:
+          err instanceof Error
+            ? err.message
+            : "Download failed. Please try again.",
+        variant: "error",
+      })
+    } finally {
+      setDownloading(false)
+    }
   }
 
   const indeterminate = selectedIds.size > 0 && selectedIds.size < employees.length
@@ -233,8 +286,11 @@ export function ExportPdfDialog(props: ExportPdfDialogProps) {
               </span>
             </label>
 
-            {/* Employee list */}
-            <ScrollArea className="flex-1 rounded-md border border-border">
+            {/* Employee list — plain scrollable div (not the shared
+                ScrollArea component, whose outer .relative wrapper
+                has no height and swallows the parent's `flex-1`
+                allocation, leaving nothing to scroll). */}
+            <div className="nice-scrollbar min-h-0 flex-1 overflow-y-auto rounded-md border border-border">
               <div className="divide-y">
                 {filtered.length === 0 ? (
                   <p className="py-6 text-center text-xs text-muted-foreground">
@@ -257,18 +313,31 @@ export function ExportPdfDialog(props: ExportPdfDialogProps) {
                   ))
                 )}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
 
         <div className="shrink-0 border-t px-6 py-4">
           <Button
             onClick={handleDownload}
-            disabled={!canDownload()}
-            className="w-full"
+            disabled={!canDownload() || downloading}
+            className="w-full gap-2"
           >
-            Download PDF
+            {downloading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Downloading…
+              </>
+            ) : (
+              "Download PDF"
+            )}
           </Button>
+          {downloading ? (
+            <p className="mt-2 text-center text-[11px] text-muted-foreground">
+              Rendering per-employee PDFs — this can take up to a
+              minute for large selections. Keep this dialog open.
+            </p>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
