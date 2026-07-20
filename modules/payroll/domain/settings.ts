@@ -294,6 +294,15 @@ export type PayrollCompanyInfoData = {
   // code column. Separate from the LHDN referenceNo above.
   perkesoEmployerCode: string | null
 
+  // KWSP (EPF) employer registration number. Feeds the EPF CSV upload
+  // header. Every statutory body issues its own number — this is
+  // separate from employerTin (LHDN E) and perkesoEmployerCode (SOCSO).
+  epfEmployerNo: string | null
+
+  // HRD Corp levy employer registration number. Only relevant when
+  // the org is HRDF-registered (Part I or Part II under PSMB Act 2001).
+  hrdfEmployerNo: string | null
+
   // Correspondence
   addressLine1: string | null
   addressLine2: string | null

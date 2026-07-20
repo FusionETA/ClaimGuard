@@ -938,7 +938,9 @@ export const PayrollCompanyInfoScalarFieldEnum = {
   taxAgentFirmName: 'taxAgentFirmName',
   taxAgentFirmPostcode: 'taxAgentFirmPostcode',
   taxAgentFirmState: 'taxAgentFirmState',
-  perkesoEmployerCode: 'perkesoEmployerCode'
+  perkesoEmployerCode: 'perkesoEmployerCode',
+  epfEmployerNo: 'epfEmployerNo',
+  hrdfEmployerNo: 'hrdfEmployerNo'
 } as const
 
 export type PayrollCompanyInfoScalarFieldEnum = (typeof PayrollCompanyInfoScalarFieldEnum)[keyof typeof PayrollCompanyInfoScalarFieldEnum]
@@ -1876,7 +1878,9 @@ export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
   taxAgentFirmName: 'taxAgentFirmName',
   taxAgentFirmPostcode: 'taxAgentFirmPostcode',
   taxAgentFirmState: 'taxAgentFirmState',
-  perkesoEmployerCode: 'perkesoEmployerCode'
+  perkesoEmployerCode: 'perkesoEmployerCode',
+  epfEmployerNo: 'epfEmployerNo',
+  hrdfEmployerNo: 'hrdfEmployerNo'
 } as const
 
 export type PayrollCompanyInfoOrderByRelevanceFieldEnum = (typeof PayrollCompanyInfoOrderByRelevanceFieldEnum)[keyof typeof PayrollCompanyInfoOrderByRelevanceFieldEnum]

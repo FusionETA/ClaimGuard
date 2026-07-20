@@ -1645,6 +1645,17 @@ model PayrollCompanyInfo {
   taxAgentFirmPostcode     String?
   taxAgentFirmState        String?
   perkesoEmployerCode      String?
+  /// KWSP (EPF) employer registration number. Free-text; usually 7-10
+  /// digits. Feeds the EPF CSV upload header and the payslip footer.
+  /// Distinct from `employerTin` (LHDN E No.) and `perkesoEmployerCode`
+  /// (SOCSO/EIS) — every statutory body issues its own registration.
+  epfEmployerNo            String?
+  /// HRD Corp levy employer registration number (from PSMB). Only
+  /// populated when the org is registered under Part I / Part II of
+  /// the PSMB Act. Optional in the schema — orgs below the headcount
+  /// threshold or newly-registered may leave it blank until they get
+  /// their number from HRD Corp.
+  hrdfEmployerNo           String?
   organization             Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 

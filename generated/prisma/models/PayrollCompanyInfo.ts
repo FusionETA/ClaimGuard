@@ -65,6 +65,8 @@ export type PayrollCompanyInfoMinAggregateOutputType = {
   taxAgentFirmPostcode: string | null
   taxAgentFirmState: string | null
   perkesoEmployerCode: string | null
+  epfEmployerNo: string | null
+  hrdfEmployerNo: string | null
 }
 
 export type PayrollCompanyInfoMaxAggregateOutputType = {
@@ -105,6 +107,8 @@ export type PayrollCompanyInfoMaxAggregateOutputType = {
   taxAgentFirmPostcode: string | null
   taxAgentFirmState: string | null
   perkesoEmployerCode: string | null
+  epfEmployerNo: string | null
+  hrdfEmployerNo: string | null
 }
 
 export type PayrollCompanyInfoCountAggregateOutputType = {
@@ -145,6 +149,8 @@ export type PayrollCompanyInfoCountAggregateOutputType = {
   taxAgentFirmPostcode: number
   taxAgentFirmState: number
   perkesoEmployerCode: number
+  epfEmployerNo: number
+  hrdfEmployerNo: number
   _all: number
 }
 
@@ -187,6 +193,8 @@ export type PayrollCompanyInfoMinAggregateInputType = {
   taxAgentFirmPostcode?: true
   taxAgentFirmState?: true
   perkesoEmployerCode?: true
+  epfEmployerNo?: true
+  hrdfEmployerNo?: true
 }
 
 export type PayrollCompanyInfoMaxAggregateInputType = {
@@ -227,6 +235,8 @@ export type PayrollCompanyInfoMaxAggregateInputType = {
   taxAgentFirmPostcode?: true
   taxAgentFirmState?: true
   perkesoEmployerCode?: true
+  epfEmployerNo?: true
+  hrdfEmployerNo?: true
 }
 
 export type PayrollCompanyInfoCountAggregateInputType = {
@@ -267,6 +277,8 @@ export type PayrollCompanyInfoCountAggregateInputType = {
   taxAgentFirmPostcode?: true
   taxAgentFirmState?: true
   perkesoEmployerCode?: true
+  epfEmployerNo?: true
+  hrdfEmployerNo?: true
   _all?: true
 }
 
@@ -380,6 +392,8 @@ export type PayrollCompanyInfoGroupByOutputType = {
   taxAgentFirmPostcode: string | null
   taxAgentFirmState: string | null
   perkesoEmployerCode: string | null
+  epfEmployerNo: string | null
+  hrdfEmployerNo: string | null
   _count: PayrollCompanyInfoCountAggregateOutputType | null
   _min: PayrollCompanyInfoMinAggregateOutputType | null
   _max: PayrollCompanyInfoMaxAggregateOutputType | null
@@ -441,6 +455,8 @@ export type PayrollCompanyInfoWhereInput = {
   taxAgentFirmPostcode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentFirmState?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   perkesoEmployerCode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  epfEmployerNo?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  hrdfEmployerNo?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
@@ -482,6 +498,8 @@ export type PayrollCompanyInfoOrderByWithRelationInput = {
   taxAgentFirmPostcode?: Prisma.SortOrderInput | Prisma.SortOrder
   taxAgentFirmState?: Prisma.SortOrderInput | Prisma.SortOrder
   perkesoEmployerCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  epfEmployerNo?: Prisma.SortOrderInput | Prisma.SortOrder
+  hrdfEmployerNo?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   _relevance?: Prisma.PayrollCompanyInfoOrderByRelevanceInput
 }
@@ -527,6 +545,8 @@ export type PayrollCompanyInfoWhereUniqueInput = Prisma.AtLeast<{
   taxAgentFirmPostcode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentFirmState?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   perkesoEmployerCode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  epfEmployerNo?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  hrdfEmployerNo?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id" | "organizationId">
 
@@ -568,6 +588,8 @@ export type PayrollCompanyInfoOrderByWithAggregationInput = {
   taxAgentFirmPostcode?: Prisma.SortOrderInput | Prisma.SortOrder
   taxAgentFirmState?: Prisma.SortOrderInput | Prisma.SortOrder
   perkesoEmployerCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  epfEmployerNo?: Prisma.SortOrderInput | Prisma.SortOrder
+  hrdfEmployerNo?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PayrollCompanyInfoCountOrderByAggregateInput
   _max?: Prisma.PayrollCompanyInfoMaxOrderByAggregateInput
   _min?: Prisma.PayrollCompanyInfoMinOrderByAggregateInput
@@ -614,6 +636,8 @@ export type PayrollCompanyInfoScalarWhereWithAggregatesInput = {
   taxAgentFirmPostcode?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   taxAgentFirmState?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   perkesoEmployerCode?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  epfEmployerNo?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  hrdfEmployerNo?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
 }
 
 export type PayrollCompanyInfoCreateInput = {
@@ -653,6 +677,8 @@ export type PayrollCompanyInfoCreateInput = {
   taxAgentFirmPostcode?: string | null
   taxAgentFirmState?: string | null
   perkesoEmployerCode?: string | null
+  epfEmployerNo?: string | null
+  hrdfEmployerNo?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollCompanyInfoInput
 }
 
@@ -694,6 +720,8 @@ export type PayrollCompanyInfoUncheckedCreateInput = {
   taxAgentFirmPostcode?: string | null
   taxAgentFirmState?: string | null
   perkesoEmployerCode?: string | null
+  epfEmployerNo?: string | null
+  hrdfEmployerNo?: string | null
 }
 
 export type PayrollCompanyInfoUpdateInput = {
@@ -733,6 +761,8 @@ export type PayrollCompanyInfoUpdateInput = {
   taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  epfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hrdfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollCompanyInfoNestedInput
 }
 
@@ -774,6 +804,8 @@ export type PayrollCompanyInfoUncheckedUpdateInput = {
   taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  epfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hrdfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollCompanyInfoCreateManyInput = {
@@ -814,6 +846,8 @@ export type PayrollCompanyInfoCreateManyInput = {
   taxAgentFirmPostcode?: string | null
   taxAgentFirmState?: string | null
   perkesoEmployerCode?: string | null
+  epfEmployerNo?: string | null
+  hrdfEmployerNo?: string | null
 }
 
 export type PayrollCompanyInfoUpdateManyMutationInput = {
@@ -853,6 +887,8 @@ export type PayrollCompanyInfoUpdateManyMutationInput = {
   taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  epfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hrdfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollCompanyInfoUncheckedUpdateManyInput = {
@@ -893,6 +929,8 @@ export type PayrollCompanyInfoUncheckedUpdateManyInput = {
   taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  epfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hrdfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollCompanyInfoNullableScalarRelationFilter = {
@@ -944,6 +982,8 @@ export type PayrollCompanyInfoCountOrderByAggregateInput = {
   taxAgentFirmPostcode?: Prisma.SortOrder
   taxAgentFirmState?: Prisma.SortOrder
   perkesoEmployerCode?: Prisma.SortOrder
+  epfEmployerNo?: Prisma.SortOrder
+  hrdfEmployerNo?: Prisma.SortOrder
 }
 
 export type PayrollCompanyInfoMaxOrderByAggregateInput = {
@@ -984,6 +1024,8 @@ export type PayrollCompanyInfoMaxOrderByAggregateInput = {
   taxAgentFirmPostcode?: Prisma.SortOrder
   taxAgentFirmState?: Prisma.SortOrder
   perkesoEmployerCode?: Prisma.SortOrder
+  epfEmployerNo?: Prisma.SortOrder
+  hrdfEmployerNo?: Prisma.SortOrder
 }
 
 export type PayrollCompanyInfoMinOrderByAggregateInput = {
@@ -1024,6 +1066,8 @@ export type PayrollCompanyInfoMinOrderByAggregateInput = {
   taxAgentFirmPostcode?: Prisma.SortOrder
   taxAgentFirmState?: Prisma.SortOrder
   perkesoEmployerCode?: Prisma.SortOrder
+  epfEmployerNo?: Prisma.SortOrder
+  hrdfEmployerNo?: Prisma.SortOrder
 }
 
 export type PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput = {
@@ -1095,6 +1139,8 @@ export type PayrollCompanyInfoCreateWithoutOrganizationInput = {
   taxAgentFirmPostcode?: string | null
   taxAgentFirmState?: string | null
   perkesoEmployerCode?: string | null
+  epfEmployerNo?: string | null
+  hrdfEmployerNo?: string | null
 }
 
 export type PayrollCompanyInfoUncheckedCreateWithoutOrganizationInput = {
@@ -1134,6 +1180,8 @@ export type PayrollCompanyInfoUncheckedCreateWithoutOrganizationInput = {
   taxAgentFirmPostcode?: string | null
   taxAgentFirmState?: string | null
   perkesoEmployerCode?: string | null
+  epfEmployerNo?: string | null
+  hrdfEmployerNo?: string | null
 }
 
 export type PayrollCompanyInfoCreateOrConnectWithoutOrganizationInput = {
@@ -1189,6 +1237,8 @@ export type PayrollCompanyInfoUpdateWithoutOrganizationInput = {
   taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  epfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hrdfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollCompanyInfoUncheckedUpdateWithoutOrganizationInput = {
@@ -1228,6 +1278,8 @@ export type PayrollCompanyInfoUncheckedUpdateWithoutOrganizationInput = {
   taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  epfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hrdfEmployerNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1270,6 +1322,8 @@ export type PayrollCompanyInfoSelect<ExtArgs extends runtime.Types.Extensions.In
   taxAgentFirmPostcode?: boolean
   taxAgentFirmState?: boolean
   perkesoEmployerCode?: boolean
+  epfEmployerNo?: boolean
+  hrdfEmployerNo?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payrollCompanyInfo"]>
 
@@ -1313,9 +1367,11 @@ export type PayrollCompanyInfoSelectScalar = {
   taxAgentFirmPostcode?: boolean
   taxAgentFirmState?: boolean
   perkesoEmployerCode?: boolean
+  epfEmployerNo?: boolean
+  hrdfEmployerNo?: boolean
 }
 
-export type PayrollCompanyInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employerName" | "employerTin" | "registrationNo" | "referenceType" | "referenceNo" | "employerCategory" | "employerStatus" | "cp8dFurnishType" | "addressLine1" | "addressLine2" | "postcode" | "city" | "state" | "country" | "phone" | "handphone" | "email" | "taxAgentName" | "taxAgentTin" | "taxAgentLicenceNo" | "taxAgentPhone" | "taxAgentEmail" | "declarantName" | "declarantIdType" | "declarantIdNumber" | "declarantPosition" | "createdAt" | "updatedAt" | "taxAgentFirmAddressLine1" | "taxAgentFirmAddressLine2" | "taxAgentFirmCity" | "taxAgentFirmName" | "taxAgentFirmPostcode" | "taxAgentFirmState" | "perkesoEmployerCode", ExtArgs["result"]["payrollCompanyInfo"]>
+export type PayrollCompanyInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employerName" | "employerTin" | "registrationNo" | "referenceType" | "referenceNo" | "employerCategory" | "employerStatus" | "cp8dFurnishType" | "addressLine1" | "addressLine2" | "postcode" | "city" | "state" | "country" | "phone" | "handphone" | "email" | "taxAgentName" | "taxAgentTin" | "taxAgentLicenceNo" | "taxAgentPhone" | "taxAgentEmail" | "declarantName" | "declarantIdType" | "declarantIdNumber" | "declarantPosition" | "createdAt" | "updatedAt" | "taxAgentFirmAddressLine1" | "taxAgentFirmAddressLine2" | "taxAgentFirmCity" | "taxAgentFirmName" | "taxAgentFirmPostcode" | "taxAgentFirmState" | "perkesoEmployerCode" | "epfEmployerNo" | "hrdfEmployerNo", ExtArgs["result"]["payrollCompanyInfo"]>
 export type PayrollCompanyInfoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -1363,6 +1419,21 @@ export type $PayrollCompanyInfoPayload<ExtArgs extends runtime.Types.Extensions.
     taxAgentFirmPostcode: string | null
     taxAgentFirmState: string | null
     perkesoEmployerCode: string | null
+    /**
+     * KWSP (EPF) employer registration number. Free-text; usually 7-10
+     * digits. Feeds the EPF CSV upload header and the payslip footer.
+     * Distinct from `employerTin` (LHDN E No.) and `perkesoEmployerCode`
+     * (SOCSO/EIS) — every statutory body issues its own registration.
+     */
+    epfEmployerNo: string | null
+    /**
+     * HRD Corp levy employer registration number (from PSMB). Only
+     * populated when the org is registered under Part I / Part II of
+     * the PSMB Act. Optional in the schema — orgs below the headcount
+     * threshold or newly-registered may leave it blank until they get
+     * their number from HRD Corp.
+     */
+    hrdfEmployerNo: string | null
   }, ExtArgs["result"]["payrollCompanyInfo"]>
   composites: {}
 }
@@ -1770,6 +1841,8 @@ export interface PayrollCompanyInfoFieldRefs {
   readonly taxAgentFirmPostcode: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly taxAgentFirmState: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly perkesoEmployerCode: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly epfEmployerNo: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly hrdfEmployerNo: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
 }
     
 

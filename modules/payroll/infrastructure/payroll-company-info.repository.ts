@@ -54,6 +54,8 @@ function mapPayrollCompanyInfo(row: any): PayrollCompanyInfoData {
     employerStatus: row.employerStatus ?? null,
     cp8dFurnishType: row.cp8dFurnishType ?? null,
     perkesoEmployerCode: row.perkesoEmployerCode ?? null,
+    epfEmployerNo: row.epfEmployerNo ?? null,
+    hrdfEmployerNo: row.hrdfEmployerNo ?? null,
     addressLine1: row.addressLine1 ?? null,
     addressLine2: row.addressLine2 ?? null,
     postcode: row.postcode ?? null,
@@ -99,6 +101,8 @@ function toUpsertData(
   copy("employerStatus")
   copy("cp8dFurnishType")
   copy("perkesoEmployerCode")
+  copy("epfEmployerNo")
+  copy("hrdfEmployerNo")
   copy("addressLine1")
   copy("addressLine2")
   copy("postcode")

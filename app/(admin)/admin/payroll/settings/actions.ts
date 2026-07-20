@@ -60,6 +60,12 @@ const settingsSchema = z.object({
       (v) => v === null || v.length === 10,
       "Public Bank account number must be exactly 10 digits.",
     ),
+  // Two identity fields that live on PayrollCompanyInfo but are
+  // rendered inside the EPF / HRDF cards on the General tab for
+  // discoverability. The general save action also patches
+  // PayrollCompanyInfo below.
+  epfEmployerNo: nullableString(),
+  hrdfEmployerNo: nullableString(),
 })
 
 export async function savePayrollSettingsAction(
@@ -76,6 +82,8 @@ export async function savePayrollSettingsAction(
     syncClaimsToXeroOnSubmit: formData.get("syncClaimsToXeroOnSubmit"),
     syncPayrollToXeroOnSubmit: formData.get("syncPayrollToXeroOnSubmit"),
     ecpPayorAccountNo: formData.get("ecpPayorAccountNo"),
+    epfEmployerNo: formData.get("epfEmployerNo"),
+    hrdfEmployerNo: formData.get("hrdfEmployerNo"),
   })
 
   if (!parsed.success) {
@@ -85,8 +93,15 @@ export async function savePayrollSettingsAction(
     }
   }
 
+  // Split the parsed data: PayrollSettings gets the rates/toggles/etc,
+  // PayrollCompanyInfo gets the two statutory identity numbers that
+  // live in the EPF / HRDF cards (kept on PayrollCompanyInfo so all
+  // employer identity numbers stay in one row).
+  const { epfEmployerNo, hrdfEmployerNo, ...settingsFields } = parsed.data
+
   try {
-    await upsertPayrollSettings(parsed.data)
+    await upsertPayrollSettings(settingsFields)
+    await upsertPayrollCompanyInfo({ epfEmployerNo, hrdfEmployerNo })
   } catch (err) {
     return {
       status: "error",

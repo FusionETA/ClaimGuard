@@ -168,6 +168,7 @@ export function PayrollSettingsForm(props: {
           malaysianEmployeeCount={props.malaysianEmployeeCount}
           hrdfTier={props.hrdfTier}
           hasXeroConnection={props.hasXeroConnection}
+          companyInfo={liveCompanyInfo}
         />
       )}
       {tab === "formE" && (
@@ -327,6 +328,11 @@ function GeneralTab(props: {
   malaysianEmployeeCount: number
   hrdfTier: HrdfTier
   hasXeroConnection: boolean
+  /// PayrollCompanyInfo — used by the EPF + HRDF cards to read/write
+  /// the two statutory employer numbers (epfEmployerNo,
+  /// hrdfEmployerNo) that logically live on PayrollCompanyInfo but
+  /// are surfaced on the General tab for discoverability.
+  companyInfo: PayrollCompanyInfoData | null
 }) {
   const [state, action, pending] = useActionState(
     savePayrollSettingsAction,
@@ -335,6 +341,7 @@ function GeneralTab(props: {
   useToastOnAction(state)
 
   const s = props.settings
+  const liveCompanyInfo = props.companyInfo
 
   return (
     <form action={action} className="space-y-6">
@@ -381,6 +388,14 @@ function GeneralTab(props: {
             value="11"
             note="Statutory minimum per EPF Act 452 (Third Schedule, Part A)."
           />
+          <Field label="EPF Employer No. (KWSP)">
+            <Input
+              name="epfEmployerNo"
+              defaultValue={liveCompanyInfo?.epfEmployerNo ?? ""}
+              placeholder="e.g. 12345678"
+              maxLength={40}
+            />
+          </Field>
           {/* Hidden inputs keep both columns flowing to the save
               action. The calc engine ignores both at runtime
               (statutory-locked) — we keep the DB columns for
@@ -402,6 +417,7 @@ function GeneralTab(props: {
         hrdfTier={props.hrdfTier}
         malaysianEmployeeCount={props.malaysianEmployeeCount}
         settings={s}
+        companyInfo={liveCompanyInfo}
       />
 
       <Card>
@@ -1230,7 +1246,22 @@ function HrdfCard(props: {
   hrdfTier: HrdfTier
   malaysianEmployeeCount: number
   settings: PayrollSettingsData | null
+  companyInfo: PayrollCompanyInfoData | null
 }) {
+  const employerNoField = (
+    <Field label="HRDF Employer No.">
+      <Input
+        name="hrdfEmployerNo"
+        defaultValue={props.companyInfo?.hrdfEmployerNo ?? ""}
+        placeholder={
+          props.hrdfTier === "NOT_APPLICABLE"
+            ? "Only needed if registered with HRD Corp"
+            : "e.g. 1234567890"
+        }
+        maxLength={40}
+      />
+    </Field>
+  )
   if (props.hrdfTier === "PART_I") {
     return (
       <Card>
@@ -1258,6 +1289,7 @@ function HrdfCard(props: {
             value="1.0"
             note="Statutory rate for Part I employers."
           />
+          {employerNoField}
           <input type="hidden" name="hrdfEnabled" value="true" />
           <input type="hidden" name="hrdfRate" value="1" />
         </CardContent>
@@ -1297,6 +1329,7 @@ function HrdfCard(props: {
               placeholder="0.5"
             />
           </Field>
+          {employerNoField}
         </CardContent>
       </Card>
     )
@@ -1323,6 +1356,7 @@ function HrdfCard(props: {
           value="No (below threshold)"
           note="Will switch on automatically when you reach 5 Malaysian employees."
         />
+        {employerNoField}
         <input type="hidden" name="hrdfEnabled" value="false" />
         <input type="hidden" name="hrdfRate" value="0" />
       </CardContent>
