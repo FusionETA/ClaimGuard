@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { isAdminRole } from "@/lib/auth/types"
 import type { Route } from "next"
-import { Download } from "lucide-react"
+import { Download, FileText } from "lucide-react"
 
 import { AdminClaimsBreakdownTable } from "@/components/claims/admin-claims-breakdown-table"
 import { ClaimsReportFilters } from "@/components/admin/claims-report-filters"
@@ -116,6 +116,8 @@ export default async function AdminClaimsReportsPage({
   if (paymentType) exportParams.set("paymentType", paymentType)
   const exportHref =
     (`/api/admin/claims/breakdown/export?${exportParams.toString()}` as unknown) as Route
+  const exportPdfHref =
+    (`/api/admin/claims/breakdown/export-pdf?${exportParams.toString()}` as unknown) as Route
 
   return (
     <div className="space-y-6">
@@ -124,16 +126,31 @@ export default async function AdminClaimsReportsPage({
           <h2 className="text-lg font-semibold text-foreground">Reports</h2>
           <p className="text-xs text-muted-foreground">
             Flat list of claims for the selected period and scope. Filter by
-            project, team, or member; export the matching set as XLSX.
+            project, team, or member; export the matching set as XLSX or PDF.
           </p>
         </div>
-        <a
-          href={exportHref}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-border/70 bg-card px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-surface-low"
-        >
-          <Download className="h-4 w-4" />
-          Export claims
-        </a>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Plain <a download> anchors so the browser saves directly
+              (both routes send Content-Disposition: attachment). */}
+          <a
+            href={exportHref}
+            download=""
+            rel="noopener"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border/70 bg-card px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-surface-low"
+          >
+            <Download className="h-4 w-4" />
+            Export XLSX
+          </a>
+          <a
+            href={exportPdfHref}
+            download=""
+            rel="noopener"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border/70 bg-card px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-surface-low"
+          >
+            <FileText className="h-4 w-4" />
+            Export PDF
+          </a>
+        </div>
       </div>
 
       <ClaimsReportFilters
