@@ -253,7 +253,7 @@ async function resolveProgressRanges(employeeId: string): Promise<{
   weekTo.setUTCDate(weekFrom.getUTCDate() + 6)
 
   const monthFrom = new Date(Date.UTC(y, m - 1, 1))
-  const monthTo = new Date(Date.UTC(y, m, 0)) // last day of month
+  const monthTo = new Date(today) // month-to-date, same as hours summary
 
   return {
     weekRange: { from: weekFrom, to: weekTo },

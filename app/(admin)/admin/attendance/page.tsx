@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import {
   Clock,
   UmbrellaOff,
@@ -6,12 +7,8 @@ import {
 } from "lucide-react"
 
 import { AdminOverviewTabs } from "@/components/attendance/admin-overview-tabs"
-import { ApprovalAuditLog } from "@/components/attendance/approval-audit-log"
 import { DailyActivityTable } from "@/components/attendance/daily-activity-table"
-import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
 import { OffSiteLogCard } from "@/components/attendance/off-site-log-card"
-import { OrgHistoryPanel } from "@/components/attendance/org-history-panel"
-import { SupervisorPerformanceCard } from "@/components/attendance/supervisor-performance-card"
 import {
   TableFilterBar,
   type TableFilterValue,
@@ -22,19 +19,13 @@ import { adminAttendanceService } from "@/modules/attendance/application/service
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type { RollCallPerson } from "@/modules/attendance/domain/models"
 import {
-  getActiveAdminPolicyScope,
   requireAdminModule,
 } from "@/modules/organization/application/services/admin-access.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
-import { loadSelfieStorageStatsAction } from "./actions"
-import { loadOrgHistoryAction } from "./history-actions"
-import {
-  loadApprovalAuditLogForFiltersAction,
-  loadOrgHoursSummaryForFiltersAction,
-  loadPendingRejectedAuditLogForFiltersAction,
-} from "./hours-summary-actions"
-import { SelfieStorageCard } from "./selfie-storage-card"
+import { AnalyticsTab } from "./analytics-tab"
+import { PerformanceTab } from "./performance-tab"
+import { HistoryTab } from "./history-tab"
 
 function startOfMonthIso(): string {
   const d = new Date()
@@ -66,7 +57,6 @@ function readFilter(
   }
 }
 
-
 async function getOrgSupervisorSettings(
   orgId: string | null,
 ): Promise<{ enabled: boolean; slaMinutes: number }> {
@@ -76,6 +66,15 @@ async function getOrgSupervisorSettings(
     enabled: org?.supervisorReportEnabled ?? true,
     slaMinutes: org?.supervisorSlaMinutes ?? 60,
   }
+}
+
+function TabSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="h-32 w-full animate-pulse rounded-2xl bg-muted" />
+      <div className="h-64 w-full animate-pulse rounded-2xl bg-muted" />
+    </div>
+  )
 }
 
 export default async function AdminAttendancePage({
@@ -99,89 +98,27 @@ export default async function AdminAttendancePage({
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
 
-  const supervisorSettings = await getOrgSupervisorSettings(orgId)
-  const policyIdScope = await getActiveAdminPolicyScope()
-
+  // Only fetch what the Today tab needs + shared filter data
   const [
-    overview,
-    stats,
     rollCall,
-    initialHoursSummary,
+    dailyActivity,
+    offSiteRows,
     projects,
     teams,
-    initialAudit,
-    selfieStats,
-    dailyActivity,
-    supervisorPerformance,
     timezone,
-    initialPendingRejected,
-    offSiteRows,
-    initialHistory,
-    orgEmployees,
+    supervisorSettings,
   ] = await Promise.all([
-    adminAttendanceService.getOrgOverview(orgId, null),
-    adminAttendanceService.getAggregateStats(
-      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      new Date(),
-      orgId,
-      null,
-    ),
     adminAttendanceService.getTodayRollCall(
       orgId,
       rcFilter.projectId,
       rcFilter.teamId,
       rcFilter.q,
     ),
-    adminAttendanceService.getOrgHoursSummary(
-      orgId,
-      new Date(initialFrom),
-      new Date(initialTo),
-      hsFilter.projectId,
-      hsFilter.teamId,
-      hsFilter.q,
-    ),
-    orgId
-      ? organizationRepository.getProjectsForOrganization(orgId)
-      : Promise.resolve([]),
-    orgId
-      ? organizationRepository.listTeamsForOrganization(orgId)
-      : Promise.resolve([]),
-    adminAttendanceService.getApprovalAuditLog(
-      orgId,
-      new Date(initialFrom),
-      new Date(initialTo),
-      auFilter.projectId,
-      auFilter.teamId,
-      auFilter.q,
-      ["APPROVED"],
-    ),
-    loadSelfieStorageStatsAction(),
     adminAttendanceService.getDailyActivity(
       orgId,
       daFilter.projectId,
       daFilter.teamId,
       daFilter.q,
-    ),
-    supervisorSettings.enabled
-      ? adminAttendanceService.getSupervisorPerformance({
-          orgId,
-          from: new Date(initialFrom),
-          to: new Date(initialTo),
-          slaMinutes: supervisorSettings.slaMinutes,
-          projectId: supFilter.projectId,
-          teamId: supFilter.teamId,
-          q: supFilter.q,
-        })
-      : Promise.resolve([]),
-    attendanceRepository.getOrgTimezone(orgId),
-    adminAttendanceService.getApprovalAuditLog(
-      orgId,
-      new Date(initialFrom),
-      new Date(initialTo),
-      prFilter.projectId,
-      prFilter.teamId,
-      prFilter.q,
-      ["PENDING", "REJECTED"],
     ),
     adminAttendanceService.getOffSiteClockIns(
       orgId,
@@ -189,16 +126,14 @@ export default async function AdminAttendancePage({
       osFilter.teamId,
       osFilter.q,
     ),
-    adminAttendanceService.getOrgHistory({
-      orgId,
-      from: new Date(initialFrom),
-      to: new Date(initialTo),
-      page: 0,
-      policyIdScope,
-    }),
     orgId
-      ? attendanceRepository.getOrgEmployeeList(orgId)
+      ? organizationRepository.getProjectsForOrganization(orgId)
       : Promise.resolve([]),
+    orgId
+      ? organizationRepository.listTeamsForOrganization(orgId)
+      : Promise.resolve([]),
+    attendanceRepository.getOrgTimezone(orgId),
+    getOrgSupervisorSettings(orgId),
   ])
 
   const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }))
@@ -207,27 +142,6 @@ export default async function AdminAttendancePage({
     name: t.name,
     projectName: t.projectName,
   }))
-
-  const historyContent = (
-    <OrgHistoryPanel
-      initialFrom={initialFrom}
-      initialTo={initialTo}
-      initialRows={initialHistory.rows}
-      initialTotal={initialHistory.total}
-      loadAction={loadOrgHistoryAction}
-      projects={projectOptions}
-      teams={teamOptions}
-      timezone={timezone}
-      employees={orgEmployees.map((e) => ({ id: e.id, name: e.name }))}
-    />
-  )
-
-  const hoursAction = loadOrgHoursSummaryForFiltersAction.bind(null, hsFilter)
-  const auditAction = loadApprovalAuditLogForFiltersAction.bind(null, auFilter)
-  const pendingRejectedAction = loadPendingRejectedAuditLogForFiltersAction.bind(
-    null,
-    prFilter,
-  )
 
   const todayContent = (
     <>
@@ -262,121 +176,49 @@ export default async function AdminAttendancePage({
           value: osFilter,
         }}
       />
-
     </>
   )
 
   const analyticsContent = (
-    <>
-      <Card>
-        <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
-          <CardTitle>30-day rolling</CardTitle>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Last 30 days
-          </span>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {[
-            {
-              label: "Records",
-              value: stats.totalAttendanceRecords.toLocaleString(),
-              tone: "text-foreground",
-            },
-            {
-              label: "Late instances",
-              value: String(stats.totalLate),
-              tone: "text-tertiary",
-            },
-            {
-              label: "Missing",
-              value: String(stats.totalMissing),
-              tone: "text-destructive",
-            },
-            {
-              label: "Leave days",
-              value: String(stats.totalOnLeave),
-              tone: "text-accent",
-            },
-          ].map((s) => (
-            <div key={s.label}>
-              <p className={`font-headline text-2xl font-extrabold ${s.tone}`}>
-                {s.value}
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{s.label}</p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      <HoursSummaryPanel
-        title="Working hours summary"
+    <Suspense fallback={<TabSkeleton />}>
+      <AnalyticsTab
+        orgId={orgId}
         initialFrom={initialFrom}
         initialTo={initialTo}
-        initialData={initialHoursSummary}
-        loadAction={hoursAction}
-        showEmployeeTable
-        showTotals={false}
-        filterBar={{
-          prefix: "hs",
-          projects: projectOptions,
-          teams: teamOptions,
-          value: hsFilter,
-        }}
+        hsFilter={hsFilter}
+        projectOptions={projectOptions}
+        teamOptions={teamOptions}
       />
-    </>
+    </Suspense>
   )
 
   const performanceContent = (
-    <>
-      <ApprovalAuditLog
+    <Suspense fallback={<TabSkeleton />}>
+      <PerformanceTab
+        orgId={orgId}
         initialFrom={initialFrom}
         initialTo={initialTo}
-        initialRows={initialAudit}
-        loadAction={auditAction}
-        projectId={auFilter.projectId}
-        mode="APPROVED"
-        filterBar={{
-          prefix: "au",
-          projects: projectOptions,
-          teams: teamOptions,
-          value: auFilter,
-        }}
+        supervisorSettings={supervisorSettings}
+        auFilter={auFilter}
+        prFilter={prFilter}
+        supFilter={supFilter}
+        projectOptions={projectOptions}
+        teamOptions={teamOptions}
       />
+    </Suspense>
+  )
 
-      <ApprovalAuditLog
+  const historyContent = (
+    <Suspense fallback={<TabSkeleton />}>
+      <HistoryTab
+        orgId={orgId}
         initialFrom={initialFrom}
         initialTo={initialTo}
-        initialRows={initialPendingRejected}
-        loadAction={pendingRejectedAction}
-        projectId={prFilter.projectId}
-        mode="PENDING_REJECTED"
-        filterBar={{
-          prefix: "pr",
-          projects: projectOptions,
-          teams: teamOptions,
-          value: prFilter,
-        }}
+        timezone={timezone}
+        projectOptions={projectOptions}
+        teamOptions={teamOptions}
       />
-
-      {supervisorSettings.enabled ? (
-        <SupervisorPerformanceCard
-          rows={supervisorPerformance}
-          slaMinutes={supervisorSettings.slaMinutes}
-          filterBar={{
-            prefix: "sup",
-            projects: projectOptions,
-            teams: teamOptions,
-            value: supFilter,
-          }}
-        />
-      ) : null}
-
-      <SelfieStorageCard
-        initialStats={selfieStats}
-        defaultFrom={initialFrom}
-        defaultTo={initialTo}
-      />
-    </>
+    </Suspense>
   )
 
   return (
@@ -449,7 +291,6 @@ function RollCallSection({
   )
 }
 
-
 const ACCENT_CLASSES: Record<"tertiary" | "muted" | "destructive", string> = {
   tertiary: "bg-tertiary/10 text-tertiary",
   muted: "bg-primary/10 text-primary",
@@ -474,12 +315,6 @@ function RollCallCard({
   showLateMeta?: boolean
 }) {
   return (
-    // Nested inside an outer "Roll call" Card. Both the outer and the
-    // primitive Card default to `bg-card/94 backdrop-blur-sm`, and
-    // stacking two translucent + backdrop-blurred layers on the page's
-    // purple gradient triggers a Safari compositing bug (the gradient
-    // bleeds through as a dark purple band). Override to an opaque
-    // surface here so Safari + Chrome render the same.
     <Card className="bg-card backdrop-blur-none dark:bg-card">
       <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
         <div className="flex items-center gap-3">
@@ -503,10 +338,6 @@ function RollCallCard({
             {emptyText}
           </p>
         ) : (
-          // Cap the visible height + scroll inside the card so a 200-
-          // employee "Not clocked in" list doesn't blow out the
-          // dashboard. -mr-2 / pr-2 pair keeps the scrollbar flush
-          // with the card edge instead of cutting into the row layout.
           <div className="nice-scrollbar -mr-2 max-h-[420px] space-y-2 overflow-y-auto pr-2">
             {people.map((person) => (
               <div

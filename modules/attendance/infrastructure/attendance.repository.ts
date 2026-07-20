@@ -2705,14 +2705,12 @@ export const attendanceRepository = {
     })
     const byUser = new Map(todayRecords.map((r) => [r.employeeId, r]))
 
-    // Month range (UTC calendar month containing today)
+    // Month range: start of month → today (month-to-date)
     const now = new Date()
     const monthFrom = startOfDay(
       new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)),
     )
-    const monthTo = endOfDay(
-      new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)),
-    )
+    const monthTo = endOfDay(now)
 
     const org = await prisma.organization.findUnique({
       where: { id: orgId },
