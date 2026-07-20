@@ -1,6 +1,8 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+
+import { recoverFromStaleBuild } from "@/lib/stale-build-recovery"
 
 /**
  * Error boundary for the employee route group. Mirrors the admin
@@ -16,9 +18,25 @@ export default function EmployeeError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  // Set by the effect below when the error turns out to be post-deploy version
+  // skew and a reload is already on its way.
+  const [recovering, setRecovering] = useState(false)
+
   useEffect(() => {
     console.error("[employee] route error", error)
+    if (recoverFromStaleBuild(error)) setRecovering(true)
   }, [error])
+
+  if (recovering) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-6 text-center">
+        <h2 className="text-xl font-semibold">Updating to the latest version…</h2>
+        <p className="max-w-md text-sm text-muted-foreground">
+          This page is reloading. It only takes a moment.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-6 text-center">

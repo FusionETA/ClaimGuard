@@ -23,3 +23,6 @@ out
 
 # Build caches
 tsconfig.tsbuildinfo
+
+# Build identity stamp (written by prebuild, read by next.config.ts)
+.build-id
