@@ -1,14 +1,15 @@
 import "server-only"
 
+import JSZip from "jszip"
 import { renderToBuffer } from "@react-pdf/renderer"
 
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
 import { parseWorkingDays, isoWeekday } from "@/modules/attendance/domain/hours-summary"
+import { sanitiseFilenamePart } from "@/lib/filename"
 import {
   AttendanceReportDocument,
-  AttendanceReportBulkDocument,
   type AttendanceDayRow,
   type AttendanceReportEmployeeSection,
 } from "@/modules/attendance/application/services/report-renderers/attendance-report-pdf"
@@ -185,6 +186,12 @@ export async function generateAttendancePdf(
   return renderToBuffer(<AttendanceReportDocument {...section} />)
 }
 
+/**
+ * Bulk attendance export — one PDF per employee, all bundled into a
+ * single ZIP. Replaces the previous combined-PDF bulk renderer so HR
+ * can forward individual reports without splitting a giant file first.
+ * Same rationale as `bulk-payslips-pdf.tsx`.
+ */
 export async function generateAttendancePdfBulk(
   orgId: string,
   from: Date,
@@ -208,6 +215,9 @@ export async function generateAttendancePdfBulk(
   const orgHolidayMap = new Map(holidays.map((h) => [h.date, h.name]))
   const generatedAt = fmtNow()
 
+  // Build every section + render its PDF concurrently. @react-pdf is
+  // CPU-heavy; a throttle may be warranted past ~200 employees but
+  // typical SME runs (≤100) stay well under a minute.
   const sections = await Promise.all(
     employees.map((emp) =>
       buildEmployeeSection(
@@ -216,6 +226,34 @@ export async function generateAttendancePdfBulk(
       ),
     ),
   )
+  const pdfBuffers = await Promise.all(
+    sections.map((section) =>
+      renderToBuffer(<AttendanceReportDocument {...section} />),
+    ),
+  )
 
-  return renderToBuffer(<AttendanceReportBulkDocument sections={sections} generatedAt={generatedAt} />)
+  const rangeTag = `${from.toISOString().slice(0, 10)}_to_${to.toISOString().slice(0, 10)}`
+  const zip = new JSZip()
+  const used = new Set<string>()
+  for (let i = 0; i < sections.length; i += 1) {
+    const name = uniqueName(
+      used,
+      `${sanitiseFilenamePart(sections[i].employeeName) || "Employee"}_${rangeTag}.pdf`,
+    )
+    zip.file(name, pdfBuffers[i])
+  }
+  return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" })
+}
+
+function uniqueName(used: Set<string>, base: string): string {
+  if (!used.has(base)) {
+    used.add(base)
+    return base
+  }
+  const [, stem, ext] = base.match(/^(.+)(\.[^.]+)$/) ?? [null, base, ""]
+  let n = 2
+  while (used.has(`${stem}_${n}${ext}`)) n += 1
+  const name = `${stem}_${n}${ext}`
+  used.add(name)
+  return name
 }

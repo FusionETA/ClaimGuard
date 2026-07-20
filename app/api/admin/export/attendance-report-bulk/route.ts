@@ -31,11 +31,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const buffer = await generateAttendancePdfBulk(orgId, from, to, userIds)
-    const filename = `attendance-report-all-${fromStr}-to-${toStr}.pdf`
+    // ZIP of per-employee PDFs — HR can forward individual reports
+    // without splitting a combined PDF first.
+    const filename = `attendance-reports-${fromStr}-to-${toStr}.zip`
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
-        "Content-Type": "application/pdf",
+        "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${filename}"`,
         "Cache-Control": "no-store",
       },

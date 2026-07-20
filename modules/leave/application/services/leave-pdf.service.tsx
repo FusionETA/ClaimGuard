@@ -1,13 +1,14 @@
 import "server-only"
 
+import JSZip from "jszip"
 import { renderToBuffer } from "@react-pdf/renderer"
 
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
 import { listAllEmployeeBalancesForOrg } from "@/modules/leave/application/services/leave-entitlements.service"
+import { sanitiseFilenamePart } from "@/lib/filename"
 import {
   LeaveSummaryDocument,
-  LeaveSummaryBulkDocument,
   type LeaveMonthlyRow,
   type LeaveDetailRow,
   type LeaveSummaryDocumentProps,
@@ -107,6 +108,12 @@ export async function generateLeaveSummaryPdf(
   return renderToBuffer(<LeaveSummaryDocument {...section} />)
 }
 
+/**
+ * Bulk leave summary — one PDF per employee, bundled into a single
+ * ZIP. Same rationale as the attendance bulk + bulk-payslips
+ * renderers: HR forwards individual summaries without splitting a
+ * combined file first.
+ */
 export async function generateLeaveSummaryPdfBulk(
   orgId: string,
   year: number,
@@ -131,5 +138,33 @@ export async function generateLeaveSummaryPdfBulk(
       buildEmployeeSection(emp.employeeProfileId, emp.name, orgName, year, reportDate),
     ),
   )
-  return renderToBuffer(<LeaveSummaryBulkDocument sections={sections} />)
+  const pdfBuffers = await Promise.all(
+    sections.map((section) =>
+      renderToBuffer(<LeaveSummaryDocument {...section} />),
+    ),
+  )
+
+  const zip = new JSZip()
+  const used = new Set<string>()
+  for (let i = 0; i < sections.length; i += 1) {
+    const name = uniqueName(
+      used,
+      `${sanitiseFilenamePart(sections[i].employeeName) || "Employee"}_${year}.pdf`,
+    )
+    zip.file(name, pdfBuffers[i])
+  }
+  return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" })
+}
+
+function uniqueName(used: Set<string>, base: string): string {
+  if (!used.has(base)) {
+    used.add(base)
+    return base
+  }
+  const [, stem, ext] = base.match(/^(.+)(\.[^.]+)$/) ?? [null, base, ""]
+  let n = 2
+  while (used.has(`${stem}_${n}${ext}`)) n += 1
+  const name = `${stem}_${n}${ext}`
+  used.add(name)
+  return name
 }

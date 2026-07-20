@@ -88,12 +88,12 @@ export const PAYROLL_REPORT_META: Record<PayrollReportKind, PayrollReportMeta> =
   PCB_LHDN_FORM_PDF: {
     kind: "PCB_LHDN_FORM_PDF",
     group: "REPORTS",
-    title: "PCB Calculation Details (LHDN form)",
+    title: "PCB Calculation Details (ZIP of LHDN forms)",
     description:
-      "LHDN MTD §E worksheet for each employee — numbered sections with the official LHDN variable descriptions, audit-ready.",
+      "LHDN MTD §E worksheet for each employee — numbered sections with the official LHDN variable descriptions, audit-ready. ZIP bundles one PDF per employee so finance can forward individual worksheets directly.",
     portal: null,
-    extension: "pdf",
-    mimeType: "application/pdf",
+    extension: "zip",
+    mimeType: "application/zip",
   },
   EPF_CSV: {
     kind: "EPF_CSV",

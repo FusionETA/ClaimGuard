@@ -120,7 +120,19 @@ export function ExportPdfDialog(props: ExportPdfDialogProps) {
 
   function handleDownload() {
     if (!canDownload()) return
-    window.open(buildUrl(), "_blank", "noopener,noreferrer")
+    // Use a hidden anchor with `download` instead of window.open — the
+    // API returns Content-Disposition: attachment, so a new tab briefly
+    // opens then auto-closes once the browser sees the disposition
+    // header. An anchor with `download` triggers the save directly with
+    // no tab flicker (same pattern as the YTD import template download).
+    const a = document.createElement("a")
+    a.href = buildUrl()
+    a.rel = "noopener"
+    // Empty `download` lets the server's Content-Disposition filename win.
+    a.download = ""
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
     setOpen(false)
   }
 
@@ -145,7 +157,7 @@ export function ExportPdfDialog(props: ExportPdfDialogProps) {
           <DialogTitle>Export PDF Report</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-1 flex-col gap-4 overflow-hidden px-6 py-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 py-4">
           {/* Date / Year controls */}
           {props.kind === "attendance" ? (
             <div className="grid grid-cols-2 gap-3">
@@ -183,7 +195,7 @@ export function ExportPdfDialog(props: ExportPdfDialogProps) {
           )}
 
           {/* Employee picker */}
-          <div className="flex flex-1 flex-col gap-2 overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">
                 Employees
@@ -195,9 +207,10 @@ export function ExportPdfDialog(props: ExportPdfDialogProps) {
               </span>
             </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            {/* Search — px-1 gutter so the focus ring isn't clipped by
+                the parent's overflow-hidden (see components/CLAUDE.md). */}
+            <div className="relative px-1">
+              <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search employees…"
                 value={search}
