@@ -139,7 +139,7 @@ export function HoursSummaryPanel({
   return (
     <Card>
       <CardContent className="space-y-4 p-4 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-3">
           <div>
             <h3 className="font-headline text-lg font-semibold text-foreground">
               {title}
@@ -150,6 +150,10 @@ export function HoursSummaryPanel({
               working hours.
             </p>
           </div>
+          {/* Filter row lives BELOW the title so the description has full
+              width and the From / To / Apply group always stays inline
+              (previously the Apply button wrapped to its own line on
+              wider screens once the description got long). */}
           <div className="flex flex-wrap items-end gap-2">
             <div>
               <Label htmlFor="hs-from" className="text-[10px] uppercase tracking-wider">
