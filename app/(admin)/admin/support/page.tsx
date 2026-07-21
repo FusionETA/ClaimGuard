@@ -1,4 +1,6 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
 
 import {
   Card,
@@ -34,6 +36,13 @@ export default async function SupportPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-4 md:p-8">
+      <Link
+        href="/admin"
+        className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Back to Executive Overview
+      </Link>
       <Card>
         <CardHeader>
           <CardTitle>Support mode</CardTitle>
