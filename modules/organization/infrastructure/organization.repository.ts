@@ -4066,6 +4066,13 @@ export const organizationRepository = {
     /// Labelled IPv4 allowlist for the clock-in IP-whitelist check.
     /// `undefined` = leave unchanged; `null` or empty array = clear.
     allowedIps?: AllowedIp[] | null
+    /// Labelled multi-geolocation set — replaces the project's geo
+    /// rows wholesale (DELETE-then-INSERT inside the transaction).
+    /// `undefined` = leave unchanged; `null` or empty array = clear
+    /// all geo rows. Legacy scalar `latitude`/`longitude` above are
+    /// preserved as fallback for readers that hit the expand-contract
+    /// window.
+    geoLocations?: Array<Omit<ProjectGeoLocation, "id">> | null
   }): Promise<void> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -4135,6 +4142,30 @@ export const organizationRepository = {
         for (const userId of nextPmIds) {
           await tx.projectManager.create({
             data: { projectId: data.projectId, userId },
+          })
+        }
+      }
+
+      // Multi-geolocation replace: delete-all-then-insert is simplest
+      // and atomic inside this transaction. Client-side ids (which
+      // may be temp uuids for freshly-added rows) are discarded — the
+      // DB assigns real ones. Preserving row order matters because the
+      // detection walk in `checkGeofenceMulti` uses the DB's
+      // `orderBy: { createdAt: "asc" }`; inserting sequentially inside
+      // the transaction is enough on MariaDB to give strictly ordered
+      // createdAt timestamps.
+      if (data.geoLocations !== undefined) {
+        await tx.projectGeoLocation.deleteMany({
+          where: { projectId: data.projectId },
+        })
+        for (const loc of data.geoLocations ?? []) {
+          await tx.projectGeoLocation.create({
+            data: {
+              projectId: data.projectId,
+              label: loc.label,
+              latitude: loc.latitude,
+              longitude: loc.longitude,
+            },
           })
         }
       }

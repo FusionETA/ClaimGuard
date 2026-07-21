@@ -124,8 +124,17 @@ export type ApprovalRequestView = {
 export type AttendanceProjectView = {
   id: string
   name: string
+  /// Legacy single-location coords. Kept for backwards compat with any
+  /// project that hasn't been backfilled into `geoLocations` yet, and
+  /// for the pre-check fallback in the clock-card. Once every row has
+  /// at least one row in `geoLocations`, we drop these two fields.
   latitude: number | null
   longitude: number | null
+  /// Labelled multi-location fence. Client-side pre-check walks these
+  /// in order (first match wins) — server enforcement mirrors the
+  /// same math via `checkGeofenceMulti`. Empty array means the project
+  /// hasn't been given locations yet and the legacy scalar is used.
+  geoLocations: import("@/modules/organization/domain/models").ProjectGeoLocation[]
   /** Comma-separated ISO weekday numbers (1=Mon…7=Sun) from XeroProject.workingDays.
    *  Null means all weekdays apply (use default). Passed to the client so it can
    *  check whether today is a rest day before clock-in. */
@@ -154,6 +163,13 @@ export type EmployeeAttendanceDashboard = {
   recentOT: ApprovalRequestView[]
   geofenceRadiusMeters: number
   activeProjectCoords: { latitude: number | null; longitude: number | null } | null
+  /// Labelled fence locations for the active project (the one the
+  /// employee already clocked into). Client uses these for the
+  /// pre-check when a session is in progress — same shape + same
+  /// walk-in-order semantics as `AttendanceProjectView.geoLocations`.
+  /// Empty array when the project has no labelled locations yet
+  /// (client falls back to `activeProjectCoords`).
+  activeProjectGeoLocations: import("@/modules/organization/domain/models").ProjectGeoLocation[]
   /// Set when there's an unresolved (PENDING) clock-in / clock-out / break
   /// approval on today's date — used by the clock card to disable the
   /// next-event button until the supervisor reviews. `null` means there's

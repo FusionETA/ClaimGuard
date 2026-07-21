@@ -90,10 +90,12 @@ import type { XeroTenant } from "@/lib/xero"
 import type { AdminProfile } from "@/modules/claims/domain/models"
 import { TIMEZONE_OPTIONS } from "@/modules/attendance/domain/timezone"
 import type {
+  AllowedIp,
   ChartOfAccountOption,
   OrganizationMember,
   OrganizationProjectOption,
   OrganizationSummary,
+  ProjectGeoLocation,
   XeroConnectionSummary,
 } from "@/modules/organization/domain/models"
 import type { EmployeePolicy } from "@/modules/policy/domain/models"
@@ -461,6 +463,29 @@ function SearchableMultiSelect({
   )
 }
 
+/// One editable row inside the multi-geolocation editor. `id` is either
+/// the DB id (existing row, replayed on save so the ordering feels
+/// stable), or a temp `local-…` string for freshly-added rows. The
+/// server discards the id and reassigns on write (delete-then-insert
+/// semantics inside `updateProjectDetails`).
+type GeoRowDraft = {
+  id: string
+  label: string
+  /// Kept as strings for the inputs — parsed to numbers only when
+  /// pushing to the server. Empty string means "row not filled yet";
+  /// we validate it before submit.
+  latitude: string
+  longitude: string
+}
+
+type IpRowDraft = { id: string; label: string; cidr: string }
+
+let tempRowIdCounter = 0
+function nextTempRowId(prefix: string): string {
+  tempRowIdCounter += 1
+  return `${prefix}-${tempRowIdCounter}`
+}
+
 function ProjectCard({
   project,
   members,
@@ -475,7 +500,8 @@ function ProjectCard({
     location: string | undefined,
     latitude: number | null,
     longitude: number | null,
-    allowedIps: string | null,
+    allowedIps: AllowedIp[],
+    geoLocations: Array<Omit<ProjectGeoLocation, "id">>,
   ) => void
   onDelete?: (id: string) => void
 }) {
@@ -488,80 +514,159 @@ function ProjectCard({
     }
     return project.projectManagerId ? [project.projectManagerId] : []
   })
-  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
-    lat: project.latitude ?? null,
-    lng: project.longitude ?? null,
-  })
-  // Stored server-side as a comma-separated string; edited here as a
-  // list so admins get one row per IP instead of a cramped single-line
-  // field. Always has at least one row (empty) so the "add first IP"
-  // path doesn't need a special empty-state.
-  const [allowedIpsList, setAllowedIpsList] = useState<string[]>(() => {
-    // compat shim — Phase 3 replaces this input with a labelled editor.
-    const parts = project.allowedIps.map((e) => e.cidr).filter((s) => s.length > 0)
-    return parts.length > 0 ? parts : [""]
-  })
-  // Collapse the list to a summary when there are 4+ entries — long
-  // office/site-visit whitelists don't need to permanently take up
-  // vertical space on the settings page.
-  const [ipsExpanded, setIpsExpanded] = useState(false)
+
+  // Multi-geolocation editor state. Seed from the domain array (already
+  // in the shape Phase 1 shipped). No compat shim for the legacy
+  // scalar lat/lng — the backfill script seeds a "Main" row for those.
+  const [geoRows, setGeoRows] = useState<GeoRowDraft[]>(() =>
+    project.geoLocations.map((g) => ({
+      id: g.id,
+      label: g.label,
+      latitude: String(g.latitude),
+      longitude: String(g.longitude),
+    })),
+  )
+  const [locatingRowId, setLocatingRowId] = useState<string | null>(null)
+
+  // Multi-IP editor state. Seed directly from the domain `AllowedIp[]`.
+  const [ipRows, setIpRows] = useState<IpRowDraft[]>(() =>
+    project.allowedIps.map((e, i) => ({
+      id: `existing-ip-${i}`,
+      label: e.label,
+      cidr: e.cidr,
+    })),
+  )
+
   const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  function addGeoRow(seed?: Partial<GeoRowDraft>) {
+    setGeoRows((prev) => [
+      ...prev,
+      {
+        id: nextTempRowId("geo"),
+        label: seed?.label ?? "",
+        latitude: seed?.latitude ?? "",
+        longitude: seed?.longitude ?? "",
+      },
+    ])
+  }
+
+  function updateGeoRow(id: string, patch: Partial<GeoRowDraft>) {
+    setGeoRows((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, ...patch } : row)),
+    )
+  }
+
+  function removeGeoRow(id: string) {
+    setGeoRows((prev) => prev.filter((row) => row.id !== id))
+  }
+
+  function handleUseMyLocationForRow(rowId: string) {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return
+    setLocatingRowId(rowId)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        updateGeoRow(rowId, {
+          latitude: pos.coords.latitude.toFixed(6),
+          longitude: pos.coords.longitude.toFixed(6),
+        })
+        setLocatingRowId(null)
+      },
+      () => setLocatingRowId(null),
+      { timeout: 8000, maximumAge: 0 },
+    )
+  }
+
+  function addIpRow(seed?: Partial<IpRowDraft>) {
+    setIpRows((prev) => [
+      ...prev,
+      {
+        id: nextTempRowId("ip"),
+        label: seed?.label ?? "",
+        cidr: seed?.cidr ?? "",
+      },
+    ])
+  }
+
+  function updateIpRow(id: string, patch: Partial<IpRowDraft>) {
+    setIpRows((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, ...patch } : row)),
+    )
+  }
+
+  function removeIpRow(id: string) {
+    setIpRows((prev) => prev.filter((row) => row.id !== id))
+  }
 
   async function handleSave() {
     setSaving(true)
-    const csv = allowedIpsList
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0)
-      .join(", ")
+    setFormError(null)
+
+    // Convert draft rows into the wire shape. Empty rows are dropped
+    // silently (they behave like "the admin decided not to add this
+    // one"). Rows with a label but no coords / cidr are treated as
+    // incomplete and reported to the admin.
+    const geoOut: Array<Omit<ProjectGeoLocation, "id">> = []
+    for (const row of geoRows) {
+      const label = row.label.trim()
+      const latStr = row.latitude.trim()
+      const lngStr = row.longitude.trim()
+      const allEmpty = label === "" && latStr === "" && lngStr === ""
+      if (allEmpty) continue
+      const lat = Number.parseFloat(latStr)
+      const lng = Number.parseFloat(lngStr)
+      if (
+        label === "" ||
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+      ) {
+        setFormError(
+          "Every geolocation row needs a label, latitude, and longitude.",
+        )
+        setSaving(false)
+        return
+      }
+      geoOut.push({ label, latitude: lat, longitude: lng })
+    }
+
+    const ipsOut: AllowedIp[] = []
+    for (const row of ipRows) {
+      const label = row.label.trim()
+      const cidr = row.cidr.trim()
+      if (label === "" && cidr === "") continue
+      if (label === "" || cidr === "") {
+        setFormError("Every IP row needs a label and an address.")
+        setSaving(false)
+        return
+      }
+      ipsOut.push({ label, cidr })
+    }
+
+    // Preserve the legacy scalar lat/lng — the backfill and read
+    // fallback still lean on it. Send the first geolocation's coords
+    // (or the existing scalars when the admin cleared the geo list).
+    const scalarLat = geoOut[0]?.latitude ?? project.latitude ?? null
+    const scalarLng = geoOut[0]?.longitude ?? project.longitude ?? null
+
     await onUpdate(
       project.id,
       pmIds,
       undefined,
-      coords.lat,
-      coords.lng,
-      csv === "" ? null : csv,
+      scalarLat,
+      scalarLng,
+      ipsOut,
+      geoOut,
     )
     setSaving(false)
   }
-
-  function addIpRow(value: string = "") {
-    setAllowedIpsList((prev) => {
-      // If the caller passed a value AND it's already in the list,
-      // don't dupe it — just keep the current list.
-      if (value && prev.map((s) => s.trim()).includes(value)) return prev
-      // Reuse a trailing empty row if present, so clicking Add IP
-      // twice in a row doesn't create two empties.
-      if (value === "" && prev.length > 0 && prev[prev.length - 1]!.trim() === "") {
-        return prev
-      }
-      return [...prev, value]
-    })
-    setIpsExpanded(true)
-  }
-
-  function updateIpAt(index: number, value: string) {
-    setAllowedIpsList((prev) => prev.map((s, i) => (i === index ? value : s)))
-  }
-
-  function removeIpAt(index: number) {
-    setAllowedIpsList((prev) => {
-      const next = prev.filter((_, i) => i !== index)
-      // Always keep at least one (empty) row so the "add first IP"
-      // path is a single click.
-      return next.length === 0 ? [""] : next
-    })
-  }
-
-  const nonEmptyIpsCount = allowedIpsList.filter((s) => s.trim().length > 0)
-    .length
-  const shouldCollapse = nonEmptyIpsCount >= 4 && !ipsExpanded
 
   const supervisorMembers = members.filter(
     (m) => m.role === "SUPERVISOR",
   )
 
   return (
-    <div className="rounded-[16px] border border-border/70 bg-surface-low p-3 space-y-2">
+    <div className="rounded-[16px] border border-border/70 bg-surface-low p-3 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p
@@ -602,65 +707,131 @@ function ProjectCard({
         emptyText="No supervisor matches that name"
         noOptionsText="No supervisors yet — add some first"
       />
-      <CoordinatePairInputs
-        defaultLat={project.latitude ?? null}
-        defaultLng={project.longitude ?? null}
-        onChange={(lat, lng) => setCoords({ lat, lng })}
-        showHelper={false}
-        compact
-      />
+
+      {/* Multi-geolocation editor. Rows scroll after ~3 entries so a
+          long site list doesn't push the IP editor off screen. */}
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between gap-2 px-1">
+        <div className="flex items-center gap-2 px-1">
           <p className="text-[11px] font-medium text-muted-foreground">
-            Allowed IPs
-            {nonEmptyIpsCount > 0 ? (
+            Geo locations
+            {geoRows.length > 0 ? (
               <span className="ml-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                {nonEmptyIpsCount}
+                {geoRows.length}
               </span>
             ) : null}
           </p>
-          {nonEmptyIpsCount >= 4 ? (
-            <button
-              type="button"
-              onClick={() => setIpsExpanded((v) => !v)}
-              className="flex items-center gap-0.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
-            >
-              {ipsExpanded ? (
-                <>
-                  Collapse
-                  <ChevronUp className="h-3 w-3" />
-                </>
-              ) : (
-                <>
-                  Expand
-                  <ChevronDown className="h-3 w-3" />
-                </>
-              )}
-            </button>
-          ) : null}
         </div>
-        {shouldCollapse ? (
-          <button
-            type="button"
-            onClick={() => setIpsExpanded(true)}
-            className="w-full rounded-[14px] border border-border/70 bg-background px-3 py-2 text-left text-xs text-muted-foreground hover:bg-surface-low"
-          >
-            {nonEmptyIpsCount} IP{nonEmptyIpsCount === 1 ? "" : "s"} configured — click to edit
-          </button>
-        ) : (
-          <div className="space-y-1.5">
-            {allowedIpsList.map((ip, i) => (
-              <div key={i} className="flex items-center gap-1.5">
+        {geoRows.length > 0 ? (
+          <div className="nice-scrollbar max-h-[240px] space-y-1.5 overflow-y-auto pr-1">
+            {geoRows.map((row) => (
+              <div
+                key={row.id}
+                className="flex items-center gap-1.5"
+              >
                 <input
                   type="text"
-                  value={ip}
-                  onChange={(e) => updateIpAt(i, e.target.value)}
-                  placeholder="e.g. 203.106.51.10 or 118.100.0.0/16"
+                  value={row.label}
+                  onChange={(e) => updateGeoRow(row.id, { label: e.target.value })}
+                  placeholder="Label (e.g. HQ)"
+                  className="min-w-0 flex-[1.2] rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                />
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="any"
+                  min={-90}
+                  max={90}
+                  value={row.latitude}
+                  onChange={(e) => updateGeoRow(row.id, { latitude: e.target.value })}
+                  placeholder="Lat"
+                  className="min-w-0 flex-1 rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                />
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="any"
+                  min={-180}
+                  max={180}
+                  value={row.longitude}
+                  onChange={(e) => updateGeoRow(row.id, { longitude: e.target.value })}
+                  placeholder="Lng"
                   className="min-w-0 flex-1 rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                 />
                 <button
                   type="button"
-                  onClick={() => removeIpAt(i)}
+                  onClick={() => handleUseMyLocationForRow(row.id)}
+                  disabled={locatingRowId === row.id}
+                  title="Fill this row with my current location"
+                  aria-label="Use my location for this row"
+                  className="shrink-0 rounded-full p-1.5 text-muted-foreground hover:text-primary disabled:opacity-50"
+                >
+                  {locatingRowId === row.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <MapPin className="h-3.5 w-3.5" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeGeoRow(row.id)}
+                  className="shrink-0 rounded-full p-1 text-muted-foreground hover:text-destructive"
+                  title="Remove this location"
+                  aria-label="Remove this location"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => addGeoRow()}
+          className="w-full rounded-full border border-border/70 border-dashed bg-background px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-surface-low hover:text-foreground"
+        >
+          <Plus className="mr-1 inline h-3 w-3" />
+          Add location
+        </button>
+        <p className="px-1 text-[10px] text-muted-foreground leading-relaxed">
+          Detection walks these in order at clock-in — first one within the
+          org&apos;s geofence radius wins. Employees outside all locations get
+          the off-site remark prompt.
+        </p>
+      </div>
+
+      {/* Multi-IP editor. Same shape as the geo editor above. */}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 px-1">
+          <p className="text-[11px] font-medium text-muted-foreground">
+            Allowed IPs
+            {ipRows.length > 0 ? (
+              <span className="ml-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                {ipRows.length}
+              </span>
+            ) : null}
+          </p>
+        </div>
+        {ipRows.length > 0 ? (
+          <div className="space-y-1.5">
+            {ipRows.map((row) => (
+              <div key={row.id} className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  value={row.label}
+                  onChange={(e) => updateIpRow(row.id, { label: e.target.value })}
+                  placeholder="Label (e.g. Office)"
+                  className="min-w-0 flex-1 rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                />
+                <input
+                  type="text"
+                  value={row.cidr}
+                  onChange={(e) => updateIpRow(row.id, { cidr: e.target.value })}
+                  placeholder="203.106.51.10 or 118.100.0.0/16"
+                  className="min-w-0 flex-[1.4] rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeIpRow(row.id)}
                   className="shrink-0 rounded-full p-1 text-muted-foreground hover:text-destructive"
                   title="Remove this IP"
                   aria-label="Remove this IP"
@@ -670,11 +841,11 @@ function ProjectCard({
               </div>
             ))}
           </div>
-        )}
+        ) : null}
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => addIpRow("")}
+            onClick={() => addIpRow()}
             className="flex-1 rounded-full border border-border/70 border-dashed bg-background px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-surface-low hover:text-foreground"
           >
             <Plus className="mr-1 inline h-3 w-3" />
@@ -691,7 +862,7 @@ function ProjectCard({
                   alert("Could not detect your IP. Please enter it manually.")
                   return
                 }
-                addIpRow(ip)
+                addIpRow({ label: "This network", cidr: ip })
               } catch {
                 alert("Could not detect your IP. Please enter it manually.")
               }
@@ -702,12 +873,17 @@ function ProjectCard({
             Use current IP
           </button>
         </div>
+        <p className="px-1 text-[10px] text-muted-foreground leading-relaxed">
+          Only used when a policy has the IP whitelist turned on. First match
+          against any row = OK.
+        </p>
       </div>
-      <p className="px-1 text-[10px] text-muted-foreground leading-relaxed">
-        Only used when a policy has the IP-whitelist check turned on. Each row
-        is one IP or CIDR range. Leave empty to skip the check for this
-        project.
-      </p>
+
+      {formError ? (
+        <p className="rounded-lg bg-destructive/10 px-2 py-1.5 text-[11px] text-destructive">
+          {formError}
+        </p>
+      ) : null}
       <Button
         type="button"
         size="sm"
@@ -1076,7 +1252,8 @@ export function AdminSettingsPanel({
     location: string | undefined,
     latitude: number | null,
     longitude: number | null,
-    allowedIps: string | null,
+    allowedIps: AllowedIp[],
+    geoLocations: Array<Omit<ProjectGeoLocation, "id">>,
   ) {
     const result = await updateProjectAction(
       projectId,
@@ -1085,6 +1262,7 @@ export function AdminSettingsPanel({
       latitude,
       longitude,
       allowedIps,
+      geoLocations,
     )
     if (result.ok) {
       toast({ title: result.message, variant: "success" })

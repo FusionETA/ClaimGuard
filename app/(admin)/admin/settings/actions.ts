@@ -33,7 +33,11 @@ import {
   type CsvImportResult,
 } from "@/modules/organization/application/services/csv-import.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
-import type { AllowedIp } from "@/modules/organization/domain/models"
+import type {
+  AllowedIp,
+  ProjectGeoLocation,
+} from "@/modules/organization/domain/models"
+import { isValidIpOrCidr } from "@/lib/ip-whitelist"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { ensureDefaultLeaveTypesForOrg } from "@/modules/leave/application/services/leave-defaults.service"
 
@@ -1032,16 +1036,50 @@ export async function createManualProjectAction(
   return { status: "success", message: "Project created." }
 }
 
+const allowedIpSchema = z.object({
+  label: z
+    .string()
+    .trim()
+    .min(1, "Every IP row needs a label.")
+    .max(60, "Label must be 60 characters or fewer."),
+  cidr: z
+    .string()
+    .trim()
+    .min(1, "Every IP row needs an address.")
+    .refine(isValidIpOrCidr, {
+      message: "Not a valid IPv4 address or CIDR range.",
+    }),
+})
+
+const geoLocationSchema = z.object({
+  label: z
+    .string()
+    .trim()
+    .min(1, "Every geolocation needs a label.")
+    .max(60, "Label must be 60 characters or fewer."),
+  latitude: z
+    .number()
+    .min(-90, "Latitude must be between -90 and 90.")
+    .max(90, "Latitude must be between -90 and 90."),
+  longitude: z
+    .number()
+    .min(-180, "Longitude must be between -180 and 180.")
+    .max(180, "Longitude must be between -180 and 180."),
+})
+
 export async function updateProjectAction(
   projectId: string,
   projectManagerIds: string[] | undefined,
   location: string | undefined,
   latitude: number | null | undefined,
   longitude: number | null | undefined,
-  /// Comma-separated IPv4 allowlist (single IPs or CIDR ranges) for
-  /// the clock-in IP-whitelist check. Undefined = leave unchanged,
-  /// empty string / null = clear.
-  allowedIps?: string | null,
+  /// Labelled IPv4 allowlist entries (single IPs or CIDR ranges).
+  /// Undefined = leave unchanged. Empty array = clear the whitelist.
+  allowedIps?: AllowedIp[],
+  /// Labelled multi-geolocation entries. Undefined = leave unchanged.
+  /// Empty array = clear all geo rows (falls back to the legacy scalar
+  /// lat/lng for readers on the expand-contract window).
+  geoLocations?: Array<Omit<ProjectGeoLocation, "id">>,
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
 
@@ -1061,31 +1099,36 @@ export async function updateProjectAction(
     return { ok: false, message: "Longitude must be between -180 and 180." }
   }
 
+  let validatedIps: AllowedIp[] | undefined
+  if (allowedIps !== undefined) {
+    const parsed = z.array(allowedIpSchema).safeParse(allowedIps)
+    if (!parsed.success) {
+      return {
+        ok: false,
+        message: parsed.error.issues[0]?.message ?? "Invalid IP allowlist entry.",
+      }
+    }
+    validatedIps = parsed.data
+  }
+
+  let validatedGeo: Array<Omit<ProjectGeoLocation, "id">> | undefined
+  if (geoLocations !== undefined) {
+    const parsed = z.array(geoLocationSchema).safeParse(geoLocations)
+    if (!parsed.success) {
+      return {
+        ok: false,
+        message: parsed.error.issues[0]?.message ?? "Invalid geolocation entry.",
+      }
+    }
+    validatedGeo = parsed.data
+  }
+
   // Derive canonical location string from coords; fall back to caller-provided
   // value (currently always undefined from the new UI, but kept for safety).
   const derivedLocation =
     latitude != null && longitude != null
       ? `${latitude.toFixed(6)},${longitude.toFixed(6)}`
       : location || undefined
-
-  // Normalise allowedIps: undefined = leave alone; empty string → clear
-  // the whitelist; otherwise split the comma-separated string into a
-  // labelled `AllowedIp[]` — the repo writes to the new JSON column.
-  // Compat shim — Phase 3 will replace the UI with a labelled editor
-  // and remove this conversion. Server-side parse validation lives in
-  // the repo / `lib/ip-whitelist.parseAllowlist` — bad entries are
-  // silently dropped at read time so a single fat-finger typo doesn't
-  // break clock-in for the whole project.
-  const normalisedAllowedIps: AllowedIp[] | null | undefined =
-    allowedIps === undefined
-      ? undefined
-      : allowedIps === null || allowedIps.trim() === ""
-        ? null
-        : allowedIps
-            .split(",")
-            .map((s) => s.trim())
-            .filter((s) => s.length > 0)
-            .map((cidr, i) => ({ label: `IP ${i + 1}`, cidr }))
 
   try {
     await organizationRepository.updateProjectDetails({
@@ -1095,7 +1138,8 @@ export async function updateProjectAction(
       location: derivedLocation,
       latitude: latitude ?? null,
       longitude: longitude ?? null,
-      allowedIps: normalisedAllowedIps,
+      allowedIps: validatedIps,
+      geoLocations: validatedGeo,
     })
   } catch (error) {
     return {
@@ -1122,6 +1166,8 @@ export async function updateProjectAction(
       location: derivedLocation,
       latitude,
       longitude,
+      geoLocationsCount: validatedGeo?.length,
+      allowedIpsCount: validatedIps?.length,
     },
   })
 

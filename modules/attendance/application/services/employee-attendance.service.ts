@@ -1,7 +1,11 @@
 import "server-only"
 
 import { getOrSetCache } from "@/lib/cache"
-import { DEFAULT_GEOFENCE_RADIUS_METERS, checkGeofence } from "@/lib/geo"
+import {
+  DEFAULT_GEOFENCE_RADIUS_METERS,
+  checkGeofence,
+  checkGeofenceMulti,
+} from "@/lib/geo"
 import { ipMatchesRawAllowlist } from "@/lib/ip-whitelist"
 import { publishUserEvents } from "@/lib/realtime"
 import { key } from "@/lib/redis"
@@ -73,6 +77,47 @@ async function policyEnforcesIpWhitelist(
   return row.policy.requireIpWhitelist
 }
 
+/// Resolve on-site / off-site against a project. When the project has any
+/// `geoLocations` we walk them in order via `checkGeofenceMulti` (first
+/// site within radius wins). Otherwise we fall back to the legacy single
+/// `latitude`/`longitude` scalars via `checkGeofence` — the expand-contract
+/// window from Phase 1: readers can still handle rows the backfill hasn't
+/// touched.
+function resolveFenceVerdict(
+  coords: { lat: number; lng: number } | null,
+  project: {
+    latitude: number | null
+    longitude: number | null
+    geoLocations: Array<{
+      id: string
+      label: string
+      latitude: number
+      longitude: number
+    }>
+  },
+  radiusMeters: number,
+): { withinRadius: boolean; distanceMeters: number | null } {
+  if (project.geoLocations.length > 0) {
+    const result = checkGeofenceMulti(
+      coords ? { latitude: coords.lat, longitude: coords.lng } : null,
+      project.geoLocations,
+      radiusMeters,
+    )
+    if (result.ok) {
+      return { withinRadius: true, distanceMeters: result.distanceMeters }
+    }
+    return {
+      withinRadius: false,
+      distanceMeters: result.nearest?.distanceMeters ?? null,
+    }
+  }
+  const fence = checkGeofence(coords, project, radiusMeters)
+  return {
+    withinRadius: fence.withinRadius,
+    distanceMeters: fence.distanceMeters,
+  }
+}
+
 /**
  * Throws `OFF_SITE_REMARK_REQUIRED` if the employee is currently outside the
  * geofence of their active project AND has not provided a remark. Used by the
@@ -94,7 +139,7 @@ async function enforceGeofenceForActiveRecord(
   if (!project) return { distanceMeters: null }
 
   const radius = await resolveGeofenceRadius(orgId)
-  const fence = checkGeofence(coords ?? null, project, radius)
+  const fence = resolveFenceVerdict(coords ?? null, project, radius)
   if (enforce && !fence.withinRadius && !notes) {
     throw new Error(OFF_SITE_REMARK_REQUIRED)
   }
@@ -321,6 +366,7 @@ export const employeeAttendanceService = {
         let activeProjectCoords:
           | { latitude: number | null; longitude: number | null }
           | null = null
+        let activeProjectGeoLocations: EmployeeAttendanceDashboard["activeProjectGeoLocations"] = []
         if (todayProjectId) {
           const project = await attendanceRepository.getProjectGeoById(todayProjectId)
           if (project) {
@@ -328,6 +374,7 @@ export const employeeAttendanceService = {
               latitude: project.latitude,
               longitude: project.longitude,
             }
+            activeProjectGeoLocations = project.geoLocations ?? []
           }
         }
 
@@ -338,6 +385,7 @@ export const employeeAttendanceService = {
           recentOT,
           geofenceRadiusMeters,
           activeProjectCoords,
+          activeProjectGeoLocations,
           pendingApproval,
         }
       },
@@ -416,6 +464,7 @@ export const employeeAttendanceService = {
         name: project.name,
         latitude: project.latitude,
         longitude: project.longitude,
+        geoLocations: project.geoLocations ?? [],
         workingDays: project.workingDays ?? null,
       }))
   },
@@ -444,7 +493,7 @@ export const employeeAttendanceService = {
     if (!project) throw new Error("Selected project does not exist")
 
     const radius = await resolveGeofenceRadius(orgId)
-    const fence = checkGeofence(coords ?? null, project, radius)
+    const fence = resolveFenceVerdict(coords ?? null, project, radius)
     const enforceFence = await policyEnforcesGeofence(employeeId)
     if (enforceFence && !fence.withinRadius && !notes) {
       throw new Error(OFF_SITE_REMARK_REQUIRED)

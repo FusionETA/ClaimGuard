@@ -93,6 +93,16 @@ export function ipMatchesRawAllowlist(
   return ipMatchesAllowlist(ip, parseAllowlist(rawAllowlist))
 }
 
+/**
+ * True when `entry` parses as either a bare IPv4 address or an IPv4 CIDR
+ * range. Thin wrapper around the internal parser — use this from server
+ * actions to reject a bad row before the admin's whole allowlist write
+ * silently drops it at read time.
+ */
+export function isValidIpOrCidr(entry: string): boolean {
+  return parseCidrEntry(entry.trim()) !== null
+}
+
 // ─── Internal ─────────────────────────────────────────────────────────
 
 /**

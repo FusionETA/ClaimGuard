@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react"
 import { createPortal } from "react-dom"
-import { AlertTriangle, Camera, Coffee, Fingerprint, LogOut, RotateCcw, X } from "lucide-react"
+import { AlertTriangle, Camera, Coffee, Fingerprint, Loader2, LogOut, RotateCcw, X } from "lucide-react"
 
 import { Card } from "@/components/attendance/ui/card"
 import {
@@ -17,7 +17,13 @@ import type {
   AttendanceRecordView,
   ClockEventLite,
 } from "@/modules/attendance/domain/models"
-import { checkGeofence, formatDistance, type GeofenceCheck } from "@/lib/geo"
+import type { ProjectGeoLocation } from "@/modules/organization/domain/models"
+import {
+  checkGeofence,
+  checkGeofenceMulti,
+  formatDistance,
+  type GeofenceCheck,
+} from "@/lib/geo"
 import { parseWorkingDays, isoWeekday } from "@/modules/attendance/domain/hours-summary"
 
 import {
@@ -126,6 +132,10 @@ type Props = {
   projects: AttendanceProjectView[]
   activeProject: string | null
   activeLocation: string | null
+  /// Labelled fence locations for the currently-active project.
+  /// Empty array means the project has no labelled locations yet —
+  /// falls back to the scalar `activeProjectLat/Lng` below.
+  activeProjectGeoLocations: ProjectGeoLocation[]
   activeProjectLat: number | null
   activeProjectLng: number | null
   geofenceRadiusMeters: number
@@ -276,6 +286,7 @@ export function ClockCard({
   projects,
   activeProject,
   activeLocation,
+  activeProjectGeoLocations,
   activeProjectLat,
   activeProjectLng,
   geofenceRadiusMeters,
@@ -384,6 +395,11 @@ export function ClockCard({
   // first is still awaiting GPS — without this, the second resolution
   // wipes any remark the user has typed and reopens the dismissed popup.
   const [isResolving, setIsResolving] = useState(false)
+  /// Overlay for the clock-in path: shown while we're actually awaiting
+  /// a GPS fix + running the multi-geofence walk. Reassures the user
+  /// that something is happening on the (usually sub-second) wait; the
+  /// existing off-site remark / IP-whitelist paths take over from here.
+  const [detectingLocation, setDetectingLocation] = useState(false)
   const [employeeCoords, setEmployeeCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [gpsState, setGpsState] = useState<"idle" | "locating" | "ok" | "denied">("idle")
   /// FormData held in flight while the clock-in selfie modal is open.
@@ -475,19 +491,74 @@ export function ClockCard({
     })
   }, [result.error, pendingAction])
 
-  const targetProjectCoords: { latitude: number | null; longitude: number | null } | null =
+  // Resolve the fence for the currently-relevant project — the
+  // picker's `selected` while OUT, the active session's project
+  // while IN. Includes labelled multi-locations if the project has
+  // any; falls back to the legacy scalar for un-backfilled rows.
+  const targetProjectFence: {
+    latitude: number | null
+    longitude: number | null
+    geoLocations: ProjectGeoLocation[]
+  } =
     state === "OUT"
       ? (() => {
           const p = projects.find((proj) => proj.id === selected)
-          return p ? { latitude: p.latitude, longitude: p.longitude } : null
+          return p
+            ? {
+                latitude: p.latitude,
+                longitude: p.longitude,
+                geoLocations: p.geoLocations,
+              }
+            : { latitude: null, longitude: null, geoLocations: [] }
         })()
-      : { latitude: activeProjectLat, longitude: activeProjectLng }
-  const liveFence: GeofenceCheck = enforceGeofence
-    ? checkGeofence(
-        employeeCoords,
-        targetProjectCoords ?? { latitude: null, longitude: null },
-        geofenceRadiusMeters,
+      : {
+          latitude: activeProjectLat,
+          longitude: activeProjectLng,
+          geoLocations: activeProjectGeoLocations,
+        }
+  // Client-side pre-check that mirrors the server's multi-fence
+  // math (`checkGeofenceMulti` on the service side). Without this
+  // helper an employee at "Site B" would trigger the client's
+  // off-site prompt against the legacy scalar (which usually only
+  // holds Site A's coords) even though the server would then accept
+  // them. Falls back to the single-scalar `checkGeofence` for
+  // projects that haven't been backfilled into `geoLocations` yet.
+  function checkProjectFence(
+    coords: { lat: number; lng: number } | null,
+    project: {
+      latitude: number | null
+      longitude: number | null
+      geoLocations: ProjectGeoLocation[]
+    },
+    radiusMeters: number,
+  ): GeofenceCheck {
+    if (project.geoLocations.length > 0) {
+      const multi = checkGeofenceMulti(
+        coords ? { latitude: coords.lat, longitude: coords.lng } : null,
+        project.geoLocations,
+        radiusMeters,
       )
+      if (multi.ok) {
+        return {
+          withinRadius: true,
+          distanceMeters: multi.distanceMeters,
+          reason: "ok",
+        }
+      }
+      return {
+        withinRadius: false,
+        distanceMeters: multi.nearest?.distanceMeters ?? null,
+        reason: coords ? "outside_radius" : "no_gps",
+      }
+    }
+    return checkGeofence(
+      coords,
+      { latitude: project.latitude, longitude: project.longitude },
+      radiusMeters,
+    )
+  }
+  const liveFence: GeofenceCheck = enforceGeofence
+    ? checkProjectFence(employeeCoords, targetProjectFence, geofenceRadiusMeters)
     : { withinRadius: true, distanceMeters: null, reason: "ok" }
 
   function dispatch(action: PendingAction) {
@@ -556,12 +627,13 @@ export function ClockCard({
       const captureForThisEvent =
         enforceGeofence || (captureLocationEnabled && captureLocationOnClockIn)
       if (captureForThisEvent) {
+        setDetectingLocation(true)
         await resolveCoordsForSubmit(formData, employeeCoords)
       }
       const fence: GeofenceCheck = enforceGeofence
-        ? checkGeofence(
+        ? checkProjectFence(
             readCoordsFrom(formData),
-            project ?? { latitude: null, longitude: null },
+            project ?? { latitude: null, longitude: null, geoLocations: [] },
             geofenceRadiusMeters,
           )
         : { withinRadius: true, distanceMeters: null, reason: "ok" }
@@ -586,6 +658,7 @@ export function ClockCard({
       })
     } finally {
       setIsResolving(false)
+      setDetectingLocation(false)
     }
   }
 
@@ -626,9 +699,13 @@ export function ClockCard({
         await resolveCoordsForSubmit(formData, employeeCoords)
       }
       const fence: GeofenceCheck = enforceGeofence
-        ? checkGeofence(
+        ? checkProjectFence(
             readCoordsFrom(formData),
-            { latitude: activeProjectLat, longitude: activeProjectLng },
+            {
+              latitude: activeProjectLat,
+              longitude: activeProjectLng,
+              geoLocations: activeProjectGeoLocations,
+            },
             geofenceRadiusMeters,
           )
         : { withinRadius: true, distanceMeters: null, reason: "ok" }
@@ -668,9 +745,13 @@ export function ClockCard({
         await resolveCoordsForSubmit(formData, employeeCoords)
       }
       const fence: GeofenceCheck = enforceGeofence
-        ? checkGeofence(
+        ? checkProjectFence(
             readCoordsFrom(formData),
-            { latitude: activeProjectLat, longitude: activeProjectLng },
+            {
+              latitude: activeProjectLat,
+              longitude: activeProjectLng,
+              geoLocations: activeProjectGeoLocations,
+            },
             geofenceRadiusMeters,
           )
         : { withinRadius: true, distanceMeters: null, reason: "ok" }
@@ -756,7 +837,10 @@ export function ClockCard({
                 fence={liveFence}
                 radius={geofenceRadiusMeters}
                 employeeCoords={employeeCoords}
-                projectCoords={targetProjectCoords}
+                projectCoords={{
+                  latitude: targetProjectFence.latitude,
+                  longitude: targetProjectFence.longitude,
+                }}
               />
             ) : null}
           </div>
@@ -878,7 +962,10 @@ export function ClockCard({
                 fence={liveFence}
                 radius={geofenceRadiusMeters}
                 employeeCoords={employeeCoords}
-                projectCoords={targetProjectCoords}
+                projectCoords={{
+                  latitude: targetProjectFence.latitude,
+                  longitude: targetProjectFence.longitude,
+                }}
               />
               </div>
             ) : null}
@@ -971,6 +1058,8 @@ export function ClockCard({
         onCancel={() => setRestDayWarning(null)}
       />
     ) : null}
+
+    {detectingLocation ? <DetectingLocationModal /> : null}
     <ClockOutSummaryDialog
       todayRecord={clockOutDraft ? todayRecord : null}
       pending={isClockOutPending}
@@ -1341,6 +1430,32 @@ function RestDayWarningDialog({
             Yes, clock in
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+/// Non-cancellable status modal shown while the client is waiting for a
+/// GPS fix + running the multi-geofence walk during clock-in. The wait
+/// is typically sub-second; a browser-level PositionError timeout still
+/// aborts the flow via the existing GPS error path if the OS hangs.
+function DetectingLocationModal() {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div
+        role="status"
+        aria-live="polite"
+        className="w-full max-w-xs rounded-3xl border border-border/60 bg-card p-6 text-center shadow-xl"
+      >
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+        <p className="text-sm font-bold text-foreground">
+          Detecting your location…
+        </p>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Checking against this project&apos;s geofence.
+        </p>
       </div>
     </div>
   )
