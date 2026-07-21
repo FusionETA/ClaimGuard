@@ -263,6 +263,15 @@ export type XeroConnection = Prisma.XeroConnectionModel
  */
 export type XeroProject = Prisma.XeroProjectModel
 /**
+ * Model ProjectGeoLocation
+ * Labelled geolocation entry attached to a XeroProject. A project may have
+ * zero or more of these — each represents a distinct site/office/entrance
+ * with its own coordinates. Supersedes the single-point
+ * `XeroProject.latitude`/`XeroProject.longitude` fields, which stay as a
+ * fallback until reads default to the geoLocations array.
+ */
+export type ProjectGeoLocation = Prisma.ProjectGeoLocationModel
+/**
  * Model Shift
  * A named working schedule under a project. Admin creates shifts like
  * "Day 8am–5pm" or "Night 10pm–7am". One shift per project is marked

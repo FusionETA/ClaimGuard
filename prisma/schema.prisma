@@ -897,6 +897,13 @@ model XeroProject {
   /// IP-check silently skipped for this project even if the policy
   /// requires it — so new projects don't block clock-in during setup.
   allowedIps             String?                     @db.Text
+  /// Labelled IPv4 allowlist. Holds `Array<{label: string; cidr: string}>`
+  /// and supersedes the legacy comma-separated `allowedIps` string above.
+  /// Written by every save; the legacy column is nulled at the same time so
+  /// there is a single source of truth during expand-contract. The legacy
+  /// column stays around for one release for rollback safety before being
+  /// dropped in a follow-up migration.
+  allowedIpsList         Json?
   workingHoursStart      String?
   workingHoursEnd        String?
   workingDays            String?
@@ -921,6 +928,7 @@ model XeroProject {
   attendanceRecords      AttendanceRecord[]          @relation("AttendanceRecordProject")
   claims                 Claim[]                     @relation("ClaimProject")
   assignedEmployees      EmployeeProjectAssignment[]
+  geoLocations           ProjectGeoLocation[]
   holidays               ProjectHoliday[]
   projectManagers        ProjectManager[]            @relation("ProjectManagers")
   teams                  Team[]
@@ -934,6 +942,24 @@ model XeroProject {
   @@index([organizationId, name])
   @@index([organizationId, xeroTrackingCategoryId])
   @@index([projectManagerId])
+}
+
+/// Labelled geolocation entry attached to a XeroProject. A project may have
+/// zero or more of these — each represents a distinct site/office/entrance
+/// with its own coordinates. Supersedes the single-point
+/// `XeroProject.latitude`/`XeroProject.longitude` fields, which stay as a
+/// fallback until reads default to the geoLocations array.
+model ProjectGeoLocation {
+  id         String      @id @default(cuid())
+  projectId  String
+  label      String
+  latitude   Float
+  longitude  Float
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  project    XeroProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
 }
 
 /// A named working schedule under a project. Admin creates shifts like

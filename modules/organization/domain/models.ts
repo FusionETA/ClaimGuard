@@ -107,6 +107,23 @@ export type ChartOfAccountOption = {
   mileageRate?: number
 }
 
+/// A single labelled entry in a project's IP allowlist. `label` is human-
+/// readable (e.g. "Office"); `cidr` is either a single IPv4 or a CIDR range.
+export type AllowedIp = {
+  label: string
+  cidr: string
+}
+
+/// A single labelled geolocation attached to a project. Used to support
+/// multiple sites per project; readers should treat an empty array as
+/// "no configured sites" and fall back to the project-level lat/long.
+export type ProjectGeoLocation = {
+  id: string
+  label: string
+  latitude: number
+  longitude: number
+}
+
 export type OrganizationProjectOption = {
   id: string
   xeroProjectId?: string
@@ -125,11 +142,16 @@ export type OrganizationProjectOption = {
   location?: string
   latitude?: number
   longitude?: number
-  /// Comma-separated IPv4 allowlist (single IPs or CIDR ranges) for the
-  /// clock-in IP-whitelist check. Employees on a policy with
-  /// `requireIpWhitelist=true` must clock in from an IP that matches.
-  /// Null/empty → check silently skipped even when the policy requires it.
-  allowedIps?: string | null
+  /// Labelled IPv4 allowlist (single IPs or CIDR ranges) for the clock-in
+  /// IP-whitelist check. Employees on a policy with `requireIpWhitelist=true`
+  /// must clock in from an IP that matches one of these entries. Empty
+  /// array → check silently skipped even when the policy requires it.
+  /// Replaces the legacy comma-separated string view field.
+  allowedIps: AllowedIp[]
+  /// Labelled geolocations attached to this project — one entry per site.
+  /// Empty array when none configured; the legacy `latitude` / `longitude`
+  /// fields still serve as fallback in that case.
+  geoLocations: ProjectGeoLocation[]
   isManual: boolean
   workingHoursStart?: string | null
   workingHoursEnd?: string | null

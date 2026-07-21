@@ -405,6 +405,7 @@ export const ModelName = {
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
   XeroProject: 'XeroProject',
+  ProjectGeoLocation: 'ProjectGeoLocation',
   Shift: 'Shift',
   ProjectHoliday: 'ProjectHoliday',
   OrgHoliday: 'OrgHoliday',
@@ -454,7 +455,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employmentStint" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "otAttachment" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "employeeTransfer" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog" | "superadminAuditLog"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employmentStint" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectGeoLocation" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "otAttachment" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "employeeTransfer" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog" | "superadminAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1841,6 +1842,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.XeroProjectCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.XeroProjectCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProjectGeoLocation: {
+      payload: Prisma.$ProjectGeoLocationPayload<ExtArgs>
+      fields: Prisma.ProjectGeoLocationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectGeoLocationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectGeoLocationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectGeoLocationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectGeoLocationPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectGeoLocationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectGeoLocationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectGeoLocationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectGeoLocationPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectGeoLocationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectGeoLocationPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectGeoLocationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectGeoLocationPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectGeoLocationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ProjectGeoLocationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectGeoLocationPayload>
+        }
+        update: {
+          args: Prisma.ProjectGeoLocationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectGeoLocationPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectGeoLocationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectGeoLocationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ProjectGeoLocationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectGeoLocationPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectGeoLocationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectGeoLocation>
+        }
+        groupBy: {
+          args: Prisma.ProjectGeoLocationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectGeoLocationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectGeoLocationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectGeoLocationCountAggregateOutputType> | number
         }
       }
     }
@@ -4518,6 +4585,7 @@ export const XeroProjectScalarFieldEnum = {
   latitude: 'latitude',
   longitude: 'longitude',
   allowedIps: 'allowedIps',
+  allowedIpsList: 'allowedIpsList',
   workingHoursStart: 'workingHoursStart',
   workingHoursEnd: 'workingHoursEnd',
   workingDays: 'workingDays',
@@ -4528,6 +4596,19 @@ export const XeroProjectScalarFieldEnum = {
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
+
+
+export const ProjectGeoLocationScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  label: 'label',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectGeoLocationScalarFieldEnum = (typeof ProjectGeoLocationScalarFieldEnum)[keyof typeof ProjectGeoLocationScalarFieldEnum]
 
 
 export const ShiftScalarFieldEnum = {
@@ -5627,6 +5708,15 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
 
 
+export const ProjectGeoLocationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  label: 'label'
+} as const
+
+export type ProjectGeoLocationOrderByRelevanceFieldEnum = (typeof ProjectGeoLocationOrderByRelevanceFieldEnum)[keyof typeof ProjectGeoLocationOrderByRelevanceFieldEnum]
+
+
 export const ShiftOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -6559,6 +6649,7 @@ export type GlobalOmitConfig = {
   chartOfAccount?: Prisma.ChartOfAccountOmit
   xeroConnection?: Prisma.XeroConnectionOmit
   xeroProject?: Prisma.XeroProjectOmit
+  projectGeoLocation?: Prisma.ProjectGeoLocationOmit
   shift?: Prisma.ShiftOmit
   projectHoliday?: Prisma.ProjectHolidayOmit
   orgHoliday?: Prisma.OrgHolidayOmit

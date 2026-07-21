@@ -497,11 +497,8 @@ function ProjectCard({
   // field. Always has at least one row (empty) so the "add first IP"
   // path doesn't need a special empty-state.
   const [allowedIpsList, setAllowedIpsList] = useState<string[]>(() => {
-    const raw = project.allowedIps ?? ""
-    const parts = raw
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0)
+    // compat shim — Phase 3 replaces this input with a labelled editor.
+    const parts = project.allowedIps.map((e) => e.cidr).filter((s) => s.length > 0)
     return parts.length > 0 ? parts : [""]
   })
   // Collapse the list to a summary when there are 4+ entries — long

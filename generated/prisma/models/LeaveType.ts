@@ -659,14 +659,6 @@ export type EnumLeaveAccrualMethodFieldUpdateOperationsInput = {
   set?: $Enums.LeaveAccrualMethod
 }
 
-export type FloatFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type LeaveTypeCreateNestedOneWithoutPolicyDefaultsInput = {
   create?: Prisma.XOR<Prisma.LeaveTypeCreateWithoutPolicyDefaultsInput, Prisma.LeaveTypeUncheckedCreateWithoutPolicyDefaultsInput>
   connectOrCreate?: Prisma.LeaveTypeCreateOrConnectWithoutPolicyDefaultsInput

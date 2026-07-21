@@ -1142,26 +1142,63 @@ export const attendanceRepository = {
     name: string
     latitude: number | null
     longitude: number | null
+    geoLocations: Array<{
+      id: string
+      label: string
+      latitude: number
+      longitude: number
+    }>
   } | null> {
     const prisma = getClient()
     const project = await prisma.xeroProject.findUnique({
       where: { id: projectId },
-      select: { name: true, latitude: true, longitude: true },
+      select: {
+        name: true,
+        latitude: true,
+        longitude: true,
+        geoLocations: {
+          select: { id: true, label: true, latitude: true, longitude: true },
+          orderBy: { createdAt: "asc" },
+        },
+      },
     })
     return project ?? null
   },
 
-  /// Fetch just the project's comma-separated IP allowlist (raw string
-  /// as the admin typed it) for the clock-in IP-whitelist check. Split
-  /// from `getProjectGeoById` so the service can Promise.all the two
-  /// reads in parallel with the geofence resolve.
+  /// Fetch the project's IP allowlist for the clock-in IP-whitelist check.
+  /// One-release shim: returns the legacy comma-separated string shape so
+  /// existing callers (`lib/ip-whitelist.parseAllowlist`) don't have to
+  /// change yet. Prefers the new JSON `allowedIpsList` column; falls back
+  /// to the legacy `allowedIps` string when the JSON column is empty.
+  /// Returns null when neither column has anything.
   async getProjectAllowedIps(projectId: string): Promise<string | null> {
     const prisma = getClient()
     const row = await prisma.xeroProject.findUnique({
       where: { id: projectId },
-      select: { allowedIps: true },
+      select: { allowedIps: true, allowedIpsList: true },
     })
-    return row?.allowedIps ?? null
+    if (!row) return null
+    const list = row.allowedIpsList
+    if (Array.isArray(list) && list.length > 0) {
+      const cidrs: string[] = []
+      for (const entry of list) {
+        if (
+          entry &&
+          typeof entry === "object" &&
+          !Array.isArray(entry) &&
+          typeof (entry as { cidr?: unknown }).cidr === "string"
+        ) {
+          const cidr = (entry as { cidr: string }).cidr.trim()
+          if (cidr.length > 0) cidrs.push(cidr)
+        }
+      }
+      if (cidrs.length > 0) return cidrs.join(", ")
+    }
+    const legacy = row.allowedIps
+    if (typeof legacy === "string" && legacy.trim().length > 0) {
+      return legacy
+    }
+    return null
   },
 
   async getTodayProjectId(employeeId: string): Promise<string | null> {
@@ -1192,6 +1229,12 @@ export const attendanceRepository = {
       latitude: number | null
       longitude: number | null
       workingDays: string | null
+      geoLocations: Array<{
+        id: string
+        label: string
+        latitude: number
+        longitude: number
+      }>
     }>
   } | null> {
     const prisma = getClient()
@@ -1218,6 +1261,15 @@ export const attendanceRepository = {
                     latitude: true,
                     longitude: true,
                     workingDays: true,
+                    geoLocations: {
+                      select: {
+                        id: true,
+                        label: true,
+                        latitude: true,
+                        longitude: true,
+                      },
+                      orderBy: { createdAt: "asc" },
+                    },
                   },
                 },
               },

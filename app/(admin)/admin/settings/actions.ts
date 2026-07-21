@@ -33,6 +33,7 @@ import {
   type CsvImportResult,
 } from "@/modules/organization/application/services/csv-import.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import type { AllowedIp } from "@/modules/organization/domain/models"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { ensureDefaultLeaveTypesForOrg } from "@/modules/leave/application/services/leave-defaults.service"
 
@@ -1067,18 +1068,24 @@ export async function updateProjectAction(
       ? `${latitude.toFixed(6)},${longitude.toFixed(6)}`
       : location || undefined
 
-  // Normalise allowedIps: undefined = leave alone; empty string → null
-  // (clear the whitelist); otherwise trim and pass through. Server-side
-  // parse validation lives in the repo / the `lib/ip-whitelist.parseAllowlist`
-  // helper — we don't reject bad entries here; parseAllowlist silently
-  // drops unparseable entries at read time so a single fat-finger typo
-  // doesn't break clock-in for the whole project.
-  const normalisedAllowedIps =
+  // Normalise allowedIps: undefined = leave alone; empty string → clear
+  // the whitelist; otherwise split the comma-separated string into a
+  // labelled `AllowedIp[]` — the repo writes to the new JSON column.
+  // Compat shim — Phase 3 will replace the UI with a labelled editor
+  // and remove this conversion. Server-side parse validation lives in
+  // the repo / `lib/ip-whitelist.parseAllowlist` — bad entries are
+  // silently dropped at read time so a single fat-finger typo doesn't
+  // break clock-in for the whole project.
+  const normalisedAllowedIps: AllowedIp[] | null | undefined =
     allowedIps === undefined
       ? undefined
       : allowedIps === null || allowedIps.trim() === ""
         ? null
-        : allowedIps.trim()
+        : allowedIps
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0)
+            .map((cidr, i) => ({ label: `IP ${i + 1}`, cidr }))
 
   try {
     await organizationRepository.updateProjectDetails({

@@ -72,6 +72,7 @@ export const ModelName = {
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
   XeroProject: 'XeroProject',
+  ProjectGeoLocation: 'ProjectGeoLocation',
   Shift: 'Shift',
   ProjectHoliday: 'ProjectHoliday',
   OrgHoliday: 'OrgHoliday',
@@ -515,6 +516,7 @@ export const XeroProjectScalarFieldEnum = {
   latitude: 'latitude',
   longitude: 'longitude',
   allowedIps: 'allowedIps',
+  allowedIpsList: 'allowedIpsList',
   workingHoursStart: 'workingHoursStart',
   workingHoursEnd: 'workingHoursEnd',
   workingDays: 'workingDays',
@@ -525,6 +527,19 @@ export const XeroProjectScalarFieldEnum = {
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
+
+
+export const ProjectGeoLocationScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  label: 'label',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectGeoLocationScalarFieldEnum = (typeof ProjectGeoLocationScalarFieldEnum)[keyof typeof ProjectGeoLocationScalarFieldEnum]
 
 
 export const ShiftScalarFieldEnum = {
@@ -1622,6 +1637,15 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
 } as const
 
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
+
+
+export const ProjectGeoLocationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  label: 'label'
+} as const
+
+export type ProjectGeoLocationOrderByRelevanceFieldEnum = (typeof ProjectGeoLocationOrderByRelevanceFieldEnum)[keyof typeof ProjectGeoLocationOrderByRelevanceFieldEnum]
 
 
 export const ShiftOrderByRelevanceFieldEnum = {

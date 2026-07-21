@@ -18,6 +18,7 @@ import {
 import { mapChartAccount } from "@/modules/organization/infrastructure/chart-account.mapper"
 import type {
   AdminOrganizationOption,
+  AllowedIp,
   AssignedProject,
   ChartOfAccountOption,
   LimitPeriod,
@@ -27,6 +28,7 @@ import type {
   OrganizationProjectOption,
   OrganizationSummary,
   OtRates,
+  ProjectGeoLocation,
   TeamDetail,
   TeamMembership,
   TeamModuleConfig,
@@ -258,6 +260,67 @@ async function findLinkableExistingUserForOrgInternal(input: {
     return { id: c.id, name: c.name, role: c.role }
   }
   return null
+}
+
+/**
+ * Coerces the two allowlist columns on a XeroProject row into the view
+ * shape (`AllowedIp[]`). Prefers the new JSON `allowedIpsList` column
+ * when present; falls back to parsing the legacy comma-separated
+ * `allowedIps` string; returns [] when neither has anything.
+ *
+ * Defensive: the JSON column is untyped in the DB, so malformed entries
+ * (missing label/cidr, wrong shape) are silently dropped rather than
+ * poisoning the caller.
+ */
+function coerceAllowedIps(row: {
+  allowedIps?: string | null
+  allowedIpsList?: unknown
+}): AllowedIp[] {
+  const list = row.allowedIpsList
+  if (Array.isArray(list)) {
+    const out: AllowedIp[] = []
+    for (const entry of list) {
+      if (
+        entry &&
+        typeof entry === "object" &&
+        !Array.isArray(entry) &&
+        typeof (entry as { label?: unknown }).label === "string" &&
+        typeof (entry as { cidr?: unknown }).cidr === "string"
+      ) {
+        const label = (entry as { label: string }).label.trim()
+        const cidr = (entry as { cidr: string }).cidr.trim()
+        if (cidr.length > 0) {
+          out.push({ label: label.length > 0 ? label : "IP", cidr })
+        }
+      }
+    }
+    if (out.length > 0) return out
+    // Empty array in the JSON column falls through to the legacy string
+    // check so a stray `[]` write doesn't hide a pre-existing legacy
+    // string. Once the legacy column is dropped this branch becomes moot.
+  }
+  const legacy = typeof row.allowedIps === "string" ? row.allowedIps : ""
+  if (legacy.trim().length === 0) return []
+  const parts = legacy
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+  return parts.map((cidr, i) => ({ label: `IP ${i + 1}`, cidr }))
+}
+
+/**
+ * Maps a project's related `geoLocations` rows into the domain shape.
+ * Order preserved from the query (caller passes `orderBy: createdAt asc`).
+ */
+function mapProjectGeoLocations(
+  rows: Array<{ id: string; label: string; latitude: number; longitude: number }>,
+): ProjectGeoLocation[] {
+  return rows.map((r) => ({
+    id: r.id,
+    label: r.label,
+    latitude: r.latitude,
+    longitude: r.longitude,
+  }))
 }
 
 export const organizationRepository = {
@@ -3783,6 +3846,10 @@ export const organizationRepository = {
         projectManagers: {
           include: { user: { select: { id: true, name: true } } },
         },
+        geoLocations: {
+          select: { id: true, label: true, latitude: true, longitude: true },
+          orderBy: { createdAt: "asc" },
+        },
       },
       orderBy: [{ name: "asc" }],
     })
@@ -3801,7 +3868,8 @@ export const organizationRepository = {
       location: row.location ?? undefined,
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
-      allowedIps: row.allowedIps ?? null,
+      allowedIps: coerceAllowedIps(row),
+      geoLocations: mapProjectGeoLocations(row.geoLocations),
       isManual: row.isManual,
     }))
   },
@@ -3873,6 +3941,10 @@ export const organizationRepository = {
           include: { user: { select: { id: true, name: true } } },
         },
         holidays: { orderBy: { date: "asc" } },
+        geoLocations: {
+          select: { id: true, label: true, latitude: true, longitude: true },
+          orderBy: { createdAt: "asc" },
+        },
       },
       orderBy: [{ name: "asc" }],
     })
@@ -3891,7 +3963,8 @@ export const organizationRepository = {
       location: row.location ?? undefined,
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
-      allowedIps: row.allowedIps ?? null,
+      allowedIps: coerceAllowedIps(row),
+      geoLocations: mapProjectGeoLocations(row.geoLocations),
       isManual: row.isManual,
       workingHoursStart: row.workingHoursStart,
       workingHoursEnd: row.workingHoursEnd,
@@ -3972,6 +4045,11 @@ export const organizationRepository = {
       location: row.location ?? undefined,
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
+      // Newly-created manual project has no allowlist or extra
+      // geolocations yet — those are configured via updateProjectDetails
+      // after creation.
+      allowedIps: [],
+      geoLocations: [],
       isManual: true,
     }
   },
@@ -3985,9 +4063,9 @@ export const organizationRepository = {
     location?: string
     latitude?: number | null
     longitude?: number | null
-    /// Comma-separated IPv4 allowlist for the clock-in IP-whitelist
-    /// check. `undefined` = leave unchanged; `null` or empty = clear.
-    allowedIps?: string | null
+    /// Labelled IPv4 allowlist for the clock-in IP-whitelist check.
+    /// `undefined` = leave unchanged; `null` or empty array = clear.
+    allowedIps?: AllowedIp[] | null
   }): Promise<void> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -4014,6 +4092,27 @@ export const organizationRepository = {
       }
     }
 
+    // Single writer for both allowlist columns during expand-contract:
+    // whenever the caller updates the allowlist, we write the new
+    // JSON `allowedIpsList` AND null out the legacy `allowedIps`
+    // string in the same statement. Readers prefer the JSON column
+    // and only fall back to the string, so keeping the string
+    // populated here would create two sources of truth. The legacy
+    // column will be dropped in a follow-up migration.
+    const allowlistWrite: Prisma.XeroProjectUpdateManyMutationInput = {}
+    if (data.allowedIps !== undefined) {
+      const entries = data.allowedIps ?? []
+      if (entries.length === 0) {
+        allowlistWrite.allowedIpsList = Prisma.JsonNull
+      } else {
+        allowlistWrite.allowedIpsList = entries.map((e) => ({
+          label: e.label,
+          cidr: e.cidr,
+        })) as Prisma.InputJsonValue
+      }
+      allowlistWrite.allowedIps = null
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.xeroProject.updateMany({
         where: { id: data.projectId, organizationId: data.organizationId },
@@ -4025,9 +4124,7 @@ export const organizationRepository = {
           location: data.location || null,
           latitude: data.latitude ?? null,
           longitude: data.longitude ?? null,
-          ...(data.allowedIps !== undefined
-            ? { allowedIps: data.allowedIps }
-            : {}),
+          ...allowlistWrite,
         },
       })
 
