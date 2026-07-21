@@ -42,7 +42,37 @@ export const GET = handleApiRequest(["settings:read"], async (_request, ctx) => 
 /// Reference type codes LHDN publishes for CP8D. Kept narrow (only the
 /// ones a real employer would legitimately set); if a partner needs a
 /// broader code they can PATCH via the admin UI instead.
-const referenceTypeCodes = ["01", "02", "03", "04", "05", "06"] as const
+/// LHDN reference-type map — the single source of truth for the
+/// external API surface. Sourced from the same list the admin UI's
+/// `REFERENCE_TYPE_OPTIONS` uses. The DB column stores the full
+/// display value (e.g. `"03 - C"`), NOT just the two-digit code —
+/// the API accepts the code for convenience and normalises to the
+/// stored format on write, then reverses on read.
+///
+/// Kept as a flat table so adding a new LHDN code = one row edit
+/// and the API + display + prefix all stay in sync.
+const REFERENCE_TYPES = [
+  { code: "01", prefix: "SG", storedValue: "01 - SG" },
+  { code: "02", prefix: "OG", storedValue: "02 - OG" },
+  { code: "03", prefix: "C", storedValue: "03 - C" },
+  { code: "04", prefix: "D", storedValue: "04 - D" },
+  { code: "05", prefix: "F", storedValue: "05 - F" },
+  { code: "06", prefix: "TR", storedValue: "06 - TR" },
+  { code: "07", prefix: "LE", storedValue: "07 - LE" },
+] as const
+const referenceTypeCodes = REFERENCE_TYPES.map((r) => r.code) as [
+  string,
+  ...string[],
+]
+const CODE_TO_STORED = new Map<string, string>(
+  REFERENCE_TYPES.map((r) => [r.code, r.storedValue]),
+)
+const STORED_TO_CODE = new Map<string, string>(
+  REFERENCE_TYPES.map((r) => [r.storedValue, r.code]),
+)
+const CODE_TO_PREFIX = new Map<string, string>(
+  REFERENCE_TYPES.map((r) => [r.code, r.prefix]),
+)
 
 const nullableTrimmed = () =>
   z
@@ -64,9 +94,19 @@ const updateSchema = z
     /// PERKESO code, covers both SOCSO and EIS (single registration).
     socsoEisEmployerNo: nullableTrimmed(),
     hrdfEmployerNo: nullableTrimmed(),
-    /// LHDN reference-type code (01/02/03/04/05/06 → SG/OG/C/J/D/F).
-    /// Used together with `taxFileNumber` below to form the C-number
-    /// for a Company (referenceType = "03", full = "C" + taxFileNumber).
+    /// LHDN reference-type code:
+    ///   01 → SG (Individual non-business)
+    ///   02 → OG (Individual business)
+    ///   03 → C  (Company)
+    ///   04 → D  (Partnership)
+    ///   05 → F  (Co-operative society)
+    ///   06 → TR (Trust body)
+    ///   07 → LE (Limited liability partnership)
+    /// Used together with `taxFileNumber` below to form the full
+    /// tax file no. (e.g. code "03" + no. "12345678901" = "C12345678901").
+    /// The DB column stores the full display value (e.g. "03 - C") —
+    /// this endpoint normalises the two-digit code you send to that
+    /// format on write, then reverses on read. Pass just "03" here.
     taxFileReferenceType: z
       .enum(referenceTypeCodes)
       .nullable()
@@ -119,7 +159,13 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
     patch.hrdfEmployerNo = parsed.data.hrdfEmployerNo
   }
   if (parsed.data.taxFileReferenceType !== undefined) {
-    patch.referenceType = parsed.data.taxFileReferenceType
+    // Caller sends the two-digit code (e.g. "03"); DB stores the
+    // full display value the admin-UI dropdown writes (e.g. "03 - C").
+    // Null clears the column.
+    patch.referenceType =
+      parsed.data.taxFileReferenceType === null
+        ? null
+        : (CODE_TO_STORED.get(parsed.data.taxFileReferenceType) ?? null)
   }
   if (parsed.data.taxFileNumber !== undefined) {
     patch.referenceNo = parsed.data.taxFileNumber
@@ -161,26 +207,25 @@ function jsonError(status: number, message: string): NextResponse {
   return NextResponse.json({ error: { status, message } }, { status })
 }
 
-/// LHDN reference-type code → letter prefix used in the full tax file
-/// number (e.g. "03" → "C", so a Company's full TIN is "C" + referenceNo).
-const REFERENCE_TYPE_PREFIX: Record<string, string> = {
-  "01": "SG",
-  "02": "OG",
-  "03": "C",
-  "04": "J",
-  "05": "D",
-  "06": "F",
+/// Read the two-digit code from a DB row's `referenceType` string.
+/// The column stores the full display value ("03 - C"), so we look
+/// it up in the reverse map. Returns null for unknown / empty values.
+function extractReferenceCode(dbReferenceType: string | null): string | null {
+  if (!dbReferenceType) return null
+  return STORED_TO_CODE.get(dbReferenceType) ?? null
 }
 
-/// Compose the display-friendly full tax file number from the LHDN
-/// (referenceType, referenceNo) pair. Returns null if either part is
-/// missing or the referenceType isn't one we recognise.
+/// Compose the display-friendly full tax file number from the DB row's
+/// `referenceType` ("03 - C") + `referenceNo` ("12345678901") →
+/// "C12345678901". Returns null if either part is missing or the
+/// referenceType isn't one we recognise.
 function buildTaxFileNumber(
-  referenceType: string | null,
+  dbReferenceType: string | null,
   referenceNo: string | null,
 ): string | null {
-  if (!referenceType || !referenceNo) return null
-  const prefix = REFERENCE_TYPE_PREFIX[referenceType]
+  const code = extractReferenceCode(dbReferenceType)
+  if (!code || !referenceNo) return null
+  const prefix = CODE_TO_PREFIX.get(code)
   if (!prefix) return null
   return `${prefix}${referenceNo}`
 }
@@ -204,7 +249,12 @@ function toExternal(info: PayrollCompanyInfoData | null) {
     epfEmployerNo: info.epfEmployerNo,
     socsoEisEmployerNo: info.perkesoEmployerCode,
     hrdfEmployerNo: info.hrdfEmployerNo,
-    taxFileReferenceType: info.referenceType,
+    /// Two-digit LHDN code (`"03"` etc). DB actually stores the full
+    /// display value (`"03 - C"`) — we parse it back to the code
+    /// here so the external contract matches what PATCH accepts.
+    /// Returns null when the DB has a stored value we don't
+    /// recognise (unlikely; belt-and-braces).
+    taxFileReferenceType: extractReferenceCode(info.referenceType),
     taxFileNumber: info.referenceNo,
     /// Convenience: full C-number-style string (e.g. "C12345678901").
     /// Derived from taxFileReferenceType + taxFileNumber. Read-only —
