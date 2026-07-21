@@ -177,6 +177,82 @@ export const UPCOMING_FEATURES: UpcomingFeature[] = []
  */
 export const RECENTLY_SHIPPED: ShippedFeature[] = [
   {
+    id: "ship-employee-password-reset-2026-07-20",
+    date: "2026-07-20",
+    title: "Reset an employee's password back to the default",
+    body:
+      "When someone has left or can't get into their account, you can now " +
+      "reset their password from the Personal tab of their employee page. " +
+      "The new password is shown once with a copy button, and every reset " +
+      "is recorded in the audit log.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-epf-hrdf-employer-numbers-2026-07-20",
+    date: "2026-07-20",
+    title: "Store your EPF and HRD Corp employer numbers",
+    body:
+      "Payroll settings now hold your KWSP/EPF and HRD Corp registration " +
+      "numbers alongside the LHDN and PERKESO ones, so every statutory " +
+      "identity number lives in one place for forms and reports.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-claims-pdf-export-2026-07-20",
+    date: "2026-07-20",
+    title: "Export the claims report as a PDF",
+    body:
+      "The claims breakdown report now has an Export PDF button next to " +
+      "Export XLSX, using the same filters. The PDF is a tidy one-row-per-" +
+      "claim summary with totals — easy to send to an approver or attach " +
+      "to a payment voucher.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-export-download-feedback-2026-07-20",
+    date: "2026-07-20",
+    title: "Clearer feedback while a PDF export downloads",
+    body:
+      "The export dialog now stays open and shows a “Downloading…” spinner " +
+      "until the file is ready, instead of closing straight away on a big " +
+      "report. The employee list scrolls properly again, downloads no " +
+      "longer flash a blank tab, and failures show an error message.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-stale-page-reload-fix-2026-07-20",
+    date: "2026-07-20",
+    title: "No more errors on tabs left open during an update",
+    body:
+      "If you had the app open while we released an update, buttons could " +
+      "fail with an unexpected error until you refreshed. Open tabs now " +
+      "pick up the new version by themselves.",
+    audience: "ALL",
+  },
+  {
+    id: "ship-bulk-export-zip-2026-07-20",
+    date: "2026-07-20",
+    title: "Bulk exports now give one file per employee",
+    body:
+      "Exporting attendance reports, leave summaries, or PCB calculation " +
+      "details for several employees now downloads a ZIP with a separate " +
+      "PDF per person, named after them — so you can forward one " +
+      "employee's report without splitting a combined file first.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-attendance-speed-freshness-2026-07-20",
+    date: "2026-07-20",
+    title: "Faster Attendance tab, and figures that stay current",
+    body:
+      "The Attendance admin tab loads noticeably quicker, and leave " +
+      "balances load faster too. Changes to working hours, timezone, or " +
+      "geofence now show up immediately, and automatic clock-outs and " +
+      "past-leaver archiving are reflected right away instead of after a " +
+      "delay.",
+    audience: "ADMIN",
+  },
+  {
     id: "ship-auth-render-crash-fix-2026-07-15",
     date: "2026-07-15",
     title: "Fixed a crash that stopped some pages from loading",
