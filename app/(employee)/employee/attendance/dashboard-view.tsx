@@ -9,6 +9,7 @@ import type {
 import { cn } from "@/lib/utils"
 
 import { TodayRemarkCard } from "./today-remark-card"
+import { ElapsedTimer } from "./elapsed-timer"
 
 // The clock-in card lives on the dashboard (`/employee`) so the
 // landing page is the single entry point for the fingerprint action.
@@ -158,14 +159,20 @@ export function EmployeeAttendanceDashboardView({
                   <p className="truncate text-sm font-semibold text-foreground">{r.date}</p>
                   <p className="text-xs text-muted-foreground">
                     {fmtTime(r.timeIn, timezone)}{" "}
-                    {r.timeOut ? `– ${fmtTime(r.timeOut, timezone)}` : ""}{" "}
+                    {r.timeOut
+                      ? `– ${fmtTime(r.timeOut, timezone)}`
+                      : r.timeIn
+                        ? "– "
+                        : ""}{" "}
                     {r.project ? `• ${r.project}` : ""}
                   </p>
                 </div>
                 <span className="shrink-0 text-xs font-bold text-muted-foreground">
-                  {r.durationMin
+                  {r.durationMin != null
                     ? `${Math.floor(r.durationMin / 60)}h ${r.durationMin % 60}m`
-                    : "–"}
+                    : r.timeIn != null
+                      ? <ElapsedTimer startedAt={r.timeIn} />
+                      : "–"}
                 </span>
               </div>
             ))}

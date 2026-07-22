@@ -1344,6 +1344,39 @@ export const attendanceRepository = {
 
   // ── Employee dashboard ────────────────────────────────────────────────
 
+  async findOpenSessionAcrossDays(
+    employeeId: string,
+  ): Promise<{ sessionId: string; startedAt: string; date: string } | null> {
+    const prisma = getClient()
+    const today = startOfDay(new Date())
+    // Query from the record side to avoid Prisma nested-select type inference
+    // issues that cause `session.record` to be typed as `never`.
+    const record = await prisma.attendanceRecord.findFirst({
+      where: {
+        employeeId,
+        date: { lt: today },
+        sessions: { some: { endedAt: null } },
+      },
+      select: {
+        date: true,
+        sessions: {
+          where: { endedAt: null },
+          select: { id: true, startedAt: true },
+          orderBy: { startedAt: "asc" },
+          take: 1,
+        },
+      },
+      orderBy: { date: "asc" },
+    })
+    if (!record || record.sessions.length === 0) return null
+    const session = record.sessions[0]
+    return {
+      sessionId: session.id,
+      startedAt: session.startedAt.toISOString(),
+      date: record.date.toISOString().slice(0, 10),
+    }
+  },
+
   async getTodayAttendance(employeeId: string): Promise<AttendanceRecordView | null> {
     const prisma = getClient()
     const today = startOfDay(new Date())
@@ -1557,6 +1590,13 @@ export const attendanceRepository = {
     const earlyMin = diff < 0 ? -diff : 0
     const status: AttendanceStatus = lateMin > 0 ? "LATE" : "ON_TIME"
 
+    // Guard: reject if a previous-day session is still open (employee
+    // forgot to clock out). Must call clockOut on that session first.
+    const orphan = await this.findOpenSessionAcrossDays(employeeId)
+    if (orphan) {
+      throw new Error("ALREADY_CLOCKED_IN")
+    }
+
     // Find or create today's roll-up record, then check for an open session.
     const record = await prisma.attendanceRecord.upsert({
       where: { employeeId_date: { employeeId, date: today } },
@@ -1687,6 +1727,7 @@ export const attendanceRepository = {
     location?: string,
     notes?: string,
     geo?: { lat: number; lng: number; distanceMeters: number | null },
+    orphanedSessionId?: string,
   ): Promise<{
     recordId: string
     approvalId: string
@@ -1699,8 +1740,61 @@ export const attendanceRepository = {
     const now = new Date()
     const today = startOfDay(now)
 
-    const [existing, employee] = await Promise.all([
-      prisma.attendanceRecord.findUnique({
+    const employee = await prisma.user.findUnique({
+      where: { id: employeeId },
+      select: { role: true, organizationId: true },
+    })
+    const orgId = employee?.organizationId ?? null
+
+    // When closing an orphaned session from a previous day, load that
+    // session's parent record instead of today's record.
+    let existing: {
+      id: string
+      project: string | null
+      projectId: string | null
+      location: string | null
+      notes: string | null
+      timeIn: Date | null
+      status: string
+      clockInLat: number | null
+      clockInLng: number | null
+      clockInDistanceMeters: number | null
+      sessions: { id: string; startedAt: Date; breaks: { startedAt: Date; endedAt: Date | null }[] }[]
+    } | null = null
+    let openSession: { id: string; startedAt: Date; breaks: { startedAt: Date; endedAt: Date | null }[] } | null = null
+
+    if (orphanedSessionId) {
+      // Fetch session and its parent record separately to avoid Prisma
+      // nested-select type inference issues where `session.record` is `never`.
+      const orphanSession = await prisma.attendanceSession.findUnique({
+        where: { id: orphanedSessionId },
+        select: {
+          id: true,
+          startedAt: true,
+          recordId: true,
+          breaks: { select: { startedAt: true, endedAt: true } },
+        },
+      })
+      if (!orphanSession) throw new Error("NOT_CLOCKED_IN")
+      const orphanRecord = await prisma.attendanceRecord.findUniqueOrThrow({
+        where: { id: orphanSession.recordId },
+        select: {
+          id: true,
+          project: true,
+          projectId: true,
+          location: true,
+          notes: true,
+          timeIn: true,
+          status: true,
+          clockInLat: true,
+          clockInLng: true,
+          clockInDistanceMeters: true,
+        },
+      })
+      existing = { ...orphanRecord, sessions: [] }
+      openSession = { id: orphanSession.id, startedAt: orphanSession.startedAt, breaks: orphanSession.breaks }
+    } else {
+      const record = await prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },
         select: {
           id: true,
@@ -1726,38 +1820,37 @@ export const attendanceRepository = {
             },
           },
         },
-      }),
-      prisma.user.findUnique({
-        where: { id: employeeId },
-        select: { role: true, organizationId: true },
-      }),
-    ])
-    const orgId = employee?.organizationId ?? null
-    let openSession = existing?.sessions[0] ?? null
+      })
+      existing = record
 
-    if (!openSession) {
-      // Migration gap: employee clocked in with the old code path which
-      // didn't create an AttendanceSession. Create one retroactively so
-      // this clock-out can proceed.
-      if (existing?.timeIn) {
-        const retroSession = await prisma.attendanceSession.create({
-          data: {
-            attendanceRecordId: existing.id,
-            startedAt: existing.timeIn,
-            status: (existing.status as AttendanceStatus) === "LATE" ? "LATE" : "ON_TIME",
-            project: existing.project ?? null,
-            projectId: existing.projectId ?? null,
-            clockInLat: existing.clockInLat ?? null,
-            clockInLng: existing.clockInLng ?? null,
-            clockInDistanceMeters: existing.clockInDistanceMeters ?? null,
-          },
-          select: { id: true, startedAt: true, breaks: { select: { startedAt: true, endedAt: true } } },
-        })
-        openSession = { id: retroSession.id, startedAt: retroSession.startedAt, breaks: retroSession.breaks }
+      if (!record?.sessions[0]) {
+        // Migration gap: employee clocked in with the old code path which
+        // didn't create an AttendanceSession. Create one retroactively so
+        // this clock-out can proceed.
+        if (record?.timeIn) {
+          const retroSession = await prisma.attendanceSession.create({
+            data: {
+              attendanceRecordId: record.id,
+              startedAt: record.timeIn,
+              status: (record.status as AttendanceStatus) === "LATE" ? "LATE" : "ON_TIME",
+              project: record.project ?? null,
+              projectId: record.projectId ?? null,
+              clockInLat: record.clockInLat ?? null,
+              clockInLng: record.clockInLng ?? null,
+              clockInDistanceMeters: record.clockInDistanceMeters ?? null,
+            },
+            select: { id: true, startedAt: true, breaks: { select: { startedAt: true, endedAt: true } } },
+          })
+          openSession = retroSession
+        } else {
+          throw new Error("NOT_CLOCKED_IN")
+        }
       } else {
-        throw new Error("NOT_CLOCKED_IN")
+        openSession = record.sessions[0]
       }
     }
+
+    if (!openSession || !existing) throw new Error("NOT_CLOCKED_IN")
 
     const [hours, tz] = await Promise.all([
       this.getWorkingHours(orgId, existing?.projectId ?? null),

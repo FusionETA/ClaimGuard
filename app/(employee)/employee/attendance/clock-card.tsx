@@ -36,6 +36,7 @@ import {
   updateTodayRemarkAction,
 } from "./actions"
 import { ClockOutSummaryDialog } from "./clock-out-summary-dialog"
+import { ElapsedTimer } from "./elapsed-timer"
 
 /**
  * Best-effort coord refresh on click. Awaits at most `timeoutMs` for a
@@ -178,6 +179,10 @@ type Props = {
    *  is never disabled by this flag (it's the first event of the day,
    *  there's no prior). */
   pendingApproval: { id: string; kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK" } | null
+  /** Open session from a previous day — employee forgot to clock out. When
+   *  set, the card shows the timer still running, hides Break, and requires
+   *  a reason before the clock-out can be submitted. */
+  orphanedSession?: { sessionId: string; startedAt: string; date: string } | null
 }
 
 function ClockInButton({ pending }: { pending: boolean }) {
@@ -305,6 +310,7 @@ export function ClockCard({
   todayRecord,
   latestRejection,
   pendingApproval,
+  orphanedSession,
 }: Props) {
   // GPS watcher runs whenever the policy enforces geofence OR allows
   // location capture for any event. We always have coords ready; per-
@@ -379,6 +385,8 @@ export function ClockCard({
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [remark, setRemark] = useState("")
   const [remarkError, setRemarkError] = useState<string | null>(null)
+  const [orphanedReason, setOrphanedReason] = useState("")
+  const [orphanedReasonError, setOrphanedReasonError] = useState<string | null>(null)
   /// Snapshot of the most recent clock-in submission (formData + display
   /// context). Kept so we can re-open the remark panel when the server
   /// rejects for the IP whitelist — a check the client can't run
@@ -690,9 +698,23 @@ export function ClockCard({
   async function handleClockOut(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (isResolving || pendingAction) return
+    // When closing an orphaned (previous-day) session, require the reason field.
+    if (orphanedSession) {
+      const trimmedReason = orphanedReason.trim()
+      if (!trimmedReason) {
+        setOrphanedReasonError("Please explain why you didn't clock out.")
+        return
+      }
+      setOrphanedReasonError(null)
+    }
     setIsResolving(true)
     try {
       const formData = new FormData(e.currentTarget)
+      // Inject orphaned-session fields before geofence / coord resolution.
+      if (orphanedSession) {
+        formData.set("notes", orphanedReason.trim())
+        formData.set("orphanedSessionId", orphanedSession.sessionId)
+      }
       const captureForThisEvent =
         enforceGeofence || (captureLocationEnabled && captureLocationOnClockOut)
       if (captureForThisEvent) {
@@ -1000,17 +1022,58 @@ export function ClockCard({
           </form>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
-          <form onSubmit={(e) => handleBreak(e, "BREAK_START")}>
-            <BreakStartButton
-              pending={isBreakPending || isResolving}
-            />
-          </form>
-          <form onSubmit={handleClockOut}>
-            <ClockOutButton
-              pending={isClockOutPending || isResolving}
-            />
-          </form>
+        <div className="space-y-3">
+          {orphanedSession ? (
+            <div className="rounded-[20px] border border-amber-300/60 bg-amber-50 p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-amber-900">
+                    Session from {orphanedSession.date} — still running
+                  </p>
+                  <p className="mt-0.5 text-xs text-amber-800">
+                    <ElapsedTimer startedAt={orphanedSession.startedAt} />
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {orphanedSession ? (
+            <div>
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Why didn&apos;t you clock out? (required)
+              </label>
+              <textarea
+                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                rows={2}
+                placeholder="e.g. Forgot to clock out before leaving"
+                value={orphanedReason}
+                onChange={(e) => {
+                  setOrphanedReason(e.target.value)
+                  if (e.target.value.trim()) setOrphanedReasonError(null)
+                }}
+              />
+              {orphanedReasonError ? (
+                <p className="mt-1 text-[11px] font-semibold text-destructive">
+                  {orphanedReasonError}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+          <div className={orphanedSession ? "" : "grid grid-cols-2 gap-3"}>
+            {!orphanedSession ? (
+              <form onSubmit={(e) => handleBreak(e, "BREAK_START")}>
+                <BreakStartButton
+                  pending={isBreakPending || isResolving}
+                />
+              </form>
+            ) : null}
+            <form onSubmit={handleClockOut}>
+              <ClockOutButton
+                pending={isClockOutPending || isResolving}
+              />
+            </form>
+          </div>
         </div>
       )}
 

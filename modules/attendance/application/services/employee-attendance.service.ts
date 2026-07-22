@@ -348,6 +348,7 @@ export const employeeAttendanceService = {
           orgId,
           todayProjectId,
           pendingApproval,
+          orphanedSession,
         ] = await Promise.all([
           attendanceRepository.getTodayAttendance(employeeId),
           attendanceRepository.getWeekAttendance(employeeId),
@@ -359,6 +360,7 @@ export const employeeAttendanceService = {
             employeeId,
             new Date(),
           ),
+          attendanceRepository.findOpenSessionAcrossDays(employeeId),
         ])
 
         const geofenceRadiusMeters = await resolveGeofenceRadius(orgId)
@@ -387,6 +389,7 @@ export const employeeAttendanceService = {
           activeProjectCoords,
           activeProjectGeoLocations,
           pendingApproval,
+          orphanedSession,
         }
       },
     )
@@ -574,6 +577,7 @@ export const employeeAttendanceService = {
     coords?: { lat: number; lng: number },
     notes?: string,
     selfie?: string,
+    orphanedSessionId?: string,
   ) {
     const { distanceMeters } = await enforceGeofenceForActiveRecord(
       employeeId,
@@ -588,6 +592,7 @@ export const employeeAttendanceService = {
       location,
       notes,
       coords ? { lat: coords.lat, lng: coords.lng, distanceMeters } : undefined,
+      orphanedSessionId,
     )
 
     if (selfie) {

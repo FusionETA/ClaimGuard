@@ -131,9 +131,12 @@ export default async function EmployeeDashboardPage() {
   const captureLocationOnClockOut = policy?.captureLocationOnClockOut ?? true
   const captureLocationOnBreakStart = policy?.captureLocationOnBreakStart ?? true
   const captureLocationOnBreakEnd = policy?.captureLocationOnBreakEnd ?? true
-  const clockState = attendanceDashboard
-    ? deriveClockState(attendanceDashboard.todayEvents)
-    : "OUT"
+  const clockState =
+    attendanceDashboard?.orphanedSession
+      ? "IN"
+      : attendanceDashboard
+        ? deriveClockState(attendanceDashboard.todayEvents)
+        : "OUT"
   const activeProject = attendanceDashboard?.today?.project ?? null
   const activeLocation = attendanceDashboard?.today?.location ?? null
   const nowIso = new Date().toISOString()
@@ -191,6 +194,7 @@ export default async function EmployeeDashboardPage() {
             todayRecord={attendanceDashboard.today}
             latestRejection={deriveLatestRejection(attendanceDashboard.todayEvents)}
             pendingApproval={attendanceDashboard.pendingApproval}
+            orphanedSession={attendanceDashboard.orphanedSession}
           />
         </section>
       ) : null}

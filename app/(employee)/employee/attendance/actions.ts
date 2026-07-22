@@ -125,8 +125,9 @@ export async function clockOutAction(
   const coords = parseCoords(formData)
   const notes = parseNotes(formData)
   const selfie = parseSelfie(formData)
+  const orphanedSessionId = (formData?.get("orphanedSessionId") as string | null) || undefined
   try {
-    await employeeAttendanceService.clockOut(session.userId, coords, notes, selfie)
+    await employeeAttendanceService.clockOut(session.userId, coords, notes, selfie, orphanedSessionId)
   } catch (err) {
     return { error: safeErrorMessage(err, "Could not clock out") }
   }

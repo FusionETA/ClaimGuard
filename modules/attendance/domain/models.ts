@@ -176,6 +176,10 @@ export type EmployeeAttendanceDashboard = {
   /// nothing pending and the employee can act freely. OT approvals are
   /// excluded — they don't gate subsequent clocking activity.
   pendingApproval: { id: string; kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK" } | null
+  /// Open session from a PREVIOUS day — employee forgot to clock out.
+  /// When set, the clock card shows "IN" state with a running timer and
+  /// requires a reason before the session can be closed.
+  orphanedSession: { sessionId: string; startedAt: string; date: string } | null
 }
 
 export type SupervisorTeamOverview = {
