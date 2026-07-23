@@ -1622,6 +1622,7 @@ function XeroMappingTab({
     "accrualEpf",
     "accrualSocso",
     "accrualEis",
+    "accrualSkbbk",
     "accrualPcb",
     "accrualSalary",
   ])

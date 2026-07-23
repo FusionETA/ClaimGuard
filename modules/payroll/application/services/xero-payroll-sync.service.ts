@@ -129,6 +129,12 @@ export async function syncPayrollRunToXero(
           socsoEmployer: true,
           eisEmployee: true,
           eisEmployer: true,
+          /// SKBBK (Skim LINDUNG 24 Jam) — employee-only PERKESO
+          /// scheme effective Jun 2026. Reduces net pay (see calc.ts)
+          /// and is credited to its own accrual so the journal
+          /// balances. Without this the sync silently drops the SKBBK
+          /// amount and Xero rejects the manual journal.
+          skbbkEmployee: true,
           pcb: true,
           hrdf: true,
           // Line items — needed to drive per-category allowance /
@@ -190,6 +196,13 @@ export async function syncPayrollRunToXero(
   // (employer expense + accrual payable) are only required when at
   // least one payslip in this run actually carries an HRDF charge.
   const runHasHrdf = run.payslips.some((p) => toNumber(p.hrdf, 0) > 0)
+  // SKBBK is opt-in per-employee — an org can have SUBMITTED payslips
+  // with zero SKBBK across the board. Only require the accrual account
+  // when the run actually carries a SKBBK charge, mirroring how HRDF
+  // is gated above.
+  const runHasSkbbk = run.payslips.some(
+    (p) => toNumber(p.skbbkEmployee, 0) > 0,
+  )
   // Deductions are credited to the unified `deduction` account unless
   // the org runs per-category deduction mapping (in which case the
   // per-category pre-flight below validates coverage instead).
@@ -206,6 +219,7 @@ export async function syncPayrollRunToXero(
   )
   const requiredKeys: PayrollXeroAccountKey[] = [...REQUIRED_ACCOUNT_KEYS]
   if (runHasHrdf) requiredKeys.push("hrdfEmployer", "accrualHrdf")
+  if (runHasSkbbk) requiredKeys.push("accrualSkbbk")
   if (runHasDeductions && mapping.deductionMode !== "PER_CATEGORY") {
     requiredKeys.push("deduction")
   }
@@ -389,6 +403,7 @@ export async function syncPayrollRunToXero(
       socsoEmployer: toNumber(p.socsoEmployer, 0),
       eisEmployee: toNumber(p.eisEmployee, 0),
       eisEmployer: toNumber(p.eisEmployer, 0),
+      skbbkEmployee: toNumber(p.skbbkEmployee, 0),
       pcb: toNumber(p.pcb, 0),
       hrdf: toNumber(p.hrdf, 0),
       allowanceLines,
@@ -791,6 +806,7 @@ export async function syncPayrollRunToXero(
   const totalEpf = sum(rows, (r) => r.epfEmployee + r.epfEmployer)
   const totalSocso = sum(rows, (r) => r.socsoEmployee + r.socsoEmployer)
   const totalEis = sum(rows, (r) => r.eisEmployee + r.eisEmployer)
+  const totalSkbbk = sum(rows, (r) => r.skbbkEmployee)
   const totalPcb = sum(rows, (r) => r.pcb)
   // HRDF is an employer-only levy. It's debited as an expense in the
   // employer-contributions block above, so it needs a matching credit
@@ -823,6 +839,14 @@ export async function syncPayrollRunToXero(
       accountCode: codeFor("accrualEis")!,
       amount: -round2(totalEis),
       description: "ACCRUAL - EIS CONTRIBUTION",
+      tracking: track(ALL_PROJECTS),
+    })
+  }
+  if (totalSkbbk > 0) {
+    lines.push({
+      accountCode: codeFor("accrualSkbbk")!,
+      amount: -round2(totalSkbbk),
+      description: "ACCRUAL - SKBBK (Skim LINDUNG 24 Jam, Employee only)",
       tracking: track(ALL_PROJECTS),
     })
   }

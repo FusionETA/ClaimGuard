@@ -157,6 +157,10 @@ export async function buildPayrollSyncPreview(
           socsoEmployer: true,
           eisEmployee: true,
           eisEmployer: true,
+          /// SKBBK (Skim LINDUNG 24 Jam) — employee-only PERKESO
+          /// scheme effective Jun 2026. Kept as its own accrual so the
+          /// preview journal balances the same way as the live sync.
+          skbbkEmployee: true,
           pcb: true,
           hrdf: true,
           // Line items drive per-category allowance / deduction
@@ -216,6 +220,12 @@ export async function buildPayrollSyncPreview(
   // HRDF charge; the unified `deduction` account only when the run has
   // deductions and the org isn't using per-category deduction mapping.
   const runHasHrdf = run.payslips.some((p) => toNumber(p.hrdf, 0) > 0)
+  // SKBBK is opt-in per-employee — the accrual account is only
+  // required when at least one payslip carries a SKBBK charge,
+  // mirroring the HRDF gate above and the live-sync gate.
+  const runHasSkbbk = run.payslips.some(
+    (p) => toNumber(p.skbbkEmployee, 0) > 0,
+  )
   // Unpaid leave is netted into SALARY now (no separate deduction
   // line), so it doesn't trigger the unified-deduction-account
   // requirement. Only non-unpaid-leave deductions count here.
@@ -229,6 +239,7 @@ export async function buildPayrollSyncPreview(
   )
   const requiredKeys: PayrollXeroAccountKey[] = [...REQUIRED_KEYS]
   if (runHasHrdf) requiredKeys.push("hrdfEmployer", "accrualHrdf")
+  if (runHasSkbbk) requiredKeys.push("accrualSkbbk")
   if (runHasDeductions && mapping?.deductionMode !== "PER_CATEGORY") {
     requiredKeys.push("deduction")
   }
@@ -319,6 +330,7 @@ export async function buildPayrollSyncPreview(
     socsoEmployer: toNumber(p.socsoEmployer, 0),
     eisEmployee: toNumber(p.eisEmployee, 0),
     eisEmployer: toNumber(p.eisEmployer, 0),
+    skbbkEmployee: toNumber(p.skbbkEmployee, 0),
     pcb: toNumber(p.pcb, 0),
     hrdf: toNumber(p.hrdf, 0),
     reimbursementLines: p.lineItems
@@ -457,6 +469,7 @@ export async function buildPayrollSyncPreview(
   const totalEpf = sum(rows, (r) => r.epfEmployee + r.epfEmployer)
   const totalSocso = sum(rows, (r) => r.socsoEmployee + r.socsoEmployer)
   const totalEis = sum(rows, (r) => r.eisEmployee + r.eisEmployer)
+  const totalSkbbk = sum(rows, (r) => r.skbbkEmployee)
   const totalPcb = sum(rows, (r) => r.pcb)
   // HRDF employer levy was debited above — credit the payable so the
   // journal balances. Deductions reduced net pay, so they also need a
@@ -488,6 +501,13 @@ export async function buildPayrollSyncPreview(
       "accrualEis",
       -totalEis,
       "ACCRUAL - EIS CONTRIBUTION",
+      ALL_PROJECTS,
+    )
+  if (totalSkbbk > 0)
+    pushLine(
+      "accrualSkbbk",
+      -totalSkbbk,
+      "ACCRUAL - SKBBK (Skim LINDUNG 24 Jam, Employee only)",
       ALL_PROJECTS,
     )
   if (totalPcb > 0)
