@@ -392,6 +392,17 @@ export function PayslipsListPanel({
               value={fmt(totals.eisEmp + totals.eisEr)}
               mono
             />
+            {/* SKBBK (Skim LINDUNG 24 Jam) — employee-only PERKESO
+                scheme, effective 1 Jun 2026. Hidden when 0 so periods
+                before June 2026 don't show a junk RM 0.00 line — mirrors
+                the payroll-summary PDF's gate on the same field. */}
+            {totals.skbbkEmp > 0 ? (
+              <SummaryRow
+                label="Total SKBBK payment"
+                value={fmt(totals.skbbkEmp)}
+                mono
+              />
+            ) : null}
             <SummaryRow
               label="Total HRDF payment"
               value={fmt(totals.hrdf)}

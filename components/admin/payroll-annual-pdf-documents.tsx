@@ -211,6 +211,18 @@ export function FormEaBulkPdfDocument(props: FormEaBulkPdfDocumentProps) {
             label="SOCSO + EIS (employee share)"
             amount={e.totalSocsoEmployee + e.totalEisEmployee}
           />
+          {/* SKBBK (Skim LINDUNG 24 Jam, employee-only PERKESO scheme
+              effective Jun 2026) shares the RM 350/year K1 relief cap
+              with SOCSO + EIS. Shown as a separate line so the
+              employee can transcribe the exact figure onto their
+              personal-tax filing. Hidden when zero so years before
+              Jun 2026 don't show a junk RM 0.00 line. */}
+          {e.totalSkbbkEmployee > 0 ? (
+            <AmtRow
+              label="SKBBK — LINDUNG 24 Jam (employee share)"
+              amount={e.totalSkbbkEmployee}
+            />
+          ) : null}
 
           <Text style={[styles.formSubtitle, { marginTop: 18 }]}>
             Issued by employer on {fmtDate(props.generatedAt)}. For tax filing

@@ -75,6 +75,12 @@ export type AnnualEmployeeAggregate = {
   totalEpfEmployee: number
   totalSocsoEmployee: number
   totalEisEmployee: number
+  /// SKBBK (Skim LINDUNG 24 Jam) — employee-only PERKESO scheme,
+  /// effective Jun 2026. Shares the RM 350/year K1 relief cap with
+  /// SOCSO + EIS so the employee needs to see it on their Form EA to
+  /// compute personal-tax relief correctly. Zero for years before Jun
+  /// 2026 and for employees who never opted in.
+  totalSkbbkEmployee: number
 }
 
 /**
@@ -137,6 +143,7 @@ export async function loadAnnualPayrollPayload(input: {
             epfEmployee: true,
             socsoEmployee: true,
             eisEmployee: true,
+            skbbkEmployee: true,
             pcb: true,
             zakat: true,
             lineItems: {
@@ -176,6 +183,7 @@ export async function loadAnnualPayrollPayload(input: {
       const epfE = toNumber(p.epfEmployee, 0) ?? 0
       const socsoE = toNumber(p.socsoEmployee, 0) ?? 0
       const eisE = toNumber(p.eisEmployee, 0) ?? 0
+      const skbbkE = toNumber(p.skbbkEmployee, 0) ?? 0
       const pcb = toNumber(p.pcb, 0) ?? 0
       const zakat = toNumber(p.zakat, 0) ?? 0
 
@@ -184,6 +192,7 @@ export async function loadAnnualPayrollPayload(input: {
       agg.totalEpfEmployee += epfE
       agg.totalSocsoEmployee += socsoE
       agg.totalEisEmployee += eisE
+      agg.totalSkbbkEmployee += skbbkE
       agg.totalPcb += pcb
       agg.totalZakat += zakat
 
@@ -389,6 +398,7 @@ function blankAggregate(
     totalEpfEmployee: 0,
     totalSocsoEmployee: 0,
     totalEisEmployee: 0,
+    totalSkbbkEmployee: 0,
   }
 }
 

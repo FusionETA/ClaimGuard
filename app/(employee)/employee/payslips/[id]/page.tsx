@@ -173,6 +173,14 @@ export default async function EmployeePayslipDetailPage({
           <Line label="EPF (employee)" value={payslip.epfEmployee} />
           <Line label="SOCSO (employee)" value={payslip.socsoEmployee} />
           <Line label="EIS (employee)" value={payslip.eisEmployee} />
+          {/* SKBBK (Skim LINDUNG 24 Jam) — employee-only PERKESO
+              scheme, effective 1 Jun 2026. Only shown when the
+              employee actually contributes so pre-June payslips
+              (and non-opted-in employees) don't display a junk
+              RM 0.00 line. */}
+          {payslip.skbbkEmployee > 0 && (
+            <Line label="SKBBK (employee)" value={payslip.skbbkEmployee} />
+          )}
           <Line
             label="PCB (income tax)"
             value={payslip.pcb}
