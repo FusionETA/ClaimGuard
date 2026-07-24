@@ -58,6 +58,10 @@ model User {
   xeroConnections                 XeroConnection[]       @relation("XeroConnectedBy")
   managedProjects                 XeroProject[]          @relation("ProjectManager")
   employeeTransfersCreated        EmployeeTransfer[]     @relation("EmployeeTransferCreatedBy")
+  appraisalsAsReviewee            Appraisal[]            @relation("AppraisalReviewee")
+  appraisalsAsReviewer            Appraisal[]            @relation("AppraisalReviewer")
+  appraisalsAsPartner             Appraisal[]            @relation("AppraisalPartner")
+  appraisalsCreated               Appraisal[]            @relation("AppraisalCreatedBy")
 
   @@index([organizationId])
   @@index([email])
@@ -135,6 +139,7 @@ model Organization {
   orgHolidays               OrgHoliday[]
   employeeTransfersOut      EmployeeTransfer[]        @relation("EmployeeTransferSourceOrg")
   employeeTransfersIn       EmployeeTransfer[]        @relation("EmployeeTransferTargetOrg")
+  appraisals                Appraisal[]
   /// Org-wide default working days as a CSV of weekday numbers 1–7
   /// (Mon = 1 … Sun = 7). Null means Mon–Fri (1,2,3,4,5). Projects can
   /// override via XeroProject.workingDays.
@@ -2790,4 +2795,94 @@ enum PayrollRunReport_kind {
   SOCSO_EIS_SKBBK_TXT
   PCB_TXT
   BANK_PB_ECP_XLSX
+}
+
+/// ─── Appraisify (performance appraisals) ───────────────────────────
+/// A three-phase appraisal cycle: reviewee self-assessment →
+/// reviewer scoring → partner final scoring. Stage advances one step
+/// per phase submission (see `nextAppraisalStage` in the domain layer).
+
+enum AppraisalStage {
+  INITIALIZED
+  REVIEWER_PENDING
+  PARTNER_PENDING
+  SUBMITTED
+}
+
+enum AppraisalType {
+  ANNUAL
+  MID_YEAR
+  PROBATION
+}
+
+model Appraisal {
+  id              String         @id @default(cuid())
+  organizationId  String
+  referenceNumber String         @unique
+  stage           AppraisalStage @default(INITIALIZED)
+  year            Int
+  type            AppraisalType  @default(ANNUAL)
+  /// Snapshot of the reviewee's team/department and job title at creation
+  /// time, so historical appraisals don't change if the employee moves.
+  team            String?
+  role            String?
+
+  revieweeId      String
+  reviewerId      String
+  partnerId       String
+  createdByUserId String
+
+  /// Per-phase section free-text (Goals Review / Overall Remarks /
+  /// Development Plans), one set per phase.
+  revieweeGoals       String? @db.Text
+  revieweeRemarks     String? @db.Text
+  revieweeDevelopment String? @db.Text
+  reviewerGoals       String? @db.Text
+  reviewerRemarks     String? @db.Text
+  reviewerDevelopment String? @db.Text
+  partnerGoals        String? @db.Text
+  partnerRemarks      String? @db.Text
+  partnerDevelopment  String? @db.Text
+
+  revieweeSubmittedAt DateTime?
+  reviewerSubmittedAt DateTime?
+  partnerSubmittedAt  DateTime?
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reviewee     User                @relation("AppraisalReviewee", fields: [revieweeId], references: [id], onDelete: Cascade)
+  reviewer     User                @relation("AppraisalReviewer", fields: [reviewerId], references: [id])
+  partner      User                @relation("AppraisalPartner", fields: [partnerId], references: [id])
+  createdBy    User                @relation("AppraisalCreatedBy", fields: [createdByUserId], references: [id])
+  questions    AppraisalQuestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, year])
+  @@index([revieweeId])
+  @@index([reviewerId], map: "Appraisal_reviewerId_fkey")
+  @@index([partnerId], map: "Appraisal_partnerId_fkey")
+  @@index([createdByUserId], map: "Appraisal_createdByUserId_fkey")
+}
+
+model AppraisalQuestion {
+  id          String  @id @default(cuid())
+  appraisalId String
+  order       Int
+  /// Section key used to group questions into the tabbed UI.
+  section     String?
+  text        String  @db.Text
+  description String? @db.Text
+
+  /// Scores are 1–5 with up to 2 decimal places.
+  revieweeScore   Decimal? @db.Decimal(4, 2)
+  revieweeComment String?  @db.Text
+  reviewerScore   Decimal? @db.Decimal(4, 2)
+  reviewerComment String?  @db.Text
+  partnerScore    Decimal? @db.Decimal(4, 2)
+  partnerComment  String?  @db.Text
+
+  appraisal Appraisal @relation(fields: [appraisalId], references: [id], onDelete: Cascade)
+
+  @@index([appraisalId, order])
 }

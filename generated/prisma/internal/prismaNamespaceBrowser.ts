@@ -106,7 +106,9 @@ export const ModelName = {
   LeaveEntitlement: 'LeaveEntitlement',
   LeaveApplication: 'LeaveApplication',
   OrganizationAuditLog: 'OrganizationAuditLog',
-  SuperadminAuditLog: 'SuperadminAuditLog'
+  SuperadminAuditLog: 'SuperadminAuditLog',
+  Appraisal: 'Appraisal',
+  AppraisalQuestion: 'AppraisalQuestion'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1317,6 +1319,56 @@ export const SuperadminAuditLogScalarFieldEnum = {
 export type SuperadminAuditLogScalarFieldEnum = (typeof SuperadminAuditLogScalarFieldEnum)[keyof typeof SuperadminAuditLogScalarFieldEnum]
 
 
+export const AppraisalScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  referenceNumber: 'referenceNumber',
+  stage: 'stage',
+  year: 'year',
+  type: 'type',
+  team: 'team',
+  role: 'role',
+  revieweeId: 'revieweeId',
+  reviewerId: 'reviewerId',
+  partnerId: 'partnerId',
+  createdByUserId: 'createdByUserId',
+  revieweeGoals: 'revieweeGoals',
+  revieweeRemarks: 'revieweeRemarks',
+  revieweeDevelopment: 'revieweeDevelopment',
+  reviewerGoals: 'reviewerGoals',
+  reviewerRemarks: 'reviewerRemarks',
+  reviewerDevelopment: 'reviewerDevelopment',
+  partnerGoals: 'partnerGoals',
+  partnerRemarks: 'partnerRemarks',
+  partnerDevelopment: 'partnerDevelopment',
+  revieweeSubmittedAt: 'revieweeSubmittedAt',
+  reviewerSubmittedAt: 'reviewerSubmittedAt',
+  partnerSubmittedAt: 'partnerSubmittedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppraisalScalarFieldEnum = (typeof AppraisalScalarFieldEnum)[keyof typeof AppraisalScalarFieldEnum]
+
+
+export const AppraisalQuestionScalarFieldEnum = {
+  id: 'id',
+  appraisalId: 'appraisalId',
+  order: 'order',
+  section: 'section',
+  text: 'text',
+  description: 'description',
+  revieweeScore: 'revieweeScore',
+  revieweeComment: 'revieweeComment',
+  reviewerScore: 'reviewerScore',
+  reviewerComment: 'reviewerComment',
+  partnerScore: 'partnerScore',
+  partnerComment: 'partnerComment'
+} as const
+
+export type AppraisalQuestionScalarFieldEnum = (typeof AppraisalQuestionScalarFieldEnum)[keyof typeof AppraisalQuestionScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2107,4 +2159,42 @@ export const SuperadminAuditLogOrderByRelevanceFieldEnum = {
 } as const
 
 export type SuperadminAuditLogOrderByRelevanceFieldEnum = (typeof SuperadminAuditLogOrderByRelevanceFieldEnum)[keyof typeof SuperadminAuditLogOrderByRelevanceFieldEnum]
+
+
+export const AppraisalOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  referenceNumber: 'referenceNumber',
+  team: 'team',
+  role: 'role',
+  revieweeId: 'revieweeId',
+  reviewerId: 'reviewerId',
+  partnerId: 'partnerId',
+  createdByUserId: 'createdByUserId',
+  revieweeGoals: 'revieweeGoals',
+  revieweeRemarks: 'revieweeRemarks',
+  revieweeDevelopment: 'revieweeDevelopment',
+  reviewerGoals: 'reviewerGoals',
+  reviewerRemarks: 'reviewerRemarks',
+  reviewerDevelopment: 'reviewerDevelopment',
+  partnerGoals: 'partnerGoals',
+  partnerRemarks: 'partnerRemarks',
+  partnerDevelopment: 'partnerDevelopment'
+} as const
+
+export type AppraisalOrderByRelevanceFieldEnum = (typeof AppraisalOrderByRelevanceFieldEnum)[keyof typeof AppraisalOrderByRelevanceFieldEnum]
+
+
+export const AppraisalQuestionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  appraisalId: 'appraisalId',
+  section: 'section',
+  text: 'text',
+  description: 'description',
+  revieweeComment: 'revieweeComment',
+  reviewerComment: 'reviewerComment',
+  partnerComment: 'partnerComment'
+} as const
+
+export type AppraisalQuestionOrderByRelevanceFieldEnum = (typeof AppraisalQuestionOrderByRelevanceFieldEnum)[keyof typeof AppraisalQuestionOrderByRelevanceFieldEnum]
 

@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react"
 import {
   CalendarClock,
   CalendarDays,
+  ClipboardCheck,
   FileText,
   Home,
   Receipt,
@@ -75,6 +76,11 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     ],
   },
   {
+    href: "/employee/appraisals" as Route,
+    label: "Appraisals",
+    icon: ClipboardCheck,
+  },
+  {
     href: "/employee/payslips" as Route,
     label: "Payslips",
     icon: Receipt,
@@ -90,6 +96,7 @@ function getSectionTitle(pathname: string) {
   if (pathname.startsWith("/employee/review")) return "Claims"
   if (pathname.startsWith("/employee/leave")) return "Leave"
   if (pathname.startsWith("/employee/payslips")) return "Payslips"
+  if (pathname.startsWith("/employee/appraisals")) return "Appraisals"
   if (pathname.startsWith("/employee/attendance")) return "Attendance"
   return "Employee"
 }
@@ -424,7 +431,7 @@ export function EmployeeShell({
 
         <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden print:hidden">
           <div
-            className="grid grid-cols-5 gap-1"
+            className="grid grid-cols-6 gap-1"
           >
             {visibleNav.map((item) => {
               const active = pathname === item.href

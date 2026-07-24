@@ -394,3 +394,22 @@ export const PayrollRunReport_kind = {
 } as const
 
 export type PayrollRunReport_kind = (typeof PayrollRunReport_kind)[keyof typeof PayrollRunReport_kind]
+
+
+export const AppraisalStage = {
+  INITIALIZED: 'INITIALIZED',
+  REVIEWER_PENDING: 'REVIEWER_PENDING',
+  PARTNER_PENDING: 'PARTNER_PENDING',
+  SUBMITTED: 'SUBMITTED'
+} as const
+
+export type AppraisalStage = (typeof AppraisalStage)[keyof typeof AppraisalStage]
+
+
+export const AppraisalType = {
+  ANNUAL: 'ANNUAL',
+  MID_YEAR: 'MID_YEAR',
+  PROBATION: 'PROBATION'
+} as const
+
+export type AppraisalType = (typeof AppraisalType)[keyof typeof AppraisalType]

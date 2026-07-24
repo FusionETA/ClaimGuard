@@ -597,3 +597,13 @@ export type OrganizationAuditLog = Prisma.OrganizationAuditLogModel
  * Fusioneta staff via a dedicated internal page.
  */
 export type SuperadminAuditLog = Prisma.SuperadminAuditLogModel
+/**
+ * Model Appraisal
+ * 
+ */
+export type Appraisal = Prisma.AppraisalModel
+/**
+ * Model AppraisalQuestion
+ * 
+ */
+export type AppraisalQuestion = Prisma.AppraisalQuestionModel

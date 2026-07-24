@@ -28,6 +28,7 @@
     "db:create-master-key": "tsx prisma/create-master-key.ts",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed-appraisals": "tsx prisma/seed-appraisals.ts",
     "db:studio": "prisma studio"
   },
   "prisma": {
