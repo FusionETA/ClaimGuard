@@ -51,8 +51,27 @@ export type ParsedAdjustmentRow = {
   treatAsRecurring: boolean | null
 }
 
+/**
+ * A per-employee basic-salary figure read from the optional
+ * `Basic Salary` column. Emitted separately from the line-item `rows`
+ * because salary is an attribute of the EMPLOYEE, not of any single
+ * adjustment line. An employee may span several line-item rows; the
+ * salary is read from whichever of their rows carries it (the template
+ * pre-fills it on the first row only). The import service compares this
+ * against the employee's current salary and, when it differs, records a
+ * `SalaryChange` (increase or decrease) effective that run's period.
+ */
+export type ParsedAdjustmentSalary = {
+  rowNumber: number
+  fullName: string
+  basicSalary: number
+}
+
 export type ParsedAdjustmentImport = {
   rows: ParsedAdjustmentRow[]
+  /// Per-employee basic-salary values from the optional `Basic Salary`
+  /// column. Empty when the column is absent or every cell is blank.
+  salaries: ParsedAdjustmentSalary[]
   /// File-level errors — parser couldn't make sense of the sheet at
   /// all (missing required columns, empty sheet, unreadable workbook).
   errors: string[]
@@ -106,6 +125,7 @@ export async function parseAdjustmentImport(
   } catch {
     return {
       rows: [],
+      salaries: [],
       errors: ["File is not a readable .xlsx workbook."],
       rowErrors: [],
     }
@@ -115,6 +135,7 @@ export async function parseAdjustmentImport(
   if (!sheet) {
     return {
       rows: [],
+      salaries: [],
       errors: ["The workbook has no sheets."],
       rowErrors: [],
     }
@@ -142,6 +163,15 @@ export async function parseAdjustmentImport(
     columnByHeader.get("treat as recurring") ??
     columnByHeader.get("treat_as_recurring") ??
     columnByHeader.get("treatasrecurring")
+  // Optional — carries a per-employee monthly basic salary. When present
+  // and different from the employee's current salary, the import records
+  // a SalaryChange effective the run's period. Accept a few variants.
+  const salaryCol =
+    columnByHeader.get("basic salary") ??
+    columnByHeader.get("basic_salary") ??
+    columnByHeader.get("basicsalary") ??
+    columnByHeader.get("monthly salary") ??
+    columnByHeader.get("salary")
 
   const missing: string[] = []
   if (!nameCol) missing.push("Full Name")
@@ -151,6 +181,7 @@ export async function parseAdjustmentImport(
   if (missing.length > 0) {
     return {
       rows: [],
+      salaries: [],
       errors: [
         `Missing required column${missing.length === 1 ? "" : "s"}: ${missing.join(", ")}. Download the template from the same dialog for the correct layout.`,
       ],
@@ -159,28 +190,61 @@ export async function parseAdjustmentImport(
   }
 
   const rows: ParsedAdjustmentRow[] = []
+  const salaries: ParsedAdjustmentSalary[] = []
   const rowErrors: Array<{ rowNumber: number; message: string }> = []
 
   const lastRow = sheet.actualRowCount
   for (let r = 2; r <= lastRow; r++) {
     const row = sheet.getRow(r)
-    if (isRowBlank(row, [nameCol!, categoryCol!, labelCol!, amountCol!])) {
-      // Blank row — treat as end-of-data-ish but keep scanning: admins
-      // sometimes leave gaps.
-      continue
-    }
 
     const rawName = cellText(row.getCell(nameCol!))
     const rawCategory = cellText(row.getCell(categoryCol!))
     const rawLabel = cellText(row.getCell(labelCol!))
     const rawAmount = cellNumeric(row.getCell(amountCol!))
     const rawTreat = treatCol ? cellBool(row.getCell(treatCol)) : null
+    const rawSalary = salaryCol ? cellNumeric(row.getCell(salaryCol)) : null
 
-    // Template pre-fills every eligible employee's name so admins can
-    // add lines to any of them without inserting new rows manually.
-    // Rows the admin left completely blank (name only, no
-    // category/label/amount) are intentional skips — nothing to import
-    // for that employee. Treat as skipped rather than an error.
+    // A fully-blank row (no name, no line item, no salary) is a gap —
+    // skip and keep scanning. The Basic Salary column means a row with
+    // only a name + salary is NOT blank; it's a salary-only change.
+    if (
+      rawName.length === 0 &&
+      rawCategory.length === 0 &&
+      rawLabel.length === 0 &&
+      rawAmount === null &&
+      rawSalary === null
+    ) {
+      continue
+    }
+
+    // ── Basic Salary (optional, per employee) ─────────────────────────
+    // Read wherever it appears on the employee's rows. Requires a name
+    // and a positive value; the import service resolves the name and
+    // dedupes multiple rows for the same employee.
+    if (rawSalary !== null) {
+      if (rawName.length === 0) {
+        rowErrors.push({
+          rowNumber: r,
+          message: "Basic Salary needs a Full Name on the same row.",
+        })
+      } else if (rawSalary <= 0) {
+        rowErrors.push({
+          rowNumber: r,
+          message: "Basic Salary must be a positive number.",
+        })
+      } else {
+        salaries.push({
+          rowNumber: r,
+          fullName: rawName,
+          // Round to 2dp — sheet floats can arrive as 5000.0000001.
+          basicSalary: Math.round(rawSalary * 100) / 100,
+        })
+      }
+    }
+
+    // Rows carrying only a name (+ optional salary) but no line item are
+    // intentional: either a salary-only change, or a pre-filled employee
+    // the admin left untouched. Nothing more to do for the line-item path.
     if (
       rawCategory.length === 0 &&
       rawLabel.length === 0 &&
@@ -229,7 +293,7 @@ export async function parseAdjustmentImport(
     })
   }
 
-  return { rows, errors: [], rowErrors }
+  return { rows, salaries, errors: [], rowErrors }
 }
 
 // ─── Cell helpers ───────────────────────────────────────────────────
@@ -269,14 +333,6 @@ function cellNumeric(cell: ExcelJS.Cell): number | null {
     if ("result" in v && typeof v.result === "number") return v.result
   }
   return null
-}
-
-function isRowBlank(row: ExcelJS.Row, columns: number[]): boolean {
-  for (const c of columns) {
-    const v = row.getCell(c).value
-    if (v != null && String(v).trim().length > 0) return false
-  }
-  return true
 }
 
 /**

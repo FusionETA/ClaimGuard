@@ -27,6 +27,12 @@ export async function renderAdjustmentImportTemplate(input: {
   periodLabel: string
   employees: Array<{
     name: string
+    /// Current monthly salary, pre-filled into the Basic Salary column
+    /// so the admin sees the standing figure and can overwrite it to
+    /// record a raise/cut for this run's period. Null / undefined for
+    /// hourly-paid employees (the column stays blank — salary override
+    /// only supports monthly pay).
+    currentSalary?: number | null
     /// Existing manual line items already on the run for this
     /// employee. Emitted as one row per line, pre-filled with the
     /// current category / label / amount so the admin sees what
@@ -155,6 +161,11 @@ export async function renderAdjustmentImportTemplate(input: {
     // is actually paid every month, so PCB uses the recurring formula
     // instead of the AR one-off formula.
     { header: "Treat as recurring", key: "treatAsRecurring", width: 20 },
+    // Optional 6th column. Pre-filled with each employee's current
+    // monthly salary. Overwrite it to record a raise/cut effective this
+    // run's period; leave it as-is (or blank) to keep the current
+    // salary. One value per employee — put it on the first row.
+    { header: "Basic Salary", key: "basicSalary", width: 14 },
   ]
 
   const headerRow = sheet.getRow(1)
@@ -177,7 +188,8 @@ export async function renderAdjustmentImportTemplate(input: {
           `Multiple adjustments per employee — just add another row with the same Full Name. ` +
           `E.g. one row for bonus, another row for loan repayment.\n\n` +
           `Category column has a dropdown — see the "Categories" tab for what each option is subject to.\n\n` +
-          `Treat as recurring (last column, optional): tick with TRUE/Y for AR-flagged categories that are actually paid every month (e.g. a monthly directors' fee) so PCB spreads them across the year instead of spiking. Leave blank for genuine one-off bonuses / gratuities.`,
+          `Treat as recurring (optional): tick with TRUE/Y for AR-flagged categories that are actually paid every month (e.g. a monthly directors' fee) so PCB spreads them across the year instead of spiking. Leave blank for genuine one-off bonuses / gratuities.\n\n` +
+          `Basic Salary (optional): pre-filled with each employee's current monthly salary. Overwrite it to record a raise or cut effective this run's period — it updates the employee's standing salary and logs a salary-change record. Leave it unchanged to keep the current salary. One value per employee (first row).`,
       },
     ],
   }
@@ -192,9 +204,15 @@ export async function renderAdjustmentImportTemplate(input: {
   const rows: Array<Array<string | number>> =
     input.employees.length > 0
       ? input.employees.flatMap((e) => {
+          // Salary sits on the employee's FIRST row only — the parser
+          // reads one value per employee. Blank for hourly (null) staff.
+          const salaryCell: string | number =
+            e.currentSalary != null ? e.currentSalary : ""
           const existing = e.existingLines ?? []
-          if (existing.length === 0) return [[e.name, "", "", "", ""]]
-          return existing.map((li) => [
+          if (existing.length === 0) {
+            return [[e.name, "", "", "", "", salaryCell]]
+          }
+          return existing.map((li, idx) => [
             e.name,
             li.categoryLabel,
             li.label,
@@ -204,6 +222,7 @@ export async function renderAdjustmentImportTemplate(input: {
               : li.treatAsRecurring
                 ? "TRUE"
                 : "FALSE",
+            idx === 0 ? salaryCell : "",
           ])
         })
       : [
@@ -213,13 +232,15 @@ export async function renderAdjustmentImportTemplate(input: {
             "January transport top-up",
             250.0,
             "",
+            3500.0,
           ],
         ]
 
   for (const r of rows) sheet.addRow(r)
 
-  // Amount column: currency format.
+  // Amount + Basic Salary columns: currency format.
   sheet.getColumn(4).numFmt = "#,##0.00"
+  sheet.getColumn(6).numFmt = "#,##0.00"
 
   // ── Data validation on Category column ───────────────────────────
   // Apply to every seed row + a generous buffer (500 rows) so admins
@@ -244,7 +265,7 @@ export async function renderAdjustmentImportTemplate(input: {
 
   sheet.autoFilter = {
     from: { row: 1, column: 1 },
-    to: { row: 1, column: 5 },
+    to: { row: 1, column: 6 },
   }
 
   // Column E (Treat as recurring): TRUE/FALSE dropdown validation so
