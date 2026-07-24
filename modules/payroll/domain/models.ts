@@ -821,6 +821,16 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     reducesBase: true,
+    // Recover a salary advance the same way Payroll Panda's
+    // "Advance (Payment Made via Payroll)" does: the advance comes off
+    // the displayed Gross (not just take-home), so Gross, statutory,
+    // cost, and net all reflect the reduced wage consistently.
+    // Behaviourally identical to Salary Adjustment — only the label
+    // differs. Correct when the advance was itself paid/taxed via
+    // payroll; for an advance paid outside payroll (never taxed) use a
+    // cash-only category like "Miscellaneous / Other Deduction" instead,
+    // so statutory stays on the full salary.
+    reducesGross: true,
   },
   deduct_miscellaneous: {
     // Generic post-tax deduction — fines, uniform deposits, canteen
