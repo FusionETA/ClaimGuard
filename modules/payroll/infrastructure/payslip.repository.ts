@@ -89,6 +89,7 @@ export type CreatePayslipInput = {
   zakat: number
   grossPay: number
   netPay: number
+  netShortfall: number
   totalCostToEmployer: number
   // Line items written alongside the payslip
   lineItems: Array<{
@@ -182,6 +183,7 @@ export const payslipRepository = {
           zakat: p.zakat,
           grossPay: p.grossPay,
           netPay: p.netPay,
+          netShortfall: p.netShortfall,
           totalCostToEmployer: p.totalCostToEmployer,
           // Nested write so each non-zero adjustment column from the
           // YTD import XLSX (bonus / commission / service charge /
@@ -286,6 +288,7 @@ export const payslipRepository = {
             zakat: p.zakat,
             grossPay: p.grossPay,
             netPay: p.netPay,
+            netShortfall: p.netShortfall,
             totalCostToEmployer: p.totalCostToEmployer,
             lineItems: {
               create: p.lineItems.map((li) => ({
@@ -967,6 +970,7 @@ function mapPayslip(row: any, lineItems: PayslipLineItemData[]): PayslipData {
     hrdfWage: toNumber(row.hrdfWage, 0),
     grossPay: toNumber(row.grossPay, 0),
     netPay: toNumber(row.netPay, 0),
+    netShortfall: toNumber(row.netShortfall, 0),
     totalCostToEmployer: toNumber(row.totalCostToEmployer, 0),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

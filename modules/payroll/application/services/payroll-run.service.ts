@@ -563,19 +563,22 @@ export async function submitPayrollRunForApproval(input: {
     }
   }
 
-  // Guard 2 — no employee may have zero or negative net pay (e.g. a
-  // loan installment / deductions larger than their take-home). Block
-  // and name the affected employees.
-  const nonPositive = payslips.filter((p) => p.netPay <= 0)
-  if (nonPositive.length > 0) {
-    const names = nonPositive
+  // Guard 2 — net pay can never be NEGATIVE. The calc already floors it
+  // at 0 (you can't deduct an employee into debt — EA 1955 s.24), so a
+  // truly-negative value here would be a calc bug, not a data problem —
+  // hence still a hard block. A net of EXACTLY 0 (deductions swallowed
+  // the whole pay) is allowed to submit: it's surfaced non-blockingly in
+  // the run's "Needs attention" list via `netShortfall`, mirroring
+  // Payroll Panda, which shows 0.00 and lets the run continue.
+  const negative = payslips.filter((p) => p.netPay < 0)
+  if (negative.length > 0) {
+    const names = negative
       .slice(0, 5)
       .map((p) => p.snapshotName)
       .join(", ")
-    const more =
-      nonPositive.length > 5 ? ` and ${nonPositive.length - 5} more` : ""
+    const more = negative.length > 5 ? ` and ${negative.length - 5} more` : ""
     throw new Error(
-      `Cannot submit — net pay is zero or negative for: ${names}${more}. Reduce their deductions or loan installment, then re-run payroll.`,
+      `Cannot submit — net pay is negative for: ${names}${more}. This shouldn't happen; re-run payroll and report it if it persists.`,
     )
   }
 
@@ -1862,6 +1865,7 @@ export async function generatePayrollPayslips(input: {
       zakat: result.zakat,
       grossPay: result.grossPay,
       netPay: result.netPay,
+      netShortfall: result.netShortfall,
       totalCostToEmployer: result.totalCostToEmployer,
       lineItems: result.lineItems,
     }

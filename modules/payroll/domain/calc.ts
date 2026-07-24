@@ -800,6 +800,10 @@ export type CalcPayslipResult = {
   // Aggregates
   grossPay: number
   netPay: number
+  /// Amount post-statutory deductions exceeded available pay this month.
+  /// 0 unless `netPay` was floored to 0. Non-zero flags an over-deduction
+  /// for admin review (see the "Needs attention" list on the run).
+  netShortfall: number
   totalCostToEmployer: number
   /// Sum of non-cash benefits (BIK / perquisites) attached to this
   /// payslip. Does NOT contribute to grossPay or netPay — surfaced
@@ -1495,7 +1499,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   // SKBBK (Skim LINDUNG 24 Jam) is an employee-only contribution
   // effective Jun 2026 onwards. The employer side carries no SKBBK,
   // so totalCostToEmployer below is unaffected — only net-pay drops.
-  const netPay = round2(
+  const rawNet = round2(
     grossPay -
       epf.employee -
       socso.employee -
@@ -1504,6 +1508,15 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       totalDeductions -
       pcb,
   )
+  // Net pay can never go below zero — you can't deduct an employee into
+  // debt (Employment Act 1955 s.24). When post-statutory deductions
+  // (loans, advances, salary deductions) exceed the pay left after
+  // statutory, floor net at 0 and record the shortfall (the amount that
+  // couldn't be recovered) so the run flags it for review. Mirrors
+  // Payroll Panda, which shows net 0.00 while keeping the full deduction
+  // line visible.
+  const netPay = Math.max(0, rawNet)
+  const netShortfall = rawNet < 0 ? round2(-rawNet) : 0
   const totalCostToEmployer = round2(
     grossPay +
       epf.employer +
@@ -1578,6 +1591,11 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     zakat: thisMonthZakat,
     grossPay,
     netPay,
+    /// Amount by which post-statutory deductions exceeded available pay
+    /// this month — 0 when net didn't hit the floor. Non-zero means net
+    /// was clamped to 0 and this much couldn't be recovered. Surfaced on
+    /// the run for review; does not carry forward automatically.
+    netShortfall,
     totalCostToEmployer,
     pcbCalculation,
     pcbBreakdown: {

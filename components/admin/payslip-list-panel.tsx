@@ -569,8 +569,17 @@ function PayslipRow({
     return items
   }, [payslip])
 
+  // Net pay was floored to 0 — deductions exceeded available pay. Flag
+  // the row red and show the un-recovered shortfall on the net cell.
+  const netShortfall = payslip.netShortfall ?? 0
+  const isCapped = netShortfall > 0.005
+
   return (
-    <TableRow>
+    <TableRow
+      className={cn(
+        isCapped && "bg-rose-50/60 hover:bg-rose-50 dark:bg-rose-950/25",
+      )}
+    >
       <TableCell className="sticky left-0 z-10 bg-background border-r border-border/60">
         {/* Two-column layout inside the sticky cell: employee name +
             breakdown on the left, adjustment icon top-right. The icon
@@ -639,7 +648,21 @@ function PayslipRow({
       <TintedCell tint="emp" value={payslip.eisEmployee} />
       <TintedCell tint="emp" value={payslip.skbbkEmployee ?? 0} />
       <TableCell className="text-right font-mono font-semibold">
-        {fmt(payslip.netPay)}
+        {isCapped ? (
+          <span className="flex flex-col items-end leading-tight">
+            <span className="text-rose-700 dark:text-rose-300">
+              {fmt(payslip.netPay)}
+            </span>
+            <span
+              className="text-[9px] font-normal text-rose-600 dark:text-rose-400"
+              title="Deductions exceeded pay; net floored to 0. This much couldn't be recovered this month."
+            >
+              capped −{fmt(netShortfall)}
+            </span>
+          </span>
+        ) : (
+          fmt(payslip.netPay)
+        )}
       </TableCell>
       <TintedCell tint="er" value={payslip.epfEmployer} />
       <TintedCell tint="er" value={payslip.socsoEmployer} />

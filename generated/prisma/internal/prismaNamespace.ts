@@ -5194,6 +5194,7 @@ export const PayslipScalarFieldEnum = {
   hrdfWage: 'hrdfWage',
   grossPay: 'grossPay',
   netPay: 'netPay',
+  netShortfall: 'netShortfall',
   totalCostToEmployer: 'totalCostToEmployer',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

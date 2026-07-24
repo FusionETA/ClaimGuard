@@ -1225,3 +1225,46 @@ describe("pickEpfBranch — KWSP Third Schedule branch resolver", () => {
     ).toBe("DE_MINIMIS")
   })
 })
+
+describe("calcPayslip — net pay floor (EA 1955 s.24)", () => {
+  it("floors net at 0 and records the shortfall when deductions exceed pay", () => {
+    const result = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 3800,
+        fixedAllowances: [
+          {
+            category:
+              "deduct_miscellaneous" satisfies PayrollAdjustmentCategory,
+            name: "Advance salary recovery",
+            amount: 5000,
+          },
+        ],
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+      ytdTaxable: 0,
+      ytdEpf: 0,
+      ytdPcb: 0,
+    })
+    // Deductions (5,000 + statutory) exceed the 3,800 gross → net can't
+    // go negative; it floors to 0 and the un-recovered amount surfaces
+    // as the shortfall.
+    expect(result.netPay).toBe(0)
+    expect(result.netShortfall).toBeGreaterThan(0)
+  })
+
+  it("leaves netShortfall at 0 when net stays positive", () => {
+    const result = calcPayslip({
+      profile: makeProfile({ monthlySalary: 6000 }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+      ytdTaxable: 0,
+      ytdEpf: 0,
+      ytdPcb: 0,
+    })
+    expect(result.netPay).toBeGreaterThan(0)
+    expect(result.netShortfall).toBe(0)
+  })
+})

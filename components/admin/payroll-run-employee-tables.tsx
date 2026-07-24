@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { formatCurrency } from "@/lib/utils"
 import {
   SALARY_TYPE_LABELS,
   type PayrollEmployeeRow,
@@ -49,11 +50,23 @@ type RunEmployeeRow = PayrollEmployeeRow & {
   } | null
 }
 
+/// An employee whose net pay was floored to 0 because post-statutory
+/// deductions (loans, advances, salary deductions) exceeded their pay.
+/// `netShortfall` is the amount that couldn't be recovered this month.
+export type NetCappedRow = {
+  employeeProfileId: string
+  name: string
+  employeeId: string
+  jobTitle: string
+  netShortfall: number
+}
+
 type PayrollRunEmployeeTablesProps = {
   runId: string
   hasPayslips: boolean
   needsSetup: RunEmployeeRow[]
   readyEmployees: RunEmployeeRow[]
+  netCapped?: NetCappedRow[]
 }
 
 const ACTIVE_PAGE_SIZE = 10
@@ -64,10 +77,23 @@ export function PayrollRunEmployeeTables({
   hasPayslips,
   needsSetup,
   readyEmployees,
+  netCapped = [],
 }: PayrollRunEmployeeTablesProps) {
   const [query, setQuery] = useState("")
   const [page, setPage] = useState(1)
   const normalizedQuery = query.trim().toLowerCase()
+  const filteredNetCapped = useMemo(
+    () =>
+      netCapped.filter((e) => {
+        if (normalizedQuery.length === 0) return true
+        return (
+          e.name.toLowerCase().includes(normalizedQuery) ||
+          e.employeeId.toLowerCase().includes(normalizedQuery) ||
+          e.jobTitle.toLowerCase().includes(normalizedQuery)
+        )
+      }),
+    [netCapped, normalizedQuery],
+  )
 
   const filteredNeedsSetup = useMemo(
     () => filterEmployees(needsSetup, normalizedQuery),
@@ -78,10 +104,12 @@ export function PayrollRunEmployeeTables({
     [readyEmployees, normalizedQuery],
   )
 
-  const totalEmployees = needsSetup.length + readyEmployees.length
+  const totalEmployees =
+    needsSetup.length + readyEmployees.length + netCapped.length
   if (totalEmployees === 0) return null
 
-  const filteredTotal = filteredNeedsSetup.length + filteredReady.length
+  const filteredTotal =
+    filteredNeedsSetup.length + filteredReady.length + filteredNetCapped.length
   const totalPages = getBalancedTotalPages(
     filteredNeedsSetup.length,
     filteredReady.length,
@@ -117,6 +145,52 @@ export function PayrollRunEmployeeTables({
           </p>
         </CardContent>
       </Card>
+
+      {filteredNetCapped.length > 0 ? (
+        <Card className="border-rose-300/70 bg-rose-50/50 dark:border-rose-700/50 dark:bg-rose-950/25">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base text-rose-900 dark:text-rose-200">
+              <AlertTriangle className="h-4 w-4 text-rose-600" />
+              {netCapped.length} employee{netCapped.length === 1 ? "" : "s"} with
+              net pay capped at 0
+            </CardTitle>
+            <CardDescription>
+              Deductions (loans, advances, salary deductions) were larger than
+              the pay left after statutory. Net pay was floored to 0 — the
+              amounts below couldn&apos;t be recovered this month and don&apos;t
+              carry forward automatically. Reduce or spread their deductions if
+              they should take home more.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ul className="divide-y divide-rose-200/50 text-sm dark:divide-rose-800/40">
+              {filteredNetCapped.map((e) => (
+                <li
+                  key={e.employeeProfileId}
+                  className="flex items-center justify-between gap-3 px-5 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-foreground">
+                      {e.name}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {e.employeeId} · {e.jobTitle}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="font-semibold tabular-nums text-rose-700 dark:text-rose-300">
+                      −{formatCurrency(e.netShortfall)}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                      not recovered
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {paginatedEmployees.setup.length > 0 ? (
         <Card className="border-amber-300/60 bg-amber-50/40 dark:border-amber-700/40 dark:bg-amber-950/20">

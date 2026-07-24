@@ -164,14 +164,32 @@ export default async function AdminPayrollRunDetailPage({
   // list are put behind tabs (Payslips default) when BOTH have content,
   // so the payslips aren't buried under setup cards. When only one has
   // content, it renders on its own with no tab bar.
+  // Employees whose net pay was floored to 0 (deductions > pay). Shown
+  // in the "Needs attention" section on any run, alongside the draft
+  // setup tables.
+  const netCapped = data.payslips
+    .filter((p) => (p.netShortfall ?? 0) > 0.005)
+    .map((p) => ({
+      employeeProfileId: p.employeeProfileId,
+      name: p.snapshotName,
+      employeeId: p.snapshotEmployeeId,
+      jobTitle: p.snapshotPosition ?? "",
+      netShortfall: p.netShortfall,
+    }))
+  const hasSetupItems =
+    isDraft && (needsSetup.length > 0 || readyMissingPayslip.length > 0)
+  const attentionCount =
+    (hasSetupItems ? needsSetup.length + readyMissingPayslip.length : 0) +
+    netCapped.length
   const setupNode =
-    isDraft && (needsSetup.length > 0 || readyMissingPayslip.length > 0) ? (
+    hasSetupItems || netCapped.length > 0 ? (
       <div className="print:hidden">
         <PayrollRunEmployeeTables
           runId={data.run.id}
           hasPayslips={data.payslips.length > 0}
-          needsSetup={needsSetup}
-          readyEmployees={readyMissingPayslip}
+          needsSetup={hasSetupItems ? needsSetup : []}
+          readyEmployees={hasSetupItems ? readyMissingPayslip : []}
+          netCapped={netCapped}
         />
       </div>
     ) : null
@@ -244,7 +262,7 @@ export default async function AdminPayrollRunDetailPage({
           payslips={payslipsNode}
           setup={setupNode}
           payslipCount={data.payslips.length}
-          setupCount={needsSetup.length + readyMissingPayslip.length}
+          setupCount={attentionCount}
           defaultTab="payslips"
         />
       ) : (
