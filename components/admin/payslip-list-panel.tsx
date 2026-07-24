@@ -274,6 +274,12 @@ export function PayslipsListPanel({
               wrapperClassName="nice-scrollbar max-h-[70vh]"
               className={cn(
                 "min-w-[1500px] text-[11px] [&_td]:px-2 [&_td]:py-2 [&_td]:whitespace-nowrap [&_td]:align-top [&_th]:px-2 [&_th]:py-2 [&_th]:whitespace-nowrap",
+                // Sticky header: the group-label row pins to the top of
+                // the scroll box, the column-heading row pins just below
+                // it (~30px). Cells carry opaque backgrounds so scrolling
+                // rows don't bleed through.
+                "[&_thead_tr:first-child_th]:sticky [&_thead_tr:first-child_th]:top-0 [&_thead_tr:first-child_th]:z-30",
+                "[&_thead_tr:last-child_th]:sticky [&_thead_tr:last-child_th]:top-[30px] [&_thead_tr:last-child_th]:z-30",
               )}
             >
                 <TableHeader>
@@ -282,24 +288,24 @@ export function PayslipsListPanel({
                        contributions" / "Employer contributions"
                        banded headings. */}
                   <TableRow className="border-b-0 hover:bg-transparent">
-                    <TableHead className="sticky left-0 z-20 bg-background" colSpan={1}></TableHead>
+                    <TableHead className="sticky left-0 z-40 bg-background" colSpan={1}></TableHead>
                     <TableHead
                       colSpan={5}
-                      className="text-center text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/70"
+                      className="bg-background text-center text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/70"
                     >
                       Hours
                     </TableHead>
                     <TableHead className="bg-background"></TableHead>
                     <TableHead
                       colSpan={4}
-                      className="border-b-2 border-cyan-300 bg-cyan-50/40 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:bg-cyan-950/20"
+                      className="border-b-2 border-cyan-300 bg-cyan-50 dark:bg-cyan-900 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:bg-cyan-950/20"
                     >
                       Employee contributions
                     </TableHead>
                     <TableHead className="bg-background"></TableHead>
                     <TableHead
                       colSpan={4}
-                      className="border-b-2 border-orange-300 bg-orange-50/40 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-700 dark:bg-orange-950/20"
+                      className="border-b-2 border-orange-300 bg-orange-50 dark:bg-orange-900 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-700 dark:bg-orange-950/20"
                     >
                       Employer contributions
                     </TableHead>
@@ -308,25 +314,25 @@ export function PayslipsListPanel({
                   {/* ── Column heading + total row. The total under
                        each money column matches the PDF style. */}
                   <TableRow>
-                    <TableHead className="sticky left-0 z-20 bg-background border-r border-border/60">
+                    <TableHead className="sticky left-0 z-40 bg-background border-r border-border/60">
                       Employee
                     </TableHead>
-                    <TableHead className="text-right" title="Total normal working hours">
+                    <TableHead className="bg-background text-right" title="Total normal working hours">
                       Hrs
                     </TableHead>
                     <TableHead
-                      className="text-right"
+                      className="bg-background text-right"
                       title="Working days (actual / company), monthly staff"
                     >
                       Days
                     </TableHead>
-                    <TableHead className="text-right" title="Normal-day OT hours">
+                    <TableHead className="bg-background text-right" title="Normal-day OT hours">
                       OT&nbsp;N
                     </TableHead>
-                    <TableHead className="text-right" title="Rest-day OT hours">
+                    <TableHead className="bg-background text-right" title="Rest-day OT hours">
                       OT&nbsp;R
                     </TableHead>
-                    <TableHead className="text-right" title="Public-holiday OT hours">
+                    <TableHead className="bg-background text-right" title="Public-holiday OT hours">
                       OT&nbsp;PH
                     </TableHead>
                     <TotalHead label="GROSS" total={totals.gross} />
@@ -486,9 +492,9 @@ function TotalHead({
   return (
     <TableHead
       className={cn(
-        "text-right",
-        tint === "emp" && "bg-cyan-50/40 dark:bg-cyan-950/20",
-        tint === "er" && "bg-orange-50/40 dark:bg-orange-950/20",
+        "text-right bg-background",
+        tint === "emp" && "bg-cyan-50 dark:bg-cyan-900",
+        tint === "er" && "bg-orange-50 dark:bg-orange-900",
       )}
     >
       <div className="flex flex-col items-end">

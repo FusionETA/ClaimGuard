@@ -807,23 +807,38 @@ async function approvePayrollRunCore(input: {
     }
   }
 
-  void Promise.allSettled(
-    (
-      [
-        "PAYROLL_SUMMARY_PDF",
-        "PAYMENT_SCHEDULE_PDF",
-        "PCB_LHDN_FORM_PDF",
-        "EPF_CSV",
-        "SOCSO_EIS_TXT",
-        "SOCSO_EIS_SKBBK_TXT",
-        "BULK_PAYSLIPS_PDF",
-      ] as const
-    ).map((kind) =>
-      generatePayrollReport({ runId: run.id, kind }).catch((err) =>
-        console.error(`[approvePayrollRun] pre-gen failed for ${kind}:`, err),
-      ),
-    ),
-  )
+  // Pre-generate the run's downloadable reports in the background so
+  // they're ready by the time the admin opens the downloads modal.
+  //
+  // Fire-and-forget (`void`) — the approval response returns immediately.
+  // Crucially, this runs the reports SEQUENTIALLY with an event-loop
+  // yield between each, instead of firing all seven concurrently. The
+  // bulk-payslips PDF is a heavy react-pdf render; seven of these racing
+  // on the single Node process saturated the event loop and stalled the
+  // very next request (the admin clicking Back after approving). Ordered
+  // lightest-first so the common files are ready soonest and the heavy
+  // bulk-payslips PDF renders last, after the admin has navigated away.
+  void (async () => {
+    const kinds = [
+      "EPF_CSV",
+      "SOCSO_EIS_TXT",
+      "SOCSO_EIS_SKBBK_TXT",
+      "PAYMENT_SCHEDULE_PDF",
+      "PCB_LHDN_FORM_PDF",
+      "PAYROLL_SUMMARY_PDF",
+      "BULK_PAYSLIPS_PDF",
+    ] as const
+    for (const kind of kinds) {
+      try {
+        await generatePayrollReport({ runId: run.id, kind })
+      } catch (err) {
+        console.error(`[approvePayrollRun] pre-gen failed for ${kind}:`, err)
+      }
+      // Hand the event loop back so pending requests (e.g. the
+      // post-approve navigation) get CPU time between each render.
+      await new Promise<void>((resolve) => setImmediate(resolve))
+    }
+  })()
 
   return result
 }
