@@ -32,6 +32,7 @@ import { GeneratePayslipsButton } from "@/components/admin/generate-payslips-but
 import { ImportPayrollAdjustmentsDialog } from "@/components/admin/import-payroll-adjustments-dialog"
 import { PayrollDownloadsModal } from "@/components/admin/payroll-downloads-modal"
 import { PayrollRunEmployeeTables } from "@/components/admin/payroll-run-employee-tables"
+import { PayrollRunContentTabs } from "@/components/admin/payroll-run-content-tabs"
 import { PayslipsListPanel } from "@/components/admin/payslip-list-panel"
 import {
   ApprovePayrollRunButton,
@@ -159,6 +160,31 @@ export default async function AdminPayrollRunDetailPage({
     (e) => !onPayslip.has(e.employeeProfileId),
   )
 
+  // The "needs setup / not yet on a payslip" tables and the payslips
+  // list are put behind tabs (Payslips default) when BOTH have content,
+  // so the payslips aren't buried under setup cards. When only one has
+  // content, it renders on its own with no tab bar.
+  const setupNode =
+    isDraft && (needsSetup.length > 0 || readyMissingPayslip.length > 0) ? (
+      <div className="print:hidden">
+        <PayrollRunEmployeeTables
+          runId={data.run.id}
+          hasPayslips={data.payslips.length > 0}
+          needsSetup={needsSetup}
+          readyEmployees={readyMissingPayslip}
+        />
+      </div>
+    ) : null
+  const payslipsNode =
+    data.payslips.length > 0 ? (
+      <PayslipsListPanel
+        runId={data.run.id}
+        payslips={data.payslips}
+        showAdjustLink
+        runIsDraft={isDraft}
+      />
+    ) : null
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -213,16 +239,17 @@ export default async function AdminPayrollRunDetailPage({
         </Card>
       ) : null}
 
-      {isDraft && (needsSetup.length > 0 || readyMissingPayslip.length > 0) ? (
-        <div className="print:hidden">
-          <PayrollRunEmployeeTables
-            runId={data.run.id}
-            hasPayslips={data.payslips.length > 0}
-            needsSetup={needsSetup}
-            readyEmployees={readyMissingPayslip}
-          />
-        </div>
-      ) : null}
+      {setupNode && payslipsNode ? (
+        <PayrollRunContentTabs
+          payslips={payslipsNode}
+          setup={setupNode}
+          payslipCount={data.payslips.length}
+          setupCount={needsSetup.length + readyMissingPayslip.length}
+          defaultTab="payslips"
+        />
+      ) : (
+        setupNode
+      )}
 
       {isDraft && excluded.length > 0 ? (
         <Card className="print:hidden">
@@ -280,14 +307,11 @@ export default async function AdminPayrollRunDetailPage({
         />
       ) : null}
 
-      {data.payslips.length > 0 ? (
-        <PayslipsListPanel
-          runId={data.run.id}
-          payslips={data.payslips}
-          showAdjustLink
-          runIsDraft={isDraft}
-        />
-      ) : null}
+      {/* Payslips render either inside the tabs above (when there are
+          also setup items) or here on their own when there's nothing to
+          set up. `setupNode` is null in the latter case, so the tab
+          branch above falls through and we show the list directly. */}
+      {setupNode ? null : payslipsNode}
 
       {/* The Payroll Summary PDF download lives in the payslips
           card header now — clicking it triggers `window.print()`,
