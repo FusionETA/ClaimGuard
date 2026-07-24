@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
 import { AlertTriangle, Camera, Coffee, Fingerprint, Loader2, LogOut, RotateCcw, X } from "lucide-react"
 
@@ -328,6 +329,7 @@ export function ClockCard({
     clockInAction,
     {},
   )
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [isClockOutPending, startClockOutTransition] = useTransition()
   // Pending clock-out: the formData has been built (coords resolved,
@@ -343,11 +345,31 @@ export function ClockCard({
   )
 
   function prepareClockOut(formData: FormData) {
+    console.log("[prepareClockOut] requiresSelfie=", requiresSelfieOnClockOut, "hasSelfie=", !!formData.get("selfie"), "orphanedId=", formData.get("orphanedSessionId"))
     if (requiresSelfieOnClockOut && !formData.get("selfie")) {
       setClockOutSelfiePending(formData)
+      console.log("[prepareClockOut] set clockOutSelfiePending, waiting for selfie")
       return
     }
     setClockOutCommitError(null)
+    // Orphaned sessions are from a previous day — there is no todayRecord,
+    // so the ClockOutSummaryDialog (which uses todayRecord as its open signal)
+    // would never open. Bypass the draft step and submit directly.
+    if (formData.get("orphanedSessionId")) {
+      startClockOutTransition(async () => {
+        console.log("[orphaned clockOut] calling action, sessionId=", formData.get("orphanedSessionId"))
+        try {
+          const result = await clockOutAction(formData)
+          console.log("[orphaned clockOut] result=", result)
+          if (result.error) setClockOutCommitError(result.error)
+          else router.refresh()
+        } catch (e) {
+          console.error("[orphaned clockOut] exception=", e)
+          setClockOutCommitError("Unexpected error — see console")
+        }
+      })
+      return
+    }
     setClockOutDraft({ formData })
   }
 
@@ -683,11 +705,30 @@ export function ClockCard({
   }
 
   function onClockOutSelfieConfirmed(dataUrl: string) {
+    console.log("[selfieConfirmed] pending=", !!clockOutSelfiePending)
     if (!clockOutSelfiePending) return
     clockOutSelfiePending.set("selfie", dataUrl)
     const fd = clockOutSelfiePending
+    console.log("[selfieConfirmed] orphanedSessionId=", fd.get("orphanedSessionId"))
     setClockOutSelfiePending(null)
     setClockOutCommitError(null)
+    // Same bypass as prepareClockOut: orphaned sessions have no todayRecord,
+    // so the summary dialog never opens — submit directly instead.
+    if (fd.get("orphanedSessionId")) {
+      startClockOutTransition(async () => {
+        console.log("[selfieConfirmed transition] calling clockOutAction")
+        try {
+          const result = await clockOutAction(fd)
+          console.log("[selfieConfirmed transition] result=", result)
+          if (result.error) setClockOutCommitError(result.error)
+          else router.refresh()
+        } catch (e) {
+          console.error("[selfieConfirmed transition] exception=", e)
+          setClockOutCommitError("Unexpected error — see console")
+        }
+      })
+      return
+    }
     setClockOutDraft({ formData: fd })
   }
 
@@ -1059,6 +1100,11 @@ export function ClockCard({
                 </p>
               ) : null}
             </div>
+          ) : null}
+          {orphanedSession && clockOutCommitError ? (
+            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-[12px] font-semibold text-destructive">
+              {clockOutCommitError}
+            </p>
           ) : null}
           <div className={orphanedSession ? "" : "grid grid-cols-2 gap-3"}>
             {!orphanedSession ? (

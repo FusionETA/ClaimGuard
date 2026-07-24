@@ -146,12 +146,10 @@ async function enforceGeofenceForActiveRecord(
   return { distanceMeters: fence.distanceMeters }
 }
 
-/// Decode a `data:image/jpeg;base64,…` URL and upload it to the org's
-/// Xero "Attendance Selfie" folder, then attach the resulting file ID
-/// to the AttendanceRecord. Skips silently when the employee isn't
-/// hourly, has no Xero connection, or the data URL is malformed —
-/// the caller wraps in try/catch so a thrown error never blocks the
-/// clock-in itself.
+/// Decode a `data:image/…;base64,…` data URL, write it to
+/// `public/uploads/attendance-selfies/`, and store the resulting
+/// public path on the AttendanceRecord (and AttendanceSession for
+/// clock-in). Works without any Xero connection.
 async function uploadSelfieToXero({
   employeeId,
   attendanceRecordId,
@@ -166,38 +164,16 @@ async function uploadSelfieToXero({
   phase?: "clock-in" | "clock-out"
 }): Promise<void> {
   const prisma = getAttendancePrismaClientSafe()
-  if (!prisma) { console.warn("[uploadSelfieToXero] no prisma client"); return }
+  if (!prisma) { console.warn("[saveSelfie] no prisma client"); return }
 
-  const profile = await prisma.employeeProfile.findFirst({
-    where: { userId: employeeId },
-    select: {
-      employeeId: true,
-      policy: { select: { requireSelfie: true } },
-    },
-  })
-  if (!profile) { console.warn("[uploadSelfieToXero] no employee profile for", employeeId); return }
-  // Clock-out selfies: the calling code only passes the selfie when the
-  // client's policy required it, so no server-side re-check needed.
   if (phase !== "clock-out") {
-    const selfieRequired = profile.policy?.requireSelfie ?? false
-    if (!selfieRequired) { console.warn("[uploadSelfieToXero] requireSelfie=false on policy, skipping clock-in selfie"); return }
-  }
-
-  // Resolve the org's single Xero connection.
-  let connectionId: string | null = null
-  const user = await prisma.user.findUnique({
-    where: { id: employeeId },
-    select: { organizationId: true },
-  })
-  if (user?.organizationId) {
-    const conn = await prisma.xeroConnection.findFirst({
-      where: { organizationId: user.organizationId },
-      orderBy: { createdAt: "asc" },
-      select: { id: true },
+    const profile = await prisma.employeeProfile.findFirst({
+      where: { userId: employeeId },
+      select: { policy: { select: { requireSelfie: true } } },
     })
-    connectionId = conn?.id ?? null
+    const selfieRequired = profile?.policy?.requireSelfie ?? false
+    if (!selfieRequired) return
   }
-  if (!connectionId) { console.warn("[uploadSelfieToXero] no Xero connection for org of user", employeeId); return }
 
   // data URL → Buffer
   const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(dataUrl)
@@ -206,52 +182,36 @@ async function uploadSelfieToXero({
   const fileBuffer = Buffer.from(match[2] ?? "", "base64")
   if (fileBuffer.length === 0) return
 
-  const token = await getUsableXeroAccessToken(connectionId)
-  if (!token) { console.warn("[uploadSelfieToXero] could not get usable Xero token for connection", connectionId); return }
-
-  const folderId = await getOrCreateAttendanceSelfieFolder({
-    accessToken: token.accessToken,
-    tenantId: token.tenantId,
-  })
+  const { writeFile, mkdir } = await import("fs/promises")
+  const { join } = await import("path")
+  const { randomUUID } = await import("crypto")
 
   const ext = mimeType === "image/png" ? "png" : "jpg"
   const stamp = new Date().toISOString().replace(/[:.]/g, "-")
-  const fileName = `${profile.employeeId}_${stamp}.${ext}`
+  const fileName = `${employeeId}_${stamp}_${randomUUID().slice(0, 8)}.${ext}`
+  const dir = join(process.cwd(), "public", "uploads", "attendance-selfies")
+  await mkdir(dir, { recursive: true })
+  await writeFile(join(dir, fileName), fileBuffer)
 
-  const upload = await uploadFileToXero({
-    accessToken: token.accessToken,
-    tenantId: token.tenantId,
-    folderId,
-    fileBuffer,
-    fileName,
-    mimeType,
-  })
-
+  const fileUrl = `/uploads/attendance-selfies/${fileName}`
   const now = new Date()
+
   if (phase === "clock-out") {
     await prisma.attendanceRecord.update({
       where: { id: attendanceRecordId },
-      data: { clockOutXeroSelfieFileId: upload.fileId },
+      data: { clockOutXeroSelfieFileId: fileUrl },
     })
   } else {
     await Promise.all([
-      // Keep the record-level field for backward-compat consumers.
       prisma.attendanceRecord.update({
         where: { id: attendanceRecordId },
-        data: {
-          xeroSelfieFileId: upload.fileId,
-          selfieUploadedAt: now,
-        },
+        data: { xeroSelfieFileId: fileUrl, selfieUploadedAt: now },
       }),
-      // Write to the session so each clock-in has its own selfie.
       ...(sessionId
         ? [
             prisma.attendanceSession.update({
               where: { id: sessionId },
-              data: {
-                xeroSelfieFileId: upload.fileId,
-                selfieUploadedAt: now,
-              },
+              data: { xeroSelfieFileId: fileUrl, selfieUploadedAt: now },
             }),
           ]
         : []),

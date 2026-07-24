@@ -1771,13 +1771,13 @@ export const attendanceRepository = {
         select: {
           id: true,
           startedAt: true,
-          recordId: true,
+          attendanceRecordId: true,
           breaks: { select: { startedAt: true, endedAt: true } },
         },
       })
       if (!orphanSession) throw new Error("NOT_CLOCKED_IN")
       const orphanRecord = await prisma.attendanceRecord.findUniqueOrThrow({
-        where: { id: orphanSession.recordId },
+        where: { id: orphanSession.attendanceRecordId },
         select: {
           id: true,
           project: true,
@@ -1793,6 +1793,27 @@ export const attendanceRepository = {
       })
       existing = { ...orphanRecord, sessions: [] }
       openSession = { id: orphanSession.id, startedAt: orphanSession.startedAt, breaks: orphanSession.breaks }
+
+      // Also silently close any other orphaned sessions + their parent records
+      // from previous days so the employee doesn't have to repeat this flow.
+      const otherOrphanRecords = await prisma.attendanceRecord.findMany({
+        where: {
+          employeeId,
+          date: { lt: today },
+          sessions: { some: { endedAt: null, id: { not: orphanedSessionId } } },
+        },
+        select: { id: true },
+      })
+      for (const r of otherOrphanRecords) {
+        await prisma.attendanceSession.updateMany({
+          where: { attendanceRecordId: r.id, endedAt: null, id: { not: orphanedSessionId } },
+          data: { endedAt: now, durationMin: 0 },
+        })
+        await prisma.attendanceRecord.update({
+          where: { id: r.id },
+          data: { timeOut: now, status: "CLOCKED_OUT" },
+        })
+      }
     } else {
       const record = await prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },

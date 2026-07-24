@@ -129,6 +129,7 @@ export async function clockOutAction(
   try {
     await employeeAttendanceService.clockOut(session.userId, coords, notes, selfie, orphanedSessionId)
   } catch (err) {
+    console.error("[clockOutAction] error", { orphanedSessionId, err })
     return { error: safeErrorMessage(err, "Could not clock out") }
   }
   await revalidateAll({
