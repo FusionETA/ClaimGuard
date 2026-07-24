@@ -929,6 +929,31 @@ export async function deletePayrollRunDraft(input: {
 }
 
 /**
+ * Delete a single IMPORTED payroll run (one month of YTD-migration
+ * history). Imported runs are SUBMITTED, so the draft-delete path
+ * refuses them — this is the only way to remove a wrongly-imported
+ * month without re-uploading the whole year. Does NOT touch employee
+ * salary or SalaryChange history; those are standing data, unaffected
+ * by removing an imported run.
+ */
+export async function deleteImportedPayrollRun(input: {
+  runId: string
+}): Promise<void> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    throw new Error("Session expired. Please log in again.")
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) throw new Error("No active organisation.")
+
+  await payrollRunRepository.deleteImportedRun({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  await bustPayrollCaches({ organizationId: orgId })
+}
+
+/**
  * Generate payslips for every ready employee on a draft run.
  *
  * Order:

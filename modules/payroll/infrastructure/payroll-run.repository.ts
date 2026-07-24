@@ -693,6 +693,35 @@ export const payrollRunRepository = {
   },
 
   /**
+   * Delete a single IMPORTED payroll run — one month of YTD-migration
+   * history. Distinct from `deleteDraft`: imported runs are created with
+   * status = SUBMITTED, so the draft-only guard would block them. This
+   * path gates on `source = IMPORTED` instead, so engine-produced
+   * (COMPUTED) runs — draft or submitted — can never be removed here.
+   * Cascades to the run's payslips via the schema relation.
+   */
+  async deleteImportedRun(input: {
+    id: string
+    organizationId: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const run = await prisma.payrollRun.findFirst({
+      where: { id: input.id, organizationId: input.organizationId },
+      select: { id: true, source: true },
+    })
+    if (!run) throw new Error("Payroll run not found.")
+    if (run.source !== "IMPORTED") {
+      throw new Error(
+        "Only imported payroll runs can be deleted here. Use Delete draft for computed runs.",
+      )
+    }
+
+    await prisma.payrollRun.delete({ where: { id: run.id } })
+  },
+
+  /**
    * Per-year context for the YTD import dialog. Returns which months
    * in the calendar year already have a run on file, split by source.
    *

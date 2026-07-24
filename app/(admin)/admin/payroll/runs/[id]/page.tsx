@@ -25,6 +25,7 @@ import {
   AttachLeaveCashoutButton,
   DetachLeaveCashoutButton,
 } from "@/components/admin/leave-cashout-buttons"
+import { DeleteImportedRunButton } from "@/components/admin/delete-imported-run-button"
 import { DeletePayrollRunDraftButton } from "@/components/admin/delete-payroll-run-draft-button"
 import { DownloadPayrollSummaryButton } from "@/components/admin/download-payroll-summary-button"
 import { GeneratePayslipsButton } from "@/components/admin/generate-payslips-button"
@@ -152,6 +153,7 @@ export default async function AdminPayrollRunDetailPage({
   const isDraft = data.run.status === "DRAFT"
   const isPendingApproval = data.run.status === "PENDING_APPROVAL"
   const isSubmitted = data.run.status === "SUBMITTED"
+  const isImported = data.run.source === "IMPORTED"
   const onPayslip = new Set(data.payslips.map((p) => p.employeeProfileId))
   const readyMissingPayslip = ready.filter(
     (e) => !onPayslip.has(e.employeeProfileId),
@@ -586,6 +588,17 @@ export default async function AdminPayrollRunDetailPage({
               />
             )}
           </div>
+        </div>
+      )}
+
+      {isImported && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <DeleteImportedRunButton runId={data.run.id} />
+          <p className="text-xs text-muted-foreground">
+            Imported from a YTD migration upload. Deleting removes this
+            month&rsquo;s imported payslips only — employee salaries and
+            salary history are untouched.
+          </p>
         </div>
       )}
 

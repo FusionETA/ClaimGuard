@@ -30,6 +30,7 @@ import {
   attachClaimToPayrollRun,
   attachLeaveCashoutToRun,
   createPayrollRunDraft,
+  deleteImportedPayrollRun,
   deletePayrollRunDraft,
   detachClaimFromPayrollRun,
   detachLeaveCashoutFromRun,
@@ -159,6 +160,32 @@ export async function deletePayrollRunDraftAction(
       status: "error",
       message:
         safeErrorMessage(err, "Could not delete payroll run."),
+    }
+  }
+
+  revalidatePath("/admin/payroll/runs")
+  revalidatePath("/admin/payroll")
+  redirect("/admin/payroll/runs")
+}
+
+export async function deleteImportedRunAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const parsed = deleteSchema.safeParse({
+    runId: formData.get("runId"),
+  })
+
+  if (!parsed.success) {
+    return { status: "error", message: "Missing run id." }
+  }
+
+  try {
+    await deleteImportedPayrollRun({ runId: parsed.data.runId })
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not delete imported payroll run."),
     }
   }
 
