@@ -115,7 +115,7 @@ export async function renderBulkPayslipsPdf(input: {
  * survives round-tripping through email + chat clients that escape
  * spaces awkwardly.
  */
-function buildPayslipFileName(input: {
+export function buildPayslipFileName(input: {
   employeeId: string
   employeeName: string
   periodTag: string
@@ -140,7 +140,7 @@ const FORBIDDEN_FILENAME_CHARS = new Set([
   "*",
 ])
 
-function sanitise(raw: string): string {
+export function sanitise(raw: string): string {
   let stripped = ""
   for (const ch of raw) {
     if (FORBIDDEN_FILENAME_CHARS.has(ch)) continue

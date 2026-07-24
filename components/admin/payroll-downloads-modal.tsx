@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useMemo, useState, useTransition } from "react"
+import { useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { Download, FileText, Loader2 } from "lucide-react"
 import JSZip from "jszip"
 
@@ -25,6 +25,19 @@ import {
   type PayrollReportKind,
   type PayrollReportRow,
 } from "@/modules/payroll/domain/reports"
+
+// The 7 kinds we pre-generate on approval. We only poll while at least
+// one of these is still missing — PCB_TXT / BANK_* are excluded because
+// they're never pre-generated.
+const PRE_GEN_KINDS: PayrollReportKind[] = [
+  "PAYROLL_SUMMARY_PDF",
+  "PAYMENT_SCHEDULE_PDF",
+  "PCB_LHDN_FORM_PDF",
+  "EPF_CSV",
+  "SOCSO_EIS_TXT",
+  "SOCSO_EIS_SKBBK_TXT",
+  "BULK_PAYSLIPS_PDF",
+]
 
 /**
  * "Download files" modal on the payroll run detail page.
@@ -73,6 +86,60 @@ export function PayrollDownloadsModal(props: {
   // Local row state so a successful generation immediately shows the
   // "Generated <date>" label without waiting for a server refresh.
   const [rows, setRows] = useState(props.rows)
+
+  // Poll for background pre-generation completing. Runs only while the
+  // modal is open and at least one pre-gen kind is still missing.
+  // Stops after 60 s (background gen is fast; if it takes longer something
+  // is broken and we shouldn't hammer the server indefinitely).
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (!open || !props.canGenerate) return
+    const allReady = PRE_GEN_KINDS.every(
+      (k) => rows.find((r) => r.kind === k)?.generated,
+    )
+    if (allReady) return
+
+    let stopped = false
+    const deadline = Date.now() + 60_000
+
+    async function poll() {
+      if (stopped || Date.now() > deadline) return
+      try {
+        const res = await fetch(
+          `/admin/payroll/runs/${props.runId}/reports/status`,
+          { cache: "no-store" },
+        )
+        if (!res.ok) return
+        const data = (await res.json()) as { rows: PayrollReportRow[] }
+        setRows((prev) =>
+          prev.map((row) => {
+            const fresh = data.rows.find((r) => r.kind === row.kind)
+            if (!fresh?.generated || row.generated) return row
+            return { ...row, generated: fresh.generated }
+          }),
+        )
+        const doneNow = PRE_GEN_KINDS.every(
+          (k) => data.rows.find((r) => r.kind === k)?.generated,
+        )
+        if (!doneNow && !stopped && Date.now() < deadline) {
+          pollTimeoutRef.current = setTimeout(poll, 2000)
+        }
+      } catch {
+        // Network error — retry after the usual interval
+        if (!stopped && Date.now() < deadline) {
+          pollTimeoutRef.current = setTimeout(poll, 2000)
+        }
+      }
+    }
+
+    pollTimeoutRef.current = setTimeout(poll, 2000)
+    return () => {
+      stopped = true
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, props.canGenerate, props.runId])
+
   // Admin-picked payment date for the PB ECP file. Defaults to the
   // last day of the period month on first open. PB accepts up to 60
   // days future-dated.
@@ -359,6 +426,9 @@ export function PayrollDownloadsModal(props: {
                       disabled={!props.canGenerate}
                       pending={pendingKind === row.kind}
                       bulkPending={bulkPending}
+                      preGenPending={
+                        PRE_GEN_KINDS.includes(row.kind) && !row.generated
+                      }
                       checked={selected.has(row.kind)}
                       onToggleSelect={() => toggleSelect(row.kind)}
                       onDownload={() => handleDownload(row.kind)}
@@ -454,6 +524,7 @@ function ReportRow(props: {
   disabled: boolean
   pending: boolean
   bulkPending: boolean
+  preGenPending: boolean
   checked: boolean
   onToggleSelect: () => void
   onDownload: () => void
@@ -492,6 +563,11 @@ function ReportRow(props: {
             <p className="mt-0.5 text-[11px] text-muted-foreground/80">
               Generated {formatShortDate(new Date(row.generated.generatedAt))} ·{" "}
               {formatFileSize(row.generated.sizeBytes)}
+            </p>
+          ) : props.preGenPending ? (
+            <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground/80">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Generating…
             </p>
           ) : null}
         </div>

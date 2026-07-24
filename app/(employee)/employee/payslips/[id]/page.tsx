@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { ChevronLeft, FileText } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { DownloadPayslipButton } from "@/components/payroll/download-payslip-button"
 import {
   Card,
   CardContent,
@@ -87,7 +88,10 @@ export default async function EmployeePayslipDetailPage({
             </p>
           </div>
         </div>
-        <PrintPayslipButton />
+        <div className="flex items-center gap-2">
+          <DownloadPayslipButton payslipId={id} />
+          <PrintPayslipButton />
+        </div>
       </div>
 
       {/* Print-only header — minimal identity block. Hidden on screen

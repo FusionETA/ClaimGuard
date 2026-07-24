@@ -1,5 +1,6 @@
 import "server-only"
 import { isAdminRole } from "@/lib/auth/types"
+import { generatePayrollReport } from "./payroll-reports.service"
 
 import { getOrSetCache } from "@/lib/cache"
 import { bustPayrollCaches } from "@/lib/cache-invalidation"
@@ -802,6 +803,24 @@ async function approvePayrollRunCore(input: {
       }
     }
   }
+
+  void Promise.allSettled(
+    (
+      [
+        "PAYROLL_SUMMARY_PDF",
+        "PAYMENT_SCHEDULE_PDF",
+        "PCB_LHDN_FORM_PDF",
+        "EPF_CSV",
+        "SOCSO_EIS_TXT",
+        "SOCSO_EIS_SKBBK_TXT",
+        "BULK_PAYSLIPS_PDF",
+      ] as const
+    ).map((kind) =>
+      generatePayrollReport({ runId: run.id, kind }).catch((err) =>
+        console.error(`[approvePayrollRun] pre-gen failed for ${kind}:`, err),
+      ),
+    ),
+  )
 
   return result
 }
