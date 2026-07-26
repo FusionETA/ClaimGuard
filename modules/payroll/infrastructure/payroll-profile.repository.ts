@@ -232,6 +232,82 @@ export const payrollProfileRepository = {
   },
 
   /**
+   * Full employee master for the CSV export — every field the import
+   * template carries, so an export re-imports cleanly. Returns the
+   * projected PayrollProfile (clean JS types, ISO dates) plus the
+   * identity + hierarchy names the export needs. Includes employees
+   * regardless of profile completeness so nobody is silently dropped.
+   */
+  async listForExport(organizationId: string): Promise<
+    Array<{
+      name: string
+      email: string
+      employeeType: "EMPLOYEE" | "SUPERVISOR"
+      employeeId: string
+      jobTitle: string | null
+      policyName: string | null
+      projectName: string | null
+      teamName: string | null
+      teamLayer: number | null
+      profile: PayrollProfileData | null
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const users = await prisma.user.findMany({
+      where: {
+        role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        employeeProfiles: { some: { organizationId } },
+      },
+      select: {
+        name: true,
+        email: true,
+        role: true,
+        employeeProfiles: {
+          where: { organizationId },
+          select: {
+            employeeId: true,
+            jobTitle: true,
+            policy: { select: { name: true } },
+            projectAssignments: {
+              select: { project: { select: { name: true } } },
+              take: 1,
+            },
+            teamMemberships: {
+              select: { layer: true, team: { select: { name: true } } },
+              take: 1,
+            },
+            payrollProfile: true,
+          },
+          take: 1,
+        },
+      },
+      orderBy: { name: "asc" },
+    })
+
+    return users
+      .filter((u) => u.employeeProfiles[0] !== undefined)
+      .map((u) => {
+        const ep = u.employeeProfiles[0]!
+        return {
+          name: u.name,
+          email: u.email,
+          employeeType: u.role === "SUPERVISOR" ? "SUPERVISOR" : "EMPLOYEE",
+          employeeId: ep.employeeId,
+          jobTitle: ep.jobTitle,
+          policyName: ep.policy?.name ?? null,
+          projectName: ep.projectAssignments[0]?.project.name ?? null,
+          teamName: ep.teamMemberships[0]?.team.name ?? null,
+          teamLayer: ep.teamMemberships[0]?.layer ?? null,
+          profile: ep.payrollProfile
+            ? mapPayrollProfile(ep.payrollProfile)
+            : null,
+        }
+      })
+  },
+
+  /**
    * Fuller projection for YTD import row matching — every employee in
    * the org with the FK identifiers + identity fields needed to write
    * a Payslip snapshot. Used after parsing the upload to look up each
