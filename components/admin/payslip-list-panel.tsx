@@ -157,17 +157,26 @@ export function PayslipsListPanel({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return payslips
-    return payslips.filter((p) => {
-      const haystack = [
-        p.snapshotName,
-        p.snapshotEmployeeId,
-        p.snapshotPosition ?? "",
-      ]
-        .join(" ")
-        .toLowerCase()
-      return haystack.includes(q)
-    })
+    const matched = !q
+      ? payslips
+      : payslips.filter((p) => {
+          const haystack = [
+            p.snapshotName,
+            p.snapshotEmployeeId,
+            p.snapshotPosition ?? "",
+          ]
+            .join(" ")
+            .toLowerCase()
+          return haystack.includes(q)
+        })
+    // Sort alphabetically by employee name so the list lines up with
+    // other systems' A–Z ordering for side-by-side comparison. Copy
+    // first — never mutate the `payslips` prop in place.
+    return [...matched].sort((a, b) =>
+      a.snapshotName.localeCompare(b.snapshotName, "en", {
+        sensitivity: "base",
+      }),
+    )
   }, [payslips, query])
 
   // Column totals across the current FILTERED set — what the admin
