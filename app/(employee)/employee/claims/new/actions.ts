@@ -209,6 +209,10 @@ export async function submitClaimAction(
   // Bust Next.js page cache.
   revalidatePath("/employee")
   revalidatePath("/employee/claims")
+  // Supervisor's claim queue needs to see freshly-submitted claims
+  // instantly — otherwise a submission stays invisible until they
+  // navigate away and back.
+  revalidatePath("/employee/review")
   revalidatePath("/admin")
   revalidatePath("/admin/claims")
 

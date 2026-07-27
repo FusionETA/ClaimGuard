@@ -404,11 +404,6 @@ export function ClockCard({
     })
   }
   const [isBreakPending, startBreakTransition] = useTransition()
-  const prevBreakPendingRef = useRef(false)
-  useEffect(() => {
-    if (prevBreakPendingRef.current && !isBreakPending) router.refresh()
-    prevBreakPendingRef.current = isBreakPending
-  }, [isBreakPending, router])
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [remark, setRemark] = useState("")
   const [remarkError, setRemarkError] = useState<string | null>(null)
@@ -602,9 +597,15 @@ export function ClockCard({
     } else if (action.kind === "CLOCK_OUT") {
       prepareClockOut(action.formData)
     } else if (action.kind === "BREAK_START") {
-      startBreakTransition(() => startBreakAction(action.formData))
+      startBreakTransition(async () => {
+        await startBreakAction(action.formData)
+        router.refresh()
+      })
     } else {
-      startBreakTransition(() => endBreakAction(action.formData))
+      startBreakTransition(async () => {
+        await endBreakAction(action.formData)
+        router.refresh()
+      })
     }
   }
 
@@ -824,11 +825,14 @@ export function ClockCard({
           )
         : { withinRadius: true, distanceMeters: null, reason: "ok" }
       if (fence.withinRadius) {
-        startBreakTransition(() =>
-          kind === "BREAK_START"
-            ? startBreakAction(formData)
-            : endBreakAction(formData),
-        )
+        startBreakTransition(async () => {
+          if (kind === "BREAK_START") {
+            await startBreakAction(formData)
+          } else {
+            await endBreakAction(formData)
+          }
+          router.refresh()
+        })
         return
       }
       setRemark("")

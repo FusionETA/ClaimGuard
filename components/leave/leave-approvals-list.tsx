@@ -170,9 +170,12 @@ function ApprovalCard({
             )}
           </p>
           {app.reason ? (
-            <p className="mt-1 rounded-md border border-border/60 bg-surface-low px-2 py-1 text-xs text-foreground">
-              <span className="font-semibold">Reason:</span> {app.reason}
-            </p>
+            <div className="mt-2 rounded-lg bg-surface-low p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Reason
+              </p>
+              <p className="mt-0.5 text-sm text-foreground">{app.reason}</p>
+            </div>
           ) : null}
           {app.attachmentUrl ? (
             <p className="mt-1 text-xs">

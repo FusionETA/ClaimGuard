@@ -73,10 +73,13 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     href: "/employee/leave",
     label: "Leave",
     icon: CalendarDays,
+    /// Supervisors get Approvals right after My Leave so the
+    /// action-heavy tab is one tap away, mirroring the leave
+    /// mobile sub-nav ordering in app/(employee)/employee/leave/layout.tsx.
     children: [
       { href: "/employee/leave", label: "My Leave" },
-      { href: "/employee/leave/team" as Route, label: "Team Balances", supervisorOnly: true },
       { href: "/employee/leave/approvals" as Route, label: "Approvals", supervisorOnly: true },
+      { href: "/employee/leave/team" as Route, label: "Team Balances", supervisorOnly: true },
     ],
   },
   {

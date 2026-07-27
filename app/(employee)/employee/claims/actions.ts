@@ -42,6 +42,11 @@ export async function deleteClaimAction(
 
   revalidatePath("/employee/claims")
   revalidatePath("/employee")
+  // Supervisor's claim queue reads from the same claims table, so
+  // their view must revalidate too — otherwise a subordinate's edit /
+  // delete / attachment stays stale until the supervisor navigates.
+  revalidatePath("/employee/review")
+  revalidatePath("/admin/claims")
   return {
     status: "success",
     message: "Claim deleted.",
@@ -98,6 +103,11 @@ export async function addSupportingFilesAction(
 
   revalidatePath("/employee/claims")
   revalidatePath("/employee")
+  // Supervisor's claim queue reads from the same claims table, so
+  // their view must revalidate too — otherwise a subordinate's edit /
+  // delete / attachment stays stale until the supervisor navigates.
+  revalidatePath("/employee/review")
+  revalidatePath("/admin/claims")
   return {
     status: "success",
     message:
@@ -152,6 +162,11 @@ export async function updateClaimAction(
 
   revalidatePath("/employee/claims")
   revalidatePath("/employee")
+  // Supervisor's claim queue reads from the same claims table, so
+  // their view must revalidate too — otherwise a subordinate's edit /
+  // delete / attachment stays stale until the supervisor navigates.
+  revalidatePath("/employee/review")
+  revalidatePath("/admin/claims")
   return { status: "success", message: "Claim updated.", claimId }
 }
 
@@ -196,6 +211,11 @@ export async function replaceReceiptAction(
 
   revalidatePath("/employee/claims")
   revalidatePath("/employee")
+  // Supervisor's claim queue reads from the same claims table, so
+  // their view must revalidate too — otherwise a subordinate's edit /
+  // delete / attachment stays stale until the supervisor navigates.
+  revalidatePath("/employee/review")
+  revalidatePath("/admin/claims")
   return {
     status: "success",
     message: result.warning ?? "Receipt replaced.",
