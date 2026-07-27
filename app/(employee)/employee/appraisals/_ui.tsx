@@ -150,16 +150,23 @@ export const PHASE_ACCENT: Record<AppraisalPhase, PhaseAccent> = {
   },
 }
 
-/** Format an ISO date (or null) as e.g. "10 Jul 2026", with a fallback dash. */
+const MONTHS_SHORT = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+] as const
+
+/**
+ * Format an ISO date (or null) as e.g. "10 Jul 2026", with a fallback dash.
+ * Formats from UTC parts (not `toLocaleDateString`) so the server (UTC) and
+ * the client (the viewer's timezone) produce identical output — otherwise the
+ * SSR'd date can differ from the hydrated one and trigger a React hydration
+ * mismatch.
+ */
 export function formatDate(iso: string | null): string {
   if (!iso) return "—"
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return "—"
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  })
+  return `${String(d.getUTCDate()).padStart(2, "0")} ${MONTHS_SHORT[d.getUTCMonth()]} ${d.getUTCFullYear()}`
 }
 
 /** Small helper to format an average score for display. */
