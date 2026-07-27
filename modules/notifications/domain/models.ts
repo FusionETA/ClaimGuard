@@ -5,6 +5,8 @@ export const notificationTypes = [
   "CLAIM_REVIEWED",
   "ATTENDANCE_APPROVAL",
   "TEMPORARY_REVIEW",
+  "APPRAISAL_PHASE_READY",
+  "APPRAISAL_COMPLETED",
 ] as const
 
 export type NotificationType = (typeof notificationTypes)[number]

@@ -3,6 +3,7 @@ import "server-only"
 import { z } from "zod"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { notify } from "@/modules/notifications/application/services/notification.service"
 import {
   appraisalRepository,
   type CreateAppraisalInput,
@@ -11,10 +12,59 @@ import { appraisalTemplateRepository } from "@/modules/appraisify/infrastructure
 import {
   DEFAULT_APPRAISAL_QUESTIONS,
   buildAppraisalReference,
+  buildCycleLabel,
   phaseAccessFor,
   resolvePhaseForUser,
+  type AppraisalPhase,
+  type AppraisalRecord,
   type AppraisalStage,
 } from "@/modules/appraisify/domain/models"
+
+/**
+ * Notify the person whose turn it now is (or the reviewee, on completion).
+ * Best-effort — mirrors the claims module's pattern: notifications must
+ * never block or fail a successful submission.
+ */
+async function notifyNextActor(
+  record: AppraisalRecord,
+  orgId: string,
+  submittedPhase: AppraisalPhase,
+  actorName: string,
+): Promise<void> {
+  try {
+    const cycle = buildCycleLabel(record.type, record.year)
+    if (submittedPhase === "reviewee") {
+      await notify({
+        userId: record.reviewer.id,
+        organizationId: orgId,
+        type: "APPRAISAL_PHASE_READY",
+        title: "Appraisal Ready for Review",
+        body: `${actorName} submitted their self-assessment for ${cycle}. It's ready for your review.`,
+        url: `/employee/appraisals/${record.id}`,
+      })
+    } else if (submittedPhase === "reviewer") {
+      await notify({
+        userId: record.partner.id,
+        organizationId: orgId,
+        type: "APPRAISAL_PHASE_READY",
+        title: "Appraisal Ready for Partner Review",
+        body: `${actorName} completed their review of ${record.reviewee.name}'s ${cycle}. It's ready for your review.`,
+        url: `/employee/appraisals/${record.id}`,
+      })
+    } else {
+      await notify({
+        userId: record.reviewee.id,
+        organizationId: orgId,
+        type: "APPRAISAL_COMPLETED",
+        title: "Appraisal Completed",
+        body: `Your ${cycle} appraisal is complete. The final summary is now available.`,
+        url: "/employee/appraisals",
+      })
+    }
+  } catch {
+    // Notifications are best-effort — never block a successful submission.
+  }
+}
 
 /* ── Zod schemas (shared by client preview + server action) ────────── */
 
@@ -116,6 +166,12 @@ export async function submitAppraisalPhase(input: unknown): Promise<SubmitResult
   })
   if (!nextStage) return { ok: false, message: "Appraisal not found." }
 
+  // Only a real submit (not a draft save) advances the cycle — notify
+  // whoever's turn it is next.
+  if (data.submit) {
+    await notifyNextActor(record, orgId, data.phase, session.name)
+  }
+
   return { ok: true, nextStage, submitted: data.submit }
 }
 
@@ -169,7 +225,7 @@ export async function createAppraisalsForEmployees(input: unknown): Promise<Crea
 
   const base = await appraisalRepository.countAll()
 
-  let created = 0
+  let createdCount = 0
   for (let i = 0; i < targets.length; i++) {
     const revieweeId = targets[i]!
     const ref = buildAppraisalReference(data.year, base + 1 + i)
@@ -186,9 +242,22 @@ export async function createAppraisalsForEmployees(input: unknown): Promise<Crea
       referenceNumber: ref,
       questions: questionSet,
     }
-    await appraisalRepository.createAppraisal(payload)
-    created++
+    const createdRecord = await appraisalRepository.createAppraisal(payload)
+    createdCount++
+
+    try {
+      await notify({
+        userId: revieweeId,
+        organizationId: orgId,
+        type: "APPRAISAL_PHASE_READY",
+        title: "Appraisal Cycle Started",
+        body: `Your ${buildCycleLabel(data.type, data.year)} performance appraisal has started. Complete your self-assessment when ready.`,
+        url: `/employee/appraisals/${createdRecord.id}`,
+      })
+    } catch {
+      // Notifications are best-effort — never block a successful create.
+    }
   }
 
-  return { ok: true, count: created }
+  return { ok: true, count: createdCount }
 }

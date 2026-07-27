@@ -2496,6 +2496,11 @@ enum NotificationType {
   CLAIM_REVIEWED
   ATTENDANCE_APPROVAL
   TEMPORARY_REVIEW
+  /// A prior appraisal phase was submitted and it's now this recipient's
+  /// turn (reviewee → reviewer, or reviewer → partner).
+  APPRAISAL_PHASE_READY
+  /// The full three-phase appraisal cycle finished (partner submitted).
+  APPRAISAL_COMPLETED
 }
 
 enum LoanRepaymentMode {
