@@ -56,12 +56,17 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     href: "/employee/attendance",
     label: "Attendance",
     icon: CalendarClock,
+    /// Order surfaces action-heavy tabs first for supervisors
+    /// (Approvals right after Dashboard). Non-supervisors filter out
+    /// Team / Approvals and see Dashboard → Overtime → History.
+    /// Mirrors the mobile AttendanceSubNav ordering set in
+    /// app/(employee)/employee/attendance/layout.tsx.
     children: [
       { href: "/employee/attendance", label: "Dashboard" },
-      { href: "/employee/attendance/history", label: "History" },
-      { href: "/employee/attendance/overtime", label: "Overtime" },
-      { href: "/employee/attendance/team", label: "Team", supervisorOnly: true },
       { href: "/employee/attendance/approvals", label: "Approvals", supervisorOnly: true },
+      { href: "/employee/attendance/overtime", label: "Overtime" },
+      { href: "/employee/attendance/history", label: "History" },
+      { href: "/employee/attendance/team", label: "Team", supervisorOnly: true },
     ],
   },
   {
