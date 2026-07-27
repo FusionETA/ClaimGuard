@@ -174,6 +174,25 @@ export const appraisalRepository = {
     return rows.map(mapAppraisal)
   },
 
+  /**
+   * Count-only version of "how many appraisals need this user's action right
+   * now" — i.e. rows where the user holds the role whose phase is currently
+   * open. Does not hydrate questions/records; used for the nav badge.
+   */
+  async countPendingForUser(userId: string, orgId: string): Promise<number> {
+    const prisma = getAppraisalsPrismaClient()
+    return prisma.appraisal.count({
+      where: {
+        organizationId: orgId,
+        OR: [
+          { revieweeId: userId, stage: "INITIALIZED" },
+          { reviewerId: userId, stage: "REVIEWER_PENDING" },
+          { partnerId: userId, stage: "PARTNER_PENDING" },
+        ],
+      },
+    })
+  },
+
   async getByIdForOrg(id: string, orgId: string): Promise<AppraisalRecord | null> {
     const prisma = getAppraisalsPrismaClient()
     const row = await prisma.appraisal.findFirst({

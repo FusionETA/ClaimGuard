@@ -17,6 +17,20 @@ import {
   type EmployeeAppraisalDashboardData,
 } from "@/modules/appraisify/domain/models"
 
+/**
+ * How many appraisals need this user's action right now (their phase is
+ * currently open), across all three roles. Used for the nav badge —
+ * mirrors `countPendingClaimsForSupervisor` / attendance's equivalent,
+ * taking explicit params so `/api/employee/context` doesn't re-fetch the
+ * session it already has.
+ */
+export async function countPendingAppraisalsForUser(
+  userId: string,
+  orgId: string,
+): Promise<number> {
+  return appraisalRepository.countPendingForUser(userId, orgId)
+}
+
 /** The overall submitted-at for an appraisal (latest completed phase). */
 function lastSubmittedAt(r: AppraisalRecord): string | null {
   return r.partnerSubmittedAt ?? r.reviewerSubmittedAt ?? r.revieweeSubmittedAt ?? null
