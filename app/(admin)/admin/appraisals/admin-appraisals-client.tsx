@@ -40,16 +40,9 @@ export function AdminAppraisalsClient({ data }: { data: AdminAppraisalDashboardD
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900">Appraisal Dashboard</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Start and track performance appraisal cycles</p>
+          <p className="mt-0.5 text-sm text-slate-500">Manage appraisal cycles and question sets</p>
         </div>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/admin/appraisals/templates"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-primary"
-          >
-            <Icon name="quiz" className="text-lg" />
-            Question Sets
-          </Link>
+        <div className="flex gap-4">
           <StatCard value={data.stats.active} label="Active" color="text-primary" />
           <StatCard value={data.stats.complete} label="Complete" color="text-emerald-500" />
         </div>
@@ -106,6 +99,26 @@ export function AdminAppraisalsClient({ data }: { data: AdminAppraisalDashboardD
         ) : null}
       </div>
 
+      {/* Question management */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <ManagementCard
+          href="/admin/appraisals/templates/new"
+          icon="add_circle"
+          iconClass="bg-primary/10 text-primary"
+          title="Question Builder"
+          body="Create a new question set with sections, scoring questions, and guidance."
+          cta="Open Builder"
+        />
+        <ManagementCard
+          href="/admin/appraisals/templates"
+          icon="edit_note"
+          iconClass="bg-slate-100 text-slate-500"
+          title="Manage Question Sets"
+          body="Edit, reorder, or archive the question sets your appraisals use."
+          cta="Open Question Sets"
+        />
+      </div>
+
       {dialogFor ? (
         <StartAppraisalDialog
           employees={dialogFor}
@@ -119,6 +132,48 @@ export function AdminAppraisalsClient({ data }: { data: AdminAppraisalDashboardD
         />
       ) : null}
     </div>
+  )
+}
+
+function ManagementCard({
+  href,
+  icon,
+  iconClass,
+  title,
+  body,
+  cta,
+}: {
+  href: string
+  icon: string
+  iconClass: string
+  title: string
+  body: string
+  cta: string
+}) {
+  return (
+    <Link
+      href={href as Route}
+      className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors hover:border-primary"
+    >
+      <div className="flex items-start gap-4">
+        <div
+          className={cn(
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors group-hover:bg-primary group-hover:text-white",
+            iconClass,
+          )}
+        >
+          <Icon name={icon} className="text-2xl" />
+        </div>
+        <div>
+          <h4 className="mb-1 text-lg font-bold text-slate-900">{title}</h4>
+          <p className="text-sm leading-relaxed text-slate-500">{body}</p>
+          <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-primary transition-transform group-hover:translate-x-1">
+            {cta}
+            <Icon name="arrow_forward" className="text-sm" />
+          </span>
+        </div>
+      </div>
+    </Link>
   )
 }
 
