@@ -404,6 +404,11 @@ export function ClockCard({
     })
   }
   const [isBreakPending, startBreakTransition] = useTransition()
+  const prevBreakPendingRef = useRef(false)
+  useEffect(() => {
+    if (prevBreakPendingRef.current && !isBreakPending) router.refresh()
+    prevBreakPendingRef.current = isBreakPending
+  }, [isBreakPending, router])
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [remark, setRemark] = useState("")
   const [remarkError, setRemarkError] = useState<string | null>(null)
