@@ -143,13 +143,45 @@ export function AdminClaimsQueue({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <Card>
+      {/* Mobile: bare scrollable pill row — no Card wrapper so it
+          reads flat, matching the /employee/claims layout. Wrapping
+          this in the desktop Card was visually surrounding it with
+          a redundant panel outline on phone widths. */}
+      <div className="flex gap-2 overflow-x-auto no-scrollbar md:hidden">
+        {statusOptions.map((status) => {
+          const active = statusFilter === status
+          const label =
+            status === "ALL"
+              ? "All"
+              : status === "PENDING"
+                ? "Pending"
+                : status[0] + status.slice(1).toLowerCase()
+
+          return (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setStatusFilter(status)}
+              className={cn(
+                "relative z-10 shrink-0 touch-manipulation rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                active
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
+
+      <Card className="hidden md:block">
         <CardContent className="space-y-4 px-5 pb-5 pt-3 sm:space-y-5 sm:p-6">
           {/* Desktop: search on its own row, then a single-row
               scrollable pill filter directly below. Matches
               employee-claims-history desktop layout so both surfaces
               read the same at every width. */}
-          <div className="hidden space-y-4 md:block">
+          <div className="space-y-4">
             <div className="relative w-full max-w-sm">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -189,40 +221,7 @@ export function AdminClaimsQueue({
             </div>
           </div>
 
-          {/* Mobile: single-row scrollable pill filter — matches the
-              employee-claims-history mobile pattern so all statuses
-              stay on one line regardless of count. The previous
-              3-col grid wrapped 5 pills into 3+2 rows and made the
-              filter row taller than necessary. */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar md:hidden">
-            {statusOptions.map((status) => {
-              const active = statusFilter === status
-              const label =
-                status === "ALL"
-                  ? "All"
-                  : status === "PENDING"
-                    ? "Pending"
-                    : status[0] + status.slice(1).toLowerCase()
-
-              return (
-                <button
-                  key={status}
-                  type="button"
-                  onClick={() => setStatusFilter(status)}
-                  className={cn(
-                    "relative z-10 shrink-0 touch-manipulation rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
-                    active
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {label}
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="hidden flex-col gap-2 text-sm text-muted-foreground md:flex md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-2 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
             <p>
               Showing <span className="font-semibold text-foreground">{filteredClaims.length}</span>{" "}
               of <span className="font-semibold text-foreground">{claims.length}</span> claims
