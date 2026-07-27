@@ -19,6 +19,7 @@ import {
   getPayrollPrismaClientSafe,
   payrollRunRepository,
 } from "@/modules/payroll/infrastructure/payroll-run.repository"
+import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-change.repository"
 
 /**
  * Bulk-import one-off manual line items into a DRAFT payroll run from
@@ -77,6 +78,8 @@ export async function generateAdjustmentImportTemplate(input: {
       }))
       return {
         name: e.name || "(no name)",
+        currentSalary:
+          e.profile.salaryType === "MONTHLY" ? e.profile.monthlySalary : null,
         existingLines: items,
       }
     }),
@@ -100,6 +103,14 @@ export type AdjustmentImportSummary = {
   employeesAffected: number
   linesWritten: number
   employeesWithoutFileEntry: number
+  /// How many employees had their monthly salary changed (increase or
+  /// decrease) by the optional Basic Salary column — each logged a
+  /// SalaryChange effective the run's period. 0 when the column is
+  /// absent or every value matched the current salary.
+  salaryChangesApplied: number
+  /// Names skipped because the Basic Salary column can't override an
+  /// hourly-paid employee (only MONTHLY salaries are supported here).
+  salariesSkippedNonMonthly: string[]
   /// Populated when the auto re-run after the import failed. The
   /// import itself succeeded; this is a soft warning telling the
   /// admin they should click Re-run payroll to refresh totals.
@@ -116,7 +127,7 @@ export async function importPayrollRunAdjustments(input: {
   runId: string
   fileBuffer: ArrayBuffer
 }): Promise<AdjustmentImportSummary | AdjustmentImportError> {
-  const { orgId } = await requireAdminSession()
+  const { orgId, userId } = await requireAdminSession()
 
   const run = await payrollRunRepository.getByIdForOrg({
     id: input.runId,
@@ -184,7 +195,47 @@ export async function importPayrollRunAdjustments(input: {
     resolved.push({ profileId: matches[0]!, row })
   }
 
+  // ── Resolve the optional Basic Salary rows to profiles ────────────
+  // Same name-matching rules as line items. A single employee may carry
+  // the salary on more than one of their rows; they must all agree.
+  const salaryByProfile = new Map<
+    string,
+    { basicSalary: number; rowNumber: number }
+  >()
+  const salaryConflicts = new Set<string>()
+  for (const sal of parsed.salaries) {
+    const key = normaliseName(sal.fullName)
+    const matches = byName.get(key) ?? []
+    if (matches.length === 0) {
+      unmatched.add(sal.fullName)
+      continue
+    }
+    if (matches.length > 1) {
+      ambiguous.add(sal.fullName)
+      continue
+    }
+    const profileId = matches[0]!
+    const existing = salaryByProfile.get(profileId)
+    if (existing && Math.abs(existing.basicSalary - sal.basicSalary) > 0.005) {
+      salaryConflicts.add(sal.fullName)
+      continue
+    }
+    salaryByProfile.set(profileId, {
+      basicSalary: sal.basicSalary,
+      rowNumber: sal.rowNumber,
+    })
+  }
+
   const nameProblems: string[] = []
+  if (salaryConflicts.size > 0) {
+    nameProblems.push(
+      `${salaryConflicts.size} employee${salaryConflicts.size === 1 ? "" : "s"} had two different Basic Salary values: ${[
+        ...salaryConflicts,
+      ]
+        .slice(0, 8)
+        .join(", ")}${salaryConflicts.size > 8 ? "…" : ""} — put one salary per employee`,
+    )
+  }
   if (unmatched.size > 0) {
     nameProblems.push(
       `${unmatched.size} name${unmatched.size === 1 ? "" : "s"} didn't match anyone on this run: ${[
@@ -237,7 +288,34 @@ export async function importPayrollRunAdjustments(input: {
     return { status: "error", message: "Database is not configured." }
   }
 
+  // ── Resolve the salary work BEFORE the transaction ────────────────
+  // The run's period start is the effective date for any change — a
+  // raise imported on the March run is effective 1 March. Comparing the
+  // imported figure against each employee's CURRENT salary is what makes
+  // this an increase/decrease: same value → no-op, different → recorded.
+  const eligibleById = new Map(eligible.map((e) => [e.employeeProfileId, e]))
+  const periodStartISO = `${run.periodYear}-${String(run.periodMonth).padStart(2, "0")}-01`
+
+  // Idempotency guard: if this exact change (same employee, same
+  // effective date, same new salary) was already recorded — e.g. the
+  // admin re-uploads the same month's file — don't stack a duplicate
+  // audit row. SalaryChange is immutable by design, so we skip rather
+  // than overwrite.
+  const existingChanges = await salaryChangeRepository.findInDateRangeForOrg({
+    organizationId: orgId,
+    fromDate: periodStartISO,
+    toDate: periodStartISO,
+  })
+  const alreadyRecorded = new Set(
+    existingChanges.map(
+      (c) => `${c.employeeProfileId}:${Math.round((c.newMonthlySalary ?? 0) * 100)}`,
+    ),
+  )
+
+  const salariesSkippedNonMonthly: string[] = []
+
   let linesWritten = 0
+  let salaryChangesApplied = 0
   await prisma.$transaction(async (tx) => {
     // Step 1 — wipe manualLineItems on every existing row for the run
     await tx.payrollRunAdjustment.updateMany({
@@ -266,6 +344,57 @@ export async function importPayrollRunAdjustments(input: {
       })
       linesWritten += items.length
     }
+
+    // Step 3 — apply Basic Salary changes. For each employee whose
+    // imported salary differs from their current one, update the
+    // profile AND log a SalaryChange (increase or decrease) effective
+    // the run's period. Blank / matching salary → nothing happens.
+    for (const [profileId, { basicSalary }] of salaryByProfile.entries()) {
+      const eligibleEmp = eligibleById.get(profileId)
+      const current = eligibleEmp?.profile
+      // Only monthly-paid employees are supported — an hourly rate isn't
+      // an interchangeable "salary" figure. Flag rather than silently
+      // corrupt the profile.
+      if (!current || current.salaryType !== "MONTHLY") {
+        if (eligibleEmp) salariesSkippedNonMonthly.push(eligibleEmp.name)
+        continue
+      }
+      const previousSalary = current.monthlySalary ?? 0
+      if (Math.abs(previousSalary - basicSalary) < 0.005) continue // no change
+
+      // Update the standing salary so this run — and every run after —
+      // computes on the new figure.
+      await tx.payrollProfile.update({
+        where: { employeeProfileId: profileId },
+        data: { monthlySalary: basicSalary },
+      })
+
+      // Record the audit trail, unless an identical row already exists.
+      const dedupeKey = `${profileId}:${Math.round(basicSalary * 100)}`
+      if (!alreadyRecorded.has(dedupeKey)) {
+        const direction = basicSalary > previousSalary ? "increase" : "decrease"
+        await (tx as any).salaryChange.create({
+          data: {
+            employeeProfileId: profileId,
+            effectiveDate: new Date(periodStartISO),
+            previousSalaryType: "MONTHLY",
+            previousMonthlySalary: previousSalary,
+            previousHourlyRate: null,
+            newSalaryType: "MONTHLY",
+            newMonthlySalary: basicSalary,
+            newHourlyRate: null,
+            reason: "OTHER",
+            notes: `Salary ${direction} imported via payroll adjustment upload for ${periodLabel(
+              run.periodYear,
+              run.periodMonth,
+            )} (RM ${previousSalary.toFixed(2)} → RM ${basicSalary.toFixed(2)}).`,
+            changedByUserId: userId,
+          },
+        })
+        alreadyRecorded.add(dedupeKey)
+      }
+      salaryChangesApplied += 1
+    }
   })
 
   const employeesInFile = groupedByProfile.size
@@ -279,6 +408,8 @@ export async function importPayrollRunAdjustments(input: {
     employeesAffected: employeesInFile,
     linesWritten,
     employeesWithoutFileEntry,
+    salaryChangesApplied,
+    salariesSkippedNonMonthly,
   }
 }
 
@@ -286,6 +417,7 @@ export async function importPayrollRunAdjustments(input: {
 
 async function requireAdminSession(): Promise<{
   orgId: string
+  userId: string
 }> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
@@ -293,7 +425,7 @@ async function requireAdminSession(): Promise<{
   }
   const orgId = resolveActiveOrgId(session)
   if (!orgId) throw new Error("No active organisation.")
-  return { orgId }
+  return { orgId, userId: session.userId }
 }
 
 function normaliseName(s: string): string {

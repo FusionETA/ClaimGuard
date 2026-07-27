@@ -71,6 +71,11 @@ export function ManageEmployeeList({
     <div className="space-y-6">
       {canEdit ? (
         <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button asChild variant="outline" className="rounded-full">
+            <a href="/admin/payroll/employees/export" download>
+              Export CSV
+            </a>
+          </Button>
           <ImportPayrollEmployeesButton
             leaveTypes={leaveTypes}
             policyDefaults={policyDefaults}

@@ -371,6 +371,44 @@ export async function readPayrollReportFile(input: {
   return { bytes, fileName: gen.fileName, mimeType: gen.mimeType }
 }
 
+/**
+ * Return only the generation status rows for a run, bypassing the Redis
+ * cache so polling sees real-time state. Used by the status API route.
+ */
+export async function getPayrollReportStatusRows(input: {
+  runId: string
+}): Promise<PayrollReportRow[] | null> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) return null
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return null
+
+  const run = await payrollRunRepository.getByIdForOrg({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  if (!run) return null
+
+  const stored = await payrollRunReportRepository.listForRun(input.runId)
+  const storedByKind = new Map(stored.map((s) => [s.kind, s]))
+
+  return payrollReportKinds.map((kind) => {
+    const meta = PAYROLL_REPORT_META[kind]
+    const cached = storedByKind.get(kind)
+    return {
+      ...meta,
+      generated: cached
+        ? {
+            fileName: cached.fileName,
+            fileUrl: cached.fileUrl,
+            sizeBytes: cached.sizeBytes,
+            generatedAt: cached.generatedAt.toISOString(),
+          }
+        : null,
+    }
+  })
+}
+
 /// Parse a YYYY-MM-DD string into a Date at local midnight.
 function parseIsoDate(s: string): Date {
   const [y, m, d] = s.split("-").map(Number)

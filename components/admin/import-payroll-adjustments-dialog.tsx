@@ -30,6 +30,12 @@ type ImportResult =
       employeesAffected: number
       linesWritten: number
       employeesWithoutFileEntry: number
+      /// How many monthly salaries were changed by the Basic Salary
+      /// column (each logged a salary-change record).
+      salaryChangesApplied: number
+      /// Names skipped because the Basic Salary column can't override an
+      /// hourly-paid employee.
+      salariesSkippedNonMonthly: string[]
       /// Present when the auto re-run after import failed. Import
       /// itself succeeded; admin needs to click Re-run payroll.
       rerunWarning?: string
@@ -257,6 +263,24 @@ export function ImportPayrollAdjustmentsDialog({
                       </>
                     )}
                   </p>
+                  {result.salaryChangesApplied > 0 && (
+                    <p className="mt-1">
+                      {result.salaryChangesApplied} salary change
+                      {result.salaryChangesApplied === 1 ? "" : "s"} recorded
+                      (increase/decrease) effective this run&rsquo;s period.
+                    </p>
+                  )}
+                  {result.salariesSkippedNonMonthly.length > 0 && (
+                    <p className="mt-1">
+                      Basic Salary ignored for{" "}
+                      {result.salariesSkippedNonMonthly.length} hourly-paid
+                      employee
+                      {result.salariesSkippedNonMonthly.length === 1
+                        ? ""
+                        : "s"}{" "}
+                      (only monthly salaries can be overridden here).
+                    </p>
+                  )}
                 </div>
               </div>
               {result.rerunWarning && (

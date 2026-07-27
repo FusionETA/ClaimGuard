@@ -396,7 +396,7 @@ function buildImportedPayslipInput(input: {
   // line item rendered in the breakdown but vanished from the
   // payroll-row total (Nicholas's screenshot).
   const totalReimbursements = round2(extraReimbursements)
-  const netPay = round2(
+  const rawNet = round2(
     grossPay -
       a.epfEmployee -
       a.socsoEmployee -
@@ -406,6 +406,11 @@ function buildImportedPayslipInput(input: {
       a.zakat +
       totalReimbursements,
   )
+  // Floor imported net at 0 too — a source month that over-deducted
+  // (deductions > pay) is flagged, not shown negative. Matches the
+  // computed-run behaviour and Payroll Panda.
+  const netPay = Math.max(0, rawNet)
+  const netShortfall = rawNet < 0 ? round2(-rawNet) : 0
   const totalCostToEmployer = round2(
     grossPay + a.epfEmployer + a.socsoEmployer + a.eisEmployer + a.hrdf,
   )
@@ -574,6 +579,7 @@ function buildImportedPayslipInput(input: {
     zakat: a.zakat,
     grossPay,
     netPay,
+    netShortfall,
     totalCostToEmployer,
     lineItems,
   }

@@ -1,5 +1,6 @@
 import "server-only"
 import { isAdminRole } from "@/lib/auth/types"
+import { generatePayrollReport } from "./payroll-reports.service"
 
 import { getOrSetCache } from "@/lib/cache"
 import { bustPayrollCaches } from "@/lib/cache-invalidation"
@@ -562,19 +563,22 @@ export async function submitPayrollRunForApproval(input: {
     }
   }
 
-  // Guard 2 — no employee may have zero or negative net pay (e.g. a
-  // loan installment / deductions larger than their take-home). Block
-  // and name the affected employees.
-  const nonPositive = payslips.filter((p) => p.netPay <= 0)
-  if (nonPositive.length > 0) {
-    const names = nonPositive
+  // Guard 2 — net pay can never be NEGATIVE. The calc already floors it
+  // at 0 (you can't deduct an employee into debt — EA 1955 s.24), so a
+  // truly-negative value here would be a calc bug, not a data problem —
+  // hence still a hard block. A net of EXACTLY 0 (deductions swallowed
+  // the whole pay) is allowed to submit: it's surfaced non-blockingly in
+  // the run's "Needs attention" list via `netShortfall`, mirroring
+  // Payroll Panda, which shows 0.00 and lets the run continue.
+  const negative = payslips.filter((p) => p.netPay < 0)
+  if (negative.length > 0) {
+    const names = negative
       .slice(0, 5)
       .map((p) => p.snapshotName)
       .join(", ")
-    const more =
-      nonPositive.length > 5 ? ` and ${nonPositive.length - 5} more` : ""
+    const more = negative.length > 5 ? ` and ${negative.length - 5} more` : ""
     throw new Error(
-      `Cannot submit — net pay is zero or negative for: ${names}${more}. Reduce their deductions or loan installment, then re-run payroll.`,
+      `Cannot submit — net pay is negative for: ${names}${more}. This shouldn't happen; re-run payroll and report it if it persists.`,
     )
   }
 
@@ -803,6 +807,39 @@ async function approvePayrollRunCore(input: {
     }
   }
 
+  // Pre-generate the run's downloadable reports in the background so
+  // they're ready by the time the admin opens the downloads modal.
+  //
+  // Fire-and-forget (`void`) — the approval response returns immediately.
+  // Crucially, this runs the reports SEQUENTIALLY with an event-loop
+  // yield between each, instead of firing all seven concurrently. The
+  // bulk-payslips PDF is a heavy react-pdf render; seven of these racing
+  // on the single Node process saturated the event loop and stalled the
+  // very next request (the admin clicking Back after approving). Ordered
+  // lightest-first so the common files are ready soonest and the heavy
+  // bulk-payslips PDF renders last, after the admin has navigated away.
+  void (async () => {
+    const kinds = [
+      "EPF_CSV",
+      "SOCSO_EIS_TXT",
+      "SOCSO_EIS_SKBBK_TXT",
+      "PAYMENT_SCHEDULE_PDF",
+      "PCB_LHDN_FORM_PDF",
+      "PAYROLL_SUMMARY_PDF",
+      "BULK_PAYSLIPS_PDF",
+    ] as const
+    for (const kind of kinds) {
+      try {
+        await generatePayrollReport({ runId: run.id, kind })
+      } catch (err) {
+        console.error(`[approvePayrollRun] pre-gen failed for ${kind}:`, err)
+      }
+      // Hand the event loop back so pending requests (e.g. the
+      // post-approve navigation) get CPU time between each render.
+      await new Promise<void>((resolve) => setImmediate(resolve))
+    }
+  })()
+
   return result
 }
 
@@ -922,6 +959,31 @@ export async function deletePayrollRunDraft(input: {
   if (!orgId) throw new Error("No active organisation.")
 
   await payrollRunRepository.deleteDraft({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  await bustPayrollCaches({ organizationId: orgId })
+}
+
+/**
+ * Delete a single IMPORTED payroll run (one month of YTD-migration
+ * history). Imported runs are SUBMITTED, so the draft-delete path
+ * refuses them — this is the only way to remove a wrongly-imported
+ * month without re-uploading the whole year. Does NOT touch employee
+ * salary or SalaryChange history; those are standing data, unaffected
+ * by removing an imported run.
+ */
+export async function deleteImportedPayrollRun(input: {
+  runId: string
+}): Promise<void> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    throw new Error("Session expired. Please log in again.")
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) throw new Error("No active organisation.")
+
+  await payrollRunRepository.deleteImportedRun({
     id: input.runId,
     organizationId: orgId,
   })
@@ -1818,6 +1880,7 @@ export async function generatePayrollPayslips(input: {
       zakat: result.zakat,
       grossPay: result.grossPay,
       netPay: result.netPay,
+      netShortfall: result.netShortfall,
       totalCostToEmployer: result.totalCostToEmployer,
       lineItems: result.lineItems,
     }

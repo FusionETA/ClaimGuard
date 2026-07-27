@@ -2036,6 +2036,13 @@ model Payslip {
   hrdfWage              Decimal           @default(0.00) @db.Decimal(12, 2)
   grossPay              Decimal           @db.Decimal(12, 2)
   netPay                Decimal           @db.Decimal(12, 2)
+  /// Amount by which post-statutory deductions (loans, advances, salary
+  /// deductions) exceeded the pay left after statutory this month. 0 /
+  /// null unless `netPay` was floored to 0 — you can't deduct an employee
+  /// below zero (EA 1955 s.24). Non-zero flags an over-deduction for
+  /// admin review in the run's "Needs attention" list; it does NOT carry
+  /// forward automatically.
+  netShortfall          Decimal?          @db.Decimal(12, 2)
   totalCostToEmployer   Decimal           @db.Decimal(12, 2)
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt

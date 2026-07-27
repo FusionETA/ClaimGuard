@@ -274,6 +274,9 @@ export type PayslipData = {
   // Totals
   grossPay: number
   netPay: number
+  /// Amount post-statutory deductions exceeded available pay this month.
+  /// 0 unless net was floored to 0 — flags an over-deduction for review.
+  netShortfall: number
   totalCostToEmployer: number
 
   createdAt: string

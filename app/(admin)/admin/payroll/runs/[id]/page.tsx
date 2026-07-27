@@ -25,12 +25,14 @@ import {
   AttachLeaveCashoutButton,
   DetachLeaveCashoutButton,
 } from "@/components/admin/leave-cashout-buttons"
+import { DeleteImportedRunButton } from "@/components/admin/delete-imported-run-button"
 import { DeletePayrollRunDraftButton } from "@/components/admin/delete-payroll-run-draft-button"
 import { DownloadPayrollSummaryButton } from "@/components/admin/download-payroll-summary-button"
 import { GeneratePayslipsButton } from "@/components/admin/generate-payslips-button"
 import { ImportPayrollAdjustmentsDialog } from "@/components/admin/import-payroll-adjustments-dialog"
 import { PayrollDownloadsModal } from "@/components/admin/payroll-downloads-modal"
 import { PayrollRunEmployeeTables } from "@/components/admin/payroll-run-employee-tables"
+import { PayrollRunContentTabs } from "@/components/admin/payroll-run-content-tabs"
 import { PayslipsListPanel } from "@/components/admin/payslip-list-panel"
 import {
   ApprovePayrollRunButton,
@@ -152,10 +154,54 @@ export default async function AdminPayrollRunDetailPage({
   const isDraft = data.run.status === "DRAFT"
   const isPendingApproval = data.run.status === "PENDING_APPROVAL"
   const isSubmitted = data.run.status === "SUBMITTED"
+  const isImported = data.run.source === "IMPORTED"
   const onPayslip = new Set(data.payslips.map((p) => p.employeeProfileId))
   const readyMissingPayslip = ready.filter(
     (e) => !onPayslip.has(e.employeeProfileId),
   )
+
+  // The "needs setup / not yet on a payslip" tables and the payslips
+  // list are put behind tabs (Payslips default) when BOTH have content,
+  // so the payslips aren't buried under setup cards. When only one has
+  // content, it renders on its own with no tab bar.
+  // Employees whose net pay was floored to 0 (deductions > pay). Shown
+  // in the "Needs attention" section on any run, alongside the draft
+  // setup tables.
+  const netCapped = data.payslips
+    .filter((p) => (p.netShortfall ?? 0) > 0.005)
+    .map((p) => ({
+      employeeProfileId: p.employeeProfileId,
+      name: p.snapshotName,
+      employeeId: p.snapshotEmployeeId,
+      jobTitle: p.snapshotPosition ?? "",
+      netShortfall: p.netShortfall,
+    }))
+  const hasSetupItems =
+    isDraft && (needsSetup.length > 0 || readyMissingPayslip.length > 0)
+  const attentionCount =
+    (hasSetupItems ? needsSetup.length + readyMissingPayslip.length : 0) +
+    netCapped.length
+  const setupNode =
+    hasSetupItems || netCapped.length > 0 ? (
+      <div className="print:hidden">
+        <PayrollRunEmployeeTables
+          runId={data.run.id}
+          hasPayslips={data.payslips.length > 0}
+          needsSetup={hasSetupItems ? needsSetup : []}
+          readyEmployees={hasSetupItems ? readyMissingPayslip : []}
+          netCapped={netCapped}
+        />
+      </div>
+    ) : null
+  const payslipsNode =
+    data.payslips.length > 0 ? (
+      <PayslipsListPanel
+        runId={data.run.id}
+        payslips={data.payslips}
+        showAdjustLink
+        runIsDraft={isDraft}
+      />
+    ) : null
 
   return (
     <div className="space-y-6">
@@ -211,16 +257,17 @@ export default async function AdminPayrollRunDetailPage({
         </Card>
       ) : null}
 
-      {isDraft && (needsSetup.length > 0 || readyMissingPayslip.length > 0) ? (
-        <div className="print:hidden">
-          <PayrollRunEmployeeTables
-            runId={data.run.id}
-            hasPayslips={data.payslips.length > 0}
-            needsSetup={needsSetup}
-            readyEmployees={readyMissingPayslip}
-          />
-        </div>
-      ) : null}
+      {setupNode && payslipsNode ? (
+        <PayrollRunContentTabs
+          payslips={payslipsNode}
+          setup={setupNode}
+          payslipCount={data.payslips.length}
+          setupCount={attentionCount}
+          defaultTab="payslips"
+        />
+      ) : (
+        setupNode
+      )}
 
       {isDraft && excluded.length > 0 ? (
         <Card className="print:hidden">
@@ -278,14 +325,11 @@ export default async function AdminPayrollRunDetailPage({
         />
       ) : null}
 
-      {data.payslips.length > 0 ? (
-        <PayslipsListPanel
-          runId={data.run.id}
-          payslips={data.payslips}
-          showAdjustLink
-          runIsDraft={isDraft}
-        />
-      ) : null}
+      {/* Payslips render either inside the tabs above (when there are
+          also setup items) or here on their own when there's nothing to
+          set up. `setupNode` is null in the latter case, so the tab
+          branch above falls through and we show the list directly. */}
+      {setupNode ? null : payslipsNode}
 
       {/* The Payroll Summary PDF download lives in the payslips
           card header now — clicking it triggers `window.print()`,
@@ -586,6 +630,17 @@ export default async function AdminPayrollRunDetailPage({
               />
             )}
           </div>
+        </div>
+      )}
+
+      {isImported && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <DeleteImportedRunButton runId={data.run.id} />
+          <p className="text-xs text-muted-foreground">
+            Imported from a YTD migration upload. Deleting removes this
+            month&rsquo;s imported payslips only — employee salaries and
+            salary history are untouched.
+          </p>
         </div>
       )}
 
