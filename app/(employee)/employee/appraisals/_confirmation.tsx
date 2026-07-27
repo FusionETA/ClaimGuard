@@ -16,8 +16,8 @@ type PhaseConfig = {
 const CONFIG: Record<ConfirmPhase, PhaseConfig> = {
   self: {
     icon: "check_circle",
-    iconBg: "bg-primary/10",
-    iconColor: "text-primary",
+    iconBg: "bg-amber-100",
+    iconColor: "text-amber-600",
     title: "Self-Assessment Submitted!",
     message:
       "Your self-assessment has been recorded. Your reviewer has been notified and will complete their evaluation next.",

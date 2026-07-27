@@ -183,7 +183,7 @@ export function AppraisalFormClient({
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-semibold text-slate-700">Completion</span>
-          <span className={cn("text-sm font-bold", phase === "reviewee" ? "text-primary" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")}>
+          <span className={cn("text-sm font-bold", phase === "reviewee" ? "text-amber-600" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")}>
             {answered} / {total} questions
           </span>
         </div>
@@ -249,7 +249,7 @@ export function AppraisalFormClient({
           <div className="flex items-center gap-4">
             <div className="hidden text-center sm:block">
               <p className="text-xs text-slate-400">Avg Score</p>
-              <p className={cn("text-xl font-black leading-none", phase === "reviewee" ? "text-primary" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")}>
+              <p className={cn("text-xl font-black leading-none", phase === "reviewee" ? "text-amber-600" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")}>
                 {fmtScore(avg)}
               </p>
             </div>
@@ -270,8 +270,8 @@ export function AppraisalFormClient({
           <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl">
             {modal === "submitting" ? (
               <>
-                <div className={cn("mx-auto mb-4 flex h-16 w-16 animate-spin items-center justify-center rounded-full", phase === "reviewee" ? "bg-primary/10" : phase === "reviewer" ? "bg-emerald-100" : "bg-purple-100")}>
-                  <Icon name="sync" className={cn("text-3xl", phase === "reviewee" ? "text-primary" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")} />
+                <div className={cn("mx-auto mb-4 flex h-16 w-16 animate-spin items-center justify-center rounded-full", phase === "reviewee" ? "bg-amber-100" : phase === "reviewer" ? "bg-emerald-100" : "bg-purple-100")}>
+                  <Icon name="sync" className={cn("text-3xl", phase === "reviewee" ? "text-amber-600" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")} />
                 </div>
                 <h3 className="mb-2 text-xl font-extrabold text-slate-900">Submitting…</h3>
                 <p className="text-sm text-slate-500">
@@ -282,8 +282,8 @@ export function AppraisalFormClient({
               </>
             ) : (
               <>
-                <div className={cn("mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full", phase === "reviewee" ? "bg-primary/10" : phase === "reviewer" ? "bg-emerald-100" : "bg-purple-100")}>
-                  <Icon name="send" className={cn("text-3xl", phase === "reviewee" ? "text-primary" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")} />
+                <div className={cn("mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full", phase === "reviewee" ? "bg-amber-100" : phase === "reviewer" ? "bg-emerald-100" : "bg-purple-100")}>
+                  <Icon name="send" className={cn("text-3xl", phase === "reviewee" ? "text-amber-600" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")} />
                 </div>
                 <h3 className="mb-2 text-xl font-extrabold text-slate-900">Submit {phaseLabel(phase)}?</h3>
                 <p className="mb-6 text-sm text-slate-500">

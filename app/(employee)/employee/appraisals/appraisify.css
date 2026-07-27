@@ -3,14 +3,13 @@
  *
  * Wrap any Appraisify page tree in <div className="appraisify-scope">.
  * Inside that scope:
- *   - `--primary` / `--ring` are remapped to the Appraisify blue (#136dec)
- *     so Tailwind utilities (bg-primary, text-primary, bg-primary/10,
- *     border-primary, focus:ring-primary) render the reference blue exactly,
- *     without touching the rest of the AltomateHR app.
- *   - the flat reference background (#f0f3f5) paints over the global gradient.
- *   - the shared component classes + shimmer skeletons are ported verbatim
- *     from the reference repo (FusionETA/Appraisify assets/css/main.css) so
- *     the markup stays pixel-identical.
+ *   - `--primary` is INHERITED from the surrounding AltomateHR shell (purple),
+ *     so `bg-primary`/`text-primary` brand elements match the rest of the app.
+ *     Phase-specific accents (amber / emerald / purple) are applied per-phase
+ *     in PHASE_ACCENT (see _ui.tsx), not here.
+ *   - the shared component classes + shimmer skeletons are ported from the
+ *     reference repo (FusionETA/Appraisify assets/css/main.css) for layout,
+ *     but colours track the AltomateHR theme.
  *
  * Manrope is already the global body font (next/font in app/layout.tsx), so
  * no font-face is needed here. Material Symbols Outlined is loaded via a
@@ -18,16 +17,12 @@
  */
 
 .appraisify-scope {
-  /* #136dec ≈ hsl(215 85% 50%) — remaps the shadcn primary token in-scope */
-  --primary: 215 85% 50%;
-  --ring: 215 85% 50%;
-
-  /* No forced page background: the module renders inside the employee shell,
-     so the white cards + accent colours sit on the app surface. The flat
-     reference backdrop (#f0f3f5) is the least-distinctive element and would
-     otherwise read as a floating grey panel inside the shell's padded
-     container. */
-  color: #1e293b; /* slate-800 */
+  /* Inherit AltomateHR's theme — `--primary` comes from the surrounding
+     shell (purple #4C1A86), so all `bg-primary`/`text-primary` brand
+     elements match the rest of the app. (Previously this scope overrode
+     `--primary` to the reference blue #136dec.) Phase-specific accents
+     (amber / emerald / purple) are set per-phase in PHASE_ACCENT. */
+  color: #1e293b; /* slate-800 body text on white cards */
   font-family: var(--font-body), "Manrope", sans-serif;
 }
 
@@ -92,8 +87,8 @@
 }
 .appraisify-scope .rating-input:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #136dec;
-  border-color: #136dec;
+  box-shadow: 0 0 0 2px hsl(var(--primary));
+  border-color: hsl(var(--primary));
 }
 .appraisify-scope .rating-readonly {
   width: 5rem;
@@ -120,8 +115,8 @@
 }
 .appraisify-scope .comment-input:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #136dec;
-  border-color: #136dec;
+  box-shadow: 0 0 0 2px hsl(var(--primary));
+  border-color: hsl(var(--primary));
 }
 .appraisify-scope .comment-readonly {
   width: 100%;
