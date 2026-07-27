@@ -61,21 +61,36 @@ export function useSimulatedLoad(ms = 650): boolean {
   return loading
 }
 
-/** Stage → dashboard status badge (label + Tailwind classes). */
+/** Stage → status label + the colour of its indicator dot. */
 export function stageBadge(stage: AppraisalStage): {
   label: string
-  className: string
+  dot: string
 } {
   switch (stage) {
     case "INITIALIZED":
-      return { label: "Self-Assessment Due", className: "bg-amber-100 text-amber-700" }
+      return { label: "Self-Assessment Due", dot: "bg-amber-500" }
     case "REVIEWER_PENDING":
-      return { label: "Reviewer Pending", className: "bg-indigo-100 text-indigo-700" }
+      return { label: "Reviewer Pending", dot: "bg-indigo-500" }
     case "PARTNER_PENDING":
-      return { label: "Partner Pending", className: "bg-purple-100 text-purple-700" }
+      return { label: "Partner Pending", dot: "bg-purple-500" }
     case "SUBMITTED":
-      return { label: "Completed", className: "bg-emerald-100 text-emerald-700" }
+      return { label: "Completed", dot: "bg-emerald-500" }
   }
+}
+
+/**
+ * Calm status pill: a neutral background with a small colour-coded dot and
+ * muted text — keeps status legible without the noise of many saturated
+ * colour-filled badges in a dense table.
+ */
+export function StatusBadge({ stage }: { stage: AppraisalStage }) {
+  const { label, dot } = stageBadge(stage)
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+      <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", dot)} />
+      {label}
+    </span>
+  )
 }
 
 /**

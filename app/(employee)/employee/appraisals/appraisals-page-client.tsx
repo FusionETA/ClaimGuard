@@ -14,6 +14,7 @@ import {
 import {
   Icon,
   Skel,
+  StatusBadge,
   fmtScore,
   formatDate,
   stageBadge,
@@ -191,7 +192,6 @@ function OverviewTab({
   }
 
   const { item, role, team, scores } = current
-  const badge = stageBadge(item.stage)
   const complete = item.stage === "SUBMITTED"
 
   return (
@@ -213,14 +213,7 @@ function OverviewTab({
               <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
                 {loading ? <Skel w={90} className="!h-3" /> : item.cycleLabel}
               </span>
-              <span
-                className={cn(
-                  "rounded-full px-2.5 py-0.5 text-xs font-bold",
-                  badge.className,
-                )}
-              >
-                {badge.label}
-              </span>
+              <StatusBadge stage={item.stage} />
             </div>
           </div>
         </div>
@@ -378,7 +371,6 @@ function HistoryTab({
               </tr>
             ) : (
               filtered.map((it) => {
-                const badge = stageBadge(it.stage)
                 return (
                   <tr key={it.id} className="hover:bg-slate-50/50">
                     <td className="px-4 py-4">
@@ -389,9 +381,7 @@ function HistoryTab({
                       {it.viewerPhase === "reviewee" ? "Self" : it.viewerPhase ?? "—"}
                     </td>
                     <td className="px-4 py-4">
-                      <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold", badge.className)}>
-                        {badge.label}
-                      </span>
+                      <StatusBadge stage={it.stage} />
                     </td>
                     <td className="hidden px-4 py-4 text-slate-500 sm:table-cell">
                       {formatDate(it.submittedAt)}

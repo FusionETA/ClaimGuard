@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { createAppraisalsAction } from "./actions"
 import {
   Icon,
+  StatusBadge,
   formatDate,
   stageBadge,
 } from "@/app/(employee)/employee/appraisals/_ui"
@@ -279,7 +280,6 @@ function EmployeesTab({
           <tbody className="divide-y divide-slate-100">
             {filtered.map((r) => {
               const active = r.activeStage !== null
-              const badge = active ? stageBadge(r.activeStage!) : null
               return (
                 <tr key={r.id} className="hover:bg-slate-50/50">
                   <td className="px-4 py-3">
@@ -302,10 +302,8 @@ function EmployeesTab({
                   <td className="hidden px-4 py-3 text-slate-600 sm:table-cell">{r.position}</td>
                   <td className="hidden px-4 py-3 text-slate-600 lg:table-cell">{r.department}</td>
                   <td className="px-4 py-3">
-                    {badge ? (
-                      <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold", badge.className)}>
-                        {badge.label}
-                      </span>
+                    {r.activeStage !== null ? (
+                      <StatusBadge stage={r.activeStage} />
                     ) : (
                       <span className="text-xs font-medium text-slate-400">No active cycle</span>
                     )}
@@ -381,15 +379,12 @@ function HistoryTab({ data }: { data: AdminAppraisalDashboardData }) {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filtered.map((h) => {
-              const badge = stageBadge(h.stage)
               return (
                 <tr key={h.id} className="hover:bg-slate-50/50">
                   <td className="px-4 py-3 font-semibold text-slate-800">{h.employeeName}</td>
                   <td className="px-4 py-3 text-slate-600">{h.cycleLabel}</td>
                   <td className="px-4 py-3">
-                    <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold", badge.className)}>
-                      {badge.label}
-                    </span>
+                    <StatusBadge stage={h.stage} />
                   </td>
                   <td className="hidden px-4 py-3 text-slate-500 sm:table-cell">{formatDate(h.submittedAt)}</td>
                   <td className="px-4 py-3 text-right">
