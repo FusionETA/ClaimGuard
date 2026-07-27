@@ -118,48 +118,52 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
           </div>
         </div>
 
-        {/* Desktop: Card with search + filter pills + count */}
+        {/* Desktop: Card with search + filter pills + count.
+            Pills live on their own row (not sharing space with the
+            search input) so all 5 statuses fit on one line at every
+            desktop width down to iPad portrait. Previously the pills
+            shared a row with search via `flex-wrap` and wrapped to
+            two rows on narrow desktop / tablet widths — see 2026-07
+            report. */}
         <Card className="hidden md:block">
         <CardContent className="space-y-4 px-5 pb-5 pt-3 sm:space-y-5 sm:p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="relative w-full max-w-sm">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search by claim, title, or account"
-                className="pl-10"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
+          <div className="relative w-full max-w-sm">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search by claim, title, or account"
+              className="pl-10"
+            />
+          </div>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            <button
+              type="button"
+              onClick={() => setStatus("ALL")}
+              className={cn(
+                "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                status === "ALL"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+              )}
+            >
+              All
+            </button>
+            {visibleStatusOptions.map((claimStatus) => (
               <button
+                key={claimStatus}
                 type="button"
-                onClick={() => setStatus("ALL")}
+                onClick={() => setStatus(claimStatus)}
                 className={cn(
                   "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
-                  status === "ALL"
+                  status === claimStatus
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
                 )}
               >
-                All
+                {statusLabels[claimStatus]}
               </button>
-              {visibleStatusOptions.map((claimStatus) => (
-                <button
-                  key={claimStatus}
-                  type="button"
-                  onClick={() => setStatus(claimStatus)}
-                  className={cn(
-                    "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
-                    status === claimStatus
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {statusLabels[claimStatus]}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
           <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
             <p>
