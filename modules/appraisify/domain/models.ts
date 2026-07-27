@@ -358,6 +358,8 @@ export type AdminAppraisalDashboardData = {
   history: AdminAppraisalHistoryRow[]
   /** Candidates for the reviewer / partner selects in the start dialog. */
   people: AppraisalPersonRef[]
+  /** Question templates for the Start-Appraisal dropdown. */
+  templates: AppraisalTemplateSummary[]
 }
 
 /** Data the appraisal form page passes to the form/banner/redirect. */
@@ -367,6 +369,40 @@ export type AppraisalFormData = {
   phase: AppraisalPhase
   /** Gating decision for the viewer's phase. */
   access: PhaseAccess
+}
+
+/* ─── Question templates (admin-authored reusable question sets) ───── */
+
+export type AppraisalTemplateQuestionView = {
+  id: string
+  order: number
+  section: string | null
+  text: string
+  description: string | null
+}
+
+/** Full template with its questions — used by the editor. */
+export type AppraisalTemplateView = {
+  id: string
+  name: string
+  archived: boolean
+  questions: AppraisalTemplateQuestionView[]
+  updatedAt: string
+}
+
+/** Compact row for the templates list + the Start-Appraisal dropdown. */
+export type AppraisalTemplateSummary = {
+  id: string
+  name: string
+  questionCount: number
+  updatedAt: string
+}
+
+/** One question as authored in the builder (no id — templates are replace-on-save). */
+export type TemplateQuestionInput = {
+  section: string | null
+  text: string
+  description: string | null
 }
 
 /* ─── Seeded default question set ──────────────────────────────────── */

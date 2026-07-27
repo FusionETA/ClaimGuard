@@ -152,6 +152,26 @@ async function main() {
     console.log(`  • ${b.referenceNumber} — ${reviewees[2].name} (REVIEWER_PENDING)`)
   }
 
+  // ── 3) A "Standard Review" question template (idempotent) ────────────
+  console.log(`\n[3] Question template:`)
+  const existingTpl = await prisma.appraisalTemplate.findFirst({
+    where: { organizationId: org.id, name: "Standard Review", archived: false },
+    select: { id: true },
+  })
+  if (existingTpl) {
+    console.log(`  • "Standard Review" already exists — skipped`)
+  } else {
+    const tpl = await prisma.appraisalTemplate.create({
+      data: {
+        organizationId: org.id,
+        name: "Standard Review",
+        questions: { create: questionCreate },
+      },
+      select: { id: true, name: true },
+    })
+    console.log(`  • Created template "${tpl.name}" with ${questionCreate.length} questions`)
+  }
+
   console.log(`\n✅ Done. Completed-cycle reviewee: ${reviewees[0]!.name}`)
   await prisma.$disconnect()
 }

@@ -7,6 +7,7 @@ import {
   appraisalRepository,
   type CreateAppraisalInput,
 } from "@/modules/appraisify/infrastructure/appraisal.repository"
+import { appraisalTemplateRepository } from "@/modules/appraisify/infrastructure/appraisal-template.repository"
 import {
   DEFAULT_APPRAISAL_QUESTIONS,
   buildAppraisalReference,
@@ -47,6 +48,8 @@ export const createAppraisalsSchema = z
     partnerId: z.string().min(1, "Choose a partner."),
     year: z.number().int().min(2000).max(2100),
     type: z.enum(["ANNUAL", "MID_YEAR", "PROBATION"]),
+    /** Optional question template; falls back to the default set when absent. */
+    templateId: z.string().min(1).optional().nullable(),
   })
   .refine((d) => d.reviewerId !== d.partnerId, {
     message: "Reviewer and partner must be different people.",
@@ -146,6 +149,24 @@ export async function createAppraisalsForEmployees(input: unknown): Promise<Crea
     return { ok: false, message: "An employee cannot be their own reviewer or partner." }
   }
 
+  // Resolve the question set to snapshot: the chosen template, else the
+  // built-in default. Snapshotting means later template edits don't touch
+  // appraisals already created.
+  let questionSet: Array<{ order: number; section: string | null; text: string; description: string | null }>
+  if (data.templateId) {
+    const tq = await appraisalTemplateRepository.getQuestionsForSnapshot(data.templateId, orgId)
+    if (!tq) return { ok: false, message: "Template not found." }
+    if (tq.length === 0) return { ok: false, message: "The selected template has no questions." }
+    questionSet = tq
+  } else {
+    questionSet = DEFAULT_APPRAISAL_QUESTIONS.map((q) => ({
+      order: q.order,
+      section: q.section,
+      text: q.text,
+      description: q.description ?? null,
+    }))
+  }
+
   const base = await appraisalRepository.countAll()
 
   let created = 0
@@ -163,12 +184,7 @@ export async function createAppraisalsForEmployees(input: unknown): Promise<Crea
       team: null,
       role: jobTitleByUser.get(revieweeId) ?? null,
       referenceNumber: ref,
-      questions: DEFAULT_APPRAISAL_QUESTIONS.map((q) => ({
-        order: q.order,
-        section: q.section,
-        text: q.text,
-        description: q.description ?? null,
-      })),
+      questions: questionSet,
     }
     await appraisalRepository.createAppraisal(payload)
     created++

@@ -140,6 +140,7 @@ model Organization {
   employeeTransfersOut      EmployeeTransfer[]        @relation("EmployeeTransferSourceOrg")
   employeeTransfersIn       EmployeeTransfer[]        @relation("EmployeeTransferTargetOrg")
   appraisals                Appraisal[]
+  appraisalTemplates        AppraisalTemplate[]
   /// Org-wide default working days as a CSV of weekday numbers 1–7
   /// (Mon = 1 … Sun = 7). Null means Mon–Fri (1,2,3,4,5). Projects can
   /// override via XeroProject.workingDays.
@@ -2885,4 +2886,35 @@ model AppraisalQuestion {
   appraisal Appraisal @relation(fields: [appraisalId], references: [id], onDelete: Cascade)
 
   @@index([appraisalId, order])
+}
+
+/// A reusable, admin-authored question set. When an appraisal is started the
+/// chosen template's questions are *snapshotted* into AppraisalQuestion rows,
+/// so editing a template later never changes existing appraisals.
+model AppraisalTemplate {
+  id             String  @id @default(cuid())
+  organizationId String
+  name           String
+  archived       Boolean @default(false)
+
+  organization Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  questions    AppraisalTemplateQuestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+model AppraisalTemplateQuestion {
+  id          String  @id @default(cuid())
+  templateId  String
+  order       Int
+  section     String?
+  text        String  @db.Text
+  description String? @db.Text
+
+  template AppraisalTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId, order])
 }

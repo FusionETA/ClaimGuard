@@ -19,6 +19,7 @@ import {
   type AdminAppraisalDashboardData,
   type AdminEmployeeRow,
   type AppraisalStage,
+  type AppraisalTemplateSummary,
   type AppraisalType,
 } from "@/modules/appraisify/domain/models"
 
@@ -41,7 +42,14 @@ export function AdminAppraisalsClient({ data }: { data: AdminAppraisalDashboardD
           <h1 className="text-2xl font-extrabold text-slate-900">Appraisal Dashboard</h1>
           <p className="mt-0.5 text-sm text-slate-500">Start and track performance appraisal cycles</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/admin/appraisals/templates"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-primary"
+          >
+            <Icon name="quiz" className="text-lg" />
+            Question Sets
+          </Link>
           <StatCard value={data.stats.active} label="Active" color="text-primary" />
           <StatCard value={data.stats.complete} label="Complete" color="text-emerald-500" />
         </div>
@@ -102,6 +110,7 @@ export function AdminAppraisalsClient({ data }: { data: AdminAppraisalDashboardD
         <StartAppraisalDialog
           employees={dialogFor}
           people={data.people}
+          templates={data.templates}
           onClose={() => setDialogFor(null)}
           onDone={() => {
             setDialogFor(null)
@@ -344,11 +353,13 @@ function HistoryTab({ data }: { data: AdminAppraisalDashboardData }) {
 function StartAppraisalDialog({
   employees,
   people,
+  templates,
   onClose,
   onDone,
 }: {
   employees: AdminEmployeeRow[]
   people: { id: string; name: string }[]
+  templates: AppraisalTemplateSummary[]
   onClose: () => void
   onDone: () => void
 }) {
@@ -357,6 +368,7 @@ function StartAppraisalDialog({
   const [type, setType] = useState<AppraisalType>("ANNUAL")
   const [reviewerId, setReviewerId] = useState("")
   const [partnerId, setPartnerId] = useState("")
+  const [templateId, setTemplateId] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -372,6 +384,7 @@ function StartAppraisalDialog({
       partnerId,
       year,
       type,
+      templateId: templateId || null,
     })
     if (res.ok) {
       router.refresh()
@@ -455,6 +468,22 @@ function StartAppraisalDialog({
           {reviewerId && partnerId && reviewerId === partnerId ? (
             <p className="text-xs text-red-500">Reviewer and partner must be different people.</p>
           ) : null}
+
+          <Field label="Question set">
+            <select
+              value={templateId}
+              onChange={(e) => setTemplateId(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Default question set</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name} ({t.questionCount})
+                </option>
+              ))}
+            </select>
+          </Field>
+
           {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
         </div>
         <div className="flex gap-3 border-t border-slate-100 px-6 py-4">

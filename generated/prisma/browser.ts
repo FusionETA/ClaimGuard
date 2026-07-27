@@ -583,3 +583,15 @@ export type Appraisal = Prisma.AppraisalModel
  * 
  */
 export type AppraisalQuestion = Prisma.AppraisalQuestionModel
+/**
+ * Model AppraisalTemplate
+ * A reusable, admin-authored question set. When an appraisal is started the
+ * chosen template's questions are *snapshotted* into AppraisalQuestion rows,
+ * so editing a template later never changes existing appraisals.
+ */
+export type AppraisalTemplate = Prisma.AppraisalTemplateModel
+/**
+ * Model AppraisalTemplateQuestion
+ * 
+ */
+export type AppraisalTemplateQuestion = Prisma.AppraisalTemplateQuestionModel

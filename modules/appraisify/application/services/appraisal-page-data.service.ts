@@ -2,6 +2,7 @@ import "server-only"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { appraisalRepository } from "@/modules/appraisify/infrastructure/appraisal.repository"
+import { appraisalTemplateRepository } from "@/modules/appraisify/infrastructure/appraisal-template.repository"
 import {
   buildCycleLabel,
   phaseAccessFor,
@@ -95,10 +96,11 @@ export async function getAdminAppraisalDashboardData(): Promise<AdminAppraisalDa
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
-  const [records, employees, people] = await Promise.all([
+  const [records, employees, people, templates] = await Promise.all([
     appraisalRepository.listForOrg(orgId),
     appraisalRepository.listOrgEmployees(orgId),
     appraisalRepository.listOrgPeople(orgId),
+    appraisalTemplateRepository.listForOrg(orgId),
   ])
 
   // Active (non-SUBMITTED) appraisal stage per reviewee.
@@ -142,5 +144,6 @@ export async function getAdminAppraisalDashboardData(): Promise<AdminAppraisalDa
     employees: employeeRows,
     history,
     people,
+    templates,
   }
 }

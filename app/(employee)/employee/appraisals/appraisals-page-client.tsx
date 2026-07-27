@@ -31,11 +31,9 @@ export function AppraisalsPageClient({
   const [tab, setTab] = useState<Tab>("overview")
   const loading = useSimulatedLoad()
 
-  // Appraisals awaiting the viewer's action as reviewer/partner (their own
-  // self-assessment is surfaced separately in the Overview tab below).
-  const pendingReviews = data.history.filter(
-    (it) => it.viewerCanAct && it.viewerPhase !== "reviewee",
-  )
+  // Everything awaiting the viewer's action across all three roles
+  // (own self-assessment, reviewer scoring, partner scoring).
+  const pending = data.history.filter((it) => it.viewerCanAct)
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -48,7 +46,7 @@ export function AppraisalsPageClient({
         </div>
       </div>
 
-      {pendingReviews.length > 0 ? <PendingReviews items={pendingReviews} /> : null}
+      {pending.length > 0 ? <PendingActions items={pending} /> : null}
 
       {/* Tabbed card */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -98,35 +96,73 @@ function TabButton({
   )
 }
 
-function PendingReviews({ items }: { items: AppraisalListItem[] }) {
+// Per-role presentation for a pending row.
+function pendingRowMeta(it: AppraisalListItem): {
+  title: string
+  roleLabel: string
+  roleClass: string
+  cta: string
+} {
+  if (it.viewerPhase === "reviewee") {
+    return {
+      title: "Your self-assessment",
+      roleLabel: "Self-assessment",
+      roleClass: "bg-amber-100 text-amber-700",
+      cta: "Start self-assessment",
+    }
+  }
+  if (it.viewerPhase === "reviewer") {
+    return {
+      title: it.revieweeName,
+      roleLabel: "Reviewer",
+      roleClass: "bg-emerald-100 text-emerald-700",
+      cta: "Review now",
+    }
+  }
+  return {
+    title: it.revieweeName,
+    roleLabel: "Partner",
+    roleClass: "bg-purple-100 text-purple-700",
+    cta: "Review now",
+  }
+}
+
+function PendingActions({ items }: { items: AppraisalListItem[] }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-primary/20 bg-white shadow-sm">
       <div className="flex items-center gap-2 border-b border-primary/10 bg-primary/5 px-5 py-3">
         <Icon name="pending_actions" className="text-lg text-primary" />
-        <h2 className="text-sm font-bold text-primary">Awaiting your review</h2>
+        <h2 className="text-sm font-bold text-primary">Pending your action</h2>
         <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-white">
           {items.length}
         </span>
       </div>
       <div className="divide-y divide-slate-100">
-        {items.map((it) => (
-          <div key={it.id} className="flex items-center justify-between gap-4 px-5 py-3.5">
-            <div className="min-w-0">
-              <p className="font-semibold text-slate-800">{it.revieweeName}</p>
-              <p className="truncate text-xs text-slate-500">
-                {it.cycleLabel} · <span className="capitalize">{it.viewerPhase}</span> review ·{" "}
-                <span className="font-mono">{it.referenceNumber}</span>
-              </p>
+        {items.map((it) => {
+          const meta = pendingRowMeta(it)
+          return (
+            <div key={it.id} className="flex items-center justify-between gap-4 px-5 py-3.5">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="truncate font-semibold text-slate-800">{meta.title}</p>
+                  <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide", meta.roleClass)}>
+                    {meta.roleLabel}
+                  </span>
+                </div>
+                <p className="truncate text-xs text-slate-500">
+                  {it.cycleLabel} · <span className="font-mono">{it.referenceNumber}</span>
+                </p>
+              </div>
+              <Link
+                href={`/employee/appraisals/${it.id}`}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm shadow-primary/30 transition-colors hover:bg-primary/90"
+              >
+                <Icon name="arrow_forward" className="text-base" />
+                {meta.cta}
+              </Link>
             </div>
-            <Link
-              href={`/employee/appraisals/${it.id}`}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm shadow-primary/30 transition-colors hover:bg-primary/90"
-            >
-              <Icon name="arrow_forward" className="text-base" />
-              Review now
-            </Link>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

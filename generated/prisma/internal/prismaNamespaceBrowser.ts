@@ -108,7 +108,9 @@ export const ModelName = {
   OrganizationAuditLog: 'OrganizationAuditLog',
   SuperadminAuditLog: 'SuperadminAuditLog',
   Appraisal: 'Appraisal',
-  AppraisalQuestion: 'AppraisalQuestion'
+  AppraisalQuestion: 'AppraisalQuestion',
+  AppraisalTemplate: 'AppraisalTemplate',
+  AppraisalTemplateQuestion: 'AppraisalTemplateQuestion'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1369,6 +1371,30 @@ export const AppraisalQuestionScalarFieldEnum = {
 export type AppraisalQuestionScalarFieldEnum = (typeof AppraisalQuestionScalarFieldEnum)[keyof typeof AppraisalQuestionScalarFieldEnum]
 
 
+export const AppraisalTemplateScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  archived: 'archived',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppraisalTemplateScalarFieldEnum = (typeof AppraisalTemplateScalarFieldEnum)[keyof typeof AppraisalTemplateScalarFieldEnum]
+
+
+export const AppraisalTemplateQuestionScalarFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  order: 'order',
+  section: 'section',
+  text: 'text',
+  description: 'description'
+} as const
+
+export type AppraisalTemplateQuestionScalarFieldEnum = (typeof AppraisalTemplateQuestionScalarFieldEnum)[keyof typeof AppraisalTemplateQuestionScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2197,4 +2223,24 @@ export const AppraisalQuestionOrderByRelevanceFieldEnum = {
 } as const
 
 export type AppraisalQuestionOrderByRelevanceFieldEnum = (typeof AppraisalQuestionOrderByRelevanceFieldEnum)[keyof typeof AppraisalQuestionOrderByRelevanceFieldEnum]
+
+
+export const AppraisalTemplateOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name'
+} as const
+
+export type AppraisalTemplateOrderByRelevanceFieldEnum = (typeof AppraisalTemplateOrderByRelevanceFieldEnum)[keyof typeof AppraisalTemplateOrderByRelevanceFieldEnum]
+
+
+export const AppraisalTemplateQuestionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  section: 'section',
+  text: 'text',
+  description: 'description'
+} as const
+
+export type AppraisalTemplateQuestionOrderByRelevanceFieldEnum = (typeof AppraisalTemplateQuestionOrderByRelevanceFieldEnum)[keyof typeof AppraisalTemplateQuestionOrderByRelevanceFieldEnum]
 

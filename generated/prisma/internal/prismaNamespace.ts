@@ -441,7 +441,9 @@ export const ModelName = {
   OrganizationAuditLog: 'OrganizationAuditLog',
   SuperadminAuditLog: 'SuperadminAuditLog',
   Appraisal: 'Appraisal',
-  AppraisalQuestion: 'AppraisalQuestion'
+  AppraisalQuestion: 'AppraisalQuestion',
+  AppraisalTemplate: 'AppraisalTemplate',
+  AppraisalTemplateQuestion: 'AppraisalTemplateQuestion'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -457,7 +459,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employmentStint" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectGeoLocation" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "otAttachment" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "employeeTransfer" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog" | "superadminAuditLog" | "appraisal" | "appraisalQuestion"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employmentStint" | "employeeOrganization" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectGeoLocation" | "shift" | "projectHoliday" | "orgHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "otAttachment" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "employeeTransfer" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog" | "superadminAuditLog" | "appraisal" | "appraisalQuestion" | "appraisalTemplate" | "appraisalTemplateQuestion"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4289,6 +4291,138 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AppraisalTemplate: {
+      payload: Prisma.$AppraisalTemplatePayload<ExtArgs>
+      fields: Prisma.AppraisalTemplateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AppraisalTemplateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AppraisalTemplateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplatePayload>
+        }
+        findFirst: {
+          args: Prisma.AppraisalTemplateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AppraisalTemplateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplatePayload>
+        }
+        findMany: {
+          args: Prisma.AppraisalTemplateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplatePayload>[]
+        }
+        create: {
+          args: Prisma.AppraisalTemplateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplatePayload>
+        }
+        createMany: {
+          args: Prisma.AppraisalTemplateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AppraisalTemplateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplatePayload>
+        }
+        update: {
+          args: Prisma.AppraisalTemplateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplatePayload>
+        }
+        deleteMany: {
+          args: Prisma.AppraisalTemplateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AppraisalTemplateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AppraisalTemplateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplatePayload>
+        }
+        aggregate: {
+          args: Prisma.AppraisalTemplateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAppraisalTemplate>
+        }
+        groupBy: {
+          args: Prisma.AppraisalTemplateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppraisalTemplateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AppraisalTemplateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppraisalTemplateCountAggregateOutputType> | number
+        }
+      }
+    }
+    AppraisalTemplateQuestion: {
+      payload: Prisma.$AppraisalTemplateQuestionPayload<ExtArgs>
+      fields: Prisma.AppraisalTemplateQuestionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AppraisalTemplateQuestionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplateQuestionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AppraisalTemplateQuestionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplateQuestionPayload>
+        }
+        findFirst: {
+          args: Prisma.AppraisalTemplateQuestionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplateQuestionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AppraisalTemplateQuestionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplateQuestionPayload>
+        }
+        findMany: {
+          args: Prisma.AppraisalTemplateQuestionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplateQuestionPayload>[]
+        }
+        create: {
+          args: Prisma.AppraisalTemplateQuestionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplateQuestionPayload>
+        }
+        createMany: {
+          args: Prisma.AppraisalTemplateQuestionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AppraisalTemplateQuestionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplateQuestionPayload>
+        }
+        update: {
+          args: Prisma.AppraisalTemplateQuestionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplateQuestionPayload>
+        }
+        deleteMany: {
+          args: Prisma.AppraisalTemplateQuestionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AppraisalTemplateQuestionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AppraisalTemplateQuestionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppraisalTemplateQuestionPayload>
+        }
+        aggregate: {
+          args: Prisma.AppraisalTemplateQuestionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAppraisalTemplateQuestion>
+        }
+        groupBy: {
+          args: Prisma.AppraisalTemplateQuestionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppraisalTemplateQuestionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AppraisalTemplateQuestionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppraisalTemplateQuestionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -5570,6 +5704,30 @@ export const AppraisalQuestionScalarFieldEnum = {
 export type AppraisalQuestionScalarFieldEnum = (typeof AppraisalQuestionScalarFieldEnum)[keyof typeof AppraisalQuestionScalarFieldEnum]
 
 
+export const AppraisalTemplateScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  archived: 'archived',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppraisalTemplateScalarFieldEnum = (typeof AppraisalTemplateScalarFieldEnum)[keyof typeof AppraisalTemplateScalarFieldEnum]
+
+
+export const AppraisalTemplateQuestionScalarFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  order: 'order',
+  section: 'section',
+  text: 'text',
+  description: 'description'
+} as const
+
+export type AppraisalTemplateQuestionScalarFieldEnum = (typeof AppraisalTemplateQuestionScalarFieldEnum)[keyof typeof AppraisalTemplateQuestionScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -6400,6 +6558,26 @@ export const AppraisalQuestionOrderByRelevanceFieldEnum = {
 export type AppraisalQuestionOrderByRelevanceFieldEnum = (typeof AppraisalQuestionOrderByRelevanceFieldEnum)[keyof typeof AppraisalQuestionOrderByRelevanceFieldEnum]
 
 
+export const AppraisalTemplateOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name'
+} as const
+
+export type AppraisalTemplateOrderByRelevanceFieldEnum = (typeof AppraisalTemplateOrderByRelevanceFieldEnum)[keyof typeof AppraisalTemplateOrderByRelevanceFieldEnum]
+
+
+export const AppraisalTemplateQuestionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  section: 'section',
+  text: 'text',
+  description: 'description'
+} as const
+
+export type AppraisalTemplateQuestionOrderByRelevanceFieldEnum = (typeof AppraisalTemplateQuestionOrderByRelevanceFieldEnum)[keyof typeof AppraisalTemplateQuestionOrderByRelevanceFieldEnum]
+
+
 
 /**
  * Field references
@@ -6922,6 +7100,8 @@ export type GlobalOmitConfig = {
   superadminAuditLog?: Prisma.SuperadminAuditLogOmit
   appraisal?: Prisma.AppraisalOmit
   appraisalQuestion?: Prisma.AppraisalQuestionOmit
+  appraisalTemplate?: Prisma.AppraisalTemplateOmit
+  appraisalTemplateQuestion?: Prisma.AppraisalTemplateQuestionOmit
 }
 
 /* Types for Logging */
