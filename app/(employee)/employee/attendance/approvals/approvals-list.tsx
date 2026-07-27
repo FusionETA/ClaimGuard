@@ -335,7 +335,7 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
         })
       }
       setBulkPendingFor(null)
-      if (ok) notifyBadgeRefresh()
+      if (ok) notifyBadgeRefresh("attendance")
       toast({ title: message, variant: ok ? "success" : "error" })
     })
   }
@@ -734,7 +734,7 @@ function OtCard({ item }: { item: ApprovalRequestView }) {
         toast({ title: result.error, variant: "error" })
       } else {
         setHidden(true)
-        notifyBadgeRefresh()
+        notifyBadgeRefresh("attendance")
         toast({
           title: status === "APPROVED" ? "OT approved." : "OT rejected.",
           variant: status === "APPROVED" ? "success" : "error",

@@ -253,7 +253,15 @@ export function EmployeeShell({
   // the DB transaction settles before we re-read the counts.
   useEffect(() => {
     if (user.role !== "SUPERVISOR") return
-    registerBadgeRefreshHandler(() => {
+    registerBadgeRefreshHandler((scope) => {
+      // Optimistically drop the matching counter so the red dot / number
+      // clears the instant the reviewer acts — the 400ms re-sync below
+      // then corrects for any concurrent submissions.
+      if (scope === "attendance") {
+        setPendingApprovals((current) => Math.max(0, current - 1))
+      } else if (scope === "leave") {
+        setPendingLeaveApprovals((current) => Math.max(0, current - 1))
+      }
       window.setTimeout(() => {
         void fetchContext()
       }, 400)

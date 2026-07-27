@@ -1,6 +1,7 @@
 import "server-only"
 
 import { bustLeaveCaches } from "@/lib/cache-invalidation"
+import { publishUserEvents } from "@/lib/realtime"
 import { parseWorkingDays } from "@/modules/attendance/domain/hours-summary"
 import {
   computeTotalDays,
@@ -115,6 +116,45 @@ async function bustLeaveForProfile(employeeProfileId: string): Promise<void> {
   if (orgId) await bustLeaveCaches({ organizationId: orgId })
 }
 
+/**
+ * Push a live "refresh" SSE to every user id passed. Scope "leave" so
+ * the RealtimeListener refreshes server components AND the shell's
+ * pending-leave badge re-syncs. Never throws — realtime is best-effort
+ * and must not break the underlying submit / decide transaction.
+ */
+async function publishLeaveRefresh(userIds: Array<string | null | undefined>) {
+  const targets = userIds.filter(
+    (id): id is string => typeof id === "string" && id.length > 0,
+  )
+  if (targets.length === 0) return
+  try {
+    await publishUserEvents(targets, { type: "refresh", scope: "leave" })
+  } catch {
+    // Realtime must never block the leave workflow.
+  }
+}
+
+/**
+ * Resolve the user ids of the approvers who can currently act on a
+ * PENDING leave application (the approvers at `currentStep`). Used to
+ * nudge their queue + badge live when a new application lands or a
+ * mid-chain step advances.
+ */
+async function currentStepApproverUserIds(args: {
+  employeeUserId: string
+  lastReviewerId: string | null
+}): Promise<string[]> {
+  const ctx = await resolveLeaveApprovalContext({
+    employeeUserId: args.employeeUserId,
+    status: "PENDING",
+    lastReviewerId: args.lastReviewerId,
+  })
+  if (ctx.currentStep == null) return []
+  const step = ctx.chain[ctx.currentStep - 1]
+  if (!step) return []
+  return step.approvers.map((a) => a.approverId)
+}
+
 async function workingDaysForEmployee(employeeProfileId: string): Promise<Set<number>> {
   const prisma = getLeavePrismaClientSafe()
   if (!prisma) return parseWorkingDays(null)
@@ -225,6 +265,19 @@ export async function submitLeaveApplication(
   }
 
   await bustLeaveForProfile(input.employeeProfileId)
+
+  // Live: nudge the first-step approvers so the new application appears
+  // in their queue + increments their badge immediately, instead of
+  // waiting for their next navigation. Skipped when auto-approved
+  // (nothing pending anyone's review).
+  if (!autoApprove) {
+    const approverIds = await currentStepApproverUserIds({
+      employeeUserId,
+      lastReviewerId: null,
+    })
+    await publishLeaveRefresh(approverIds)
+  }
+
   return { ok: true, applicationId: app.id, status, totalDays }
 }
 
@@ -537,6 +590,10 @@ export async function decideLeaveApplication(args: {
       new Date(),
     )
     await bustLeaveForProfile(app.employeeId)
+    // Live: refresh the employee (their application list shows the
+    // rejection) and the reviewer themselves (badge decrements as the
+    // item leaves their queue).
+    await publishLeaveRefresh([employeeUserId, args.reviewerUserId])
     return { ok: true, status: "REJECTED" }
   }
 
@@ -562,6 +619,21 @@ export async function decideLeaveApplication(args: {
     await leaveRepository.addUsedDays(ent.id, app.totalDays)
   }
   await bustLeaveForProfile(app.employeeId)
+
+  // Live refresh targets: always the employee (their list reflects the
+  // new status) and the reviewer (their badge decrements). When the
+  // chain advances to another step, also nudge the next-step approvers
+  // so the item lands in their queue live.
+  const refreshTargets = [employeeUserId, args.reviewerUserId]
+  if (!finalised) {
+    const nextApprovers = await currentStepApproverUserIds({
+      employeeUserId,
+      lastReviewerId: args.reviewerUserId,
+    })
+    refreshTargets.push(...nextApprovers)
+  }
+  await publishLeaveRefresh(refreshTargets)
+
   return { ok: true, status: newStatus }
 }
 

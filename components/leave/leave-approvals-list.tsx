@@ -137,7 +137,7 @@ function ApprovalCard({
         setPendingDecision(null)
         onRestore()
       } else {
-        notifyBadgeRefresh()
+        notifyBadgeRefresh("leave")
       }
     })
   }
