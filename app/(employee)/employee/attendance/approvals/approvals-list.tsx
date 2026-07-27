@@ -662,9 +662,15 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
                       })}
                       </div>
 
-                      <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3">
+                      {/* Wrapping bar: on phones the counter/Clear sit on
+                          their own row and the two buttons share a full-width
+                          row (flex-1 each) so the Reject button can't get
+                          pushed off-screen by a long "Approve selected (N)"
+                          label. From sm+ it collapses back to a single
+                          right-aligned row. */}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border/60 px-4 py-3">
                         {hasSelection ? (
-                          <>
+                          <div className="flex items-center gap-3">
                             <span className="text-xs text-muted-foreground">
                               {selectedIds.length} of {visibleIds.length} selected
                             </span>
@@ -675,15 +681,16 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
                             >
                               Clear
                             </button>
-                          </>
+                          </div>
                         ) : null}
-                        <div className="ml-auto flex gap-2">
+                        <div className="flex w-full gap-2 sm:ml-auto sm:w-auto">
                           <Button
                             size="sm"
                             disabled={isBusy}
                             onClick={() =>
                               bulkAction(group, "APPROVED", hasSelection ? selectedIds : visibleIds)
                             }
+                            className="flex-1 sm:flex-none"
                           >
                             {isBusy
                               ? "Saving…"
@@ -698,6 +705,7 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
                             onClick={() =>
                               bulkAction(group, "REJECTED", hasSelection ? selectedIds : visibleIds)
                             }
+                            className="flex-1 sm:flex-none"
                           >
                             {hasSelection
                               ? `Reject selected (${selectedIds.length})`

@@ -2013,7 +2013,7 @@ export const attendanceRepository = {
     location?: string,
     notes?: string,
     geo?: { lat: number; lng: number; distanceMeters: number | null },
-  ): Promise<{ approvalId: string }> {
+  ): Promise<{ approvalId: string; pendingApproverIds: string[] }> {
     const prisma = getClient()
     const now = new Date()
     const today = startOfDay(now)
@@ -2108,7 +2108,15 @@ export const attendanceRepository = {
           : {}),
       },
     })
-    return { approvalId: approval.id }
+    const pendingApproverIds = autoApprove
+      ? []
+      : await resolveCurrentApproverIds(
+          approval.id,
+          employeeId,
+          "BREAK",
+          existing!.projectId ?? null,
+        )
+    return { approvalId: approval.id, pendingApproverIds }
   },
 
   async endBreak(
@@ -2116,7 +2124,7 @@ export const attendanceRepository = {
     location?: string,
     notes?: string,
     geo?: { lat: number; lng: number; distanceMeters: number | null },
-  ): Promise<{ approvalId: string }> {
+  ): Promise<{ approvalId: string; pendingApproverIds: string[] }> {
     const prisma = getClient()
     const now = new Date()
     const today = startOfDay(now)
@@ -2214,7 +2222,15 @@ export const attendanceRepository = {
           : {}),
       },
     })
-    return { approvalId: approval.id }
+    const pendingApproverIds = autoApprove
+      ? []
+      : await resolveCurrentApproverIds(
+          approval.id,
+          employeeId,
+          "BREAK",
+          existing.projectId ?? null,
+        )
+    return { approvalId: approval.id, pendingApproverIds }
   },
 
   // ── Supervisor ────────────────────────────────────────────────────────

@@ -592,12 +592,22 @@ export const employeeAttendanceService = {
     const location = coords
       ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
       : undefined
-    return attendanceRepository.startBreak(
+    const result = await attendanceRepository.startBreak(
       employeeId,
       location,
       notes,
       coords ? { lat: coords.lat, lng: coords.lng, distanceMeters } : undefined,
     )
+    // Live nudge: a break-start creates a pending BREAK approval, so
+    // push the reviewers who can act on it (same treatment as
+    // clock-in/out) — otherwise their queue only updates on navigation.
+    if (result.pendingApproverIds.length > 0) {
+      await publishUserEvents(result.pendingApproverIds, {
+        type: "refresh",
+        scope: "attendance",
+      })
+    }
+    return result
   },
 
   async endBreak(
@@ -613,12 +623,20 @@ export const employeeAttendanceService = {
     const location = coords
       ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
       : undefined
-    return attendanceRepository.endBreak(
+    const result = await attendanceRepository.endBreak(
       employeeId,
       location,
       notes,
       coords ? { lat: coords.lat, lng: coords.lng, distanceMeters } : undefined,
     )
+    // Live nudge for the pending break-end approval.
+    if (result.pendingApproverIds.length > 0) {
+      await publishUserEvents(result.pendingApproverIds, {
+        type: "refresh",
+        scope: "attendance",
+      })
+    }
+    return result
   },
 
   async getHoursSummary(employeeId: string, from: Date, to: Date) {
