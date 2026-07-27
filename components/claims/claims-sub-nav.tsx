@@ -63,12 +63,21 @@ export function ClaimsSubNav({ role }: Props) {
     },
   ]
 
+  // Longest-matching-prefix wins so a parent-index href never lights
+  // up alongside a nested tab. `/employee/claims` and `/employee/review`
+  // don't nest today, but this keeps the logic robust for later routes.
+  const activeHref = items
+    .map((item) => item.href)
+    .filter(
+      (href) => pathname === href || pathname.startsWith(href + "/"),
+    )
+    .sort((a, b) => b.length - a.length)[0]
+
   return (
     <nav className="lg:hidden mb-4 overflow-x-auto no-scrollbar">
       <div className="flex gap-2">
         {items.map((item) => {
-          const active =
-            pathname === item.href || pathname.startsWith(item.href + "/")
+          const active = item.href === activeHref
           return (
             <Link
               key={item.href}

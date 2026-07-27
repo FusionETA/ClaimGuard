@@ -61,12 +61,22 @@ export function LeaveSubNav({ role, items }: Props) {
   // navigation.
   if (items.length <= 1) return null
 
+  // Longest-matching-prefix wins. Prevents "My Leave" (href
+  // /employee/leave) from lighting up alongside "Approvals" (href
+  // /employee/leave/approvals) — a naive startsWith check made the
+  // parent index match any nested route.
+  const activeHref = items
+    .map((item) => item.href)
+    .filter(
+      (href) => pathname === href || pathname.startsWith(href + "/"),
+    )
+    .sort((a, b) => b.length - a.length)[0]
+
   return (
     <nav className="lg:hidden mb-4 overflow-x-auto no-scrollbar">
       <div className="flex gap-2">
         {items.map((item) => {
-          const active =
-            pathname === item.href || pathname.startsWith(item.href + "/")
+          const active = item.href === activeHref
           const showDot =
             item.href === APPROVALS_HREF && hasPendingApprovals
           return (
