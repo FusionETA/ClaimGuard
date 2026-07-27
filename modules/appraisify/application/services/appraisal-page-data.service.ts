@@ -15,7 +15,17 @@ import {
   type AppraisalFormData,
   type AppraisalRecord,
   type EmployeeAppraisalDashboardData,
+  type StartAppraisalPageData,
 } from "@/modules/appraisify/domain/models"
+
+function initialsFor(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join("")
+}
 
 /**
  * How many appraisals need this user's action right now (their phase is
@@ -130,12 +140,7 @@ export async function getAdminAppraisalDashboardData(): Promise<AdminAppraisalDa
     return {
       id: e.userId,
       name: e.name,
-      initials: e.name
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((p) => p[0]!.toUpperCase())
-        .join(""),
+      initials: initialsFor(e.name),
       position: e.jobTitle,
       department: "",
       activeStage: active ? active.stage : null,
@@ -160,4 +165,38 @@ export async function getAdminAppraisalDashboardData(): Promise<AdminAppraisalDa
     people,
     templates,
   }
+}
+
+/**
+ * Data bag for the dedicated Start Appraisal page: the selected employees
+ * (validated against the org's real employee list — an id that doesn't
+ * belong to this org is silently dropped, not trusted from the query
+ * string), the full reviewer/partner candidate list, and the org's question
+ * templates.
+ */
+export async function getStartAppraisalPageData(
+  employeeIds: string[],
+): Promise<StartAppraisalPageData | null> {
+  const session = await getCurrentSession()
+  if (!session) return null
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return null
+
+  const [allEmployees, people, templates] = await Promise.all([
+    appraisalRepository.listOrgEmployees(orgId),
+    appraisalRepository.listOrgPeople(orgId),
+    appraisalTemplateRepository.listForOrg(orgId),
+  ])
+
+  const idSet = new Set(employeeIds)
+  const employees = allEmployees
+    .filter((e) => idSet.has(e.userId))
+    .map((e) => ({
+      id: e.userId,
+      name: e.name,
+      initials: initialsFor(e.name),
+      position: e.jobTitle,
+    }))
+
+  return { employees, people, templates }
 }

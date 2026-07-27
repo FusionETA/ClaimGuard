@@ -2,11 +2,11 @@
 
 import type { Route } from "next"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { createAppraisalsAction } from "./actions"
 import {
   Icon,
   StatusBadge,
@@ -15,33 +15,29 @@ import {
 } from "@/app/(employee)/employee/appraisals/_ui"
 import {
   appraisalStages,
-  appraisalTypeLabel,
-  appraisalTypes,
   type AdminAppraisalDashboardData,
   type AdminEmployeeRow,
   type AppraisalStage,
-  type AppraisalTemplateSummary,
-  type AppraisalType,
 } from "@/modules/appraisify/domain/models"
 
 type Tab = "employees" | "history"
 
+/** Build the Start Appraisal page URL for one or more selected employees. */
+function startAppraisalHref(employeeIds: string[]): Route {
+  return `/admin/appraisals/start?employees=${employeeIds.join(",")}` as Route
+}
+
 export function AdminAppraisalsClient({ data }: { data: AdminAppraisalDashboardData }) {
   const [tab, setTab] = useState<Tab>("employees")
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [dialogFor, setDialogFor] = useState<AdminEmployeeRow[] | null>(null)
-
-  function openDialog(rows: AdminEmployeeRow[]) {
-    if (rows.length) setDialogFor(rows)
-  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       {/* Greeting + stats */}
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">Appraisal Dashboard</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Manage appraisal cycles and question sets</p>
+          <h1 className="text-2xl font-extrabold text-foreground">Appraisal Dashboard</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">Manage appraisal cycles and question sets</p>
         </div>
         <div className="flex gap-4">
           <StatCard value={data.stats.active} label="Active" color="text-primary" />
@@ -50,8 +46,8 @@ export function AdminAppraisalsClient({ data }: { data: AdminAppraisalDashboardD
       </div>
 
       {/* Tabbed card */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-6 py-3 sm:flex-row sm:items-center">
+      <Card className="overflow-hidden">
+        <div className="flex flex-col justify-between gap-3 border-b border-border/60 bg-surface-low/50 px-6 py-3 sm:flex-row sm:items-center">
           <div className="flex gap-1">
             <AdminTab active={tab === "employees"} onClick={() => setTab("employees")} icon="group">
               Employees
@@ -61,24 +57,24 @@ export function AdminAppraisalsClient({ data }: { data: AdminAppraisalDashboardD
             </AdminTab>
           </div>
           {tab === "employees" ? (
-            <button
-              onClick={() => openDialog(data.employees.filter((e) => selected.has(e.id)))}
-              disabled={selected.size === 0}
-              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm shadow-primary/20 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Icon name="play_arrow" className="text-lg" />
-              <span className="hidden sm:inline">Start Appraisal</span>
-            </button>
+            selected.size > 0 ? (
+              <Button asChild size="sm" className="shrink-0">
+                <Link href={startAppraisalHref([...selected])}>
+                  <Icon name="play_arrow" className="text-lg" />
+                  <span className="hidden sm:inline">Start Appraisal</span>
+                </Link>
+              </Button>
+            ) : (
+              <Button size="sm" disabled className="shrink-0">
+                <Icon name="play_arrow" className="text-lg" />
+                <span className="hidden sm:inline">Start Appraisal</span>
+              </Button>
+            )
           ) : null}
         </div>
 
         {tab === "employees" ? (
-          <EmployeesTab
-            rows={data.employees}
-            selected={selected}
-            setSelected={setSelected}
-            onStartOne={(row) => openDialog([row])}
-          />
+          <EmployeesTab rows={data.employees} selected={selected} setSelected={setSelected} />
         ) : (
           <HistoryTab data={data} />
         )}
@@ -89,16 +85,15 @@ export function AdminAppraisalsClient({ data }: { data: AdminAppraisalDashboardD
             <span className="text-sm font-semibold text-primary">
               {selected.size} employee(s) selected
             </span>
-            <button
-              onClick={() => openDialog(data.employees.filter((e) => selected.has(e.id)))}
-              className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-primary/90"
-            >
-              <Icon name="play_arrow" className="text-lg" />
-              Start Appraisal for Selected
-            </button>
+            <Button asChild size="sm">
+              <Link href={startAppraisalHref([...selected])}>
+                <Icon name="play_arrow" className="text-lg" />
+                Start Appraisal for Selected
+              </Link>
+            </Button>
           </div>
         ) : null}
-      </div>
+      </Card>
 
       {/* Question management */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -113,25 +108,12 @@ export function AdminAppraisalsClient({ data }: { data: AdminAppraisalDashboardD
         <ManagementCard
           href="/admin/appraisals/templates"
           icon="edit_note"
-          iconClass="bg-slate-100 text-slate-500"
+          iconClass="bg-surface-low text-muted-foreground"
           title="Manage Question Sets"
           body="Edit, reorder, or archive the question sets your appraisals use."
           cta="Open Question Sets"
         />
       </div>
-
-      {dialogFor ? (
-        <StartAppraisalDialog
-          employees={dialogFor}
-          people={data.people}
-          templates={data.templates}
-          onClose={() => setDialogFor(null)}
-          onDone={() => {
-            setDialogFor(null)
-            setSelected(new Set())
-          }}
-        />
-      ) : null}
     </div>
   )
 }
@@ -152,38 +134,37 @@ function ManagementCard({
   cta: string
 }) {
   return (
-    <Link
-      href={href as Route}
-      className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors hover:border-primary"
-    >
-      <div className="flex items-start gap-4">
-        <div
-          className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors group-hover:bg-primary group-hover:text-white",
-            iconClass,
-          )}
-        >
-          <Icon name={icon} className="text-2xl" />
+    <Link href={href as Route} className="group block">
+      <Card className="p-6 transition-colors hover:border-primary/60">
+        <div className="flex items-start gap-4">
+          <div
+            className={cn(
+              "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors group-hover:bg-primary group-hover:text-primary-foreground",
+              iconClass,
+            )}
+          >
+            <Icon name={icon} className="text-2xl" />
+          </div>
+          <div>
+            <h4 className="mb-1 text-lg font-bold text-foreground">{title}</h4>
+            <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
+            <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-primary transition-transform group-hover:translate-x-1">
+              {cta}
+              <Icon name="arrow_forward" className="text-sm" />
+            </span>
+          </div>
         </div>
-        <div>
-          <h4 className="mb-1 text-lg font-bold text-slate-900">{title}</h4>
-          <p className="text-sm leading-relaxed text-slate-500">{body}</p>
-          <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-primary transition-transform group-hover:translate-x-1">
-            {cta}
-            <Icon name="arrow_forward" className="text-sm" />
-          </span>
-        </div>
-      </div>
+      </Card>
     </Link>
   )
 }
 
 function StatCard({ value, label, color }: { value: number; label: string; color: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-center shadow-sm">
+    <Card className="px-5 py-3 text-center">
       <div className={cn("text-2xl font-black", color)}>{value}</div>
-      <div className="mt-0.5 text-xs font-medium text-slate-500">{label}</div>
-    </div>
+      <div className="mt-0.5 text-xs font-medium text-muted-foreground">{label}</div>
+    </Card>
   )
 }
 
@@ -218,12 +199,10 @@ function EmployeesTab({
   rows,
   selected,
   setSelected,
-  onStartOne,
 }: {
   rows: AdminEmployeeRow[]
   selected: Set<string>
   setSelected: (s: Set<string>) => void
-  onStartOne: (row: AdminEmployeeRow) => void
 }) {
   const [search, setSearch] = useState("")
   const filtered = useMemo(
@@ -247,27 +226,27 @@ function EmployeesTab({
 
   return (
     <div>
-      <div className="border-b border-slate-100 bg-slate-50/30 px-6 py-3">
+      <div className="border-b border-border/60 bg-surface-low/40 px-6 py-3">
         <div className="relative w-full sm:w-64">
-          <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
+          <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search employees…"
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
+            className="w-full rounded-lg border border-border/80 bg-card py-2 pl-9 pr-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
           />
         </div>
       </div>
       <div className="max-h-[460px] overflow-auto">
         <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-white">
-            <tr className="border-b border-slate-100 bg-slate-50/30 text-xs font-bold uppercase tracking-wider text-slate-400">
+          <thead className="sticky top-0 z-10 bg-card">
+            <tr className="border-b border-border/60 bg-surface-low/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               <th className="w-10 px-4 py-3 text-left">
                 <input
                   type="checkbox"
                   checked={allSelected}
                   onChange={toggleAll}
-                  className="rounded border-slate-300 text-primary focus:ring-primary"
+                  className="rounded border-border text-primary focus:ring-primary"
                 />
               </th>
               <th className="px-4 py-3 text-left">Employee</th>
@@ -277,18 +256,18 @@ function EmployeesTab({
               <th className="w-24 px-4 py-3" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border/60">
             {filtered.map((r) => {
               const active = r.activeStage !== null
               return (
-                <tr key={r.id} className="hover:bg-slate-50/50">
+                <tr key={r.id} className="hover:bg-surface-low/50">
                   <td className="px-4 py-3">
                     <input
                       type="checkbox"
                       disabled={active}
                       checked={selected.has(r.id)}
                       onChange={() => toggle(r.id)}
-                      className="rounded border-slate-300 text-primary focus:ring-primary disabled:opacity-40"
+                      className="rounded border-border text-primary focus:ring-primary disabled:opacity-40"
                     />
                   </td>
                   <td className="px-4 py-3">
@@ -296,27 +275,27 @@ function EmployeesTab({
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                         {r.initials}
                       </div>
-                      <span className="font-semibold text-slate-800">{r.name}</span>
+                      <span className="font-semibold text-foreground">{r.name}</span>
                     </div>
                   </td>
-                  <td className="hidden px-4 py-3 text-slate-600 sm:table-cell">{r.position}</td>
-                  <td className="hidden px-4 py-3 text-slate-600 lg:table-cell">{r.department}</td>
+                  <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{r.position}</td>
+                  <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">{r.department}</td>
                   <td className="px-4 py-3">
                     {r.activeStage !== null ? (
                       <StatusBadge stage={r.activeStage} />
                     ) : (
-                      <span className="text-xs font-medium text-slate-400">No active cycle</span>
+                      <span className="text-xs font-medium text-muted-foreground">No active cycle</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {!active ? (
-                      <button
-                        onClick={() => onStartOne(r)}
+                      <Link
+                        href={startAppraisalHref([r.id])}
                         className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
                       >
                         Start
                         <Icon name="play_arrow" className="text-base" />
-                      </button>
+                      </Link>
                     ) : null}
                   </td>
                 </tr>
@@ -343,20 +322,20 @@ function HistoryTab({ data }: { data: AdminAppraisalDashboardData }) {
   )
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-slate-50/30 px-6 py-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border/60 bg-surface-low/40 px-6 py-3">
         <div className="relative">
-          <Icon name="search" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[15px] text-slate-400" />
+          <Icon name="search" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[15px] text-muted-foreground" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search employee…"
-            className="w-44 rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs focus:border-primary focus:ring-2 focus:ring-primary"
+            className="w-44 rounded-lg border border-border/80 bg-card py-1.5 pl-8 pr-3 text-xs focus:border-primary focus:ring-2 focus:ring-primary"
           />
         </div>
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as AppraisalStage | "")}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 focus:ring-2 focus:ring-primary"
+          className="rounded-lg border border-border/80 bg-card px-3 py-1.5 text-xs text-muted-foreground focus:ring-2 focus:ring-primary"
         >
           <option value="">All Statuses</option>
           {appraisalStages.map((s) => (
@@ -368,8 +347,8 @@ function HistoryTab({ data }: { data: AdminAppraisalDashboardData }) {
       </div>
       <div className="max-h-[440px] overflow-auto">
         <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-white">
-            <tr className="border-b border-slate-100 bg-slate-50/30 text-xs font-bold uppercase tracking-wider text-slate-400">
+          <thead className="sticky top-0 z-10 bg-card">
+            <tr className="border-b border-border/60 bg-surface-low/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               <th className="px-4 py-3 text-left">Employee</th>
               <th className="px-4 py-3 text-left">Cycle</th>
               <th className="px-4 py-3 text-left">Status</th>
@@ -377,16 +356,16 @@ function HistoryTab({ data }: { data: AdminAppraisalDashboardData }) {
               <th className="w-24 px-4 py-3" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border/60">
             {filtered.map((h) => {
               return (
-                <tr key={h.id} className="hover:bg-slate-50/50">
-                  <td className="px-4 py-3 font-semibold text-slate-800">{h.employeeName}</td>
-                  <td className="px-4 py-3 text-slate-600">{h.cycleLabel}</td>
+                <tr key={h.id} className="hover:bg-surface-low/50">
+                  <td className="px-4 py-3 font-semibold text-foreground">{h.employeeName}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{h.cycleLabel}</td>
                   <td className="px-4 py-3">
                     <StatusBadge stage={h.stage} />
                   </td>
-                  <td className="hidden px-4 py-3 text-slate-500 sm:table-cell">{formatDate(h.submittedAt)}</td>
+                  <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{formatDate(h.submittedAt)}</td>
                   <td className="px-4 py-3 text-right">
                     <Link href={`/admin/appraisals/${h.id}` as Route} className="text-sm font-semibold text-primary hover:underline">
                       View
@@ -398,181 +377,6 @@ function HistoryTab({ data }: { data: AdminAppraisalDashboardData }) {
           </tbody>
         </table>
       </div>
-    </div>
-  )
-}
-
-function StartAppraisalDialog({
-  employees,
-  people,
-  templates,
-  onClose,
-  onDone,
-}: {
-  employees: AdminEmployeeRow[]
-  people: { id: string; name: string }[]
-  templates: AppraisalTemplateSummary[]
-  onClose: () => void
-  onDone: () => void
-}) {
-  const currentYear = new Date().getFullYear()
-  const [year, setYear] = useState(currentYear)
-  const [type, setType] = useState<AppraisalType>("ANNUAL")
-  const [reviewerId, setReviewerId] = useState("")
-  const [partnerId, setPartnerId] = useState("")
-  const [templateId, setTemplateId] = useState("")
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-
-  const canSubmit = reviewerId && partnerId && reviewerId !== partnerId
-
-  async function submit() {
-    setSubmitting(true)
-    setError(null)
-    const res = await createAppraisalsAction({
-      employeeIds: employees.map((e) => e.id),
-      reviewerId,
-      partnerId,
-      year,
-      type,
-      templateId: templateId || null,
-    })
-    if (res.ok) {
-      router.refresh()
-      onDone()
-    } else {
-      setError(res.message)
-      setSubmitting(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h3 className="text-lg font-bold text-slate-900">Start Appraisal</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <Icon name="close" className="text-xl" />
-          </button>
-        </div>
-        <div className="space-y-4 px-6 py-5">
-          <p className="text-sm text-slate-500">
-            Starting a cycle for{" "}
-            <span className="font-semibold text-slate-700">
-              {employees.length === 1 ? employees[0]!.name : `${employees.length} employees`}
-            </span>
-            . Assign a reviewer and partner.
-          </p>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Year">
-              <input
-                type="number"
-                value={year}
-                onChange={(e) => setYear(Number(e.target.value))}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
-              />
-            </Field>
-            <Field label="Type">
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value as AppraisalType)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
-              >
-                {appraisalTypes.map((t) => (
-                  <option key={t} value={t}>
-                    {appraisalTypeLabel(t)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
-
-          <Field label="Reviewer">
-            <select
-              value={reviewerId}
-              onChange={(e) => setReviewerId(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
-            >
-              <option value="">Select reviewer…</option>
-              {people.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Partner">
-            <select
-              value={partnerId}
-              onChange={(e) => setPartnerId(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
-            >
-              <option value="">Select partner…</option>
-              {people.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          {reviewerId && partnerId && reviewerId === partnerId ? (
-            <p className="text-xs text-red-500">Reviewer and partner must be different people.</p>
-          ) : null}
-
-          <Field label="Question set">
-            <select
-              value={templateId}
-              onChange={(e) => setTemplateId(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
-            >
-              <option value="">Default question set</option>
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name} ({t.questionCount})
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
-        </div>
-        <div className="flex gap-3 border-t border-slate-100 px-6 py-4">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={submit}
-            disabled={!canSubmit || submitting}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {submitting ? (
-              <>
-                <Icon name="sync" className="animate-spin text-lg" />
-                Starting…
-              </>
-            ) : (
-              <>
-                <Icon name="play_arrow" className="text-lg" />
-                Start Cycle
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</label>
-      {children}
     </div>
   )
 }

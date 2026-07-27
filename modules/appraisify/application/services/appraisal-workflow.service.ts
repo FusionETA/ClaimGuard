@@ -47,7 +47,7 @@ async function notifyNextActor(
         userId: record.partner.id,
         organizationId: orgId,
         type: "APPRAISAL_PHASE_READY",
-        title: "Appraisal Ready for Partner Review",
+        title: "Appraisal Ready for Reviewer 2",
         body: `${actorName} completed their review of ${record.reviewee.name}'s ${cycle}. It's ready for your review.`,
         url: `/employee/appraisals/${record.id}`,
       })
@@ -91,20 +91,38 @@ export const submitPhaseSchema = z.object({
 })
 export type SubmitPhaseInput = z.infer<typeof submitPhaseSchema>
 
-export const createAppraisalsSchema = z
+/**
+ * One employee's reviewer assignment. Each employee gets their own
+ * Reviewer 1 / Reviewer 2 pair — there is no single reviewer/partner
+ * applied to the whole batch.
+ */
+export const appraisalAssignmentSchema = z
   .object({
-    employeeIds: z.array(z.string().min(1)).min(1, "Select at least one employee."),
-    reviewerId: z.string().min(1, "Choose a reviewer."),
-    partnerId: z.string().min(1, "Choose a partner."),
-    year: z.number().int().min(2000).max(2100),
-    type: z.enum(["ANNUAL", "MID_YEAR", "PROBATION"]),
-    /** Optional question template; falls back to the default set when absent. */
-    templateId: z.string().min(1).optional().nullable(),
+    employeeId: z.string().min(1),
+    reviewerId: z.string().min(1, "Assign Reviewer 1."),
+    partnerId: z.string().min(1, "Assign Reviewer 2."),
   })
-  .refine((d) => d.reviewerId !== d.partnerId, {
-    message: "Reviewer and partner must be different people.",
+  .refine((a) => a.reviewerId !== a.partnerId, {
+    message: "Reviewer 1 and Reviewer 2 must be different people.",
     path: ["partnerId"],
   })
+  .refine((a) => a.employeeId !== a.reviewerId, {
+    message: "An employee cannot be their own Reviewer 1.",
+    path: ["reviewerId"],
+  })
+  .refine((a) => a.employeeId !== a.partnerId, {
+    message: "An employee cannot be their own Reviewer 2.",
+    path: ["partnerId"],
+  })
+export type AppraisalAssignmentInput = z.infer<typeof appraisalAssignmentSchema>
+
+export const createAppraisalsSchema = z.object({
+  assignments: z.array(appraisalAssignmentSchema).min(1, "Select at least one employee."),
+  year: z.number().int().min(2000).max(2100),
+  type: z.enum(["ANNUAL", "MID_YEAR", "PROBATION"]),
+  /** Optional question template; falls back to the default set when absent. */
+  templateId: z.string().min(1).optional().nullable(),
+})
 export type CreateAppraisalsInput = z.infer<typeof createAppraisalsSchema>
 
 /* ── Result unions ─────────────────────────────────────────────────── */
@@ -178,9 +196,10 @@ export async function submitAppraisalPhase(input: unknown): Promise<SubmitResult
 /* ── Admin create ──────────────────────────────────────────────────── */
 
 /**
- * Create appraisal cycles for the selected employees, assigning the same
- * reviewer + partner and snapshotting the default question set. Employees who
- * would review themselves (reviewer/partner === reviewee) are skipped.
+ * Create appraisal cycles for the given per-employee assignments (each
+ * employee gets their own Reviewer 1 / Reviewer 2), snapshotting the chosen
+ * question set onto every created record. Self-review is rejected per
+ * assignment by the Zod schema, not filtered out silently.
  */
 export async function createAppraisalsForEmployees(input: unknown): Promise<CreateResult> {
   const session = await getCurrentSession()
@@ -197,13 +216,6 @@ export async function createAppraisalsForEmployees(input: unknown): Promise<Crea
   // Role snapshot per employee (job title).
   const employees = await appraisalRepository.listOrgEmployees(orgId)
   const jobTitleByUser = new Map(employees.map((e) => [e.userId, e.jobTitle]))
-
-  const targets = data.employeeIds.filter(
-    (id) => id !== data.reviewerId && id !== data.partnerId,
-  )
-  if (targets.length === 0) {
-    return { ok: false, message: "An employee cannot be their own reviewer or partner." }
-  }
 
   // Resolve the question set to snapshot: the chosen template, else the
   // built-in default. Snapshotting means later template edits don't touch
@@ -226,19 +238,19 @@ export async function createAppraisalsForEmployees(input: unknown): Promise<Crea
   const base = await appraisalRepository.countAll()
 
   let createdCount = 0
-  for (let i = 0; i < targets.length; i++) {
-    const revieweeId = targets[i]!
+  for (let i = 0; i < data.assignments.length; i++) {
+    const assignment = data.assignments[i]!
     const ref = buildAppraisalReference(data.year, base + 1 + i)
     const payload: CreateAppraisalInput = {
       orgId,
       createdByUserId: session.userId,
-      revieweeId,
-      reviewerId: data.reviewerId,
-      partnerId: data.partnerId,
+      revieweeId: assignment.employeeId,
+      reviewerId: assignment.reviewerId,
+      partnerId: assignment.partnerId,
       year: data.year,
       type: data.type,
       team: null,
-      role: jobTitleByUser.get(revieweeId) ?? null,
+      role: jobTitleByUser.get(assignment.employeeId) ?? null,
       referenceNumber: ref,
       questions: questionSet,
     }
@@ -247,7 +259,7 @@ export async function createAppraisalsForEmployees(input: unknown): Promise<Crea
 
     try {
       await notify({
-        userId: revieweeId,
+        userId: assignment.employeeId,
         organizationId: orgId,
         type: "APPRAISAL_PHASE_READY",
         title: "Appraisal Cycle Started",

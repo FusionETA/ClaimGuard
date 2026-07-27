@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 
+import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type {
   AppraisalPhase,
@@ -70,9 +71,9 @@ export function stageBadge(stage: AppraisalStage): {
     case "INITIALIZED":
       return { label: "Self-Assessment Due", dot: "bg-amber-500" }
     case "REVIEWER_PENDING":
-      return { label: "Reviewer Pending", dot: "bg-indigo-500" }
+      return { label: "Reviewer 1 Pending", dot: "bg-indigo-500" }
     case "PARTNER_PENDING":
-      return { label: "Partner Pending", dot: "bg-purple-500" }
+      return { label: "Reviewer 2 Pending", dot: "bg-purple-500" }
     case "SUBMITTED":
       return { label: "Completed", dot: "bg-emerald-500" }
   }
@@ -99,7 +100,7 @@ export function StatusBadge({ stage }: { stage: AppraisalStage }) {
  * it is Tailwind-class presentation only.
  */
 export type PhaseAccent = {
-  /** short label for the editable column header ("Self" / "Reviewer" / "Partner") */
+  /** short label for the editable column header ("Self" / "Reviewer 1" / "Reviewer 2") */
   columnLabel: string
   /** header pill classes, e.g. "bg-amber-100 text-amber-700" */
   pill: string
@@ -138,7 +139,7 @@ export const PHASE_ACCENT: Record<AppraisalPhase, PhaseAccent> = {
     bannerText: "text-amber-800",
   },
   reviewer: {
-    columnLabel: "Reviewer",
+    columnLabel: "Reviewer 1",
     pill: "bg-emerald-100 text-emerald-700",
     headBg: "bg-emerald-50/60 text-emerald-700",
     cellBg: "bg-emerald-50/20",
@@ -151,7 +152,7 @@ export const PHASE_ACCENT: Record<AppraisalPhase, PhaseAccent> = {
     bannerText: "text-emerald-800",
   },
   partner: {
-    columnLabel: "Partner",
+    columnLabel: "Reviewer 2",
     pill: "bg-purple-100 text-purple-700",
     headBg: "bg-purple-50/60 text-purple-700",
     cellBg: "bg-purple-50/20",
@@ -203,13 +204,13 @@ export function NotReadyBanner({
       <div className="flex items-center justify-between gap-4">
         <a
           href="/employee/appraisals"
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-primary"
+          className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
         >
           <Icon name="arrow_back" className="text-lg" />
           Dashboard
         </a>
       </div>
-      <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-white p-6 text-sm text-amber-800">
+      <Card className="flex items-start gap-3 border-amber-200 p-6 text-sm text-amber-800">
         <Icon name="hourglass_top" className="mt-0.5 shrink-0 text-xl text-amber-500" />
         <div>
           <strong>Not ready yet.</strong>{" "}
@@ -217,7 +218,7 @@ export function NotReadyBanner({
             ? "The employee's self-assessment is still in progress. You'll receive a notification once it's submitted and your evaluation can begin."
             : "The previous appraisal phases haven't been completed. You'll be notified once the reviewer submits their evaluation and your review can begin."}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

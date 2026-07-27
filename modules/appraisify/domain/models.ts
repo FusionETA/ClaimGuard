@@ -144,22 +144,28 @@ export function stageLabel(stage: AppraisalStage): string {
     case "INITIALIZED":
       return "Self-Assessment"
     case "REVIEWER_PENDING":
-      return "Reviewer Pending"
+      return "Reviewer 1 Pending"
     case "PARTNER_PENDING":
-      return "Partner Pending"
+      return "Reviewer 2 Pending"
     case "SUBMITTED":
       return "Completed"
   }
 }
 
+/**
+ * Display name for a phase's role. Internally the phase/field names stay
+ * `reviewer` / `partner` (matches the Prisma columns) — only the
+ * user-facing label changed to "Reviewer 1" / "Reviewer 2" so the second
+ * reviewer isn't confused with an unrelated "partner" role.
+ */
 export function phaseLabel(phase: AppraisalPhase): string {
   switch (phase) {
     case "reviewee":
       return "Self-Assessment"
     case "reviewer":
-      return "Reviewer"
+      return "Reviewer 1"
     case "partner":
-      return "Partner"
+      return "Reviewer 2"
   }
 }
 
@@ -369,6 +375,21 @@ export type AppraisalFormData = {
   phase: AppraisalPhase
   /** Gating decision for the viewer's phase. */
   access: PhaseAccess
+}
+
+/** One employee row on the dedicated Start Appraisal page. */
+export type StartAppraisalEmployee = {
+  id: string
+  name: string
+  initials: string
+  position: string
+}
+
+/** Data bag for the dedicated Start Appraisal page. */
+export type StartAppraisalPageData = {
+  employees: StartAppraisalEmployee[]
+  people: AppraisalPersonRef[]
+  templates: AppraisalTemplateSummary[]
 }
 
 /* ─── Question templates (admin-authored reusable question sets) ───── */

@@ -4,6 +4,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import {
   appraisalPhases,
@@ -163,7 +165,7 @@ export function AppraisalFormClient({
         </span>
       </div>
 
-      {/* Phase banner (reviewer / partner) */}
+      {/* Phase banner (Reviewer 1 / Reviewer 2) */}
       {phase !== "reviewee" ? (
         <div className={cn("flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm", accent.bannerBg, accent.bannerText)}>
           <Icon name="info" className="text-base" />
@@ -171,7 +173,7 @@ export function AppraisalFormClient({
             <strong>{phaseLabel(phase)} Phase active.</strong>{" "}
             {phase === "reviewer"
               ? "The employee's self-assessment is visible for reference. Fill your own scores in the highlighted column."
-              : "Self-assessment and reviewer scores are visible for reference. Add your partner scores in the highlighted column."}
+              : "Self-assessment and Reviewer 1's scores are visible for reference. Add your scores in the highlighted column."}
           </span>
         </div>
       ) : null}
@@ -180,20 +182,20 @@ export function AppraisalFormClient({
       <MetadataCard record={record} loading={loading} />
 
       {/* Progress bar */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <Card className="p-5">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-semibold text-slate-700">Completion</span>
+          <span className="text-sm font-semibold text-foreground">Completion</span>
           <span className={cn("text-sm font-bold", phase === "reviewee" ? "text-amber-600" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")}>
             {answered} / {total} questions
           </span>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+        <div className="h-2 overflow-hidden rounded-full bg-muted">
           <div
             className={cn("h-full rounded-full transition-all duration-300", accent.progress)}
             style={{ width: `${total ? (answered / total) * 100 : 0}%` }}
           />
         </div>
-      </div>
+      </Card>
 
       {/* Section tabs */}
       <div className="hide-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
@@ -233,11 +235,7 @@ export function AppraisalFormClient({
       {/* Action bar */}
       <div className="action-bar">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
-          <button
-            onClick={saveDraft}
-            disabled={draftState === "saving"}
-            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
-          >
+          <Button variant="outline" onClick={saveDraft} disabled={draftState === "saving"}>
             <Icon
               name={draftState === "saved" ? "check" : "save"}
               className={cn("text-lg", draftState === "saving" && "animate-pulse")}
@@ -245,21 +243,18 @@ export function AppraisalFormClient({
             <span className="hidden sm:inline">
               {draftState === "saving" ? "Saving…" : draftState === "saved" ? "Saved" : "Save Draft"}
             </span>
-          </button>
+          </Button>
           <div className="flex items-center gap-4">
             <div className="hidden text-center sm:block">
-              <p className="text-xs text-slate-400">Avg Score</p>
+              <p className="text-xs text-muted-foreground">Avg Score</p>
               <p className={cn("text-xl font-black leading-none", phase === "reviewee" ? "text-amber-600" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")}>
                 {fmtScore(avg)}
               </p>
             </div>
-            <button
-              onClick={() => setModal("confirm")}
-              className={cn("flex items-center gap-2 rounded-xl px-7 py-2.5 text-sm font-bold transition-colors", accent.button)}
-            >
+            <Button onClick={() => setModal("confirm")} className={accent.button}>
               <Icon name="send" className="text-lg" />
               Submit {phaseLabel(phase)}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -267,14 +262,14 @@ export function AppraisalFormClient({
       {/* Submit modal */}
       {modal !== "hidden" ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl">
+          <Card className="w-full max-w-md p-8 text-center">
             {modal === "submitting" ? (
               <>
                 <div className={cn("mx-auto mb-4 flex h-16 w-16 animate-spin items-center justify-center rounded-full", phase === "reviewee" ? "bg-amber-100" : phase === "reviewer" ? "bg-emerald-100" : "bg-purple-100")}>
                   <Icon name="sync" className={cn("text-3xl", phase === "reviewee" ? "text-amber-600" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")} />
                 </div>
-                <h3 className="mb-2 text-xl font-extrabold text-slate-900">Submitting…</h3>
-                <p className="text-sm text-slate-500">
+                <h3 className="mb-2 text-xl font-extrabold text-foreground">Submitting…</h3>
+                <p className="text-sm text-muted-foreground">
                   Please wait while your appraisal is being saved.
                   <br />
                   Do not close this window.
@@ -285,33 +280,27 @@ export function AppraisalFormClient({
                 <div className={cn("mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full", phase === "reviewee" ? "bg-amber-100" : phase === "reviewer" ? "bg-emerald-100" : "bg-purple-100")}>
                   <Icon name="send" className={cn("text-3xl", phase === "reviewee" ? "text-amber-600" : phase === "reviewer" ? "text-emerald-600" : "text-purple-600")} />
                 </div>
-                <h3 className="mb-2 text-xl font-extrabold text-slate-900">Submit {phaseLabel(phase)}?</h3>
-                <p className="mb-6 text-sm text-slate-500">
+                <h3 className="mb-2 text-xl font-extrabold text-foreground">Submit {phaseLabel(phase)}?</h3>
+                <p className="mb-6 text-sm text-muted-foreground">
                   Once submitted, you won&apos;t be able to edit your responses.
                   {phase === "reviewee"
-                    ? " Your reviewer will be notified to begin their evaluation."
+                    ? " Reviewer 1 will be notified to begin their evaluation."
                     : phase === "reviewer"
-                      ? " The partner will be notified to begin their review."
+                      ? " Reviewer 2 will be notified to begin their review."
                       : " The appraisal cycle will be marked complete."}
                 </p>
-                {error ? <p className="mb-3 text-sm font-medium text-red-600">{error}</p> : null}
+                {error ? <p className="mb-3 text-sm font-medium text-destructive">{error}</p> : null}
                 <div className="flex gap-3">
-                  <button
-                    onClick={() => setModal("hidden")}
-                    className="flex-1 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
-                  >
+                  <Button variant="outline" className="flex-1" onClick={() => setModal("hidden")}>
                     Cancel
-                  </button>
-                  <button
-                    onClick={doSubmit}
-                    className={cn("flex-1 rounded-xl px-5 py-2.5 text-sm font-bold", accent.button)}
-                  >
+                  </Button>
+                  <Button className={cn("flex-1", accent.button)} onClick={doSubmit}>
                     Yes, Submit
-                  </button>
+                  </Button>
                 </div>
               </>
             )}
-          </div>
+          </Card>
         </div>
       ) : null}
     </div>
@@ -327,15 +316,15 @@ function v_ok(n: number) {
 function MetadataCard({ record, loading }: { record: AppraisalRecord; loading: boolean }) {
   const cells: Array<[string, React.ReactNode, number]> = [
     ["Reviewee", record.reviewee.name, 90],
-    ["Reviewer", record.reviewer.name, 90],
-    ["Partner", record.partner.name, 90],
+    ["Reviewer 1", record.reviewer.name, 90],
+    ["Reviewer 2", record.partner.name, 90],
     ["Year", record.year, 40],
     ["Team", record.team ?? "—", 72],
     ["Role", record.role ?? "—", 72],
     ["Ref#", record.referenceNumber, 80],
   ]
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <Card className="p-5">
       <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4 lg:grid-cols-7">
         {cells.map(([label, value, w]) => (
           <div key={label}>
@@ -346,7 +335,7 @@ function MetadataCard({ record, loading }: { record: AppraisalRecord; loading: b
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -366,7 +355,7 @@ function SectionTab({
       onClick={onClick}
       className={cn(
         "shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors",
-        active ? accent.tabActive : cn("border-slate-200 bg-white text-slate-600", accent.tabHover),
+        active ? accent.tabActive : cn("border-border/80 bg-card text-muted-foreground", accent.tabHover),
       )}
     >
       {label}
@@ -393,9 +382,9 @@ function SectionBlock({
 }) {
   const accent = PHASE_ACCENT[phase]
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-        <h3 className="font-bold text-slate-900">{section.title}</h3>
+    <Card className="overflow-hidden">
+      <div className="border-b border-border/60 bg-surface-low/50 px-6 py-4">
+        <h3 className="font-bold text-foreground">{section.title}</h3>
       </div>
 
       {/* Desktop table */}
@@ -476,7 +465,7 @@ function SectionBlock({
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -534,7 +523,7 @@ function ScoreCell({
   return (
     <td className="col-locked px-4 py-4 text-center align-top">
       <div className="rating-readonly text-xs italic text-slate-400">
-        {colPhase === "partner" ? "Awaiting partner" : "Pending"}
+        {colPhase === "partner" ? "Awaiting Reviewer 2" : "Pending"}
       </div>
     </td>
   )
@@ -611,7 +600,7 @@ function CommentCell({
         return (
           <div key={p}>
             <p className={cn("mb-1 text-xs font-semibold", mobile ? "mobile-q-comment-label" : "text-slate-400")}>
-              {p === "reviewee" ? "Employee's" : "Reviewer's"} comment:
+              {p === "reviewee" ? "Employee's" : "Reviewer 1's"} comment:
             </p>
             <div className="comment-readonly" style={mobile ? { height: "auto", minHeight: "3rem" } : undefined}>
               {c || <span className="italic text-slate-400">No comment</span>}
@@ -625,8 +614,8 @@ function CommentCell({
           colEditPhase === "reviewee"
             ? "Add your comments or supporting evidence…"
             : colEditPhase === "reviewer"
-              ? "Add your reviewer comments…"
-              : "Add your partner comments…"
+              ? "Add your Reviewer 1 comments…"
+              : "Add your Reviewer 2 comments…"
         }
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -656,20 +645,20 @@ function SummaryCard({
   // reviewee's summary shown for reference to reviewer/partner
   const reference = phase === "reviewee" ? null : record.revieweeSection
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-        <h3 className="font-bold text-slate-900">Summary</h3>
+    <Card className="overflow-hidden">
+      <div className="border-b border-border/60 bg-surface-low/50 px-6 py-4">
+        <h3 className="font-bold text-foreground">Summary</h3>
       </div>
       <div className="space-y-5 p-6">
         {fields.map((f) => (
           <div key={f.key}>
-            <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-              <Icon name={f.icon} className="text-base text-slate-400" />
+            <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-foreground/90">
+              <Icon name={f.icon} className="text-base text-muted-foreground" />
               {f.label}
             </label>
             {reference && reference[f.key] ? (
               <div className="mb-2">
-                <p className="mb-1 text-xs font-semibold text-slate-400">Employee&apos;s notes:</p>
+                <p className="mb-1 text-xs font-semibold text-muted-foreground">Employee&apos;s notes:</p>
                 <div className="comment-readonly" style={{ height: "auto", minHeight: "3rem" }}>
                   {reference[f.key]}
                 </div>
@@ -685,6 +674,6 @@ function SummaryCard({
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }

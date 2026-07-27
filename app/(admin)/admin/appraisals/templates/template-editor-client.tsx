@@ -4,6 +4,11 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useRef, useState } from "react"
 
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/app/(employee)/employee/appraisals/_ui"
 import type { AppraisalTemplateView } from "@/modules/appraisify/domain/models"
@@ -135,7 +140,7 @@ export function TemplateEditorClient({
       <div className="flex items-center justify-between gap-4">
         <Link
           href="/admin/appraisals/templates"
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-primary"
+          className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary"
         >
           <Icon name="arrow_back" className="text-lg" />
           Question Sets
@@ -146,34 +151,34 @@ export function TemplateEditorClient({
       </div>
 
       {/* Name */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <Card className="p-5">
+        <Label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Template name
-        </label>
-        <input
+        </Label>
+        <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Engineering Annual Review"
-          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-primary focus:ring-2 focus:ring-primary"
+          className="font-semibold"
         />
-      </div>
+      </Card>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
         {/* Left: compose form */}
         <div className="lg:sticky lg:top-6 lg:self-start">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h3 className="mb-5 flex items-center gap-2 font-bold text-slate-900">
+          <Card className="p-6">
+            <h3 className="mb-5 flex items-center gap-2 font-bold text-foreground">
               <Icon name={editingKey ? "edit" : "add_circle"} className="text-primary text-xl" />
               {editingKey ? "Edit question" : "New question"}
             </h3>
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-600">Section</label>
+                <Label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Section</Label>
                 <select
                   value={formSection}
                   onChange={(e) => setFormSection(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
+                  className="flex h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="">General (no section)</option>
                   {sectionOptions.map((s) => (
@@ -185,9 +190,9 @@ export function TemplateEditorClient({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-600">Create new section</label>
+                <Label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Create new section</Label>
                 <div className="flex gap-2">
-                  <input
+                  <Input
                     value={newSection}
                     onChange={(e) => setNewSection(e.target.value)}
                     onKeyDown={(e) => {
@@ -197,68 +202,55 @@ export function TemplateEditorClient({
                       }
                     }}
                     placeholder="e.g. Technical Skills"
-                    className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
+                    className="min-w-0 flex-1"
                   />
-                  <button
-                    type="button"
-                    onClick={createSection}
-                    className="shrink-0 rounded-lg bg-primary/10 px-3 py-2 text-sm font-bold text-primary hover:bg-primary/20"
-                  >
+                  <Button type="button" variant="secondary" onClick={createSection} className="shrink-0">
                     Add
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-600">
-                  Question text <span className="text-red-500">*</span>
-                </label>
-                <textarea
+                <Label className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                  Question text <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
                   value={formText}
                   onChange={(e) => setFormText(e.target.value)}
                   rows={3}
                   placeholder="e.g. How effectively does the employee communicate with stakeholders?"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-600">Description (optional)</label>
-                <textarea
+                <Label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Description (optional)</Label>
+                <Textarea
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
                   rows={2}
                   placeholder="Guidance on how to score this question…"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div className="flex gap-2">
-                <button
-                  onClick={submitForm}
-                  disabled={!canAdd}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
-                >
+                <Button onClick={submitForm} disabled={!canAdd} className="flex-1">
                   <Icon name={editingKey ? "check" : "add"} className="text-lg" />
                   {editingKey ? "Update question" : "Add to list"}
-                </button>
+                </Button>
                 {editingKey ? (
-                  <button
-                    onClick={resetForm}
-                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
-                  >
+                  <Button variant="outline" onClick={resetForm}>
                     Cancel
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Right: question list */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center gap-2 border-b border-slate-100 px-6 py-4">
-            <h3 className="flex items-center gap-2 font-bold text-slate-900">
+        <Card className="overflow-hidden">
+          <div className="flex items-center gap-2 border-b border-border/60 px-6 py-4">
+            <h3 className="flex items-center gap-2 font-bold text-foreground">
               <Icon name="format_list_numbered" className="text-primary text-lg" />
               Question set
             </h3>
@@ -268,11 +260,11 @@ export function TemplateEditorClient({
           </div>
 
           {questions.length === 0 ? (
-            <div className="px-6 py-12 text-center text-sm text-slate-400">
+            <div className="px-6 py-12 text-center text-sm text-muted-foreground">
               No questions yet. Add questions using the form on the left.
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-border/60">
               {questions.map((q, i) => (
                 <div
                   key={q.key}
@@ -281,17 +273,17 @@ export function TemplateEditorClient({
                     editingKey === q.key && "bg-primary/5",
                   )}
                 >
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-low text-xs font-bold text-muted-foreground">
                     {i + 1}
                   </span>
                   <div className="min-w-0 flex-1">
                     {q.section ? (
-                      <span className="mb-1 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                      <span className="mb-1 inline-block rounded-full bg-surface-low px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
                         {q.section}
                       </span>
                     ) : null}
-                    <p className="text-sm font-medium text-slate-800">{q.text}</p>
-                    {q.description ? <p className="mt-0.5 text-xs text-slate-400">{q.description}</p> : null}
+                    <p className="text-sm font-medium text-foreground">{q.text}</p>
+                    {q.description ? <p className="mt-0.5 text-xs text-muted-foreground">{q.description}</p> : null}
                   </div>
                   <div className="flex shrink-0 items-center gap-0.5">
                     <IconBtn name="arrow_upward" disabled={i === 0} onClick={() => move(q.key, -1)} label="Move up" />
@@ -303,23 +295,19 @@ export function TemplateEditorClient({
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* Action bar */}
       <div className="action-bar">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4">
-          <div className="min-w-0 text-sm text-slate-500">
-            {error ? <span className="font-medium text-red-600">{error}</span> : `${questions.length} question${questions.length === 1 ? "" : "s"}`}
+          <div className="min-w-0 text-sm text-muted-foreground">
+            {error ? <span className="font-medium text-destructive">{error}</span> : `${questions.length} question${questions.length === 1 ? "" : "s"}`}
           </div>
-          <button
-            onClick={save}
-            disabled={!canSave || saving}
-            className="flex items-center gap-2 rounded-xl bg-primary px-7 py-2.5 text-sm font-bold text-white shadow-sm shadow-primary/30 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
+          <Button onClick={save} disabled={!canSave || saving}>
             <Icon name={saving ? "sync" : "save"} className={cn("text-lg", saving && "animate-spin")} />
             {saving ? "Saving…" : "Save template"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -346,8 +334,8 @@ function IconBtn({
       aria-label={label}
       title={label}
       className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent",
-        danger ? "hover:text-red-600" : "hover:text-primary",
+        "flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-low disabled:opacity-30 disabled:hover:bg-transparent",
+        danger ? "hover:text-destructive" : "hover:text-primary",
       )}
     >
       <Icon name={name} className="text-lg" />
