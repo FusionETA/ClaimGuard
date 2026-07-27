@@ -6,7 +6,6 @@ import { useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
 import {
   appraisalStages,
-  phaseLabel,
   type AppraisalListItem,
   type AppraisalStage,
   type EmployeeAppraisalDashboardData,
@@ -226,23 +225,17 @@ function OverviewTab({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          {item.viewerCanAct && item.viewerPhase ? (
-            <Link
-              href={`/employee/appraisals/${item.id}`}
-              className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-primary/30 transition-colors hover:bg-primary/90"
-            >
-              <Icon name="arrow_forward" className="text-lg" />
-              {item.submittedAt ? "Continue" : "Start"} {phaseLabel(item.viewerPhase)}
-            </Link>
-          ) : null}
-          {complete ? (
+        {/* Actions live in the "Pending your action" list above; the Overview
+            is a status display (matches the reference). Only the completed-cycle
+            PDF download surfaces here. */}
+        {complete ? (
+          <div className="flex flex-wrap gap-3">
             <button className="flex items-center gap-2 rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50">
               <Icon name="download" className="text-lg" />
               Download PDF
             </button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Score cards — shown once the full cycle is complete */}
