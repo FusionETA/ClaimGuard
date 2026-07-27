@@ -73,7 +73,13 @@ export function ToasterProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
 
-      <div className="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[calc(100vw-2rem)] max-w-[360px] flex-col gap-3 sm:bottom-6 sm:right-6">
+      {/* Toasts are hidden below lg — on phones the fixed bottom-right
+          card obscures the bottom nav bar and never looked good against
+          the shell. Server-action toasts still fire (the useEffect runs
+          on all viewports); the viewport just doesn't render them.
+          Reintroduce with a mobile-first design if we want mobile
+          feedback back. */}
+      <div className="pointer-events-none fixed bottom-4 right-4 z-[100] hidden w-[calc(100vw-2rem)] max-w-[360px] flex-col gap-3 sm:bottom-6 sm:right-6 lg:flex">
         {toasts.map((item) => (
           <div
             key={item.id}
