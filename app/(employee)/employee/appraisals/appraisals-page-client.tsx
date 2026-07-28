@@ -224,9 +224,11 @@ function OverviewTab({
             PDF download surfaces here. */}
         {complete ? (
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline">
-              <Icon name="download" className="text-lg" />
-              Download PDF
+            <Button asChild variant="outline">
+              <a href={`/employee/appraisals/${item.id}/report`}>
+                <Icon name="download" className="text-lg" />
+                Download PDF
+              </a>
             </Button>
           </div>
         ) : null}

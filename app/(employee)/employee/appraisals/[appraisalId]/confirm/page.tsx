@@ -19,5 +19,11 @@ export default async function AppraisalConfirmPage({
   const p: ConfirmPhase = VALID.includes(phase as ConfirmPhase) ? (phase as ConfirmPhase) : "self"
   const data = await getAppraisalConfirmationData(appraisalId)
 
-  return <ConfirmationScreen phase={p} referenceNumber={data?.referenceNumber} />
+  return (
+    <ConfirmationScreen
+      phase={p}
+      referenceNumber={data?.referenceNumber}
+      appraisalId={appraisalId}
+    />
+  )
 }

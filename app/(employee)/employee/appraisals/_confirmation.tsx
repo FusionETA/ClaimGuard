@@ -66,9 +66,11 @@ const CONFIG: Record<ConfirmPhase, PhaseConfig> = {
 export function ConfirmationScreen({
   phase,
   referenceNumber,
+  appraisalId,
 }: {
   phase: ConfirmPhase
   referenceNumber?: string
+  appraisalId: string
 }) {
   const cfg = CONFIG[phase]
   return (
@@ -98,9 +100,11 @@ export function ConfirmationScreen({
 
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             {cfg.showPdf ? (
-              <Button variant="outline">
-                <Icon name="picture_as_pdf" className="text-lg" />
-                Download PDF
+              <Button asChild variant="outline">
+                <a href={`/employee/appraisals/${appraisalId}/report`}>
+                  <Icon name="picture_as_pdf" className="text-lg" />
+                  Download PDF
+                </a>
               </Button>
             ) : null}
             <Button asChild>
