@@ -141,17 +141,31 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   questionRow: {
-    flexDirection: "row",
     paddingVertical: 5,
     borderBottomWidth: 0.5,
     borderBottomColor: COLOURS.divider,
   },
+  questionMainRow: { flexDirection: "row" },
   questionText: { flex: 4, fontSize: 9 },
   questionScore: {
     width: 62,
     textAlign: "center",
     fontSize: 9,
     fontFamily: "Helvetica-Bold",
+  },
+  questionComments: {
+    marginTop: 4,
+    padding: 6,
+    backgroundColor: COLOURS.panelBg,
+  },
+  questionCommentLine: {
+    fontSize: 8,
+    color: COLOURS.muted,
+    marginBottom: 2,
+  },
+  questionCommentLabel: {
+    fontFamily: "Helvetica-Bold",
+    color: COLOURS.ink,
   },
   // ─── Free-text phase blocks ────────────────────────────────────────
   textBlock: {
@@ -265,17 +279,24 @@ export function AppraisalReportPdfDocument({
               <Text style={styles.questionHeaderScore}>{phaseLabel("partner")}</Text>
             </View>
             {questions.map((q) => (
-              <View key={q.id} style={styles.questionRow}>
-                <Text style={styles.questionText}>{q.text}</Text>
-                <Text style={styles.questionScore}>
-                  {fmtScore(scoreForPhase(q, "reviewee"))}
-                </Text>
-                <Text style={styles.questionScore}>
-                  {fmtScore(scoreForPhase(q, "reviewer"))}
-                </Text>
-                <Text style={styles.questionScore}>
-                  {fmtScore(scoreForPhase(q, "partner"))}
-                </Text>
+              <View key={q.id} style={styles.questionRow} wrap={false}>
+                <View style={styles.questionMainRow}>
+                  <Text style={styles.questionText}>{q.text}</Text>
+                  <Text style={styles.questionScore}>
+                    {fmtScore(scoreForPhase(q, "reviewee"))}
+                  </Text>
+                  <Text style={styles.questionScore}>
+                    {fmtScore(scoreForPhase(q, "reviewer"))}
+                  </Text>
+                  <Text style={styles.questionScore}>
+                    {fmtScore(scoreForPhase(q, "partner"))}
+                  </Text>
+                </View>
+                <QuestionComments
+                  revieweeComment={q.revieweeComment}
+                  reviewerComment={q.reviewerComment}
+                  partnerComment={q.partnerComment}
+                />
               </View>
             ))}
           </View>
@@ -296,6 +317,35 @@ export function AppraisalReportPdfDocument({
         </View>
       </Page>
     </Document>
+  )
+}
+
+function QuestionComments({
+  revieweeComment,
+  reviewerComment,
+  partnerComment,
+}: {
+  revieweeComment: string | null
+  reviewerComment: string | null
+  partnerComment: string | null
+}) {
+  const comments: Array<{ label: string; value: string | null }> = [
+    { label: "Self", value: revieweeComment },
+    { label: phaseLabel("reviewer"), value: reviewerComment },
+    { label: phaseLabel("partner"), value: partnerComment },
+  ].filter((c) => c.value)
+
+  if (comments.length === 0) return null
+
+  return (
+    <View style={styles.questionComments}>
+      {comments.map((c) => (
+        <Text key={c.label} style={styles.questionCommentLine}>
+          <Text style={styles.questionCommentLabel}>{c.label}: </Text>
+          {c.value}
+        </Text>
+      ))}
+    </View>
   )
 }
 
