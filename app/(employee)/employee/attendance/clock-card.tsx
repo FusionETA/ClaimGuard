@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
-import { AlertTriangle, Camera, Coffee, Fingerprint, Loader2, LogOut, RotateCcw, X } from "lucide-react"
+import { AlertTriangle, Camera, Coffee, Fingerprint, Loader2, LogOut, MapPin, RotateCcw, X } from "lucide-react"
 
 import { Card } from "@/components/attendance/ui/card"
 import {
@@ -880,39 +880,49 @@ export function ClockCard({
   return (
     <>
     <Card className="p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Right now
-          </p>
-          <p className="mt-0.5 text-3xl font-extrabold text-foreground">{formattedTime}</p>
-        </div>
-        {state === "IN" && activeProject ? (
-          <div className="text-right">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Project
+      <div className="mb-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Right now
             </p>
-            <p className="mt-0.5 text-sm font-bold text-foreground">{activeProject}</p>
+            <p className="mt-0.5 text-3xl font-extrabold text-foreground">{formattedTime}</p>
+          </div>
+          {state === "IN" && activeProject ? (
+            <div className="text-right">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Project
+              </p>
+              <p className="mt-0.5 text-sm font-bold text-foreground">{activeProject}</p>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Location + geofence status as a single full-width strip
+            below the header, so the off-site distance text has room to
+            sit on one line instead of wrapping inside a cramped
+            right-aligned column. The raw You/Site coord dump that used
+            to live here (dev debug) is gone. */}
+        {state === "IN" && activeProject && (activeLocation || enforceGeofence) ? (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 rounded-2xl bg-surface-low px-3.5 py-2.5">
             {activeLocation ? (
               <a
                 href={`https://www.google.com/maps?q=${encodeURIComponent(activeLocation)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 block text-[11px] font-semibold text-primary underline-offset-2 hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary underline-offset-2 hover:underline"
               >
-                📍 {activeLocation}
+                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                Open in maps
               </a>
-            ) : null}
+            ) : (
+              <span />
+            )}
             {enforceGeofence ? (
               <DistanceIndicator
                 gpsState={gpsState}
                 fence={liveFence}
                 radius={geofenceRadiusMeters}
-                employeeCoords={employeeCoords}
-                projectCoords={{
-                  latitude: targetProjectFence.latitude,
-                  longitude: targetProjectFence.longitude,
-                }}
               />
             ) : null}
           </div>
@@ -1030,15 +1040,10 @@ export function ClockCard({
             {selected && enforceGeofence ? (
               <div className="mt-2">
                 <DistanceIndicator
-                gpsState={gpsState}
-                fence={liveFence}
-                radius={geofenceRadiusMeters}
-                employeeCoords={employeeCoords}
-                projectCoords={{
-                  latitude: targetProjectFence.latitude,
-                  longitude: targetProjectFence.longitude,
-                }}
-              />
+                  gpsState={gpsState}
+                  fence={liveFence}
+                  radius={geofenceRadiusMeters}
+                />
               </div>
             ) : null}
           </div>
@@ -1449,64 +1454,45 @@ function DistanceIndicator({
   gpsState,
   fence,
   radius,
-  employeeCoords,
-  projectCoords,
 }: {
   gpsState: "idle" | "locating" | "ok" | "denied"
   fence: GeofenceCheck
   radius: number
-  employeeCoords: { lat: number; lng: number } | null
-  projectCoords: { latitude: number | null; longitude: number | null } | null
 }) {
-  const fmt = (n: number | null | undefined) =>
-    typeof n === "number" ? n.toFixed(6) : "—"
-  const debug = (
-    <div className="mt-1 space-y-0.5 text-left text-[10px] font-mono text-muted-foreground">
-      <p>You: {employeeCoords ? `${fmt(employeeCoords.lat)}, ${fmt(employeeCoords.lng)}` : "—"}</p>
-      <p>
-        Site:{" "}
-        {projectCoords
-          ? `${fmt(projectCoords.latitude)}, ${fmt(projectCoords.longitude)}`
-          : "—"}
-      </p>
-    </div>
-  )
-
-  let status: React.ReactNode
   if (gpsState === "locating" || gpsState === "idle") {
-    status = (
-      <p className="text-[11px] font-semibold text-muted-foreground">Locating you…</p>
-    )
-  } else if (gpsState === "denied" || fence.reason === "no_gps") {
-    status = (
-      <p className="text-[11px] font-semibold text-amber-700">⚠ Location unavailable</p>
-    )
-  } else if (fence.reason === "no_project_coords") {
-    status = (
-      <p className="text-[11px] font-semibold text-muted-foreground">
-        Project has no geofence set
-      </p>
-    )
-  } else {
-    const display = formatDistance(fence.distanceMeters ?? 0)
-    status = fence.withinRadius ? (
-      <p className="inline-flex items-center gap-1 text-[11px] font-semibold text-success">
-        <span className="h-1.5 w-1.5 rounded-full bg-success" />
-        On site · {display} away (within {radius}m)
-      </p>
-    ) : (
-      <p className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700">
-        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-        Off site · {display} away (limit {radius}m)
+    return (
+      <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        Locating you…
       </p>
     )
   }
-
-  return (
-    <div>
-      {status}
-      {debug}
-    </div>
+  if (gpsState === "denied" || fence.reason === "no_gps") {
+    return (
+      <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700">
+        <AlertTriangle className="h-3 w-3" />
+        Location unavailable
+      </p>
+    )
+  }
+  if (fence.reason === "no_project_coords") {
+    return (
+      <p className="text-[11px] font-semibold text-muted-foreground">
+        No geofence set
+      </p>
+    )
+  }
+  const display = formatDistance(fence.distanceMeters ?? 0)
+  return fence.withinRadius ? (
+    <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-success">
+      <span className="h-1.5 w-1.5 rounded-full bg-success" />
+      On site · {display} away
+    </p>
+  ) : (
+    <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700">
+      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+      Off site · {display} away (limit {radius}m)
+    </p>
   )
 }
 
