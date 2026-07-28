@@ -168,6 +168,25 @@ export async function getAdminAppraisalDashboardData(): Promise<AdminAppraisalDa
 }
 
 /**
+ * Admin detail-page bag: the full record for any appraisal in the org, at
+ * any stage. Unlike `getAppraisalFormData` / `getAppraisalConfirmationData`
+ * this does NOT gate on `resolvePhaseForUser` — an admin can view any
+ * employee's appraisal, not just ones they participate in. Org-scoping
+ * (via `getByIdForOrg`) plus the `/admin/:path*` middleware role gate is
+ * the only access control here.
+ */
+export async function getAdminAppraisalDetailData(
+  appraisalId: string,
+): Promise<AppraisalRecord | null> {
+  const session = await getCurrentSession()
+  if (!session) return null
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return null
+
+  return appraisalRepository.getByIdForOrg(appraisalId, orgId)
+}
+
+/**
  * Data bag for the dedicated Start Appraisal page: the selected employees
  * (validated against the org's real employee list — an id that doesn't
  * belong to this org is silently dropped, not trusted from the query

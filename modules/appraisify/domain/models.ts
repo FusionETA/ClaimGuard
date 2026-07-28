@@ -323,6 +323,42 @@ export function scoreSummary(
   }
 }
 
+/** A question's score for a given phase, or null if unanswered. */
+export function scoreForPhase(
+  q: AppraisalQuestionView,
+  phase: AppraisalPhase
+): number | null {
+  switch (phase) {
+    case "reviewee":
+      return q.revieweeScore
+    case "reviewer":
+      return q.reviewerScore
+    case "partner":
+      return q.partnerScore
+  }
+}
+
+/**
+ * Group questions by section, preserving first-seen order (no section →
+ * "General"). Shared by the PDF report and any read-only question listing
+ * (e.g. the admin detail page) so both render sections in the same order.
+ */
+export function groupQuestionsBySection(
+  questions: AppraisalQuestionView[]
+): Array<{ section: string; questions: AppraisalQuestionView[] }> {
+  const order: string[] = []
+  const bySection = new Map<string, AppraisalQuestionView[]>()
+  for (const q of questions) {
+    const key = q.section ?? "General"
+    if (!bySection.has(key)) {
+      order.push(key)
+      bySection.set(key, [])
+    }
+    bySection.get(key)!.push(q)
+  }
+  return order.map((section) => ({ section, questions: bySection.get(section)! }))
+}
+
 /* ─── Page-data view-models (shapes services return to pages) ──────── */
 
 /** Employee dashboard bag. */

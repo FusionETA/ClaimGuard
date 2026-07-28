@@ -17,9 +17,9 @@ import {
   appraisalTypeLabel,
   averagePhaseScore,
   buildCycleLabel,
+  groupQuestionsBySection,
   phaseLabel,
-  type AppraisalPhase,
-  type AppraisalQuestionView,
+  scoreForPhase,
   type AppraisalRecord,
   type AppraisalSectionText,
 } from "@/modules/appraisify/domain/models"
@@ -199,33 +199,6 @@ function fmtDate(d: Date): string {
   })
 }
 
-function scoreForPhase(q: AppraisalQuestionView, phase: AppraisalPhase): number | null {
-  switch (phase) {
-    case "reviewee":
-      return q.revieweeScore
-    case "reviewer":
-      return q.reviewerScore
-    case "partner":
-      return q.partnerScore
-  }
-}
-
-/** Group questions by section, preserving first-seen order (no section → "General"). */
-function groupBySection(
-  questions: AppraisalQuestionView[],
-): Array<{ section: string; questions: AppraisalQuestionView[] }> {
-  const order: string[] = []
-  const bySection = new Map<string, AppraisalQuestionView[]>()
-  for (const q of questions) {
-    const key = q.section ?? "General"
-    if (!bySection.has(key)) {
-      order.push(key)
-      bySection.set(key, [])
-    }
-    bySection.get(key)!.push(q)
-  }
-  return order.map((section) => ({ section, questions: bySection.get(section)! }))
-}
 
 export type AppraisalReportPdfDocumentProps = {
   organizationName: string
@@ -239,7 +212,7 @@ export function AppraisalReportPdfDocument({
   generatedAt,
 }: AppraisalReportPdfDocumentProps) {
   const cycleLabel = buildCycleLabel(record.type, record.year)
-  const sections = groupBySection(record.questions)
+  const sections = groupQuestionsBySection(record.questions)
   const selfScore = averagePhaseScore(record.questions, "reviewee")
   const reviewerScore = averagePhaseScore(record.questions, "reviewer")
   const partnerScore = averagePhaseScore(record.questions, "partner")

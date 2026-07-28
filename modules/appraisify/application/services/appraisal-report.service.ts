@@ -12,6 +12,19 @@ function buildReportFileName(referenceNumber: string): string {
   return `Appraisal-${referenceNumber}.pdf`
 }
 
+async function renderReportBytes(
+  record: NonNullable<Awaited<ReturnType<typeof appraisalRepository.getByIdForOrg>>>,
+  orgId: string,
+): Promise<{ bytes: Buffer; fileName: string }> {
+  const org = await organizationRepository.getOrganizationById(orgId)
+  const bytes = await renderAppraisalReportPdf({
+    organizationName: org?.name ?? "",
+    record,
+    generatedAt: new Date(),
+  })
+  return { bytes, fileName: buildReportFileName(record.referenceNumber) }
+}
+
 /**
  * Generate the PDF report for a completed appraisal. Only a participant
  * (reviewee, reviewer, or partner) may download it, and only once the full
@@ -33,13 +46,26 @@ export async function getAppraisalReportPdfBytes(
   if (!resolvePhaseForUser(record, session.userId)) return null
   if (record.stage !== "SUBMITTED") return null
 
-  const org = await organizationRepository.getOrganizationById(orgId)
+  return renderReportBytes(record, orgId)
+}
 
-  const bytes = await renderAppraisalReportPdf({
-    organizationName: org?.name ?? "",
-    record,
-    generatedAt: new Date(),
-  })
+/**
+ * Admin variant: any org admin may download the report for any employee's
+ * completed appraisal, not just participants. Org-scoping plus the
+ * `/admin/:path*` middleware role gate is the only access control — see
+ * `getAdminAppraisalDetailData` for the same reasoning on the detail page.
+ */
+export async function getAdminAppraisalReportPdfBytes(
+  appraisalId: string,
+): Promise<{ bytes: Buffer; fileName: string } | null> {
+  const session = await getCurrentSession()
+  if (!session) return null
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return null
 
-  return { bytes, fileName: buildReportFileName(record.referenceNumber) }
+  const record = await appraisalRepository.getByIdForOrg(appraisalId, orgId)
+  if (!record) return null
+  if (record.stage !== "SUBMITTED") return null
+
+  return renderReportBytes(record, orgId)
 }
