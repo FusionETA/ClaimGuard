@@ -254,21 +254,31 @@ export const appraisalRepository = {
       ? nextAppraisalStage(current.stage as AppraisalStage)
       : (current.stage as AppraisalStage)
 
-    await prisma.$transaction([
-      prisma.appraisal.update({
-        where: { id: input.appraisalId },
-        data: {
-          ...appraisalPhaseData(input, now),
-          ...(input.submit ? { stage: nextStage } : {}),
-        },
-      }),
-      ...input.questions.map((q) =>
-        prisma.appraisalQuestion.update({
-          where: { id: q.id },
-          data: questionPhaseData(input.phase, q.score, q.comment),
-        }),
-      ),
-    ])
+    // The batch (array) `$transaction` form's options only accept
+    // `isolationLevel` on this Prisma version — no `timeout` — so a custom
+    // timeout requires the interactive (callback) form instead. One round
+    // trip per question (up to 16 in the default set) plus the appraisal
+    // update itself easily clears Prisma's 5000ms default on anything but
+    // a same-host DB, so a submit with the full default question set was
+    // failing on normal latency.
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.appraisal.update({
+          where: { id: input.appraisalId },
+          data: {
+            ...appraisalPhaseData(input, now),
+            ...(input.submit ? { stage: nextStage } : {}),
+          },
+        })
+        for (const q of input.questions) {
+          await tx.appraisalQuestion.update({
+            where: { id: q.id },
+            data: questionPhaseData(input.phase, q.score, q.comment),
+          })
+        }
+      },
+      { timeout: 20_000 },
+    )
     return nextStage
   },
 

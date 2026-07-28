@@ -3,10 +3,14 @@
  *
  * Wrap any Appraisify page tree in <div className="appraisify-scope">.
  * Inside that scope:
- *   - `--primary` is INHERITED from the surrounding AltomateHR shell (purple),
- *     so `bg-primary`/`text-primary` brand elements match the rest of the app.
- *     Phase-specific accents (amber / emerald / purple) are applied per-phase
- *     in PHASE_ACCENT (see _ui.tsx), not here.
+ *   - The module always renders in AltomateHR's LIGHT palette, regardless
+ *     of the app-wide dark mode toggle (`.dark` on an ancestor). The
+ *     reference UI was designed light-only, and pixel-matching it inside
+ *     a dark shell mismatches card/text colours in a way that reads as
+ *     broken rather than themed — so the light token values are
+ *     re-declared below to win over any `.dark` ancestor's cascade.
+ *     Phase-specific accents (amber / emerald / purple) are applied
+ *     per-phase in PHASE_ACCENT (see _ui.tsx), not here.
  *   - the shared component classes + shimmer skeletons are ported from the
  *     reference repo (FusionETA/Appraisify assets/css/main.css) for layout,
  *     but colours track the AltomateHR theme.
@@ -17,11 +21,39 @@
  */
 
 .appraisify-scope {
-  /* Inherit AltomateHR's theme — `--primary` comes from the surrounding
-     shell (purple #4C1A86), so all `bg-primary`/`text-primary` brand
-     elements match the rest of the app. (Previously this scope overrode
-     `--primary` to the reference blue #136dec.) Phase-specific accents
-     (amber / emerald / purple) are set per-phase in PHASE_ACCENT. */
+  /* Light-mode token values, copied from `:root` in app/globals.css.
+     Re-declared here (rather than just inherited) so they win over a
+     `.dark` ancestor's cascade — see comment above. */
+  --background: 268 30% 97%;
+  --foreground: 268 50% 10%;
+  --card: 268 35% 99%;
+  --card-foreground: 268 50% 10%;
+  --popover: 268 35% 99%;
+  --popover-foreground: 268 50% 10%;
+  --primary: 268 68% 31%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 166 55% 90%;
+  --secondary-foreground: 168 50% 22%;
+  --muted: 268 15% 92%;
+  --muted-foreground: 268 12% 45%;
+  --accent: 166 91% 79%;
+  --accent-foreground: 168 65% 14%;
+  --destructive: 0 72% 43%;
+  --destructive-foreground: 0 40% 98%;
+  --border: 268 22% 83%;
+  --input: 268 22% 83%;
+  --ring: 268 68% 31%;
+  --surface: 268 30% 97%;
+  --surface-container: 268 18% 93%;
+  --surface-container-low: 268 16% 95%;
+  --surface-container-high: 268 14% 90%;
+  --surface-container-lowest: 0 0% 100%;
+  --tertiary: 20 100% 28%;
+  --tertiary-foreground: 0 0% 100%;
+  --tertiary-fixed: 20 100% 90%;
+  --success: 166 68% 32%;
+  --success-foreground: 0 0% 100%;
+
   color: #1e293b; /* slate-800 body text on white cards */
   font-family: var(--font-body), "Manrope", sans-serif;
 }
