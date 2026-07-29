@@ -445,20 +445,34 @@ function buildImportedPayslipInput(input: {
     subjectToEis: boolean
     subjectToPcb: boolean
   }> = []
-  const pushAllowance = (label: string, amount: number) => {
-    if (amount > 0) {
-      lineItems.push({
-        kind: "ALLOWANCE",
-        label,
-        amount: round2(amount),
-        pcbTaxableAmount: null,
-        category: null,
-        subjectToEpf: true,
-        subjectToSocso: true,
-        subjectToEis: true,
-        subjectToPcb: true,
-      })
-    }
+  const pushAllowance = (
+    label: string,
+    amount: number,
+    // Legacy allowance columns default to fully-taxable (the previous
+    // system already taxed them — see the note above). Pass a category
+    // code when the column maps UNAMBIGUOUSLY to a specific meta entry
+    // so its statutory flags — crucially `subjectToPcb` — are sourced
+    // from the meta instead of blanket-true. Parking is the textbook
+    // case: it's ALWAYS PCB-exempt (LHDN PR 5/2019 §7.2.2), so importing
+    // it as `subjectToPcb: true` silently overstates every later
+    // month's YTD taxable income (Y) and Form EA.
+    categoryCode?: PayrollAdjustmentCategory,
+  ) => {
+    if (amount <= 0) return
+    const meta = categoryCode
+      ? PAYROLL_ADJUSTMENT_CATEGORY_META[categoryCode]
+      : null
+    lineItems.push({
+      kind: "ALLOWANCE",
+      label,
+      amount: round2(amount),
+      pcbTaxableAmount: null,
+      category: categoryCode ?? null,
+      subjectToEpf: meta ? meta.subjectToEpf : true,
+      subjectToSocso: meta ? meta.subjectToSocso : true,
+      subjectToEis: meta ? meta.subjectToEis : true,
+      subjectToPcb: meta ? meta.subjectToPcb : true,
+    })
   }
   const pushDeduction = (label: string, amount: number) => {
     if (amount > 0) {
@@ -480,8 +494,15 @@ function buildImportedPayslipInput(input: {
   pushAllowance("Bonus", a.bonus)
   pushAllowance("Commission", a.commission)
   pushAllowance("Service charge", a.serviceCharge)
+  // Travel / Phone / Other stay category-less + fully-taxable: the
+  // legacy column can't tell official-duty from private travel, or a
+  // reimbursed phone bill (exempt) from a fixed phone allowance
+  // (taxable), so the conservative taxable default is correct and the
+  // admin can retro-edit if needed. Parking has no such ambiguity — it
+  // is always PCB-exempt — so map it to its category and let the meta
+  // drive `subjectToPcb: false`.
   pushAllowance("Travel allowance", a.travelAllowance)
-  pushAllowance("Parking allowance", a.parkingAllowance)
+  pushAllowance("Parking allowance", a.parkingAllowance, "allowance_parking")
   pushAllowance("Phone allowance", a.phoneAllowance)
   pushAllowance("Other allowance", a.otherAllowance)
   pushDeduction("Unpaid leave", a.unpaidLeave)
