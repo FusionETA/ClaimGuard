@@ -2721,6 +2721,13 @@ export async function createApiTokenAction(formData: FormData): Promise<{
   if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
+  // Defence in depth: wp_live_* tokens are Fusioneta-support-only. The
+  // UI already hides the API tab from company admins (isSupportMode),
+  // but gate the action too so a crafted request from a plain admin
+  // can't mint a token.
+  if (!session.isSuperadmin) {
+    return { ok: false, message: "Not authorised." }
+  }
 
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
@@ -2814,6 +2821,10 @@ export async function setApiTokenActiveAction(input: {
   if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
+  // Fusioneta-support-only — see createApiTokenAction.
+  if (!session.isSuperadmin) {
+    return { ok: false, message: "Not authorised." }
+  }
 
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
@@ -2863,6 +2874,10 @@ export async function deleteApiTokenAction(input: {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
+  }
+  // Fusioneta-support-only — see createApiTokenAction.
+  if (!session.isSuperadmin) {
+    return { ok: false, message: "Not authorised." }
   }
 
   const organizationId = resolveActiveOrgId(session)

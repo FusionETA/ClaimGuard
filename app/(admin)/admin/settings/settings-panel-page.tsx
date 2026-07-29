@@ -167,6 +167,10 @@ export async function AdminSettingsPanelPage({
           : undefined)
       }
       visibleTabs={visibleTabs}
+      // Only Fusioneta superadmins in support mode get the API tab
+      // (wp_live_* token management) — computed fresh from
+      // SUPERADMIN_EMAILS on every session read, never persisted.
+      isSupportMode={session.isSuperadmin === true}
       xeroTrackingCategories={xeroTrackingCategories}
       xeroTrackingCategoriesError={xeroTrackingCategoriesError}
       pickedTrackingCategoryId={pickedTrackingCategoryId}

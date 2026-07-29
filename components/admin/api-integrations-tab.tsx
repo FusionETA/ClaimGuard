@@ -1,10 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-// `Plus` icon import dropped while self-service token creation is hidden
-// (see top-of-component comment). Re-add it when uncommenting the "New
-// token" button.
-import { Copy, KeyRound, Loader2, ShieldX } from "lucide-react"
+import { Copy, KeyRound, Loader2, Plus, ShieldX } from "lucide-react"
 
 import {
   createApiTokenAction,
@@ -63,19 +60,21 @@ const SCOPE_DESCRIPTIONS: Record<ApiScope, string> = {
 /**
  * Settings → API tab.
  *
- * CURRENT BEHAVIOUR (May 2026): admin-driven token creation is HIDDEN.
- * Tokens are now provisioned automatically by integration partners via
- * `POST /api/v1/admin/organizations` (master-key flow). The admin sees
- * any tokens that exist for their org (read-only list + emergency
- * revoke), but can't mint new ones from this UI.
+ * CURRENT BEHAVIOUR: this whole tab is Fusioneta-support-only. The
+ * settings panel only renders it when the viewer is a superadmin in
+ * support mode (see `isSupportMode` in admin-settings-panel.tsx), and
+ * the create / revoke / delete server actions each re-check
+ * `session.isSuperadmin`. Company admins never see it or reach it.
  *
- * FUTURE: when we let direct customers do their own integrations
- * (without going through a partner), uncomment the "New token" button
- * + the <CreateTokenDialog /> + <RevealedTokenDialog /> blocks below
- * and the existing flow will work as-is. The server actions
- * (createApiTokenAction etc.) are still wired up — only the UI affordance
- * is hidden. May want to gate it on a per-org "self-service integrations"
- * flag at that point so partner-managed orgs stay locked.
+ * The intent: when support staff build an external integration for a
+ * client, they jump into that company and mint a scoped wp_live_*
+ * token here. Partner provisioning via
+ * `POST /api/v1/admin/organizations` (master-key flow) still exists as
+ * the other minting path.
+ *
+ * FUTURE: to let direct customers self-serve, drop the isSuperadmin
+ * gate (UI + actions) — likely behind a per-org "self-service
+ * integrations" flag so partner-managed orgs stay locked.
  *
  * No useActionState here because we need access to the action's return
  * value (the secret token) immediately on success — and useActionState
@@ -88,14 +87,12 @@ export function ApiIntegrationsTab({
   integrations: Integration[]
 }) {
   const { toast } = useToast()
-  // Re-enable when self-service token creation comes back. Kept as
-  // commented-out scaffolding so the switch is a one-line revert.
-  // const [createOpen, setCreateOpen] = useState(false)
-  // const [revealedToken, setRevealedToken] = useState<{
-  //   name: string
-  //   token: string
-  //   prefix: string
-  // } | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [revealedToken, setRevealedToken] = useState<{
+    name: string
+    token: string
+    prefix: string
+  } | null>(null)
   const [pending, startTransition] = useTransition()
 
   return (
@@ -112,18 +109,12 @@ export function ApiIntegrationsTab({
               <code className="rounded bg-surface-low px-1 py-0.5 text-xs">
                 /api/v1
               </code>
-              . Tokens are issued automatically by your integration partner
-              when this organisation is provisioned — you can review and
-              revoke them here, but new tokens are minted on the partner&rsquo;s
-              side. Self-service token creation will be enabled in a future
-              release for clients running their own direct integrations.
+              . Mint a scoped <code className="rounded bg-surface-low px-1 py-0.5 text-xs">wp_live_*</code>{" "}
+              token here when building an integration for this company. The
+              raw token is shown once at creation — copy it then; only the
+              prefix is stored afterwards.
             </p>
           </div>
-          {/*
-            Hidden until self-service integrations land. Re-enable by
-            uncommenting this button + the CreateTokenDialog + RevealedTokenDialog
-            blocks at the bottom of this component, plus the createOpen /
-            revealedToken state hooks above.
           <Button
             type="button"
             onClick={() => setCreateOpen(true)}
@@ -132,14 +123,13 @@ export function ApiIntegrationsTab({
             <Plus className="mr-1.5 h-4 w-4" />
             New token
           </Button>
-          */}
         </CardHeader>
         <CardContent>
           {integrations.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-border/60 bg-surface-low px-4 py-6 text-center text-sm text-muted-foreground">
-              No API tokens issued for this organisation yet. Tokens are
-              created automatically when an integration partner provisions
-              your account.
+              No API tokens for this company yet. Click{" "}
+              <span className="font-semibold text-foreground">New token</span>{" "}
+              to mint one.
             </p>
           ) : (
             <ul className="space-y-2">
@@ -178,11 +168,6 @@ export function ApiIntegrationsTab({
         </CardContent>
       </Card>
 
-      {/*
-        Self-service token creation flow — disabled for now (see header
-        comment). Both dialogs stay in the file so re-enabling is a pure
-        uncomment job.
-
       <CreateTokenDialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
@@ -196,7 +181,6 @@ export function ApiIntegrationsTab({
         revealed={revealedToken}
         onClose={() => setRevealedToken(null)}
       />
-      */}
     </div>
   )
 }
