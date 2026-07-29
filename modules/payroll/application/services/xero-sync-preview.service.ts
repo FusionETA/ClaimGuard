@@ -177,6 +177,10 @@ export async function buildPayrollSyncPreview(
           },
           employeeProfile: {
             select: {
+              // Admin-chosen salary cost project — preferred over the
+              // first assignment so the preview journal matches the
+              // live sync.
+              payrollCostProject: { select: { id: true, name: true } },
               projectAssignments: {
                 select: {
                   project: { select: { id: true, name: true } },
@@ -305,8 +309,13 @@ export async function buildPayrollSyncPreview(
   const rows = run.payslips.map((p) => ({
     employeeName: p.snapshotName,
     employeeId: p.snapshotEmployeeId,
+    // Prefer the admin-chosen salary cost project; fall back to the
+    // first assignment (pre-cost-project behaviour, and single-project
+    // employees).
     projectName:
-      p.employeeProfile?.projectAssignments[0]?.project?.name ?? NO_PROJECT,
+      p.employeeProfile?.payrollCostProject?.name ??
+      p.employeeProfile?.projectAssignments[0]?.project?.name ??
+      NO_PROJECT,
     // Salary debit is built on proratedPay (matches calc gross), not
     // basicPay — see the note in xero-payroll-sync.service.ts.
     proratedPay: toNumber(p.proratedPay, 0),

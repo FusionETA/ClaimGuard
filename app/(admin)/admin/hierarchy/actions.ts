@@ -209,6 +209,11 @@ export async function updateHierarchyAction(
     }
   }
 
+  // Salary cost project — the repo validates it's one of projectIds and
+  // stores null otherwise, so an empty string here is safe.
+  const payrollCostProjectId =
+    String(formData.get("payrollCostProjectId") ?? "").trim() || null
+
   try {
     await organizationRepository.updateOrganizationMember({
       userId: parsed.data.userId,
@@ -218,6 +223,7 @@ export async function updateHierarchyAction(
       jobTitle: parsed.data.jobTitle,
       policyId: parsed.data.policyId,
       projectAssignments,
+      payrollCostProjectId,
     })
   } catch (error) {
     return {

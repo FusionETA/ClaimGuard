@@ -4668,7 +4668,8 @@ export const EmployeeProfileScalarFieldEnum = {
   updatedAt: 'updatedAt',
   otTimeBalanceMin: 'otTimeBalanceMin',
   policyId: 'policyId',
-  organizationId: 'organizationId'
+  organizationId: 'organizationId',
+  payrollCostProjectId: 'payrollCostProjectId'
 } as const
 
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
@@ -5910,7 +5911,8 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   jobTitle: 'jobTitle',
   preferredCurrency: 'preferredCurrency',
   policyId: 'policyId',
-  organizationId: 'organizationId'
+  organizationId: 'organizationId',
+  payrollCostProjectId: 'payrollCostProjectId'
 } as const
 
 export type EmployeeProfileOrderByRelevanceFieldEnum = (typeof EmployeeProfileOrderByRelevanceFieldEnum)[keyof typeof EmployeeProfileOrderByRelevanceFieldEnum]

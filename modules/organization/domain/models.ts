@@ -225,6 +225,12 @@ export type OrganizationMember = {
   organizationName?: string
   employeeId: string
   projects: AssignedProject[]
+  /// Which assigned project the employee's salary + employer statutory
+  /// cost posts to in the Xero payroll journal. Null / undefined means
+  /// "not chosen" — the sync falls back to the first assignment.
+  /// Only surfaced in the Company-tab UI when the employee is on 2+
+  /// projects.
+  payrollCostProjectId?: string | null
   jobTitle: string
   payoutMethod: EmployeePayoutMethod
   otPayoutMethod: OtPayoutMethod

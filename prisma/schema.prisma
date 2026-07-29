@@ -493,10 +493,19 @@ model EmployeeProfile {
   /// the backfill completes AND the singular-relation refactor lands.
   /// While null, callers should fall back to `user.organizationId`.
   organizationId        String?
+  /// Which project the employee's salary + employer statutory cost is
+  /// charged to in the Xero payroll journal, when they're assigned to
+  /// MORE THAN ONE project. The admin picks it on the Company tab. Null
+  /// means "not chosen" — the sync falls back to the first project
+  /// assignment (its historical behaviour), so single-project employees
+  /// never need to set this. Must be one of the employee's assigned
+  /// projects; the UI only offers assigned projects.
+  payrollCostProjectId  String?
   loans                 EmployeeLoan[]
   policy                EmployeePolicy?             @relation(fields: [policyId], references: [id])
   user                  User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
   organization          Organization?               @relation(fields: [organizationId], references: [id])
+  payrollCostProject    XeroProject?                @relation("PayrollCostProject", fields: [payrollCostProjectId], references: [id])
   projectAssignments    EmployeeProjectAssignment[]
   teamMemberships       EmployeeTeamMembership[]
   leaveApplications     LeaveApplication[]
@@ -515,6 +524,7 @@ model EmployeeProfile {
   @@index([employeeId])
   @@index([organizationId])
   @@index([userId])
+  @@index([payrollCostProjectId])
 }
 
 /// One employment "stint" at an org — a continuous period the person
@@ -934,6 +944,7 @@ model XeroProject {
   attendanceRecords      AttendanceRecord[]          @relation("AttendanceRecordProject")
   claims                 Claim[]                     @relation("ClaimProject")
   assignedEmployees      EmployeeProjectAssignment[]
+  payrollCostForProfiles EmployeeProfile[]           @relation("PayrollCostProject")
   geoLocations           ProjectGeoLocation[]
   holidays               ProjectHoliday[]
   projectManagers        ProjectManager[]            @relation("ProjectManagers")

@@ -359,6 +359,7 @@ export type XeroProjectWhereInput = {
   attendanceRecords?: Prisma.AttendanceRecordListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   assignedEmployees?: Prisma.EmployeeProjectAssignmentListRelationFilter
+  payrollCostForProfiles?: Prisma.EmployeeProfileListRelationFilter
   geoLocations?: Prisma.ProjectGeoLocationListRelationFilter
   holidays?: Prisma.ProjectHolidayListRelationFilter
   projectManagers?: Prisma.ProjectManagerListRelationFilter
@@ -395,6 +396,7 @@ export type XeroProjectOrderByWithRelationInput = {
   attendanceRecords?: Prisma.AttendanceRecordOrderByRelationAggregateInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentOrderByRelationAggregateInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileOrderByRelationAggregateInput
   geoLocations?: Prisma.ProjectGeoLocationOrderByRelationAggregateInput
   holidays?: Prisma.ProjectHolidayOrderByRelationAggregateInput
   projectManagers?: Prisma.ProjectManagerOrderByRelationAggregateInput
@@ -437,6 +439,7 @@ export type XeroProjectWhereUniqueInput = Prisma.AtLeast<{
   attendanceRecords?: Prisma.AttendanceRecordListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   assignedEmployees?: Prisma.EmployeeProjectAssignmentListRelationFilter
+  payrollCostForProfiles?: Prisma.EmployeeProfileListRelationFilter
   geoLocations?: Prisma.ProjectGeoLocationListRelationFilter
   holidays?: Prisma.ProjectHolidayListRelationFilter
   projectManagers?: Prisma.ProjectManagerListRelationFilter
@@ -529,6 +532,7 @@ export type XeroProjectCreateInput = {
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
@@ -565,6 +569,7 @@ export type XeroProjectUncheckedCreateInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
@@ -597,6 +602,7 @@ export type XeroProjectUpdateInput = {
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
@@ -633,6 +639,7 @@ export type XeroProjectUncheckedUpdateInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
@@ -724,14 +731,14 @@ export type XeroProjectOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type XeroProjectScalarRelationFilter = {
-  is?: Prisma.XeroProjectWhereInput
-  isNot?: Prisma.XeroProjectWhereInput
-}
-
 export type XeroProjectNullableScalarRelationFilter = {
   is?: Prisma.XeroProjectWhereInput | null
   isNot?: Prisma.XeroProjectWhereInput | null
+}
+
+export type XeroProjectScalarRelationFilter = {
+  is?: Prisma.XeroProjectWhereInput
+  isNot?: Prisma.XeroProjectWhereInput
 }
 
 export type XeroProjectOrderByRelevanceInput = {
@@ -919,6 +926,22 @@ export type XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput = {
   deleteMany?: Prisma.XeroProjectScalarWhereInput | Prisma.XeroProjectScalarWhereInput[]
 }
 
+export type XeroProjectCreateNestedOneWithoutPayrollCostForProfilesInput = {
+  create?: Prisma.XOR<Prisma.XeroProjectCreateWithoutPayrollCostForProfilesInput, Prisma.XeroProjectUncheckedCreateWithoutPayrollCostForProfilesInput>
+  connectOrCreate?: Prisma.XeroProjectCreateOrConnectWithoutPayrollCostForProfilesInput
+  connect?: Prisma.XeroProjectWhereUniqueInput
+}
+
+export type XeroProjectUpdateOneWithoutPayrollCostForProfilesNestedInput = {
+  create?: Prisma.XOR<Prisma.XeroProjectCreateWithoutPayrollCostForProfilesInput, Prisma.XeroProjectUncheckedCreateWithoutPayrollCostForProfilesInput>
+  connectOrCreate?: Prisma.XeroProjectCreateOrConnectWithoutPayrollCostForProfilesInput
+  upsert?: Prisma.XeroProjectUpsertWithoutPayrollCostForProfilesInput
+  disconnect?: Prisma.XeroProjectWhereInput | boolean
+  delete?: Prisma.XeroProjectWhereInput | boolean
+  connect?: Prisma.XeroProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.XeroProjectUpdateToOneWithWhereWithoutPayrollCostForProfilesInput, Prisma.XeroProjectUpdateWithoutPayrollCostForProfilesInput>, Prisma.XeroProjectUncheckedUpdateWithoutPayrollCostForProfilesInput>
+}
+
 export type XeroProjectCreateNestedOneWithoutAssignedEmployeesInput = {
   create?: Prisma.XOR<Prisma.XeroProjectCreateWithoutAssignedEmployeesInput, Prisma.XeroProjectUncheckedCreateWithoutAssignedEmployeesInput>
   connectOrCreate?: Prisma.XeroProjectCreateOrConnectWithoutAssignedEmployeesInput
@@ -1083,6 +1106,7 @@ export type XeroProjectCreateWithoutProjectManagerInput = {
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
@@ -1117,6 +1141,7 @@ export type XeroProjectUncheckedCreateWithoutProjectManagerInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
@@ -1203,6 +1228,7 @@ export type XeroProjectCreateWithoutOrganizationInput = {
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
@@ -1237,6 +1263,7 @@ export type XeroProjectUncheckedCreateWithoutOrganizationInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
@@ -1271,6 +1298,158 @@ export type XeroProjectUpdateManyWithWhereWithoutOrganizationInput = {
   data: Prisma.XOR<Prisma.XeroProjectUpdateManyMutationInput, Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationInput>
 }
 
+export type XeroProjectCreateWithoutPayrollCostForProfilesInput = {
+  id?: string
+  xeroProjectId?: string | null
+  name: string
+  status?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isManual?: boolean
+  location?: string | null
+  isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
+  allowedIps?: string | null
+  allowedIpsList?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
+  lunchBreakMinutes?: number
+  xeroTrackingOptionId?: string | null
+  archivedByXeroConnect?: boolean
+  xeroTrackingCategoryId?: string | null
+  attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
+  teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
+  otSubmissions?: Prisma.ApprovalRequestCreateNestedManyWithoutOtProjectInput
+  shifts?: Prisma.ShiftCreateNestedManyWithoutProjectInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
+  projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+}
+
+export type XeroProjectUncheckedCreateWithoutPayrollCostForProfilesInput = {
+  id?: string
+  organizationId: string
+  xeroProjectId?: string | null
+  name: string
+  status?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isManual?: boolean
+  location?: string | null
+  projectManagerId?: string | null
+  isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
+  allowedIps?: string | null
+  allowedIpsList?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
+  lunchBreakMinutes?: number
+  xeroTrackingOptionId?: string | null
+  archivedByXeroConnect?: boolean
+  xeroTrackingCategoryId?: string | null
+  attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
+  teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
+  otSubmissions?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutOtProjectInput
+  shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type XeroProjectCreateOrConnectWithoutPayrollCostForProfilesInput = {
+  where: Prisma.XeroProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.XeroProjectCreateWithoutPayrollCostForProfilesInput, Prisma.XeroProjectUncheckedCreateWithoutPayrollCostForProfilesInput>
+}
+
+export type XeroProjectUpsertWithoutPayrollCostForProfilesInput = {
+  update: Prisma.XOR<Prisma.XeroProjectUpdateWithoutPayrollCostForProfilesInput, Prisma.XeroProjectUncheckedUpdateWithoutPayrollCostForProfilesInput>
+  create: Prisma.XOR<Prisma.XeroProjectCreateWithoutPayrollCostForProfilesInput, Prisma.XeroProjectUncheckedCreateWithoutPayrollCostForProfilesInput>
+  where?: Prisma.XeroProjectWhereInput
+}
+
+export type XeroProjectUpdateToOneWithWhereWithoutPayrollCostForProfilesInput = {
+  where?: Prisma.XeroProjectWhereInput
+  data: Prisma.XOR<Prisma.XeroProjectUpdateWithoutPayrollCostForProfilesInput, Prisma.XeroProjectUncheckedUpdateWithoutPayrollCostForProfilesInput>
+}
+
+export type XeroProjectUpdateWithoutPayrollCostForProfilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  allowedIps?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowedIpsList?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lunchBreakMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
+  teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
+  otSubmissions?: Prisma.ApprovalRequestUpdateManyWithoutOtProjectNestedInput
+  shifts?: Prisma.ShiftUpdateManyWithoutProjectNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
+  projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+}
+
+export type XeroProjectUncheckedUpdateWithoutPayrollCostForProfilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  allowedIps?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowedIpsList?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lunchBreakMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
+  teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
+  otSubmissions?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutOtProjectNestedInput
+  shifts?: Prisma.ShiftUncheckedUpdateManyWithoutProjectNestedInput
+}
+
 export type XeroProjectCreateWithoutAssignedEmployeesInput = {
   id?: string
   xeroProjectId?: string | null
@@ -1294,6 +1473,7 @@ export type XeroProjectCreateWithoutAssignedEmployeesInput = {
   xeroTrackingCategoryId?: string | null
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
@@ -1329,6 +1509,7 @@ export type XeroProjectUncheckedCreateWithoutAssignedEmployeesInput = {
   xeroTrackingCategoryId?: string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
@@ -1376,6 +1557,7 @@ export type XeroProjectUpdateWithoutAssignedEmployeesInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
@@ -1411,6 +1593,7 @@ export type XeroProjectUncheckedUpdateWithoutAssignedEmployeesInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
@@ -1442,6 +1625,7 @@ export type XeroProjectCreateWithoutClaimsInput = {
   xeroTrackingCategoryId?: string | null
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
@@ -1477,6 +1661,7 @@ export type XeroProjectUncheckedCreateWithoutClaimsInput = {
   xeroTrackingCategoryId?: string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
@@ -1524,6 +1709,7 @@ export type XeroProjectUpdateWithoutClaimsInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
@@ -1559,6 +1745,7 @@ export type XeroProjectUncheckedUpdateWithoutClaimsInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
@@ -1591,6 +1778,7 @@ export type XeroProjectCreateWithoutGeoLocationsInput = {
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
@@ -1626,6 +1814,7 @@ export type XeroProjectUncheckedCreateWithoutGeoLocationsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
@@ -1673,6 +1862,7 @@ export type XeroProjectUpdateWithoutGeoLocationsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
@@ -1708,6 +1898,7 @@ export type XeroProjectUncheckedUpdateWithoutGeoLocationsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
@@ -1739,6 +1930,7 @@ export type XeroProjectCreateWithoutShiftsInput = {
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
@@ -1774,6 +1966,7 @@ export type XeroProjectUncheckedCreateWithoutShiftsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
@@ -1821,6 +2014,7 @@ export type XeroProjectUpdateWithoutShiftsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
@@ -1856,6 +2050,7 @@ export type XeroProjectUncheckedUpdateWithoutShiftsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
@@ -1887,6 +2082,7 @@ export type XeroProjectCreateWithoutHolidaysInput = {
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
@@ -1922,6 +2118,7 @@ export type XeroProjectUncheckedCreateWithoutHolidaysInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
@@ -1969,6 +2166,7 @@ export type XeroProjectUpdateWithoutHolidaysInput = {
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
@@ -2004,6 +2202,7 @@ export type XeroProjectUncheckedUpdateWithoutHolidaysInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
@@ -2035,6 +2234,7 @@ export type XeroProjectCreateWithoutProjectManagersInput = {
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
@@ -2070,6 +2270,7 @@ export type XeroProjectUncheckedCreateWithoutProjectManagersInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
@@ -2117,6 +2318,7 @@ export type XeroProjectUpdateWithoutProjectManagersInput = {
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
@@ -2152,6 +2354,7 @@ export type XeroProjectUncheckedUpdateWithoutProjectManagersInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
@@ -2182,6 +2385,7 @@ export type XeroProjectCreateWithoutAttendanceRecordsInput = {
   xeroTrackingCategoryId?: string | null
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
@@ -2217,6 +2421,7 @@ export type XeroProjectUncheckedCreateWithoutAttendanceRecordsInput = {
   xeroTrackingCategoryId?: string | null
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
@@ -2264,6 +2469,7 @@ export type XeroProjectUpdateWithoutAttendanceRecordsInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
@@ -2299,6 +2505,7 @@ export type XeroProjectUncheckedUpdateWithoutAttendanceRecordsInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
@@ -2331,6 +2538,7 @@ export type XeroProjectCreateWithoutOtSubmissionsInput = {
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
@@ -2366,6 +2574,7 @@ export type XeroProjectUncheckedCreateWithoutOtSubmissionsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
@@ -2413,6 +2622,7 @@ export type XeroProjectUpdateWithoutOtSubmissionsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
@@ -2448,6 +2658,7 @@ export type XeroProjectUncheckedUpdateWithoutOtSubmissionsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
@@ -2479,6 +2690,7 @@ export type XeroProjectCreateWithoutTeamsInput = {
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
@@ -2514,6 +2726,7 @@ export type XeroProjectUncheckedCreateWithoutTeamsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPayrollCostProjectInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
   projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
@@ -2561,6 +2774,7 @@ export type XeroProjectUpdateWithoutTeamsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
@@ -2596,6 +2810,7 @@ export type XeroProjectUncheckedUpdateWithoutTeamsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
@@ -2651,6 +2866,7 @@ export type XeroProjectUpdateWithoutProjectManagerInput = {
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
@@ -2685,6 +2901,7 @@ export type XeroProjectUncheckedUpdateWithoutProjectManagerInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
@@ -2765,6 +2982,7 @@ export type XeroProjectUpdateWithoutOrganizationInput = {
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
@@ -2799,6 +3017,7 @@ export type XeroProjectUncheckedUpdateWithoutOrganizationInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  payrollCostForProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPayrollCostProjectNestedInput
   geoLocations?: Prisma.ProjectGeoLocationUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
@@ -2840,6 +3059,7 @@ export type XeroProjectCountOutputType = {
   attendanceRecords: number
   claims: number
   assignedEmployees: number
+  payrollCostForProfiles: number
   geoLocations: number
   holidays: number
   projectManagers: number
@@ -2852,6 +3072,7 @@ export type XeroProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Exten
   attendanceRecords?: boolean | XeroProjectCountOutputTypeCountAttendanceRecordsArgs
   claims?: boolean | XeroProjectCountOutputTypeCountClaimsArgs
   assignedEmployees?: boolean | XeroProjectCountOutputTypeCountAssignedEmployeesArgs
+  payrollCostForProfiles?: boolean | XeroProjectCountOutputTypeCountPayrollCostForProfilesArgs
   geoLocations?: boolean | XeroProjectCountOutputTypeCountGeoLocationsArgs
   holidays?: boolean | XeroProjectCountOutputTypeCountHolidaysArgs
   projectManagers?: boolean | XeroProjectCountOutputTypeCountProjectManagersArgs
@@ -2889,6 +3110,13 @@ export type XeroProjectCountOutputTypeCountClaimsArgs<ExtArgs extends runtime.Ty
  */
 export type XeroProjectCountOutputTypeCountAssignedEmployeesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.EmployeeProjectAssignmentWhereInput
+}
+
+/**
+ * XeroProjectCountOutputType without action
+ */
+export type XeroProjectCountOutputTypeCountPayrollCostForProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeProfileWhereInput
 }
 
 /**
@@ -2960,6 +3188,7 @@ export type XeroProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   attendanceRecords?: boolean | Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>
   claims?: boolean | Prisma.XeroProject$claimsArgs<ExtArgs>
   assignedEmployees?: boolean | Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>
+  payrollCostForProfiles?: boolean | Prisma.XeroProject$payrollCostForProfilesArgs<ExtArgs>
   geoLocations?: boolean | Prisma.XeroProject$geoLocationsArgs<ExtArgs>
   holidays?: boolean | Prisma.XeroProject$holidaysArgs<ExtArgs>
   projectManagers?: boolean | Prisma.XeroProject$projectManagersArgs<ExtArgs>
@@ -3003,6 +3232,7 @@ export type XeroProjectInclude<ExtArgs extends runtime.Types.Extensions.Internal
   attendanceRecords?: boolean | Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>
   claims?: boolean | Prisma.XeroProject$claimsArgs<ExtArgs>
   assignedEmployees?: boolean | Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>
+  payrollCostForProfiles?: boolean | Prisma.XeroProject$payrollCostForProfilesArgs<ExtArgs>
   geoLocations?: boolean | Prisma.XeroProject$geoLocationsArgs<ExtArgs>
   holidays?: boolean | Prisma.XeroProject$holidaysArgs<ExtArgs>
   projectManagers?: boolean | Prisma.XeroProject$projectManagersArgs<ExtArgs>
@@ -3020,6 +3250,7 @@ export type $XeroProjectPayload<ExtArgs extends runtime.Types.Extensions.Interna
     attendanceRecords: Prisma.$AttendanceRecordPayload<ExtArgs>[]
     claims: Prisma.$ClaimPayload<ExtArgs>[]
     assignedEmployees: Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>[]
+    payrollCostForProfiles: Prisma.$EmployeeProfilePayload<ExtArgs>[]
     geoLocations: Prisma.$ProjectGeoLocationPayload<ExtArgs>[]
     holidays: Prisma.$ProjectHolidayPayload<ExtArgs>[]
     projectManagers: Prisma.$ProjectManagerPayload<ExtArgs>[]
@@ -3437,6 +3668,7 @@ export interface Prisma__XeroProjectClient<T, Null = never, ExtArgs extends runt
   attendanceRecords<T extends Prisma.XeroProject$attendanceRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claims<T extends Prisma.XeroProject$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assignedEmployees<T extends Prisma.XeroProject$assignedEmployeesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  payrollCostForProfiles<T extends Prisma.XeroProject$payrollCostForProfilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$payrollCostForProfilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   geoLocations<T extends Prisma.XeroProject$geoLocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$geoLocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectGeoLocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   holidays<T extends Prisma.XeroProject$holidaysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$holidaysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectHolidayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectManagers<T extends Prisma.XeroProject$projectManagersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$projectManagersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectManagerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3913,6 +4145,30 @@ export type XeroProject$assignedEmployeesArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.EmployeeProjectAssignmentScalarFieldEnum | Prisma.EmployeeProjectAssignmentScalarFieldEnum[]
+}
+
+/**
+ * XeroProject.payrollCostForProfiles
+ */
+export type XeroProject$payrollCostForProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeProfile
+   */
+  select?: Prisma.EmployeeProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeProfile
+   */
+  omit?: Prisma.EmployeeProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeProfileInclude<ExtArgs> | null
+  where?: Prisma.EmployeeProfileWhereInput
+  orderBy?: Prisma.EmployeeProfileOrderByWithRelationInput | Prisma.EmployeeProfileOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeProfileWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeProfileScalarFieldEnum | Prisma.EmployeeProfileScalarFieldEnum[]
 }
 
 /**

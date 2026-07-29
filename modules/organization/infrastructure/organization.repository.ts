@@ -2051,6 +2051,7 @@ export const organizationRepository = {
         organizationName: user.organization?.name ?? undefined,
         employeeId: employeeProfile?.employeeId ?? "N/A",
         projects: assignedProjects,
+        payrollCostProjectId: employeeProfile?.payrollCostProjectId ?? null,
         jobTitle: employeeProfile?.jobTitle ?? "Employee",
         payoutMethod: resolveEmployeePayoutMethod(
           user.role as OrganizationMember["role"],
@@ -2094,6 +2095,12 @@ export const organizationRepository = {
       layer: number
       chainApprovers: Array<{ layer: number; userId: string }>
     }>
+    /// Which assigned project the employee's salary + employer
+    /// statutory cost posts to in the Xero payroll journal. Only
+    /// meaningful for multi-project employees; the sync falls back to
+    /// the first assignment when null. Ignored (stored as null) unless
+    /// it's one of `projectIds`.
+    payrollCostProjectId?: string | null
   }): Promise<boolean> {
     const prisma = getPrismaClient()
     if (!prisma) return false
@@ -2236,6 +2243,16 @@ export const organizationRepository = {
     if (policy.archivedAt) {
       throw new Error("Selected employee policy is archived.")
     }
+    // The salary cost project must be one of the projects the employee
+    // is actually assigned to. Anything else (stale value, single-
+    // project employee, unset) collapses to null so the sync falls
+    // back to the first assignment.
+    const resolvedCostProjectId =
+      data.payrollCostProjectId &&
+      data.projectIds.includes(data.payrollCostProjectId)
+        ? data.payrollCostProjectId
+        : null
+
     await prisma.$transaction(async (tx) => {
       await tx.user.update({
         where: { id: data.userId },
@@ -2246,6 +2263,7 @@ export const organizationRepository = {
         data: {
           jobTitle: data.jobTitle,
           policyId: data.policyId,
+          payrollCostProjectId: resolvedCostProjectId,
         },
       })
       await tx.employeeProjectAssignment.deleteMany({

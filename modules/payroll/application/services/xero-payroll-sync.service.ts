@@ -154,6 +154,10 @@ export async function syncPayrollRunToXero(
           },
           employeeProfile: {
             select: {
+              // Admin-chosen salary cost project (set on the Company
+              // tab when the employee is on 2+ projects). Preferred
+              // over the first assignment below.
+              payrollCostProject: { select: { id: true, name: true } },
               projectAssignments: {
                 select: {
                   project: { select: { id: true, name: true } },
@@ -337,8 +341,13 @@ export async function syncPayrollRunToXero(
   // payroll pays them out, so the Manual Journal carries the claim
   // expense debit and the matching salary-payable credit.
   const rows = run.payslips.map((p) => {
+    // Prefer the admin-chosen salary cost project; fall back to the
+    // first assignment for employees who never picked one (i.e. the
+    // pre-cost-project behaviour, and everyone on a single project).
     const projectName =
-      p.employeeProfile?.projectAssignments[0]?.project?.name ?? null
+      p.employeeProfile?.payrollCostProject?.name ??
+      p.employeeProfile?.projectAssignments[0]?.project?.name ??
+      null
     const allowanceLines: Array<{
       category: PayrollAdjustmentCategory | null
       amount: number

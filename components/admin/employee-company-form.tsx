@@ -246,6 +246,9 @@ export function EmployeeCompanyForm({
   policies,
   temporaryReviewDate: initialTemporaryReviewDate,
 }: EmployeeCompanyData) {
+  const [payrollCostProjectId, setPayrollCostProjectId] = useState<string>(
+    member.payrollCostProjectId ?? "",
+  )
   const { toast } = useToast()
   const router = useRouter()
   const xeroConnectionId = xeroConnection?.id ?? ""
@@ -297,6 +300,28 @@ export function EmployeeCompanyForm({
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>(() =>
     resolveSelectedProjectIds(member.projects, filteredProjects),
   )
+
+  // Cost-project dropdown options are exactly the projects currently
+  // ticked above — you can only charge salary to a project the
+  // employee is assigned to.
+  const selectedCostProjectOptions = useMemo(
+    () => filteredProjects.filter((p) => selectedProjectIds.includes(p.id)),
+    [filteredProjects, selectedProjectIds],
+  )
+
+  // If the admin unticks the project that was chosen as the cost
+  // project, clear the pick so we don't submit a stale id (the repo
+  // would null it anyway, but keeping the UI honest avoids a
+  // confusing "saved" state that silently reverted).
+  useEffect(() => {
+    if (
+      payrollCostProjectId &&
+      !selectedProjectIds.includes(payrollCostProjectId)
+    ) {
+      setPayrollCostProjectId("")
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProjectIds.join(",")])
 
   // Default approval chain for a (team, layer): every layer ABOVE the employee
   // is pre-filled with that layer's supervisors (any one of them can approve to
@@ -533,6 +558,47 @@ export function EmployeeCompanyForm({
             }
           />
         </div>
+
+        {/* Salary cost project — only relevant when the employee is on
+            2+ projects. Picks which project their salary + employer
+            statutory cost is charged to in the Xero payroll journal.
+            "First project (default)" leaves it unset, so the sync
+            falls back to the first assignment. */}
+        {selectedProjectIds.length >= 2 ? (
+          <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+            <label htmlFor={`cost-project-${member.id}`}>
+              Salary charges to
+            </label>
+            <input
+              type="hidden"
+              name="payrollCostProjectId"
+              value={payrollCostProjectId}
+            />
+            <Select
+              value={payrollCostProjectId || "__default__"}
+              onValueChange={(v) =>
+                setPayrollCostProjectId(v === "__default__" ? "" : v)
+              }
+              disabled={pending}
+            >
+              <SelectTrigger id={`cost-project-${member.id}`}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__default__">First project (default)</SelectItem>
+                {selectedCostProjectOptions.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs font-normal text-muted-foreground">
+              Which project this employee&apos;s salary and employer EPF /
+              SOCSO cost posts to in the payroll journal.
+            </p>
+          </div>
+        ) : null}
       </div>
 
       {/* Per-project team + chain configuration. */}
