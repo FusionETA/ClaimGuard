@@ -1035,7 +1035,14 @@ export function AdminSettingsPanel({
   useEffect(() => {
     if (!initialTab) return
     const resolved = resolveTabFromInitial(initialTab)
-    const nextTab = visibleTabSet.has(resolved.tab) ? resolved.tab : fallbackTab
+    // Gate on `allowedTabKeys` (the FINAL visible set, which support-mode
+    // -gates the API tab), not the raw `visibleTabSet` — otherwise
+    // client-side nav to ?tab=api falls back to Organization even for a
+    // superadmin, because visibleTabSet doesn't carry the isSupportMode
+    // special-case. Must match the initial-mount resolution above.
+    const nextTab = allowedTabKeys.has(resolved.tab)
+      ? resolved.tab
+      : fallbackTab
     if (nextTab !== activeTab) setActiveTab(nextTab)
     if (resolved.tab === "accounts" && resolved.accountsSub !== accountsSubTab) {
       setAccountsSubTab(resolved.accountsSub)
