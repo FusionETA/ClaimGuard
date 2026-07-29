@@ -1207,6 +1207,40 @@ export type EnumLeaveStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumLeaveStatusFilter<$PrismaModel>
 }
 
+export type EnumAppraisalStageFilter<$PrismaModel = never> = {
+  equals?: $Enums.AppraisalStage | Prisma.EnumAppraisalStageFieldRefInput<$PrismaModel>
+  in?: $Enums.AppraisalStage[]
+  notIn?: $Enums.AppraisalStage[]
+  not?: Prisma.NestedEnumAppraisalStageFilter<$PrismaModel> | $Enums.AppraisalStage
+}
+
+export type EnumAppraisalTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.AppraisalType | Prisma.EnumAppraisalTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.AppraisalType[]
+  notIn?: $Enums.AppraisalType[]
+  not?: Prisma.NestedEnumAppraisalTypeFilter<$PrismaModel> | $Enums.AppraisalType
+}
+
+export type EnumAppraisalStageWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AppraisalStage | Prisma.EnumAppraisalStageFieldRefInput<$PrismaModel>
+  in?: $Enums.AppraisalStage[]
+  notIn?: $Enums.AppraisalStage[]
+  not?: Prisma.NestedEnumAppraisalStageWithAggregatesFilter<$PrismaModel> | $Enums.AppraisalStage
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAppraisalStageFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAppraisalStageFilter<$PrismaModel>
+}
+
+export type EnumAppraisalTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AppraisalType | Prisma.EnumAppraisalTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.AppraisalType[]
+  notIn?: $Enums.AppraisalType[]
+  not?: Prisma.NestedEnumAppraisalTypeWithAggregatesFilter<$PrismaModel> | $Enums.AppraisalType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAppraisalTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAppraisalTypeFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[]
@@ -2339,6 +2373,40 @@ export type NestedEnumLeaveStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumLeaveStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumLeaveStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumAppraisalStageFilter<$PrismaModel = never> = {
+  equals?: $Enums.AppraisalStage | Prisma.EnumAppraisalStageFieldRefInput<$PrismaModel>
+  in?: $Enums.AppraisalStage[]
+  notIn?: $Enums.AppraisalStage[]
+  not?: Prisma.NestedEnumAppraisalStageFilter<$PrismaModel> | $Enums.AppraisalStage
+}
+
+export type NestedEnumAppraisalTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.AppraisalType | Prisma.EnumAppraisalTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.AppraisalType[]
+  notIn?: $Enums.AppraisalType[]
+  not?: Prisma.NestedEnumAppraisalTypeFilter<$PrismaModel> | $Enums.AppraisalType
+}
+
+export type NestedEnumAppraisalStageWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AppraisalStage | Prisma.EnumAppraisalStageFieldRefInput<$PrismaModel>
+  in?: $Enums.AppraisalStage[]
+  notIn?: $Enums.AppraisalStage[]
+  not?: Prisma.NestedEnumAppraisalStageWithAggregatesFilter<$PrismaModel> | $Enums.AppraisalStage
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAppraisalStageFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAppraisalStageFilter<$PrismaModel>
+}
+
+export type NestedEnumAppraisalTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AppraisalType | Prisma.EnumAppraisalTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.AppraisalType[]
+  notIn?: $Enums.AppraisalType[]
+  not?: Prisma.NestedEnumAppraisalTypeWithAggregatesFilter<$PrismaModel> | $Enums.AppraisalType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAppraisalTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAppraisalTypeFilter<$PrismaModel>
 }
 
 

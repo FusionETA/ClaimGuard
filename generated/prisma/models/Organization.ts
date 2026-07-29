@@ -371,6 +371,8 @@ export type OrganizationWhereInput = {
   orgHolidays?: Prisma.OrgHolidayListRelationFilter
   employeeTransfersOut?: Prisma.EmployeeTransferListRelationFilter
   employeeTransfersIn?: Prisma.EmployeeTransferListRelationFilter
+  appraisals?: Prisma.AppraisalListRelationFilter
+  appraisalTemplates?: Prisma.AppraisalTemplateListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -418,6 +420,8 @@ export type OrganizationOrderByWithRelationInput = {
   orgHolidays?: Prisma.OrgHolidayOrderByRelationAggregateInput
   employeeTransfersOut?: Prisma.EmployeeTransferOrderByRelationAggregateInput
   employeeTransfersIn?: Prisma.EmployeeTransferOrderByRelationAggregateInput
+  appraisals?: Prisma.AppraisalOrderByRelationAggregateInput
+  appraisalTemplates?: Prisma.AppraisalTemplateOrderByRelationAggregateInput
   _relevance?: Prisma.OrganizationOrderByRelevanceInput
 }
 
@@ -469,6 +473,8 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   orgHolidays?: Prisma.OrgHolidayListRelationFilter
   employeeTransfersOut?: Prisma.EmployeeTransferListRelationFilter
   employeeTransfersIn?: Prisma.EmployeeTransferListRelationFilter
+  appraisals?: Prisma.AppraisalListRelationFilter
+  appraisalTemplates?: Prisma.AppraisalTemplateListRelationFilter
 }, "id" | "name">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -572,6 +578,8 @@ export type OrganizationCreateInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -619,6 +627,8 @@ export type OrganizationUncheckedCreateInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -666,6 +676,8 @@ export type OrganizationUpdateInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -713,6 +725,8 @@ export type OrganizationUncheckedUpdateInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -1245,6 +1259,34 @@ export type OrganizationUpdateOneRequiredWithoutSuperadminAuditTargetNestedInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutSuperadminAuditTargetInput, Prisma.OrganizationUpdateWithoutSuperadminAuditTargetInput>, Prisma.OrganizationUncheckedUpdateWithoutSuperadminAuditTargetInput>
 }
 
+export type OrganizationCreateNestedOneWithoutAppraisalsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAppraisalsInput, Prisma.OrganizationUncheckedCreateWithoutAppraisalsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAppraisalsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutAppraisalsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAppraisalsInput, Prisma.OrganizationUncheckedCreateWithoutAppraisalsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAppraisalsInput
+  upsert?: Prisma.OrganizationUpsertWithoutAppraisalsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutAppraisalsInput, Prisma.OrganizationUpdateWithoutAppraisalsInput>, Prisma.OrganizationUncheckedUpdateWithoutAppraisalsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutAppraisalTemplatesInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAppraisalTemplatesInput, Prisma.OrganizationUncheckedCreateWithoutAppraisalTemplatesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAppraisalTemplatesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutAppraisalTemplatesNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAppraisalTemplatesInput, Prisma.OrganizationUncheckedCreateWithoutAppraisalTemplatesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAppraisalTemplatesInput
+  upsert?: Prisma.OrganizationUpsertWithoutAppraisalTemplatesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutAppraisalTemplatesInput, Prisma.OrganizationUpdateWithoutAppraisalTemplatesInput>, Prisma.OrganizationUncheckedUpdateWithoutAppraisalTemplatesInput>
+}
+
 export type OrganizationCreateWithoutUsersInput = {
   id?: string
   name: string
@@ -1289,6 +1331,8 @@ export type OrganizationCreateWithoutUsersInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -1335,6 +1379,8 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -1397,6 +1443,8 @@ export type OrganizationUpdateWithoutUsersInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -1443,6 +1491,8 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutEmployeePoliciesInput = {
@@ -1489,6 +1539,8 @@ export type OrganizationCreateWithoutEmployeePoliciesInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
@@ -1535,6 +1587,8 @@ export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeePoliciesInput = {
@@ -1597,6 +1651,8 @@ export type OrganizationUpdateWithoutEmployeePoliciesInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
@@ -1643,6 +1699,8 @@ export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutApiIntegrationsInput = {
@@ -1689,6 +1747,8 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
@@ -1735,6 +1795,8 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutApiIntegrationsInput = {
@@ -1797,6 +1859,8 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
@@ -1843,6 +1907,8 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAdminMembersInput = {
@@ -1889,6 +1955,8 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
@@ -1935,6 +2003,8 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAdminMembersInput = {
@@ -1997,6 +2067,8 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
@@ -2043,6 +2115,8 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutEmployeeImportDraftsInput = {
@@ -2089,6 +2163,8 @@ export type OrganizationCreateWithoutEmployeeImportDraftsInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeeImportDraftsInput = {
@@ -2135,6 +2211,8 @@ export type OrganizationUncheckedCreateWithoutEmployeeImportDraftsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeeImportDraftsInput = {
@@ -2197,6 +2275,8 @@ export type OrganizationUpdateWithoutEmployeeImportDraftsInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeeImportDraftsInput = {
@@ -2243,6 +2323,8 @@ export type OrganizationUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutEmployeeProfilesInput = {
@@ -2289,6 +2371,8 @@ export type OrganizationCreateWithoutEmployeeProfilesInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeeProfilesInput = {
@@ -2335,6 +2419,8 @@ export type OrganizationUncheckedCreateWithoutEmployeeProfilesInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeeProfilesInput = {
@@ -2397,6 +2483,8 @@ export type OrganizationUpdateWithoutEmployeeProfilesInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeeProfilesInput = {
@@ -2443,6 +2531,8 @@ export type OrganizationUncheckedUpdateWithoutEmployeeProfilesInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutEmployeeMembersInput = {
@@ -2489,6 +2579,8 @@ export type OrganizationCreateWithoutEmployeeMembersInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeeMembersInput = {
@@ -2535,6 +2627,8 @@ export type OrganizationUncheckedCreateWithoutEmployeeMembersInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeeMembersInput = {
@@ -2597,6 +2691,8 @@ export type OrganizationUpdateWithoutEmployeeMembersInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeeMembersInput = {
@@ -2643,6 +2739,8 @@ export type OrganizationUncheckedUpdateWithoutEmployeeMembersInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutClaimsInput = {
@@ -2689,6 +2787,8 @@ export type OrganizationCreateWithoutClaimsInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutClaimsInput = {
@@ -2735,6 +2835,8 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutClaimsInput = {
@@ -2797,6 +2899,8 @@ export type OrganizationUpdateWithoutClaimsInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutClaimsInput = {
@@ -2843,6 +2947,8 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutChartAccountsInput = {
@@ -2889,6 +2995,8 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
@@ -2935,6 +3043,8 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutChartAccountsInput = {
@@ -2997,6 +3107,8 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
@@ -3043,6 +3155,8 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutXeroConnectionInput = {
@@ -3089,6 +3203,8 @@ export type OrganizationCreateWithoutXeroConnectionInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutXeroConnectionInput = {
@@ -3135,6 +3251,8 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutXeroConnectionInput = {
@@ -3197,6 +3315,8 @@ export type OrganizationUpdateWithoutXeroConnectionInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutXeroConnectionInput = {
@@ -3243,6 +3363,8 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutProjectsInput = {
@@ -3289,6 +3411,8 @@ export type OrganizationCreateWithoutProjectsInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProjectsInput = {
@@ -3335,6 +3459,8 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProjectsInput = {
@@ -3397,6 +3523,8 @@ export type OrganizationUpdateWithoutProjectsInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProjectsInput = {
@@ -3443,6 +3571,8 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutShiftsInput = {
@@ -3489,6 +3619,8 @@ export type OrganizationCreateWithoutShiftsInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutShiftsInput = {
@@ -3535,6 +3667,8 @@ export type OrganizationUncheckedCreateWithoutShiftsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutShiftsInput = {
@@ -3597,6 +3731,8 @@ export type OrganizationUpdateWithoutShiftsInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutShiftsInput = {
@@ -3643,6 +3779,8 @@ export type OrganizationUncheckedUpdateWithoutShiftsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutOrgHolidaysInput = {
@@ -3689,6 +3827,8 @@ export type OrganizationCreateWithoutOrgHolidaysInput = {
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutOrgHolidaysInput = {
@@ -3735,6 +3875,8 @@ export type OrganizationUncheckedCreateWithoutOrgHolidaysInput = {
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutOrgHolidaysInput = {
@@ -3797,6 +3939,8 @@ export type OrganizationUpdateWithoutOrgHolidaysInput = {
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutOrgHolidaysInput = {
@@ -3843,6 +3987,8 @@ export type OrganizationUncheckedUpdateWithoutOrgHolidaysInput = {
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollSettingsInput = {
@@ -3889,6 +4035,8 @@ export type OrganizationCreateWithoutPayrollSettingsInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
@@ -3935,6 +4083,8 @@ export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollSettingsInput = {
@@ -3997,6 +4147,8 @@ export type OrganizationUpdateWithoutPayrollSettingsInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
@@ -4043,6 +4195,8 @@ export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
@@ -4089,6 +4243,8 @@ export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
@@ -4135,6 +4291,8 @@ export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollCompanyInfoInput = {
@@ -4197,6 +4355,8 @@ export type OrganizationUpdateWithoutPayrollCompanyInfoInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
@@ -4243,6 +4403,8 @@ export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollPortalCredentialsInput = {
@@ -4289,6 +4451,8 @@ export type OrganizationCreateWithoutPayrollPortalCredentialsInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollPortalCredentialsInput = {
@@ -4335,6 +4499,8 @@ export type OrganizationUncheckedCreateWithoutPayrollPortalCredentialsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollPortalCredentialsInput = {
@@ -4397,6 +4563,8 @@ export type OrganizationUpdateWithoutPayrollPortalCredentialsInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollPortalCredentialsInput = {
@@ -4443,6 +4611,8 @@ export type OrganizationUncheckedUpdateWithoutPayrollPortalCredentialsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollRunsInput = {
@@ -4489,6 +4659,8 @@ export type OrganizationCreateWithoutPayrollRunsInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
@@ -4535,6 +4707,8 @@ export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollRunsInput = {
@@ -4597,6 +4771,8 @@ export type OrganizationUpdateWithoutPayrollRunsInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
@@ -4643,6 +4819,8 @@ export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollAnnualReportsInput = {
@@ -4689,6 +4867,8 @@ export type OrganizationCreateWithoutPayrollAnnualReportsInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollAnnualReportsInput = {
@@ -4735,6 +4915,8 @@ export type OrganizationUncheckedCreateWithoutPayrollAnnualReportsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollAnnualReportsInput = {
@@ -4797,6 +4979,8 @@ export type OrganizationUpdateWithoutPayrollAnnualReportsInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollAnnualReportsInput = {
@@ -4843,6 +5027,8 @@ export type OrganizationUncheckedUpdateWithoutPayrollAnnualReportsInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutEmployeeTransfersOutInput = {
@@ -4889,6 +5075,8 @@ export type OrganizationCreateWithoutEmployeeTransfersOutInput = {
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeeTransfersOutInput = {
@@ -4935,6 +5123,8 @@ export type OrganizationUncheckedCreateWithoutEmployeeTransfersOutInput = {
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeeTransfersOutInput = {
@@ -4986,6 +5176,8 @@ export type OrganizationCreateWithoutEmployeeTransfersInInput = {
   shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeeTransfersInInput = {
@@ -5032,6 +5224,8 @@ export type OrganizationUncheckedCreateWithoutEmployeeTransfersInInput = {
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeeTransfersInInput = {
@@ -5094,6 +5288,8 @@ export type OrganizationUpdateWithoutEmployeeTransfersOutInput = {
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeeTransfersOutInput = {
@@ -5140,6 +5336,8 @@ export type OrganizationUncheckedUpdateWithoutEmployeeTransfersOutInput = {
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUpsertWithoutEmployeeTransfersInInput = {
@@ -5197,6 +5395,8 @@ export type OrganizationUpdateWithoutEmployeeTransfersInInput = {
   shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeeTransfersInInput = {
@@ -5243,6 +5443,8 @@ export type OrganizationUncheckedUpdateWithoutEmployeeTransfersInInput = {
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutLeaveTypesInput = {
@@ -5289,6 +5491,8 @@ export type OrganizationCreateWithoutLeaveTypesInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutLeaveTypesInput = {
@@ -5335,6 +5539,8 @@ export type OrganizationUncheckedCreateWithoutLeaveTypesInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutLeaveTypesInput = {
@@ -5397,6 +5603,8 @@ export type OrganizationUpdateWithoutLeaveTypesInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutLeaveTypesInput = {
@@ -5443,6 +5651,8 @@ export type OrganizationUncheckedUpdateWithoutLeaveTypesInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAuditLogInput = {
@@ -5489,6 +5699,8 @@ export type OrganizationCreateWithoutAuditLogInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAuditLogInput = {
@@ -5535,6 +5747,8 @@ export type OrganizationUncheckedCreateWithoutAuditLogInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAuditLogInput = {
@@ -5597,6 +5811,8 @@ export type OrganizationUpdateWithoutAuditLogInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAuditLogInput = {
@@ -5643,6 +5859,8 @@ export type OrganizationUncheckedUpdateWithoutAuditLogInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutSuperadminAuditTargetInput = {
@@ -5689,6 +5907,8 @@ export type OrganizationCreateWithoutSuperadminAuditTargetInput = {
   orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutSuperadminAuditTargetInput = {
@@ -5735,6 +5955,8 @@ export type OrganizationUncheckedCreateWithoutSuperadminAuditTargetInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutSuperadminAuditTargetInput = {
@@ -5797,6 +6019,8 @@ export type OrganizationUpdateWithoutSuperadminAuditTargetInput = {
   orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutSuperadminAuditTargetInput = {
@@ -5843,6 +6067,424 @@ export type OrganizationUncheckedUpdateWithoutSuperadminAuditTargetInput = {
   orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
   employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutAppraisalsInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
+  otEnabled?: boolean
+  timezone?: string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
+  adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
+  employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
+  employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
+  superadminAuditTarget?: Prisma.SuperadminAuditLogCreateNestedManyWithoutTargetOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialCreateNestedManyWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
+  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
+  employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
+  employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutAppraisalsInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
+  otEnabled?: boolean
+  timezone?: string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
+  adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
+  employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  superadminAuditTarget?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
+  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
+  employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutAppraisalsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAppraisalsInput, Prisma.OrganizationUncheckedCreateWithoutAppraisalsInput>
+}
+
+export type OrganizationUpsertWithoutAppraisalsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutAppraisalsInput, Prisma.OrganizationUncheckedUpdateWithoutAppraisalsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAppraisalsInput, Prisma.OrganizationUncheckedCreateWithoutAppraisalsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutAppraisalsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutAppraisalsInput, Prisma.OrganizationUncheckedUpdateWithoutAppraisalsInput>
+}
+
+export type OrganizationUpdateWithoutAppraisalsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
+  employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
+  employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
+  superadminAuditTarget?: Prisma.SuperadminAuditLogUpdateManyWithoutTargetOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialUpdateManyWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
+  employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
+  employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutAppraisalsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  superadminAuditTarget?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
+  employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisalTemplates?: Prisma.AppraisalTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutAppraisalTemplatesInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
+  otEnabled?: boolean
+  timezone?: string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
+  adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  employeeMembers?: Prisma.EmployeeOrganizationCreateNestedManyWithoutOrganizationInput
+  employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
+  employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
+  superadminAuditTarget?: Prisma.SuperadminAuditLogCreateNestedManyWithoutTargetOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialCreateNestedManyWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
+  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  shifts?: Prisma.ShiftCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayCreateNestedManyWithoutOrganizationInput
+  employeeTransfersOut?: Prisma.EmployeeTransferCreateNestedManyWithoutSourceOrganizationInput
+  employeeTransfersIn?: Prisma.EmployeeTransferCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutAppraisalTemplatesInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
+  otEnabled?: boolean
+  timezone?: string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: $Enums.OrgPlan
+  tier?: $Enums.OrgPlanTier | null
+  workingDays?: string | null
+  adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeMembers?: Prisma.EmployeeOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
+  employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  superadminAuditTarget?: Prisma.SuperadminAuditLogUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
+  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutOrganizationInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedCreateNestedManyWithoutOrganizationInput
+  employeeTransfersOut?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutSourceOrganizationInput
+  employeeTransfersIn?: Prisma.EmployeeTransferUncheckedCreateNestedManyWithoutTargetOrganizationInput
+  appraisals?: Prisma.AppraisalUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutAppraisalTemplatesInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAppraisalTemplatesInput, Prisma.OrganizationUncheckedCreateWithoutAppraisalTemplatesInput>
+}
+
+export type OrganizationUpsertWithoutAppraisalTemplatesInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutAppraisalTemplatesInput, Prisma.OrganizationUncheckedUpdateWithoutAppraisalTemplatesInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAppraisalTemplatesInput, Prisma.OrganizationUncheckedCreateWithoutAppraisalTemplatesInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutAppraisalTemplatesInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutAppraisalTemplatesInput, Prisma.OrganizationUncheckedUpdateWithoutAppraisalTemplatesInput>
+}
+
+export type OrganizationUpdateWithoutAppraisalTemplatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  employeeMembers?: Prisma.EmployeeOrganizationUpdateManyWithoutOrganizationNestedInput
+  employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
+  employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
+  superadminAuditTarget?: Prisma.SuperadminAuditLogUpdateManyWithoutTargetOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialUpdateManyWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  shifts?: Prisma.ShiftUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUpdateManyWithoutOrganizationNestedInput
+  employeeTransfersOut?: Prisma.EmployeeTransferUpdateManyWithoutSourceOrganizationNestedInput
+  employeeTransfersIn?: Prisma.EmployeeTransferUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutAppraisalTemplatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  addons?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  plan?: Prisma.EnumOrgPlanFieldUpdateOperationsInput | $Enums.OrgPlan
+  tier?: Prisma.NullableEnumOrgPlanTierFieldUpdateOperationsInput | $Enums.OrgPlanTier | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeMembers?: Prisma.EmployeeOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  superadminAuditTarget?: Prisma.SuperadminAuditLogUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollPortalCredentials?: Prisma.PayrollPortalCredentialUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  shifts?: Prisma.ShiftUncheckedUpdateManyWithoutOrganizationNestedInput
+  orgHolidays?: Prisma.OrgHolidayUncheckedUpdateManyWithoutOrganizationNestedInput
+  employeeTransfersOut?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutSourceOrganizationNestedInput
+  employeeTransfersIn?: Prisma.EmployeeTransferUncheckedUpdateManyWithoutTargetOrganizationNestedInput
+  appraisals?: Prisma.AppraisalUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -5871,6 +6513,8 @@ export type OrganizationCountOutputType = {
   orgHolidays: number
   employeeTransfersOut: number
   employeeTransfersIn: number
+  appraisals: number
+  appraisalTemplates: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5894,6 +6538,8 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   orgHolidays?: boolean | OrganizationCountOutputTypeCountOrgHolidaysArgs
   employeeTransfersOut?: boolean | OrganizationCountOutputTypeCountEmployeeTransfersOutArgs
   employeeTransfersIn?: boolean | OrganizationCountOutputTypeCountEmployeeTransfersInArgs
+  appraisals?: boolean | OrganizationCountOutputTypeCountAppraisalsArgs
+  appraisalTemplates?: boolean | OrganizationCountOutputTypeCountAppraisalTemplatesArgs
 }
 
 /**
@@ -6046,6 +6692,20 @@ export type OrganizationCountOutputTypeCountEmployeeTransfersInArgs<ExtArgs exte
   where?: Prisma.EmployeeTransferWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountAppraisalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AppraisalWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountAppraisalTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AppraisalTemplateWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -6092,6 +6752,8 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   orgHolidays?: boolean | Prisma.Organization$orgHolidaysArgs<ExtArgs>
   employeeTransfersOut?: boolean | Prisma.Organization$employeeTransfersOutArgs<ExtArgs>
   employeeTransfersIn?: boolean | Prisma.Organization$employeeTransfersInArgs<ExtArgs>
+  appraisals?: boolean | Prisma.Organization$appraisalsArgs<ExtArgs>
+  appraisalTemplates?: boolean | Prisma.Organization$appraisalTemplatesArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -6146,6 +6808,8 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   orgHolidays?: boolean | Prisma.Organization$orgHolidaysArgs<ExtArgs>
   employeeTransfersOut?: boolean | Prisma.Organization$employeeTransfersOutArgs<ExtArgs>
   employeeTransfersIn?: boolean | Prisma.Organization$employeeTransfersInArgs<ExtArgs>
+  appraisals?: boolean | Prisma.Organization$appraisalsArgs<ExtArgs>
+  appraisalTemplates?: boolean | Prisma.Organization$appraisalTemplatesArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -6175,6 +6839,8 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     orgHolidays: Prisma.$OrgHolidayPayload<ExtArgs>[]
     employeeTransfersOut: Prisma.$EmployeeTransferPayload<ExtArgs>[]
     employeeTransfersIn: Prisma.$EmployeeTransferPayload<ExtArgs>[]
+    appraisals: Prisma.$AppraisalPayload<ExtArgs>[]
+    appraisalTemplates: Prisma.$AppraisalTemplatePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -6610,6 +7276,8 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   orgHolidays<T extends Prisma.Organization$orgHolidaysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$orgHolidaysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrgHolidayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   employeeTransfersOut<T extends Prisma.Organization$employeeTransfersOutArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$employeeTransfersOutArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeTransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   employeeTransfersIn<T extends Prisma.Organization$employeeTransfersInArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$employeeTransfersInArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeTransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  appraisals<T extends Prisma.Organization$appraisalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$appraisalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppraisalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  appraisalTemplates<T extends Prisma.Organization$appraisalTemplatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$appraisalTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppraisalTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7542,6 +8210,54 @@ export type Organization$employeeTransfersInArgs<ExtArgs extends runtime.Types.E
   take?: number
   skip?: number
   distinct?: Prisma.EmployeeTransferScalarFieldEnum | Prisma.EmployeeTransferScalarFieldEnum[]
+}
+
+/**
+ * Organization.appraisals
+ */
+export type Organization$appraisalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Appraisal
+   */
+  select?: Prisma.AppraisalSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Appraisal
+   */
+  omit?: Prisma.AppraisalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AppraisalInclude<ExtArgs> | null
+  where?: Prisma.AppraisalWhereInput
+  orderBy?: Prisma.AppraisalOrderByWithRelationInput | Prisma.AppraisalOrderByWithRelationInput[]
+  cursor?: Prisma.AppraisalWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AppraisalScalarFieldEnum | Prisma.AppraisalScalarFieldEnum[]
+}
+
+/**
+ * Organization.appraisalTemplates
+ */
+export type Organization$appraisalTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AppraisalTemplate
+   */
+  select?: Prisma.AppraisalTemplateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AppraisalTemplate
+   */
+  omit?: Prisma.AppraisalTemplateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AppraisalTemplateInclude<ExtArgs> | null
+  where?: Prisma.AppraisalTemplateWhereInput
+  orderBy?: Prisma.AppraisalTemplateOrderByWithRelationInput | Prisma.AppraisalTemplateOrderByWithRelationInput[]
+  cursor?: Prisma.AppraisalTemplateWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AppraisalTemplateScalarFieldEnum | Prisma.AppraisalTemplateScalarFieldEnum[]
 }
 
 /**
