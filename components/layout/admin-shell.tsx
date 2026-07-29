@@ -77,6 +77,11 @@ type AdminNavItem = {
     /// always be visible (e.g. Manage Employee, which renders as a
     /// read-only browse when `hierarchy` is not granted).
     requiresModules?: ReadonlyArray<string>
+    /// Fusioneta-support-only child (e.g. the API token tab). Shown
+    /// exclusively to superadmins; dropped for every company admin,
+    /// including full-access owners. Mirrors the panel's isSupportMode
+    /// gate in admin-settings-panel.tsx.
+    supportModeOnly?: boolean
   }>
 }
 
@@ -196,10 +201,15 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
       { href: "/admin/settings?tab=projects", label: "Projects" },
       { href: "/admin/settings?tab=work-schedule", label: "Work Schedule" },
       { href: "/admin/settings?tab=policies", label: "Policies" },
-      // API tab hidden — tokens are auto-issued by the partner master-key
-      // flow (POST /api/v1/admin/organizations). Re-enable when self-service
-      // integrations ship for direct customers.
-      // { href: "/admin/settings?tab=api", label: "API" },
+      // API token management — Fusioneta-support-only. Dropped for every
+      // company admin; only superadmins (support mode) see the link. The
+      // matching panel tab is gated the same way in
+      // admin-settings-panel.tsx.
+      {
+        href: "/admin/settings?tab=api" as Route,
+        label: "API",
+        supportModeOnly: true,
+      },
     ],
   },
 ]
@@ -215,14 +225,30 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
 function filterAdminNav(
   nav: ReadonlyArray<AdminNavItem>,
   accessModules: ReadonlyArray<string> | null,
+  isSuperadmin: boolean,
 ): ReadonlyArray<AdminNavItem> {
-  if (accessModules === null) return nav
+  // Support-mode-only children (the API token tab) are visible to
+  // superadmins only — dropped for every company admin, including
+  // full-access owners (accessModules === null). Applied in both paths.
+  const dropSupportOnly = <T extends { supportModeOnly?: boolean }>(
+    children: ReadonlyArray<T> | undefined,
+  ) => children?.filter((c) => !c.supportModeOnly || isSuperadmin)
+
+  if (accessModules === null) {
+    return nav.map((item) =>
+      item.children
+        ? { ...item, children: dropSupportOnly(item.children)! }
+        : item,
+    )
+  }
   const granted = new Set(accessModules)
   const itemAllowed = (req: ReadonlyArray<string> | undefined) =>
     !req || req.length === 0 || req.some((m) => granted.has(m))
   return nav
     .map((item) => {
-      const children = item.children?.filter((c) => itemAllowed(c.requiresModules))
+      const children = dropSupportOnly(
+        item.children?.filter((c) => itemAllowed(c.requiresModules)),
+      )
       if (!children) return item
       // When the parent's declared href points at a child that got
       // filtered out, redirect the parent click to the first remaining
@@ -333,7 +359,11 @@ export function AdminShell({
 }: AdminShellProps) {
   // Filter the full nav down to what this admin is allowed to see.
   // `null` (default) → keep everything (owner / legacy admin).
-  const visibleNav = filterAdminNav(adminNav, accessModules ?? null)
+  const visibleNav = filterAdminNav(
+    adminNav,
+    accessModules ?? null,
+    user.isSuperadmin === true,
+  )
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
