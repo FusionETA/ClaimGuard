@@ -11,9 +11,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/app/(employee)/employee/appraisals/_ui"
-import type { AppraisalTemplateView } from "@/modules/appraisify/domain/models"
+import { toTemplateQuestionInput, type AiSuggestedQuestion, type AppraisalTemplateView } from "@/modules/appraisify/domain/models"
 
 import { saveTemplateAction } from "./actions"
+import { AiAssistPanel } from "./ai-assist-panel"
+import { ImproveQuestionModal } from "./improve-question-modal"
 
 type EditableQuestion = {
   key: string
@@ -53,6 +55,10 @@ export function TemplateEditorClient({
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [aiAssistOpen, setAiAssistOpen] = useState(false)
+  const [improvingKey, setImprovingKey] = useState<string | null>(null)
+  const improvingQuestion = questions.find((q) => q.key === improvingKey) ?? null
 
   const canAdd = formText.trim().length > 0
   const canSave = name.trim().length > 0 && questions.length > 0
@@ -109,6 +115,36 @@ export function TemplateEditorClient({
       ;[next[i], next[j]] = [next[j]!, next[i]!]
       return next
     })
+  }
+
+  function addAiQuestion(q: AiSuggestedQuestion) {
+    const input = toTemplateQuestionInput(q)
+    setQuestions((p) => [
+      ...p,
+      { key: nextKey(), section: input.section ?? "", text: input.text, description: input.description ?? "" },
+    ])
+    if (input.section && !sections.includes(input.section)) {
+      setSections((p) => [...p, input.section!])
+    }
+  }
+
+  function addAllAiQuestions(qs: AiSuggestedQuestion[]) {
+    qs.forEach(addAiQuestion)
+  }
+
+  function useImprovedVersion(key: string, q: AiSuggestedQuestion) {
+    const input = toTemplateQuestionInput(q)
+    setQuestions((p) =>
+      p.map((row) =>
+        row.key === key
+          ? { ...row, section: input.section ?? "", text: input.text, description: input.description ?? "" }
+          : row,
+      ),
+    )
+    if (input.section && !sections.includes(input.section)) {
+      setSections((p) => [...p, input.section!])
+    }
+    setImprovingKey(null)
   }
 
   async function save() {
@@ -257,6 +293,14 @@ export function TemplateEditorClient({
             <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
               {questions.length}
             </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100"
+              onClick={() => setAiAssistOpen(true)}
+            >
+              <span aria-hidden>✨</span> AI Assist
+            </Button>
           </div>
 
           {questions.length === 0 ? (
@@ -289,6 +333,7 @@ export function TemplateEditorClient({
                     <IconBtn name="arrow_upward" disabled={i === 0} onClick={() => move(q.key, -1)} label="Move up" />
                     <IconBtn name="arrow_downward" disabled={i === questions.length - 1} onClick={() => move(q.key, 1)} label="Move down" />
                     <IconBtn name="edit" onClick={() => editQuestion(q)} label="Edit" />
+                    <IconBtn name="auto_awesome" onClick={() => setImprovingKey(q.key)} label="Improve with AI" />
                     <IconBtn name="delete" onClick={() => removeQuestion(q.key)} label="Delete" danger />
                   </div>
                 </div>
@@ -310,6 +355,25 @@ export function TemplateEditorClient({
           </Button>
         </div>
       </div>
+
+      <AiAssistPanel
+        open={aiAssistOpen}
+        onOpenChange={setAiAssistOpen}
+        templateName={name}
+        existingSections={sections}
+        onAddQuestion={addAiQuestion}
+        onAddAll={addAllAiQuestions}
+      />
+      <ImproveQuestionModal
+        question={improvingQuestion}
+        open={improvingKey !== null}
+        onOpenChange={(open) => {
+          if (!open) setImprovingKey(null)
+        }}
+        onUseVersion={(q) => {
+          if (improvingKey) useImprovedVersion(improvingKey, q)
+        }}
+      />
     </div>
   )
 }

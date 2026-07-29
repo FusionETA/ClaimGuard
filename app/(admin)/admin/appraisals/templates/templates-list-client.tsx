@@ -46,12 +46,23 @@ export function TemplatesListClient({
             Reusable question templates applied when starting an appraisal
           </p>
         </div>
-        <Button asChild className="self-start">
-          <Link href="/admin/appraisals/templates/new">
-            <Icon name="add" className="text-lg" />
-            New template
-          </Link>
-        </Button>
+        <div className="flex shrink-0 gap-2 self-start">
+          <Button
+            asChild
+            variant="outline"
+            className="border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100"
+          >
+            <Link href="/admin/appraisals/ai-setup">
+              <span aria-hidden>✨</span> AI Setup
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/appraisals/templates/new">
+              <Icon name="add" className="text-lg" />
+              New template
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {templates.length === 0 ? (

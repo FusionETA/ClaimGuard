@@ -7,6 +7,20 @@ import {
   saveTemplate,
   type SaveTemplateInput,
 } from "@/modules/appraisify/application/services/appraisal-template.service"
+import {
+  aiAssistChat,
+  aiImproveQuestion,
+  type AiAssistChatInput,
+  type AiImproveQuestionInput,
+} from "@/modules/appraisify/application/services/appraisal-template-ai.service"
+
+export async function aiAssistChatAction(input: AiAssistChatInput) {
+  return aiAssistChat(input)
+}
+
+export async function aiImproveQuestionAction(input: AiImproveQuestionInput) {
+  return aiImproveQuestion(input)
+}
 
 export async function saveTemplateAction(input: SaveTemplateInput) {
   const res = await saveTemplate(input)

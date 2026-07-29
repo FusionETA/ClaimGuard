@@ -462,6 +462,148 @@ export type TemplateQuestionInput = {
   description: string | null
 }
 
+/* ─── AI Assist (chat-based question drafting + bulk template setup) ── */
+//
+// Both features share one wire contract with the AI: replies are free-form
+// chat text that may contain tagged JSON blocks the model is instructed to
+// emit. `<questions>` blocks (used by the in-builder chat + "Improve with
+// AI") carry an array of suggested questions; `<template>` blocks (used by
+// the bulk setup wizard) carry one full template each. Field name is `desc`
+// on the wire (matches the reference app's prompt contract) — converted to
+// our `description` field only at the point a suggestion is actually added
+// to a draft, via `toTemplateQuestionInput`.
+
+export type AiChatMessage = { role: "user" | "assistant"; content: string }
+
+export type AiSuggestedQuestion = {
+  section: string | null
+  text: string
+  desc: string | null
+}
+
+export type AiGeneratedTemplate = {
+  name: string
+  questions: AiSuggestedQuestion[]
+}
+
+function coerceAiSuggestedQuestion(raw: unknown): AiSuggestedQuestion | null {
+  if (!raw || typeof raw !== "object") return null
+  const r = raw as Record<string, unknown>
+  const text = typeof r.text === "string" ? r.text.trim() : ""
+  if (!text) return null
+  return {
+    section: typeof r.section === "string" && r.section.trim() ? r.section.trim() : null,
+    text,
+    desc: typeof r.desc === "string" && r.desc.trim() ? r.desc.trim() : null,
+  }
+}
+
+/**
+ * Parses `<questions>[...]</questions>` blocks out of a raw assistant reply.
+ * A malformed individual block is skipped rather than failing the whole
+ * parse — the model occasionally emits a truncated or invalid block
+ * alongside otherwise-good ones. `cleanedText` is the reply with every
+ * `<questions>` block removed, for rendering as plain chat text.
+ */
+export function parseAiQuestionBlocks(raw: string): {
+  questions: AiSuggestedQuestion[]
+  cleanedText: string
+} {
+  const questions: AiSuggestedQuestion[] = []
+  const regex = /<questions>([\s\S]*?)<\/questions>/g
+  const cleanedText = raw
+    .replace(regex, (_match, body: string) => {
+      try {
+        const parsed = JSON.parse(body.trim())
+        if (Array.isArray(parsed)) {
+          for (const item of parsed) {
+            const q = coerceAiSuggestedQuestion(item)
+            if (q) questions.push(q)
+          }
+        }
+      } catch {
+        // Malformed JSON in a <questions> block — drop it, keep the rest.
+      }
+      return ""
+    })
+    .trim()
+  return { questions, cleanedText }
+}
+
+/**
+ * Parses `<template>{...}</template>` blocks — each a full flat
+ * `{name, questions:[{section,text,desc}]}` object (NOT the nested
+ * scope/engagement shape some reference apps use; our data model has no
+ * such split, so the AI is prompted to never produce it).
+ */
+export function parseAiTemplateBlocks(raw: string): {
+  templates: AiGeneratedTemplate[]
+  cleanedText: string
+} {
+  const templates: AiGeneratedTemplate[] = []
+  const regex = /<template>([\s\S]*?)<\/template>/g
+  const cleanedText = raw
+    .replace(regex, (_match, body: string) => {
+      try {
+        const parsed = JSON.parse(body.trim()) as Record<string, unknown>
+        const name = typeof parsed.name === "string" ? parsed.name.trim() : ""
+        const rawQuestions = Array.isArray(parsed.questions) ? parsed.questions : []
+        const questions = rawQuestions
+          .map((q) => coerceAiSuggestedQuestion(q))
+          .filter((q): q is AiSuggestedQuestion => q !== null)
+        if (name && questions.length > 0) {
+          templates.push({ name, questions })
+        }
+      } catch {
+        // Malformed JSON in a <template> block — drop it, keep the rest.
+      }
+      return ""
+    })
+    .trim()
+  return { templates, cleanedText }
+}
+
+/** AI wire format (`desc`) → our persisted field (`description`). */
+export function toTemplateQuestionInput(q: AiSuggestedQuestion): TemplateQuestionInput {
+  return { section: q.section, text: q.text, description: q.desc }
+}
+
+/**
+ * Minimal safe markdown for chat bubbles: HTML-escape first (so a message
+ * can't inject markup), then apply `**bold**` and newlines. Escaping before
+ * substitution avoids double-escaping the tags we just inserted.
+ */
+export function renderChatMarkup(text: string): string {
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+  return escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>")
+}
+
+/**
+ * Group AI-generated question suggestions by section, preserving
+ * first-seen order (no section → "General"). Same shape as
+ * `groupQuestionsBySection` but for `AiSuggestedQuestion[]` — that
+ * helper's input type carries per-phase scores that don't apply here,
+ * so this is a separate small helper rather than a forced reuse.
+ */
+export function groupAiQuestionsBySection(
+  questions: AiSuggestedQuestion[]
+): Array<{ section: string; questions: AiSuggestedQuestion[] }> {
+  const order: string[] = []
+  const bySection = new Map<string, AiSuggestedQuestion[]>()
+  for (const q of questions) {
+    const key = q.section ?? "General"
+    if (!bySection.has(key)) {
+      order.push(key)
+      bySection.set(key, [])
+    }
+    bySection.get(key)!.push(q)
+  }
+  return order.map((section) => ({ section, questions: bySection.get(section)! }))
+}
+
 /* ─── Seeded default question set ──────────────────────────────────── */
 
 export type DefaultAppraisalQuestion = {

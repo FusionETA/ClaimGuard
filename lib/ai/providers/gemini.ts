@@ -84,3 +84,66 @@ export async function analyzeReceiptFileWithGemini(
 
   return parseReceiptResponse(content, "gemini")
 }
+
+export type GeminiChatMessage = { role: "user" | "model"; text: string }
+
+/**
+ * Generic multi-turn text chat against Gemini's `generateContent` endpoint —
+ * used by AI-assist-style chat features (as opposed to the single-shot
+ * vision extraction above). No `responseMimeType` is forced since replies
+ * here are free-form prose, sometimes containing embedded tagged JSON
+ * blocks the caller parses itself.
+ */
+export async function chatWithGemini(options: {
+  systemInstruction: string
+  messages: GeminiChatMessage[]
+  temperature?: number
+  maxOutputTokens?: number
+}): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not configured.")
+  }
+
+  const model = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL
+  const url = `${GEMINI_BASE_URL}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: options.systemInstruction }] },
+      contents: options.messages.map((m) => ({
+        role: m.role,
+        parts: [{ text: m.text }],
+      })),
+      generationConfig: {
+        temperature: options.temperature ?? 0.4,
+        maxOutputTokens: options.maxOutputTokens ?? 2000,
+        // See the note on the vision call above — 2.5 models default
+        // "thinking" on and can silently eat the whole token budget.
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    const errorBody = await response.text().catch(() => "")
+    throw new Error(
+      `Gemini chat request failed (${response.status}): ${errorBody.slice(0, 300)}`,
+    )
+  }
+
+  const payload = (await response.json()) as {
+    candidates?: Array<{
+      content?: { parts?: Array<{ text?: string }> }
+    }>
+  }
+
+  const reply = payload.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!reply) {
+    throw new Error("Gemini chat returned an empty completion.")
+  }
+
+  return reply
+}
