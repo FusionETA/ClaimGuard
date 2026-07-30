@@ -82,11 +82,17 @@ export async function getSalaryChangeHintsForRun(input: {
   // already come back as a Map keyed by employeeProfileId, so we just
   // flatten the labels for the hint matcher.
   const payslipByEpId = new Map(payslips.map((p) => [p.employeeProfileId, p]))
-  const labelsByEpId = new Map<string, string[]>()
+  const lineItemsByEpId = new Map<
+    string,
+    Array<{ label: string; sourceSalaryChangeId?: string }>
+  >()
   for (const [epId, adj] of adjustments.entries()) {
-    labelsByEpId.set(
+    lineItemsByEpId.set(
       epId,
-      adj.manualLineItems.map((li) => li.label),
+      adj.manualLineItems.map((li) => ({
+        label: li.label,
+        sourceSalaryChangeId: li.sourceSalaryChangeId,
+      })),
     )
   }
 
@@ -113,8 +119,8 @@ export async function getSalaryChangeHintsForRun(input: {
       periodYear,
       periodMonth,
       prorationRule,
-      existingManualLineLabels:
-        labelsByEpId.get(change.employeeProfileId) ?? [],
+      existingManualLineItems:
+        lineItemsByEpId.get(change.employeeProfileId) ?? [],
     })
     if (hint) hints.push(hint)
   }

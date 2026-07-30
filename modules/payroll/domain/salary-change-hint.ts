@@ -181,10 +181,16 @@ export type ComputeSalaryChangeHintInput = {
   periodYear: number
   periodMonth: number
   prorationRule: WorkingDaysRule
-  /// Existing adjustment lines on this run for this employee.
-  /// Used to detect if the hint's adjustment has already been
-  /// applied (avoids double-action after refresh).
-  existingManualLineLabels: string[]
+  /// Existing adjustment lines on this run for this employee. Used to
+  /// detect whether this hint's adjustment has already been applied
+  /// (avoids double-action after refresh). Detection prefers the
+  /// `sourceSalaryChangeId` backlink; `label` is only kept for the
+  /// legacy fallback (rows applied before the backlink existed carried
+  /// a `[salary-hint:<id>]` marker in the label).
+  existingManualLineItems: Array<{
+    label: string
+    sourceSalaryChangeId?: string
+  }>
 }
 
 /**
@@ -245,9 +251,11 @@ export function computeSalaryChangeHint(
     }
   }
 
+  // Prefer the structured backlink; fall back to the legacy label
+  // marker for adjustments applied before `sourceSalaryChangeId` existed.
   const marker = salaryChangeHintMarker(sc.id)
-  const alreadyApplied = input.existingManualLineLabels.some((l) =>
-    l.includes(marker),
+  const alreadyApplied = input.existingManualLineItems.some(
+    (li) => li.sourceSalaryChangeId === sc.id || li.label.includes(marker),
   )
 
   // Decide scenario by comparing the snapshot to the old/new values.
@@ -279,9 +287,9 @@ export function computeSalaryChangeHint(
         effectiveDate: sc.effectiveDate,
         oldSalary,
         newSalary,
-        salaryChangeId: sc.id,
       }),
       amount: delta,
+      sourceSalaryChangeId: sc.id,
     }
   } else if (matchesOld) {
     // Run paid the old (lower) rate the entire month → add arrears
@@ -298,9 +306,9 @@ export function computeSalaryChangeHint(
         effectiveDate: sc.effectiveDate,
         oldSalary,
         newSalary,
-        salaryChangeId: sc.id,
       }),
       amount: delta,
+      sourceSalaryChangeId: sc.id,
     }
   } else {
     // Snapshot doesn't match either — typo, double change, or salary
@@ -339,8 +347,10 @@ function buildLineLabel(input: {
   effectiveDate: string
   oldSalary: number
   newSalary: number
-  salaryChangeId: string
 }): string {
   const direction = input.scenario === "OVERPAID" ? "deduct" : "arrears"
-  return `Mid-cycle salary change ${direction} (effective ${input.effectiveDate}, ${input.oldSalary.toFixed(0)} → ${input.newSalary.toFixed(0)}) ${salaryChangeHintMarker(input.salaryChangeId)}`
+  // No machine marker in the label anymore — the [salary-hint:<id>] tag
+  // used to live here and leaked onto payslips. Already-applied
+  // detection now rides on `ManualLineItem.sourceSalaryChangeId`.
+  return `Mid-cycle salary change ${direction} (effective ${input.effectiveDate}, ${input.oldSalary.toFixed(0)} → ${input.newSalary.toFixed(0)})`
 }

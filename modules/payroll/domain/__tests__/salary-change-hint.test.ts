@@ -51,7 +51,7 @@ function baseInput(
     periodYear: 2026,
     periodMonth: 7, // July, 31 calendar days
     prorationRule: "TWENTY_SIX",
-    existingManualLineLabels: [],
+    existingManualLineItems: [],
     ...over,
   }
 }
@@ -104,5 +104,35 @@ describe("computeSalaryChangeHint — calendar-day proration", () => {
     )!
     expect(hint.scenario).toBe("MATCHED")
     expect(hint.delta).toBe(0)
+  })
+
+  it("suggested line has a clean label + a sourceSalaryChangeId backlink", () => {
+    const hint = computeSalaryChangeHint(baseInput())!
+    expect(hint.suggestedLineItem?.label).not.toMatch(/salary-hint/)
+    expect(hint.suggestedLineItem?.label).not.toMatch(/\[/)
+    expect(hint.suggestedLineItem?.sourceSalaryChangeId).toBe("sc_1")
+  })
+
+  it("detects already-applied via the backlink (no re-suggest)", () => {
+    const hint = computeSalaryChangeHint(
+      baseInput({
+        existingManualLineItems: [
+          { label: "Mid-cycle salary change deduct (…)", sourceSalaryChangeId: "sc_1" },
+        ],
+      }),
+    )!
+    expect(hint.alreadyApplied).toBe(true)
+    expect(hint.suggestedLineItem).toBeNull()
+  })
+
+  it("still detects legacy rows via the [salary-hint:<id>] label marker", () => {
+    const hint = computeSalaryChangeHint(
+      baseInput({
+        existingManualLineItems: [
+          { label: "Mid-cycle salary change deduct (…) [salary-hint:sc_1]" },
+        ],
+      }),
+    )!
+    expect(hint.alreadyApplied).toBe(true)
   })
 })

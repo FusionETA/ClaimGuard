@@ -221,6 +221,13 @@ function parseManualLineItems(value: unknown): ManualLineItem[] {
       typeof i.sourceEntitlementId === "string" && i.sourceEntitlementId.length > 0
         ? i.sourceEntitlementId
         : undefined
+    // Preserve the salary-change backlink (see `ManualLineItem`) — the
+    // salary-change hint uses it to detect an already-applied
+    // adjustment without a marker in the label.
+    const sourceSalaryChangeId =
+      typeof i.sourceSalaryChangeId === "string" && i.sourceSalaryChangeId.length > 0
+        ? i.sourceSalaryChangeId
+        : undefined
     // Preserve the LHDN AR override flag — see `ManualLineItem.treatAsRecurring`
     // in `domain/runs.ts`. Defaults to undefined → AR formula stays
     // the default for bonus/commission/etc., matching pre-flag behaviour.
@@ -231,6 +238,7 @@ function parseManualLineItems(value: unknown): ManualLineItem[] {
       label,
       amount,
       ...(sourceEntitlementId ? { sourceEntitlementId } : {}),
+      ...(sourceSalaryChangeId ? { sourceSalaryChangeId } : {}),
       ...(treatAsRecurring ? { treatAsRecurring } : {}),
     })
   }

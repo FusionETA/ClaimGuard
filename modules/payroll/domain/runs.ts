@@ -405,6 +405,13 @@ export type ManualLineItem = {
   /// rows are already attached. Other manual line items leave this
   /// undefined.
   sourceEntitlementId?: string
+  /// Optional backlink to the SalaryChange row this mid-cycle proration
+  /// line was generated from ("Apply adjustment" on the salary-change
+  /// hint). Lets the hint detect an already-applied adjustment WITHOUT
+  /// a marker in the human label — the label used to carry
+  /// `[salary-hint:<id>]`, which leaked onto payslips. Undefined on
+  /// other line items.
+  sourceSalaryChangeId?: string
 }
 
 /**
