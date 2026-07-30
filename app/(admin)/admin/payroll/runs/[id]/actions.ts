@@ -117,6 +117,14 @@ export async function applySalaryChangeHintAction(input: {
 }): Promise<ApplySalaryChangeHintActionResult> {
   try {
     const result = await applySalaryChangeHint(input)
+    // Adding the deduction only writes it to the run's manual-line-item
+    // list — the payslip rows are frozen and don't reflect it until the
+    // run is regenerated. Recompute here so the net pay updates
+    // immediately (the whole point of "Apply adjustment"). Only when a
+    // line was actually added (not a no-op "already applied").
+    if (result.applied) {
+      await generatePayrollPayslips({ runId: input.runId })
+    }
     revalidatePath(`/admin/payroll/runs/${input.runId}`)
     return { status: "success", message: result.message }
   } catch (err) {

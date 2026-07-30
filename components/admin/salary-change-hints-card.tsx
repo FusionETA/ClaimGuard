@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { AlertTriangle, Check, Loader2, X } from "lucide-react"
 
 import { applySalaryChangeHintAction } from "@/app/(admin)/admin/payroll/runs/[id]/actions"
@@ -101,6 +102,7 @@ function SalaryChangeHintRow({
   const [pending, startTransition] = useTransition()
   const [applied, setApplied] = useState(false)
   const { toast } = useToast()
+  const router = useRouter()
 
   const handleApply = () => {
     startTransition(async () => {
@@ -112,6 +114,10 @@ function SalaryChangeHintRow({
       if (result.status === "success") {
         setApplied(true)
         toast({ title: result.message, variant: "success" })
+        // The action recomputed the payslips server-side; refresh so the
+        // run detail (net pay, totals) reflects the new deduction now,
+        // not on the next manual reload.
+        router.refresh()
       } else {
         toast({ title: result.message, variant: "error" })
       }
@@ -144,6 +150,16 @@ function SalaryChangeHintRow({
       : hint.scenario === "UNDERPAID"
         ? "Add as arrears"
         : null
+  // The delta is the salary difference applied to the "wrong-side" days:
+  // OVERPAID clawed back for the pre-change days (daysAtOldRate),
+  // UNDERPAID paid as arrears for the post-change days (daysAtNewRate).
+  // Mirrors the exact formula in computeSalaryChangeHint.
+  const deltaDays =
+    hint.scenario === "OVERPAID" ? hint.daysAtOldRate : hint.daysAtNewRate
+  const deltaExplanation =
+    hint.scenario === "OVERPAID"
+      ? `Paid the new rate for the whole month — claw back the ${hint.daysAtOldRate} day${hint.daysAtOldRate === 1 ? "" : "s"} before the change took effect.`
+      : `Paid the old rate for the whole month — add arrears for the ${hint.daysAtNewRate} day${hint.daysAtNewRate === 1 ? "" : "s"} from the change onward.`
 
   return (
     <div className="rounded-2xl border border-amber-200 bg-card p-4 text-sm">
@@ -175,12 +191,11 @@ function SalaryChangeHintRow({
       {hint.scenario !== "UNKNOWN" ? (
         <div className="mt-3 rounded-xl bg-muted/40 p-3 text-xs">
           <p className="font-medium text-foreground">Suggested proration</p>
+          <p className="mt-1 text-muted-foreground">{deltaExplanation}</p>
           <p className="mt-1 font-mono text-muted-foreground">
-            {hint.previousMonthlySalary.toFixed(0)} ×{" "}
-            {hint.daysAtOldRate}/{hint.totalDaysInPeriod} +{" "}
-            {hint.newMonthlySalary.toFixed(0)} ×{" "}
-            {hint.daysAtNewRate}/{hint.totalDaysInPeriod}{" "}
-            ({hint.prorationRule === "TWENTY_SIX" ? "26-day" : "calendar days"})
+            (RM {hint.newMonthlySalary.toFixed(0)} − RM{" "}
+            {hint.previousMonthlySalary.toFixed(0)}) × {deltaDays}/
+            {hint.totalDaysInPeriod} calendar days
           </p>
           <p className="mt-1.5">
             {actionLabel}:{" "}

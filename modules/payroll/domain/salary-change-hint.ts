@@ -108,7 +108,6 @@ function computeDaySplit(input: {
   periodYear: number
   periodMonth: number
   effectiveDate: string
-  prorationRule: WorkingDaysRule
 }): {
   totalDaysInPeriod: number
   daysAtOldRate: number
@@ -143,14 +142,20 @@ function computeDaySplit(input: {
   const daysAtOld = effectiveDay - 1
   const daysAtNew = calendarDays - daysAtOld
 
-  // Total = days in month for CALENDAR rule, 26 for TWENTY_SIX. We use
-  // calendar days for the split itself either way because LHDN proration
-  // examples use calendar boundaries.
-  const totalDaysInPeriod =
-    input.prorationRule === "TWENTY_SIX" ? 26 : calendarDays
-
+  // Divisor is ALWAYS calendar days — never the 26-day basis, even for
+  // TWENTY_SIX orgs. A mid-cycle raise splits a FULLY-WORKED month
+  // across two rates, so the delta is a calendar-proportion question
+  // ("what fraction of the month was at each rate"). The old code used
+  // 26 here while the numerators (daysAtOld/daysAtNew) are calendar —
+  // a units mismatch that made the two day-counts sum to 31 against a
+  // 26 divisor (>1), overstating the delta (e.g. 500×19/26 = 365.38
+  // instead of the correct 500×19/31 = 306.45). Calendar keeps
+  // numerator+denominator consistent, matches LHDN EA §60I
+  // incomplete-month math, and matches Payroll Panda. The 26-day basis
+  // is for incomplete-WORK proration (joiners/leavers via
+  // `workingDaysForPeriod` in calc.ts), not full-month rate splits.
   return {
-    totalDaysInPeriod,
+    totalDaysInPeriod: calendarDays,
     daysAtOldRate: daysAtOld,
     daysAtNewRate: daysAtNew,
   }
@@ -213,7 +218,6 @@ export function computeSalaryChangeHint(
     periodYear: input.periodYear,
     periodMonth: input.periodMonth,
     effectiveDate: sc.effectiveDate,
-    prorationRule: input.prorationRule,
   })
 
   // Effective date is day-1-of-period → no proration delta even though
