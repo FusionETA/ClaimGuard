@@ -8,7 +8,7 @@ import {
   normaliseNewIc,
   padLeft,
   padRight,
-  toSen,
+  senDigits,
 } from "@/modules/payroll/application/services/report-renderers/shared"
 
 /**
@@ -96,11 +96,11 @@ export async function renderSocsoEisTxt(input: {
       padRight(identification, 12) +
       padRight(row.employeeName, 150) +
       monthContribution +
-      padLeft(String(toSen(row.payslip.grossPay)), 14) +
-      padLeft(String(toSen(row.payslip.socsoEmployer)), 6) +
-      padLeft(String(toSen(row.payslip.socsoEmployee)), 6) +
-      padLeft(String(toSen(row.payslip.eisEmployer)), 6) +
-      padLeft(String(toSen(row.payslip.eisEmployee)), 6) +
+      padLeft(senDigits(row.payslip.grossPay), 14) +
+      padLeft(senDigits(row.payslip.socsoEmployer), 6) +
+      padLeft(senDigits(row.payslip.socsoEmployee), 6) +
+      padLeft(senDigits(row.payslip.eisEmployer), 6) +
+      padLeft(senDigits(row.payslip.eisEmployee), 6) +
       " ".repeat(20) + // Filler 1
       " ".repeat(20) // Filler 2
 

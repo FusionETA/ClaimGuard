@@ -194,11 +194,11 @@ export function padZero(n: number | string, width: number): string {
   return "0".repeat(width - s.length) + s
 }
 
-/// Convert RM amount to sen (rounded to nearest sen, no decimal).
-export function toSen(rm: number | null | undefined): number {
-  if (rm == null) return 0
-  return Math.round(rm * 100)
-}
+/// `toSen` + `senDigits` are pure PERKESO-format helpers. They live in
+/// `@/modules/payroll/domain/perkeso-format` (outside this server-only
+/// module) so they can be unit-tested; re-exported here so the existing
+/// renderer imports keep working.
+export { toSen, senDigits } from "@/modules/payroll/domain/perkeso-format"
 
 /// Strip dashes + spaces from an IC number, keep digits only.
 export function normaliseNewIc(idNumber: string | null | undefined): string {

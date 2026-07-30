@@ -8,7 +8,7 @@ import {
   normaliseNewIc,
   padLeft,
   padRight,
-  toSen,
+  senDigits,
 } from "@/modules/payroll/application/services/report-renderers/shared"
 
 /**
@@ -100,12 +100,12 @@ export async function renderSocsoEisSkbbkTxt(input: {
       padRight(identification, 12) +
       padRight(row.employeeName, 150) +
       monthContribution +
-      padLeft(String(toSen(row.payslip.grossPay)), 14) +
-      padLeft(String(toSen(row.payslip.socsoEmployer)), 6) +
-      padLeft(String(toSen(row.payslip.socsoEmployee)), 6) +
-      padLeft(String(toSen(row.payslip.eisEmployer)), 6) +
-      padLeft(String(toSen(row.payslip.eisEmployee)), 6) +
-      padLeft(String(toSen(row.payslip.skbbkEmployee ?? 0)), 6) + // SKBBK
+      padLeft(senDigits(row.payslip.grossPay), 14) +
+      padLeft(senDigits(row.payslip.socsoEmployer), 6) +
+      padLeft(senDigits(row.payslip.socsoEmployee), 6) +
+      padLeft(senDigits(row.payslip.eisEmployer), 6) +
+      padLeft(senDigits(row.payslip.eisEmployee), 6) +
+      padLeft(senDigits(row.payslip.skbbkEmployee ?? 0), 6) + // SKBBK
       " ".repeat(14) + // Filler 1 (was 20 in v1, now 14 after SKBBK)
       " ".repeat(20) // Filler 2
 
