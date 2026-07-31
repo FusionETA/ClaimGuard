@@ -3075,8 +3075,19 @@ function isReadyForPayroll(
   /// where the answer is "across all periods".
   period?: { year: number; month: number },
 ): boolean {
-  if (!(row.hasProfile && row.isComplete && !row.isArchived && !row.isExcluded)) {
+  if (!(row.hasProfile && row.isComplete && !row.isExcluded)) {
     return false
+  }
+  // Archived employees are excluded, EXCEPT a genuine dated leaver being
+  // evaluated for a specific run period — they must still be paid for the
+  // months they worked (full months before their last day + prorated final
+  // month). The period gate below then excludes them once the run starts
+  // after they left. This mirrors listReadyForPayroll in the profile repo so
+  // the "will be included" preview matches who actually gets paid. Archived
+  // profiles with no leaveDate, or evaluated with no period, stay excluded.
+  if (row.isArchived) {
+    const isDatedLeaver = Boolean(period && row.leaveDate)
+    if (!isDatedLeaver) return false
   }
   if (period) {
     const periodStart = Date.UTC(period.year, period.month - 1, 1)

@@ -602,7 +602,19 @@ export const payrollProfileRepository = {
       const ep = u.employeeProfiles[0]
       if (!ep || !ep.payrollProfile) continue
       const profile = mapPayrollProfile(ep.payrollProfile)
-      if (profile.isArchived) continue
+      // Archived employees are normally excluded from new runs. EXCEPTION:
+      // a genuine dated leaver (has a leaveDate) must still be paid for the
+      // periods they actually worked — full months before their last day and
+      // a prorated final month. For those we fall through to the period-overlap
+      // check below, which excludes them only once the run's period starts
+      // AFTER their last working day. We keep skipping archived profiles that
+      // have no leaveDate (archived for some other reason) and any archived
+      // profile evaluated without a period window (e.g. cross-period surfaces).
+      if (profile.isArchived) {
+        const isDatedLeaver =
+          profile.leaveDate != null && periodStart != null && periodEnd != null
+        if (!isDatedLeaver) continue
+      }
       if (!isPayrollProfileComplete(profile)) continue
       // Salary = 0 is an intentional opt-out — skip these employees from
       // the run draft. See `isExcludedFromPayroll` for the rationale.
