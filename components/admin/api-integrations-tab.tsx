@@ -357,7 +357,12 @@ function CreateTokenDialog({
             <p className="text-sm font-semibold text-muted-foreground">
               Scopes ({scopes.size} selected)
             </p>
-            <div className="grid gap-1 sm:grid-cols-2">
+            {/* Scroll the (long) scope list inside a capped height so the
+                Label stays pinned above and the Cancel / Create footer
+                stays on-screen — without this the 20+ scopes push the
+                footer below the viewport and the button is unreachable.
+                pl-1 keeps the checkbox focus ring from clipping. */}
+            <div className="nice-scrollbar grid max-h-[42vh] gap-1 overflow-y-auto py-1 pl-1 pr-1 sm:grid-cols-2">
               {API_SCOPE_CATALOG.map((scope) => {
                 const checked = scopes.has(scope)
                 return (
