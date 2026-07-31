@@ -21,6 +21,38 @@ import { periodLabel } from "@/modules/payroll/domain/runs"
  * collapsed to underscores). This keeps the names sortable +
  * recognisable when an admin opens the ZIP.
  */
+/**
+ * How many employees to hydrate / render at a time. Small enough that a
+ * batch of CPU-heavy @react-pdf renders can't monopolise the event loop
+ * for long before we yield, large enough that the overall run stays fast.
+ */
+const RENDER_BATCH_SIZE = 12
+
+/**
+ * Run `fn` over `items` in batches of `batchSize`, awaiting each batch
+ * before starting the next and yielding to the event loop (`setImmediate`)
+ * between batches. Preserves input order in the returned array. This keeps
+ * a large payroll run from starving the single Node process — both the
+ * concurrent DB hydration and the CPU-bound PDF rendering — so concurrent
+ * requests (navigation, other admins) stay responsive.
+ */
+async function mapInBatches<T, R>(
+  items: readonly T[],
+  batchSize: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const out: R[] = []
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize)
+    const results = await Promise.all(batch.map(fn))
+    out.push(...results)
+    if (i + batchSize < items.length) {
+      await new Promise<void>((resolve) => setImmediate(resolve))
+    }
+  }
+  return out
+}
+
 export async function renderBulkPayslipsPdf(input: {
   runId: string
 }): Promise<Buffer> {
@@ -34,21 +66,22 @@ export async function renderBulkPayslipsPdf(input: {
 
   // Same hydration pass as before: per-employee identity + YTD
   // through this period are needed by the payslip header + matrix.
-  const enriched = await Promise.all(
-    data.payslips.map(async (p) => {
-      const [identity, ytd] = await Promise.all([
-        payslipRepository.getPayslipHeaderIdentity({
-          employeeProfileId: p.employeeProfileId,
-        }),
-        payslipRepository.getYtdSummaryThroughPeriod({
-          employeeProfileId: p.employeeProfileId,
-          year: data.run.periodYear,
-          month: data.run.periodMonth,
-        }),
-      ])
-      return { ...p, identity, ytd }
-    }),
-  )
+  // Batched (see mapInBatches) so a large run doesn't fire hundreds of
+  // concurrent queries at once and starve the connection pool that the
+  // rest of the app — including an admin navigating away — is sharing.
+  const enriched = await mapInBatches(data.payslips, RENDER_BATCH_SIZE, async (p) => {
+    const [identity, ytd] = await Promise.all([
+      payslipRepository.getPayslipHeaderIdentity({
+        employeeProfileId: p.employeeProfileId,
+      }),
+      payslipRepository.getYtdSummaryThroughPeriod({
+        employeeProfileId: p.employeeProfileId,
+        year: data.run.periodYear,
+        month: data.run.periodMonth,
+      }),
+    ])
+    return { ...p, identity, ytd }
+  })
 
   const issueDate = new Date(
     data.run.periodYear,
@@ -59,21 +92,24 @@ export async function renderBulkPayslipsPdf(input: {
   const generatedAt = new Date()
   const periodTag = `${String(data.run.periodMonth).padStart(2, "0")}-${data.run.periodYear}`
 
-  // Render every employee's PDF concurrently. @react-pdf is CPU-heavy
-  // so we may want to throttle once headcount goes north of ~200, but
-  // for typical SME runs (≤ 100 employees) Promise.all keeps the
-  // overall download under a few seconds and is fine.
-  const pdfBuffers = await Promise.all(
-    enriched.map((payslip) =>
-      renderToBuffer(
-        <EmployeePayslipPdfDocument
-          organizationName={data.organizationName}
-          period={period}
-          issueDate={issueDate}
-          payslip={payslip}
-          generatedAt={generatedAt}
-        />,
-      ),
+  // Render employees' PDFs in small batches, yielding to the event loop
+  // between batches. @react-pdf's renderToBuffer is CPU-bound and runs
+  // long synchronous bursts on the single Node process; rendering every
+  // employee at once (the old Promise.all) monopolises the CPU so
+  // unrelated requests — e.g. an admin clicking "Back" right after
+  // approving a run, which triggers a server render — can't get serviced
+  // until the whole batch finishes, and the page appears to hang. The
+  // setImmediate yield inside mapInBatches gives those requests CPU time.
+  // Mirrors the between-report-kinds yield in payroll-run.service.ts.
+  const pdfBuffers = await mapInBatches(enriched, RENDER_BATCH_SIZE, (payslip) =>
+    renderToBuffer(
+      <EmployeePayslipPdfDocument
+        organizationName={data.organizationName}
+        period={period}
+        issueDate={issueDate}
+        payslip={payslip}
+        generatedAt={generatedAt}
+      />,
     ),
   )
 
