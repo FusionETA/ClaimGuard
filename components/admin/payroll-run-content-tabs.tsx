@@ -33,7 +33,7 @@ export function PayrollRunContentTabs(props: {
       <div
         role="tablist"
         aria-label="Run sections"
-        className="inline-flex rounded-xl border border-border/60 bg-muted/40 p-1 text-sm print:hidden"
+        className="flex flex-wrap gap-2 print:hidden"
       >
         <TabButton
           active={tab === "payslips"}
@@ -74,10 +74,10 @@ function TabButton(props: {
       aria-selected={props.active}
       onClick={props.onClick}
       className={cn(
-        "flex items-center gap-2 rounded-lg px-4 py-1.5 font-medium transition-colors",
+        "flex shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
         props.active
-          ? "bg-background text-foreground shadow-sm"
-          : "text-muted-foreground hover:text-foreground",
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
       )}
     >
       {props.label}
@@ -85,10 +85,10 @@ function TabButton(props: {
         className={cn(
           "rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
           props.active
-            ? props.accent
+            ? "bg-primary-foreground/20 text-primary-foreground"
+            : props.accent
               ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
-              : "bg-muted text-muted-foreground"
-            : "bg-muted/70 text-muted-foreground",
+              : "bg-muted text-muted-foreground",
         )}
       >
         {props.count}
