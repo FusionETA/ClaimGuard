@@ -262,6 +262,10 @@ export type PayslipData = {
   /// LHDN MTD Spec 2026 page 14 X-definition. 0 when no `deduct_cp38`
   /// line item was on the payslip.
   cp38: number
+  /// Additional PCB (Employment Income) — manual top-up folded into the
+  /// CP39 standard PCB field. Kept separate from `pcb` per LHDN MTD Spec
+  /// 2026 page 14. 0 when no `deduct_additional_pcb` line item exists.
+  voluntaryPcb: number
   /// LHDN-style PCB formula breakdown — see `CalcPcbBreakdown` in
   /// `modules/payroll/domain/pcb.ts`. Null on payslips generated before
   /// the snapshot column existed; consumers should fall back to the

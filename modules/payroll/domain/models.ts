@@ -212,6 +212,7 @@ export const payrollAdjustmentCategories = [
   "deduct_loan_repayment",
   "deduct_miscellaneous",
   "deduct_cp38",
+  "deduct_additional_pcb",
   "deduct_zakat",
   "deduct_zakat_tp1",
   "deduct_tp1",
@@ -286,6 +287,16 @@ export type PayrollAdjustmentCategoryMeta = {
   /// excluded from ytdPcb for next month's calc (same reason as
   /// `addsToStandardPcb`). Used for `deduct_cp38`.
   addsToCp38Field?: boolean
+  /// When true, this line item's amount is a manual "Additional PCB
+  /// (Employment Income)" top-up: it is added directly to the month's
+  /// PCB. It reduces take-home pay (a normal cash deduction) AND is
+  /// stored in the payslip's `voluntaryPcb` scalar. Unlike
+  /// `addsToCp38Field`, it carries NO dedicated CP39 column — it is
+  /// folded into the STANDARD PCB field of the CP39 text file
+  /// (pcb-txt.ts remits `pcb + voluntaryPcb`). Kept OUT of the payslip
+  /// `pcb` column so next month's ytdPcb baseline excludes it, per LHDN
+  /// MTD Spec 2026 page 14 X-definition. Used for `deduct_additional_pcb`.
+  addsToStandardPcb?: boolean
   /// When true, the amount is treated as additional remuneration
   /// under LHDN's PCB MTD spec — a one-off payment (bonus,
   /// commission, arrears, director fee, gratuity, etc.) that should
@@ -903,6 +914,25 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: false,
     subjectToHrdf: false,
     addsToCp38Field: true,
+  },
+  deduct_additional_pcb: {
+    // Additional PCB (Employment Income) — a manual amount the admin
+    // adds directly to the month's PCB (e.g. the employee asked for
+    // extra tax to be withheld, or to true-up an under-deduction).
+    // Behaves like an extra PCB: it comes out of take-home pay AND is
+    // remitted to LHDN via the STANDARD PCB field of the CP39 file
+    // (NOT a separate column — that's what distinguishes it from CP38).
+    // Doesn't touch chargeable income or any statutory wage base.
+    code: "deduct_additional_pcb",
+    label: "Additional PCB (Employment Income)",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+    addsToStandardPcb: true,
   },
   deduct_zakat: {
     code: "deduct_zakat",

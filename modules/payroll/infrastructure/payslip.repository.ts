@@ -78,6 +78,10 @@ export type CreatePayslipInput = {
   /// LHDN MTD Spec 2026 page 14. Remitted in the dedicated CP38 field
   /// of CP39. 0 when no CP38 line item exists.
   cp38: number
+  /// Additional PCB (Employment Income) — manual top-up folded into the
+  /// CP39 standard PCB field (no dedicated column). Kept separate from
+  /// `pcb` per LHDN MTD Spec 2026 page 14. 0 when no line item exists.
+  voluntaryPcb: number
   /// LHDN-style PCB formula breakdown. JSON shape matches
   /// `CalcPcbBreakdown` in `modules/payroll/domain/pcb.ts`. Snapshotted
   /// so the Detailed Calculations PDF can show the exact formula that
@@ -177,6 +181,7 @@ export const payslipRepository = {
           contributeToSkbbk: p.contributeToSkbbk,
           pcb: p.pcb,
           cp38: p.cp38,
+          voluntaryPcb: p.voluntaryPcb,
           pcbCalculation: (p.pcbCalculation ?? null) as Prisma.InputJsonValue,
           hrdf: p.hrdf,
           hrdfWage: p.hrdfWage,
@@ -279,6 +284,13 @@ export const payslipRepository = {
             skbbkWage: p.skbbkWage,
             contributeToSkbbk: p.contributeToSkbbk,
             pcb: p.pcb,
+            // CP38 arrears + Additional PCB (voluntaryPcb). Both were
+            // computed by calc.ts and MUST be persisted on the main run
+            // path too (not just the YTD-import path) — otherwise a
+            // court-ordered CP38 or an admin-entered Additional PCB never
+            // reaches the payslip column, the CP39 file, or the PDF.
+            cp38: p.cp38,
+            voluntaryPcb: p.voluntaryPcb,
             // Cast through Prisma's JSON-input shape — `pcbCalculation`
             // is `unknown` at this layer so the calc.ts type doesn't
             // need to escape the domain into the repo.
@@ -961,6 +973,9 @@ function mapPayslip(row: any, lineItems: PayslipLineItemData[]): PayslipData {
     // CP38 arrears — new column, defaults to 0 on rows written before
     // the column existed so historical payslips map cleanly.
     cp38: toNumber(row.cp38, 0),
+    // Additional PCB (Employment Income) — new column, defaults to 0 on
+    // rows written before it existed.
+    voluntaryPcb: toNumber(row.voluntaryPcb, 0),
     // LHDN PCB formula breakdown — null on rows generated before the
     // `pcbCalculation` column existed; the PDF renderer falls back to
     // a single-line summary in that case.

@@ -628,6 +628,63 @@ describe("calcPayslip — zakat offset", () => {
   })
 })
 
+// ─── Additional PCB (Employment Income) ─────────────────────────────────
+//
+// A `deduct_additional_pcb` line item is a manual PCB top-up. It must:
+//   1. surface in `result.voluntaryPcb` at the entered amount,
+//   2. leave the FORMULA `pcb` untouched (it is NOT run through the MTD
+//      formula — it's a flat add-on remitted via the CP39 standard PCB
+//      field, folded in by pcb-txt.ts, not here),
+//   3. reduce take-home pay by exactly the amount (a normal cash
+//      deduction), and
+//   4. never touch EPF / SOCSO / EIS wage bases, and never be mistaken
+//      for CP38 (which owns a separate CP39 column).
+describe("calcPayslip — additional PCB (Employment Income)", () => {
+  const baseline = calcPayslip({
+    profile: makeProfile({ monthlySalary: 10000 }),
+    settings: baseSettings,
+    periodYear: 2026,
+    periodMonth: 1,
+  })
+
+  const withAdditional = calcPayslip({
+    profile: makeProfile({
+      monthlySalary: 10000,
+      fixedAllowances: [
+        {
+          category:
+            "deduct_additional_pcb" satisfies PayrollAdjustmentCategory,
+          name: "Additional PCB (Employment Income)",
+          amount: 150,
+        },
+      ],
+    }),
+    settings: baseSettings,
+    periodYear: 2026,
+    periodMonth: 1,
+  })
+
+  it("stores the top-up in voluntaryPcb, not in the formula pcb", () => {
+    expect(baseline.pcb).toBeGreaterThan(0) // sanity: formula PCB exists
+    expect(withAdditional.voluntaryPcb).toBeCloseTo(150, 2)
+    // Formula PCB is unchanged — the top-up does NOT flow through the MTD
+    // formula, so next month's ytdPcb baseline stays clean.
+    expect(withAdditional.pcb).toBeCloseTo(baseline.pcb, 2)
+    // Not CP38 — that path owns its own dedicated CP39 column.
+    expect(withAdditional.cp38).toBe(0)
+  })
+
+  it("reduces take-home pay by exactly the top-up amount", () => {
+    expect(withAdditional.netPay).toBeCloseTo(baseline.netPay - 150, 2)
+  })
+
+  it("does not touch EPF / SOCSO / EIS wage bases", () => {
+    expect(withAdditional.epfEmployee).toBeCloseTo(baseline.epfEmployee, 2)
+    expect(withAdditional.socsoEmployee).toBeCloseTo(baseline.socsoEmployee, 2)
+    expect(withAdditional.eisEmployee).toBeCloseTo(baseline.eisEmployee, 2)
+  })
+})
+
 // ─── Zakat paid outside payroll (TP1 deduction category) ────────────────
 //
 // Self-paid zakat declared via Borang TP1 is now a `deduct_zakat_tp1`

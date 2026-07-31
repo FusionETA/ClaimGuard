@@ -1874,6 +1874,7 @@ export async function generatePayrollPayslips(input: {
       contributeToSkbbk: effectiveContributeToSkbbk,
       pcb: result.pcb,
       cp38: result.cp38,
+      voluntaryPcb: result.voluntaryPcb,
       pcbCalculation: result.pcbCalculation,
       hrdf: result.hrdf,
       hrdfWage: result.hrdfWage,

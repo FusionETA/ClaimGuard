@@ -98,7 +98,10 @@ export async function renderPcbTxt(input: {
     // LHDN wants any row with PCB > 0 OR CP38 > 0. A CP38-only row
     // (no formula-calculated PCB but with a court-ordered arrears
     // installment) must still be submitted.
-    const rowPcb = row.payslip.pcb
+    // Additional PCB (Employment Income) is remitted through the STANDARD
+    // PCB field, not a dedicated column — so fold it into the row's PCB
+    // before encoding. CP38 arrears keep their own column (below).
+    const rowPcb = row.payslip.pcb + (row.payslip.voluntaryPcb ?? 0)
     const rowCp38 = row.payslip.cp38
     if (rowPcb <= 0 && rowCp38 <= 0) continue
 

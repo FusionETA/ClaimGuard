@@ -2041,6 +2041,16 @@ model Payslip {
   /// remitted via the dedicated CP38 column in the CP39 text file
   /// (see pcb-txt.ts header positions 43-52 + detail 119-126).
   cp38                  Decimal           @default(0.00) @db.Decimal(12, 2)
+  /// Additional PCB (Employment Income) — a manual top-up the admin
+  /// enters that is added directly to the month's PCB. Unlike CP38 it
+  /// carries NO dedicated CP39 column: it is folded into the standard
+  /// PCB field of the CP39 text file (pcb-txt.ts adds pcb + voluntaryPcb).
+  /// Kept SEPARATE from `pcb` so next month's ytdPcb baseline excludes
+  /// it per LHDN MTD Spec 2026 page 14 X-definition ("shall NOT include
+  /// additional Monthly Tax Deduction requested by the employee").
+  /// Sourced from `deduct_additional_pcb` line items (addsToStandardPcb).
+  /// 0 when no such line item exists.
+  voluntaryPcb          Decimal           @default(0.00) @db.Decimal(12, 2)
   hrdf                  Decimal           @default(0.00) @db.Decimal(12, 2)
   zakat                 Decimal           @default(0.00) @db.Decimal(12, 2)
   /// Wage base used for HRDF — may differ from gross.

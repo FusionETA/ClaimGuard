@@ -1122,6 +1122,12 @@ export function EmployeePayslipPdfDocument(
               {(p.cp38 ?? 0) > 0 ? (
                 <PayRow label="CP38 Arrears" amount={p.cp38 ?? 0} />
               ) : null}
+              {/* Additional PCB (Employment Income) — manual PCB top-up,
+                  remitted via the standard PCB field. Own row so the
+                  employee sees it distinctly from the formula PCB. */}
+              {(p.voluntaryPcb ?? 0) > 0 ? (
+                <PayRow label="Additional PCB" amount={p.voluntaryPcb ?? 0} />
+              ) : null}
               <PayRow label="Employee SOCSO" amount={p.socsoEmployee} />
               <PayRow label="Employee EIS" amount={p.eisEmployee} />
               {/* SKBBK (Skim LINDUNG 24 Jam) — employee-only contribution,
@@ -1138,11 +1144,14 @@ export function EmployeePayslipPdfDocument(
               ) : null}
               {(() => {
                 // Subtract things we've already shown as their own
-                // rows above (zakat + cp38) to avoid double-count in
-                // the catch-all "Other deductions" line.
+                // rows above (zakat + cp38 + additional PCB) to avoid
+                // double-count in the catch-all "Other deductions" line.
                 const other = Math.max(
                   0,
-                  p.totalDeductions - p.zakat - (p.cp38 ?? 0),
+                  p.totalDeductions -
+                    p.zakat -
+                    (p.cp38 ?? 0) -
+                    (p.voluntaryPcb ?? 0),
                 )
                 return other > 0 ? (
                   <PayRow label="Other deductions" amount={other} />

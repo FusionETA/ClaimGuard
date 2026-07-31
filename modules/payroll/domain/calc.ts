@@ -794,6 +794,12 @@ export type CalcPayslipResult = {
   /// Kept SEPARATE from `pcb` so next month's ytdPcb baseline excludes
   /// it, per LHDN MTD Spec 2026 page 14 X-definition.
   cp38: number
+  /// Additional PCB (Employment Income) — manual top-up from line items
+  /// with `addsToStandardPcb: true`. Reduces net pay AND is folded into
+  /// the STANDARD PCB field of the CP39 file (`pcb + voluntaryPcb`), with
+  /// no dedicated CP39 column. Kept SEPARATE from `pcb` so next month's
+  /// ytdPcb baseline excludes it, per LHDN MTD Spec 2026 page 14.
+  voluntaryPcb: number
   hrdf: number
   hrdfWage: number
   zakat: number
@@ -986,6 +992,12 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   // the !cashNeutral branch) AND is stored separately for the CP39
   // dedicated CP38 field.
   let thisMonthCp38 = 0
+  // Additional PCB (Employment Income) for this month (from
+  // `deduct_additional_pcb` line items). Reduces net pay via
+  // totalRecurringDeductions (the !cashNeutral branch, same as any cash
+  // deduction) AND is stored separately so the CP39 writer can fold it
+  // into the standard PCB field without inflating next month's ytdPcb.
+  let thisMonthVoluntaryPcb = 0
   let epfAdjustmentBase = 0
   /// AR (additional remuneration) bucket for EPF — bonus / commission /
   /// arrears lines whose category is `isAdditionalRemuneration: true` AND
@@ -1088,6 +1100,12 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       // ─── CP38 arrears — stored separately for CP39 CP38 field ─────
       if (meta.addsToCp38Field) {
         thisMonthCp38 += amt
+      }
+      // ─── Additional PCB (Employment Income) — folded into standard
+      // PCB field of CP39, stored separately from formula `pcb`. Net-pay
+      // reduction is already handled by the !cashNeutral branch above.
+      if (meta.addsToStandardPcb) {
+        thisMonthVoluntaryPcb += amt
       }
     } else if (meta.kind === "REIMBURSEMENT") {
       totalRecurringReimbursements += amt
@@ -1207,6 +1225,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   // Finalize the TP1/CP38 accumulators.
   thisMonthTp1Relief = round2(thisMonthTp1Relief)
   thisMonthCp38 = round2(thisMonthCp38)
+  thisMonthVoluntaryPcb = round2(thisMonthVoluntaryPcb)
 
   // 5. Reimbursements (Phase 5 — approved claims). Not wage-like, so
   // not subject to statutory contributions.
@@ -1583,6 +1602,9 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     // ytdPcb baseline excludes it per LHDN MTD Spec 2026 page 14
     // X-definition.
     cp38: thisMonthCp38,
+    // Additional PCB (Employment Income) — folded into the CP39 standard
+    // PCB field by pcb-txt.ts; kept out of `pcb` so ytdPcb excludes it.
+    voluntaryPcb: thisMonthVoluntaryPcb,
     hrdf,
     hrdfWage,
     /// Zakat actually deducted this month — sourced from

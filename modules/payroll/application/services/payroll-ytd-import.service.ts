@@ -594,6 +594,9 @@ function buildImportedPayslipInput(input: {
     // typically already merged it into the PCB total. Leave 0 unless
     // the template gains a dedicated CP38 column later.
     cp38: 0,
+    // YTD imports don't split out Additional PCB either — any voluntary
+    // top-up is already baked into the historical PCB total above.
+    voluntaryPcb: 0,
     pcbCalculation: null,
     hrdf: a.hrdf,
     hrdfWage: a.basicSalary, // approximation — admins can edit later
