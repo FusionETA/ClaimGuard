@@ -468,6 +468,7 @@ function OtSubmitDialog({
         if (!v) reset()
         onOpenChange(v)
       }}
+      modal={!cameraOpen}
     >
       <DialogContent className="flex max-h-[90vh] w-[min(92vw,480px)] flex-col gap-0 p-0">
         <DialogHeader className="border-b border-border px-6 py-4">
