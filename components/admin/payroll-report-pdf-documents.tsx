@@ -1114,19 +1114,17 @@ export function EmployeePayslipPdfDocument(
               <PayRow label="Employee EPF" amount={p.epfEmployee} />
               {/* PCB shown here is post-zakat-offset (calc.ts already
                   subtracted zakat). Zakat is in `totalDeductions`,
-                  subtract once when surfacing the catch-all bucket. */}
-              <PayRow label="PCB / MTD" amount={p.pcb} />
+                  subtract once when surfacing the catch-all bucket.
+                  Includes Additional PCB (Employment Income): the manual
+                  top-up is remitted via the standard PCB field, so it's
+                  folded into this figure (and netted out of the "Other
+                  deductions" catch-all below), not shown as its own row. */}
+              <PayRow label="PCB / MTD" amount={p.pcb + (p.voluntaryPcb ?? 0)} />
               {/* CP38 arrears — LHDN court-ordered additional PCB
                   withholding. Hidden when 0 so ordinary payslips don't
                   show a junk RM 0.00 line. */}
               {(p.cp38 ?? 0) > 0 ? (
                 <PayRow label="CP38 Arrears" amount={p.cp38 ?? 0} />
-              ) : null}
-              {/* Additional PCB (Employment Income) — manual PCB top-up,
-                  remitted via the standard PCB field. Own row so the
-                  employee sees it distinctly from the formula PCB. */}
-              {(p.voluntaryPcb ?? 0) > 0 ? (
-                <PayRow label="Additional PCB" amount={p.voluntaryPcb ?? 0} />
               ) : null}
               <PayRow label="Employee SOCSO" amount={p.socsoEmployee} />
               <PayRow label="Employee EIS" amount={p.eisEmployee} />

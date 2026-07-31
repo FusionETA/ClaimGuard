@@ -713,6 +713,7 @@ export const payslipRepository = {
         eisEmployee: true,
         eisEmployer: true,
         pcb: true,
+        voluntaryPcb: true,
         hrdf: true,
       },
     })
@@ -725,7 +726,14 @@ export const payslipRepository = {
       socsoEmployer: toNumber(agg._sum.socsoEmployer, 0),
       eisEmployee: toNumber(agg._sum.eisEmployee, 0),
       eisEmployer: toNumber(agg._sum.eisEmployer, 0),
-      pcb: toNumber(agg._sum.pcb, 0),
+      // Year-to-date PCB DISPLAY = total tax actually withheld = formula
+      // PCB + Additional PCB (Employment Income). This is the "total
+      // withheld" figure for the payslip's YTD block, so it matches the
+      // folded monthly PCB. NOTE: this is intentionally different from the
+      // formula baseline `ytdPcb` in getYtdForEmployee (which EXCLUDES
+      // voluntaryPcb per LHDN MTD Spec p.14 so the manual top-up never
+      // carries forward into next month's MTD calculation).
+      pcb: toNumber(agg._sum.pcb, 0) + toNumber(agg._sum.voluntaryPcb, 0),
       hrdf: toNumber(agg._sum.hrdf, 0),
     }
   },

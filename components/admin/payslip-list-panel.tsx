@@ -204,7 +204,11 @@ export function PayslipsListPanel({
     for (const p of filtered) {
       init.gross += p.grossPay
       init.bik += p.totalBenefitsInKind
-      init.pcb += p.pcb
+      // PCB total = formula PCB + Additional PCB (Employment Income). The
+      // manual top-up is remitted through the standard PCB field of CP39,
+      // so the on-screen "Total PCB payment" must include it or it would
+      // understate what's actually paid to LHDN.
+      init.pcb += p.pcb + (p.voluntaryPcb ?? 0)
       init.epfEmp += p.epfEmployee
       init.socsoEmp += p.socsoEmployee
       init.eisEmp += p.eisEmployee
@@ -560,6 +564,10 @@ function PayslipRow({
       })
     }
     for (const li of payslip.lineItems) {
+      // Additional PCB (Employment Income) is folded into the PCB column
+      // (payslip.pcb + voluntaryPcb), so don't also list it here as a
+      // separate deduction — that would show the same amount twice.
+      if (li.category === "deduct_additional_pcb") continue
       // BIK / perquisite rows are non-cash — they don't add to gross.
       // Tag them so the breakdown's visual math matches grossPay.
       const nonCash = li.kind === "ALLOWANCE" && isNonCashLineItem(li.category)
@@ -657,7 +665,10 @@ function PayslipRow({
       <TableCell className="text-right font-mono font-semibold">
         {fmt(payslip.grossPay)}
       </TableCell>
-      <TintedCell tint="emp" value={payslip.pcb} />
+      {/* PCB column = formula PCB + Additional PCB (Employment Income).
+          The manual top-up is remitted via the standard PCB field, so it
+          belongs in the PCB figure, not shown as a separate deduction. */}
+      <TintedCell tint="emp" value={payslip.pcb + (payslip.voluntaryPcb ?? 0)} />
       <TintedCell tint="emp" value={payslip.epfEmployee} />
       <TintedCell tint="emp" value={payslip.socsoEmployee} />
       <TintedCell tint="emp" value={payslip.eisEmployee} />

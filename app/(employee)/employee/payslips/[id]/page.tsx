@@ -59,7 +59,12 @@ export default async function EmployeePayslipDetailPage({
   const benefitsInKind = payslip.lineItems.filter(
     (li) => li.kind === "ALLOWANCE" && isNonCashAllowance(li.category),
   )
-  const deductions = payslip.lineItems.filter((li) => li.kind === "DEDUCTION")
+  // Additional PCB (Employment Income) is folded into the PCB line below
+  // (payslip.pcb + voluntaryPcb), so exclude it from the "Other deductions"
+  // list — otherwise the same amount shows twice.
+  const deductions = payslip.lineItems.filter(
+    (li) => li.kind === "DEDUCTION" && li.category !== "deduct_additional_pcb",
+  )
   const reimbursements = payslip.lineItems.filter(
     (li) => li.kind === "REIMBURSEMENT",
   )
@@ -185,10 +190,13 @@ export default async function EmployeePayslipDetailPage({
           {payslip.skbbkEmployee > 0 && (
             <Line label="SKBBK (employee)" value={payslip.skbbkEmployee} />
           )}
+          {/* PCB includes Additional PCB (Employment Income) — the manual
+              top-up is remitted via the standard PCB field, so it's folded
+              into this figure rather than shown as a separate deduction. */}
           <Line
             label="PCB (income tax)"
-            value={payslip.pcb}
-            muted={payslip.pcb === 0}
+            value={payslip.pcb + payslip.voluntaryPcb}
+            muted={payslip.pcb + payslip.voluntaryPcb === 0}
           />
           {payslip.zakat > 0 && <Line label="Zakat" value={payslip.zakat} />}
           {/* Unpaid leave shows up under "Other deductions" below as a
