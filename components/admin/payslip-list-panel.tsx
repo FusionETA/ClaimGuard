@@ -564,10 +564,6 @@ function PayslipRow({
       })
     }
     for (const li of payslip.lineItems) {
-      // Additional PCB (Employment Income) is folded into the PCB column
-      // (payslip.pcb + voluntaryPcb), so don't also list it here as a
-      // separate deduction — that would show the same amount twice.
-      if (li.category === "deduct_additional_pcb") continue
       // BIK / perquisite rows are non-cash — they don't add to gross.
       // Tag them so the breakdown's visual math matches grossPay.
       const nonCash = li.kind === "ALLOWANCE" && isNonCashLineItem(li.category)
@@ -581,10 +577,19 @@ function PayslipRow({
       }
       // Render deductions as negative, allowances + reimbursements
       // as positive — matches the PDF where unpaid-leave rows are
-      // red minuses and allowances are green pluses.
+      // red minuses and allowances are green pluses. Additional PCB shows
+      // here as a −line AND is folded into the PCB column (the same amount
+      // seen two ways: the itemised deduction + the statutory PCB total).
       const sign = li.kind === "DEDUCTION" ? -1 : 1
+      // Additional PCB is a fixed statutory category — show its canonical
+      // label so a renamed category (and rows saved under the old name)
+      // read consistently without re-saving each line item.
+      const liMeta =
+        PAYROLL_ADJUSTMENT_CATEGORY_META[li.category as PayrollAdjustmentCategory]
+      const displayLabel =
+        li.category === "deduct_additional_pcb" && liMeta ? liMeta.label : li.label
       items.push({
-        label: li.label,
+        label: displayLabel,
         amount: sign * li.amount,
         signed: true,
       })

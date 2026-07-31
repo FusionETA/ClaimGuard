@@ -924,7 +924,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // (NOT a separate column — that's what distinguishes it from CP38).
     // Doesn't touch chargeable income or any statutory wage base.
     code: "deduct_additional_pcb",
-    label: "Additional PCB (Employment Income)",
+    label: "Additional PCB",
     group: "Deductions",
     kind: "DEDUCTION",
     subjectToEpf: false,
