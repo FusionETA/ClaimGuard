@@ -397,7 +397,10 @@ export function PcbCalculationDetailsPdfDocument(
             {props.period}
           </Text>
 
-          <PcbCalculationDetailsBody pcbCalculation={p.pcbCalculation} />
+          <PcbCalculationDetailsBody
+            pcbCalculation={p.pcbCalculation}
+            voluntaryPcb={p.voluntaryPcb ?? 0}
+          />
 
           <View style={baseStyles.footer} fixed>
             <Text>
@@ -427,8 +430,13 @@ export function PcbCalculationDetailsPdfDocument(
  */
 function PcbCalculationDetailsBody({
   pcbCalculation,
+  voluntaryPcb,
 }: {
   pcbCalculation: unknown
+  /// Additional PCB (Employment Income) top-up for this month. Added to
+  /// the final "PCB payable" figure (NOT to the formula math above it) so
+  /// the audit doc's bottom line matches the payslip + the CP39 upload.
+  voluntaryPcb: number
 }) {
   if (!pcbCalculation || typeof pcbCalculation !== "object") {
     return (
@@ -450,7 +458,11 @@ function PcbCalculationDetailsBody({
         <Text style={{ fontSize: 9, color: COLOURS.muted }}>
           Non-residents are taxed at a flat 30% under LHDN MTD spec; the
           LHDN-form variable breakdown is not applicable. Total PCB deducted
-          this month: RM {((v.totalPcb as number) ?? 0).toFixed(2)}.
+          this month: RM{" "}
+          {(((v.totalPcb as number) ?? 0) + voluntaryPcb).toFixed(2)}
+          {voluntaryPcb > 0
+            ? ` (includes RM ${voluntaryPcb.toFixed(2)} Additional PCB).`
+            : "."}
         </Text>
       </View>
     )
@@ -732,10 +744,29 @@ function PcbCalculationDetailsBody({
       </Text>
       <LhdnVar
         abbrev="PCB"
-        description="Net PCB this month — the amount actually deducted from the employee's pay and remitted to LHDN."
+        description={
+          voluntaryPcb > 0
+            ? "Formula PCB (A + C) this month — before the manual Additional PCB added below."
+            : "Net PCB this month — the amount actually deducted from the employee's pay and remitted to LHDN."
+        }
         amount={pcbCurrentMonth}
-        bold
+        bold={voluntaryPcb <= 0}
       />
+      {voluntaryPcb > 0 ? (
+        <LhdnVar
+          abbrev="+ Add. PCB"
+          description="Additional PCB (Employment Income) — a manual top-up added directly to this month's PCB, remitted via the standard PCB field of the CP39 file. NOT part of the LHDN MTD formula, so it does not carry into next month's calculation."
+          amount={voluntaryPcb}
+        />
+      ) : null}
+      {voluntaryPcb > 0 ? (
+        <LhdnVar
+          abbrev="PCB payable"
+          description="Net PCB this month — the amount actually deducted from the employee's pay and remitted to LHDN (formula PCB + Additional PCB)."
+          amount={pcbCurrentMonth + voluntaryPcb}
+          bold
+        />
+      ) : null}
 
       {/* ── ΣLP & LP₁ Details ───────────────────────────────────────── */}
       <Text style={lhdnStyles.sectionTitle}>ΣLP & LP₁ Details</Text>

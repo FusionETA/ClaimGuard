@@ -210,6 +210,7 @@ export async function loadEmployeeFormPayload(input: {
             socsoEmployee: true,
             eisEmployee: true,
             pcb: true,
+            voluntaryPcb: true,
             zakat: true,
             lineItems: { select: { category: true, amount: true } },
           },
@@ -280,9 +281,15 @@ export async function loadEmployeeFormPayload(input: {
       const socsoE = toNumber(p.socsoEmployee, 0) ?? 0
       const eisE = toNumber(p.eisEmployee, 0) ?? 0
       const pcb = toNumber(p.pcb, 0) ?? 0
+      // Additional PCB (Employment Income) is remitted as part of the
+      // standard MTD (folded into the CP39 standard PCB field), so include
+      // it in the PCB2(II) monthly MTD + YTD total so the statement matches
+      // the upload file. It is NOT part of the LHDN MTD *formula* — see
+      // getYtdForEmployee, where next month's baseline still excludes it.
+      const voluntaryPcb = toNumber(p.voluntaryPcb, 0) ?? 0
       const zakat = toNumber(p.zakat, 0) ?? 0
 
-      monthMtd += pcb
+      monthMtd += pcb + voluntaryPcb
       monthZakat += zakat
       // CP38 is not yet stored on the payslip; placeholder always 0.
       monthCp38 += 0
@@ -292,7 +299,7 @@ export async function loadEmployeeFormPayload(input: {
       ytd.totalEpfEmployee += epfE
       ytd.totalSocsoEmployee += socsoE
       ytd.totalEisEmployee += eisE
-      ytd.totalPcb += pcb
+      ytd.totalPcb += pcb + voluntaryPcb
       ytd.totalZakat += zakat
 
       // Bonus / commission / fees / arrears / director fee — sum from
