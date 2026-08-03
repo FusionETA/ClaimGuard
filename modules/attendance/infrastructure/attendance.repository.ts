@@ -5244,7 +5244,13 @@ export const attendanceRepository = {
         name: true,
         employeeProfiles: {
           where: { organizationId: args.orgId },
-          select: { jobTitle: true, department: true },
+          // `department` lives on PayrollProfile, not EmployeeProfile —
+          // selecting it directly here throws PrismaClientValidationError
+          // and 500s the whole /admin/attendance render.
+          select: {
+            jobTitle: true,
+            payrollProfile: { select: { department: true } },
+          },
           take: 1,
         },
       },
@@ -5254,7 +5260,7 @@ export const attendanceRepository = {
       id: u.id,
       name: u.name,
       jobTitle: u.employeeProfiles[0]?.jobTitle ?? null,
-      department: u.employeeProfiles[0]?.department ?? null,
+      department: u.employeeProfiles[0]?.payrollProfile?.department ?? null,
     }))
   },
 
