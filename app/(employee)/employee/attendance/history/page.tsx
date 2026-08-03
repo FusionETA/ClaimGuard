@@ -145,14 +145,7 @@ export default async function EmployeeHistoryPage() {
                       return (
                         <div
                           key={r.id}
-                          className={cn(
-                            "flex flex-col gap-2 rounded-xl border-l-4 px-4 py-3",
-                            r.status === "ON_TIME"
-                              ? "border-l-success"
-                              : r.status === "LATE"
-                                ? "border-l-tertiary"
-                                : "border-l-destructive",
-                          )}
+                          className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/40 px-4 py-3"
                         >
                           <div className="flex items-center gap-3">
                             {r.status === "MISSING" ? (

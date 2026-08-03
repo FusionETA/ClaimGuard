@@ -264,18 +264,11 @@ export function EmployeeDetailView({
               No attendance records in the last 30 days.
             </p>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-2">
               {history.slice(0, 30).map((r) => (
                 <div
                   key={r.id}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl border-l-4 px-3 py-2",
-                    r.status === "ON_TIME"
-                      ? "border-l-success"
-                      : r.status === "LATE"
-                        ? "border-l-tertiary"
-                        : "border-l-destructive",
-                  )}
+                  className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/40 px-3 py-2.5 transition-colors hover:bg-muted/40"
                 >
                   {r.status === "MISSING" ? (
                     <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
