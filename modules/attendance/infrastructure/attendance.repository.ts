@@ -635,6 +635,86 @@ async function recomputeRecordRollup(
   return { timeIn, timeOut, durationMin, status }
 }
 
+/**
+ * Where-clauses backing the status pills on the admin attendance History
+ * tab.
+ *
+ * These deliberately do NOT filter on `AttendanceRecord.status`. That
+ * column is a roll-up which `recomputeRecordRollup` (above) overwrites
+ * with `CLOCKED_OUT` the moment every session for the day is closed — so
+ * by the end of any given day it no longer says whether the employee was
+ * on time or late. The punctuality survives on each `AttendanceSession`,
+ * so the filters read through the relation.
+ *
+ * A day counts as LATE if *any* session that day started late, which
+ * matches how the row badge is rendered in the history table.
+ */
+const HISTORY_STATUS_FILTERS: Record<string, Record<string, unknown>> = {
+  ON_TIME: {
+    status: { not: "ON_LEAVE" },
+    sessions: { some: {} },
+    NOT: { sessions: { some: { status: "LATE" } } },
+  },
+  LATE: {
+    status: { not: "ON_LEAVE" },
+    sessions: { some: { status: "LATE" } },
+  },
+  // No sessions at all — `recomputeRecordRollup` leaves these MISSING.
+  MISSING: { status: "MISSING" },
+  ON_LEAVE: { status: "ON_LEAVE" },
+}
+
+/**
+ * Where-clause for the history tab's "OT" pill: days the employee has an
+ * overtime request on. Approved *and* pending both count — the pill is for
+ * finding OT, and hiding the unreviewed half would make it useless for
+ * chasing approvals.
+ *
+ * OT lives on `ApprovalRequest`, which has no relation to
+ * `AttendanceRecord` (both hang off `User`), and Prisma can't correlate a
+ * record's own `date` inside a relation filter. So this resolves the
+ * matching (employee, day) pairs up front and groups them by day, giving
+ * at most one OR term per day in the range rather than one per pair.
+ *
+ * Returns null when nothing matches, which the caller treats as "this pill
+ * contributed no rows" rather than "no filter".
+ */
+async function buildOtDayClause(
+  prisma: ReturnType<typeof getClient>,
+  from: Date,
+  to: Date,
+  scope: { employeeId?: unknown; employee?: unknown },
+): Promise<Record<string, unknown> | null> {
+  const rows = await prisma.approvalRequest.findMany({
+    where: {
+      kind: "OT",
+      status: { in: ["APPROVED", "PENDING"] },
+      date: { gte: from, lte: to },
+      ...(scope.employeeId ? { employeeId: scope.employeeId } : {}),
+      ...(scope.employee ? { employee: scope.employee } : {}),
+    },
+    select: { employeeId: true, date: true },
+  })
+  if (rows.length === 0) return null
+
+  // Normalise to UTC midnight — `AttendanceRecord.date` is always stored
+  // that way, but legacy auto-created OT rows may carry a wall time.
+  const byDay = new Map<number, Set<string>>()
+  for (const row of rows) {
+    const day = startOfDay(row.date).getTime()
+    const ids = byDay.get(day) ?? new Set<string>()
+    ids.add(row.employeeId)
+    byDay.set(day, ids)
+  }
+
+  return {
+    OR: Array.from(byDay, ([day, ids]) => ({
+      date: new Date(day),
+      employeeId: { in: Array.from(ids) },
+    })),
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Repository
 // ---------------------------------------------------------------------------
@@ -1543,6 +1623,50 @@ export const attendanceRepository = {
       include: BREAK_INCLUDE,
     })
     return records.map(attendanceToView)
+  },
+
+  /**
+   * Flat clock-in/out rows for many employees over a range — the day-by-
+   * day attendance export's source. Deliberately minimal (no sessions or
+   * breaks) because the export only prints the first in and last out;
+   * pulling `BREAK_INCLUDE` for 200 employees × 30 days would be an
+   * order of magnitude more rows for data nothing renders.
+   */
+  async getAttendanceForEmployeesInRange(
+    employeeIds: string[],
+    from: Date,
+    to: Date,
+  ): Promise<
+    Array<{
+      employeeId: string
+      date: string
+      timeIn: string | null
+      timeOut: string | null
+      status: AttendanceStatus
+    }>
+  > {
+    if (employeeIds.length === 0) return []
+    const prisma = getClient()
+    const rows = await prisma.attendanceRecord.findMany({
+      where: {
+        employeeId: { in: employeeIds },
+        date: { gte: startOfDay(from), lte: endOfDay(to) },
+      },
+      select: {
+        employeeId: true,
+        date: true,
+        timeIn: true,
+        timeOut: true,
+        status: true,
+      },
+    })
+    return rows.map((r) => ({
+      employeeId: r.employeeId,
+      date: r.date.toISOString().slice(0, 10),
+      timeIn: r.timeIn?.toISOString() ?? null,
+      timeOut: r.timeOut?.toISOString() ?? null,
+      status: r.status as AttendanceStatus,
+    }))
   },
 
   // ── Clock actions (employee) ──────────────────────────────────────────
@@ -4973,7 +5097,17 @@ export const attendanceRepository = {
     return row?.name ?? null
   },
 
-  async getOrgAttendanceHistory(args: {
+  /**
+   * The `where` behind the admin attendance History tab — date range,
+   * org + policy gate, project/team/search scoping, and the status pills.
+   *
+   * Shared by the table and by the export's employee resolution so the
+   * two can't drift: whatever the table is showing is exactly what the
+   * PDF export covers. Returns null when the filter is provably empty
+   * (no policy scope, no employees matched, no pill matched), which
+   * callers should treat as "no results" rather than "no filter".
+   */
+  async buildOrgHistoryWhere(args: {
     orgId: string | null
     from: Date
     to: Date
@@ -4981,26 +5115,17 @@ export const attendanceRepository = {
     teamId?: string | null
     q?: string | null
     statuses?: string[]
-    page: number
-    pageSize: number
     policyIdScope?: string[] | null
-  }): Promise<{ rows: AttendanceRecordView[]; total: number }> {
+  }): Promise<Record<string, unknown> | null> {
     const prisma = getClient()
     const from = startOfDay(args.from)
     const to = endOfDay(args.to)
-    const pageSize = args.pageSize
 
     const policyIdScope = args.policyIdScope ?? null
-    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
-      return { rows: [], total: 0 }
-    }
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return null
 
     const recordWhere: Record<string, unknown> = {
       date: { gte: from, lte: to },
-    }
-
-    if (args.statuses && args.statuses.length > 0) {
-      recordWhere.status = { in: args.statuses }
     }
 
     // Build the `employee` relation filter — org + optional policy gate.
@@ -5020,7 +5145,7 @@ export const attendanceRepository = {
         q: args.q,
       })
       if (scopedIds !== null) {
-        if (scopedIds.length === 0) return { rows: [], total: 0 }
+        if (scopedIds.length === 0) return null
         recordWhere.employeeId = { in: scopedIds }
         // Still narrow by policy via the relation filter when scoped.
         if (Object.keys(employeeFilter).length > 0) {
@@ -5030,6 +5155,126 @@ export const attendanceRepository = {
         recordWhere.employee = employeeFilter
       }
     }
+
+    // Status pills. Applied last so the OT lookup can reuse the employee
+    // scoping above instead of scanning every org's approvals.
+    if (args.statuses && args.statuses.length > 0) {
+      const clauses: Record<string, unknown>[] = []
+      for (const status of args.statuses) {
+        if (status === "OT") {
+          const otClause = await buildOtDayClause(prisma, from, to, {
+            employeeId: recordWhere.employeeId,
+            employee: recordWhere.employee,
+          })
+          if (otClause) clauses.push(otClause)
+          continue
+        }
+        const clause = HISTORY_STATUS_FILTERS[status]
+        if (clause) clauses.push(clause)
+      }
+      // Empty means every selected pill matched nothing (or was
+      // unrecognised). Without this the OR would be dropped and the query
+      // would silently widen back to "everything".
+      if (clauses.length === 0) return null
+      recordWhere.OR = clauses
+    }
+
+    return recordWhere
+  },
+
+  /**
+   * Employees covered by the History tab's project / team / search
+   * filter — the export scope.
+   *
+   * Deliberately resolved from the *employee* side, not from attendance
+   * records, and deliberately ignoring the status pills: the export lists
+   * everyone in the selected project/team so an employee with no record
+   * shows up as absent rather than vanishing. Filtering by pill would
+   * turn "everyone in Project A" into "everyone in Project A who was
+   * late", which is not what the report is for.
+   */
+  async getOrgHistoryScopeEmployees(args: {
+    orgId: string | null
+    projectId?: string | null
+    teamId?: string | null
+    q?: string | null
+    /** Further narrowing to an explicit selection (the export dialog's ticks). */
+    employeeIds?: string[] | null
+    policyIdScope?: string[] | null
+  }): Promise<
+    Array<{ id: string; name: string; jobTitle: string | null; department: string | null }>
+  > {
+    if (!args.orgId) return []
+    const policyIdScope = args.policyIdScope ?? null
+    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+
+    const prisma = getClient()
+    const scopedIds = await this.resolveScopedEmployeeIds(args.orgId, {
+      projectId: args.projectId,
+      teamId: args.teamId,
+      q: args.q,
+    })
+    // null = no project/team/search filter applied → the whole org.
+    if (scopedIds !== null && scopedIds.length === 0) return []
+
+    // Intersect the filter scope with any explicit selection, so a
+    // tampered id list can't reach outside the admin's filter.
+    const explicit = args.employeeIds ?? null
+    if (explicit !== null && explicit.length === 0) return []
+    const idScope =
+      explicit === null
+        ? scopedIds
+        : scopedIds === null
+          ? explicit
+          : explicit.filter((id) => scopedIds.includes(id))
+    if (idScope !== null && idScope.length === 0) return []
+
+    const users = await prisma.user.findMany({
+      where: {
+        organizationId: args.orgId,
+        role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        ...(idScope !== null ? { id: { in: idScope } } : {}),
+        ...(policyIdScope && policyIdScope.length > 0
+          ? { employeeProfiles: { some: { policyId: { in: policyIdScope } } } }
+          : {}),
+      },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        employeeProfiles: {
+          where: { organizationId: args.orgId },
+          select: { jobTitle: true, department: true },
+          take: 1,
+        },
+      },
+    })
+
+    return users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      jobTitle: u.employeeProfiles[0]?.jobTitle ?? null,
+      department: u.employeeProfiles[0]?.department ?? null,
+    }))
+  },
+
+  async getOrgAttendanceHistory(args: {
+    orgId: string | null
+    from: Date
+    to: Date
+    projectId?: string | null
+    teamId?: string | null
+    q?: string | null
+    statuses?: string[]
+    page: number
+    pageSize: number
+    policyIdScope?: string[] | null
+  }): Promise<{ rows: AttendanceRecordView[]; total: number }> {
+    const prisma = getClient()
+    const pageSize = args.pageSize
+
+    const recordWhere = await this.buildOrgHistoryWhere(args)
+    if (recordWhere === null) return { rows: [], total: 0 }
 
     const [total, records] = await Promise.all([
       prisma.attendanceRecord.count({ where: recordWhere }),

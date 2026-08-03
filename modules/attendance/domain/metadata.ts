@@ -19,7 +19,7 @@ export const attendanceStatusMeta: Record<
     tone: "warning",
   },
   MISSING: {
-    label: "Missing",
+    label: "Absent",
     description: "No clock-in recorded for the day.",
     tone: "danger",
   },

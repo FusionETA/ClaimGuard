@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useRef, useState, useTransition } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 
@@ -12,28 +12,52 @@ import {
   type TableFilterValue,
 } from "@/components/attendance/table-filter-bar"
 import { ExportPdfDialog } from "@/components/admin/export-pdf-dialog"
+import { useToast } from "@/components/ui/toaster"
 import { attendanceStatusMeta } from "@/modules/attendance/domain/metadata"
 import type { AttendanceRecordView } from "@/modules/attendance/domain/models"
 import { cn } from "@/lib/utils"
 
 const PAGE_SIZE = 50
 
+/**
+ * The four outcomes a day can have, plus OT. `CLOCKED_IN` / `CLOCKED_OUT`
+ * are deliberately absent: the first is never written by anything, and the
+ * second says "the day finished" rather than how it went — which is not
+ * something anyone filters a history report by.
+ *
+ * OT is a different axis from the other four — a day can be both Late and
+ * OT — so selecting it alongside them ORs, same as any two pills.
+ */
 const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: "ON_TIME", label: "On time" },
-  { value: "LATE", label: "Late" },
-  { value: "MISSING", label: "Missing" },
-  { value: "CLOCKED_IN", label: "Clocked in" },
-  { value: "CLOCKED_OUT", label: "Clocked out" },
-  { value: "ON_LEAVE", label: "On leave" },
+  ...["ON_TIME", "LATE", "MISSING", "ON_LEAVE"].map((value) => ({
+    value,
+    label:
+      attendanceStatusMeta[value as keyof typeof attendanceStatusMeta].label,
+  })),
+  { value: "OT", label: "OT" },
 ]
 
 const STATUS_BADGE: Record<string, string> = {
   ON_TIME: "on-time",
   LATE: "late",
   MISSING: "missing",
-  CLOCKED_IN: "clocked-in",
-  CLOCKED_OUT: "clocked-out",
   ON_LEAVE: "on-leave",
+}
+
+/**
+ * What the row's badge should say.
+ *
+ * Not simply `row.status` — that column is overwritten with `CLOCKED_OUT`
+ * once the employee closes their last session of the day, which loses the
+ * on-time/late outcome for every completed day. The sessions keep it, so
+ * derive from them. Mirrors `HISTORY_STATUS_FILTERS` in
+ * `attendance.repository.ts`; the two must agree or the pills will select
+ * rows whose badge says something else.
+ */
+function displayStatus(row: AttendanceRecordView): string {
+  if (row.status === "ON_LEAVE") return "ON_LEAVE"
+  if (row.sessions.length === 0) return "MISSING"
+  return row.sessions.some((s) => s.status === "LATE") ? "LATE" : "ON_TIME"
 }
 
 function fmtTime(iso: string | null, tz: string): string {
@@ -69,7 +93,23 @@ type LoadAction = (
   q: string | null,
   statuses: string[],
   page: number,
-) => Promise<{ rows: AttendanceRecordView[]; total: number }>
+) => Promise<{
+  rows: AttendanceRecordView[]
+  total: number
+  /** Set when the range was rejected — the table is left untouched. */
+  error?: string
+}>
+
+/**
+ * Employees in the project/team/search scope — the export target. Not
+ * narrowed by the status pills: the export lists everyone in the
+ * selected project/team and marks absences.
+ */
+type LoadEmployeesAction = (
+  projectId: string | null,
+  teamId: string | null,
+  q: string | null,
+) => Promise<{ id: string; name: string }[]>
 
 export function OrgHistoryPanel({
   initialFrom,
@@ -77,6 +117,7 @@ export function OrgHistoryPanel({
   initialRows,
   initialTotal,
   loadAction,
+  loadEmployeesAction,
   projects,
   teams,
   timezone,
@@ -87,6 +128,7 @@ export function OrgHistoryPanel({
   initialRows: AttendanceRecordView[]
   initialTotal: number
   loadAction: LoadAction
+  loadEmployeesAction: LoadEmployeesAction
   projects: { id: string; name: string }[]
   teams: { id: string; name: string; projectName: string }[]
   timezone: string
@@ -103,7 +145,16 @@ export function OrgHistoryPanel({
   const [page, setPage] = useState(0)
   const [rows, setRows] = useState(initialRows)
   const [total, setTotal] = useState(initialTotal)
+  // Export scope — everyone in the current project/team/search filter,
+  // not just the employees on the current page.
+  const [exportEmployees, setExportEmployees] = useState(employees)
+  const exportScope = useRef<TableFilterValue>({
+    projectId: null,
+    teamId: null,
+    q: null,
+  })
   const [isPending, startTransition] = useTransition()
+  const { toast } = useToast()
 
   function reload(
     nextFrom: string,
@@ -112,18 +163,52 @@ export function OrgHistoryPanel({
     nextStatuses: string[],
     nextPage: number,
   ) {
+    // Don't spend a round-trip on a range the server will only reject.
+    // Both inputs stay editable, so the admin can put it right.
+    if (!nextFrom || !nextTo) {
+      toast({ title: "Pick both a From and a To date.", variant: "error" })
+      return
+    }
+    // Safe as a string compare — <input type="date"> emits yyyy-mm-dd.
+    if (nextFrom > nextTo) {
+      toast({
+        title: "'From' date must be on or before the 'To' date.",
+        variant: "error",
+      })
+      return
+    }
+
     startTransition(async () => {
+      const projectId = nextFilter.projectId ?? null
+      const teamId = nextFilter.teamId ?? null
+      const q = nextFilter.q ?? null
       const result = await loadAction(
         nextFrom,
         nextTo,
-        nextFilter.projectId ?? null,
-        nextFilter.teamId ?? null,
-        nextFilter.q ?? null,
+        projectId,
+        teamId,
+        q,
         nextStatuses,
         nextPage,
       )
+      // Leave the current rows in place on a rejected range — blanking
+      // the table would read as "no records in this period".
+      if (result.error) {
+        toast({ title: result.error, variant: "error" })
+        return
+      }
       setRows(result.rows)
       setTotal(result.total)
+      // Only the project/team/search filter changes who the export
+      // covers — dates, pills and paging don't, so skip the round-trip.
+      if (
+        projectId !== exportScope.current.projectId ||
+        teamId !== exportScope.current.teamId ||
+        q !== exportScope.current.q
+      ) {
+        exportScope.current = { projectId, teamId, q }
+        setExportEmployees(await loadEmployeesAction(projectId, teamId, q))
+      }
     })
   }
 
@@ -184,6 +269,7 @@ export function OrgHistoryPanel({
             <input
               type="date"
               value={from}
+              max={to}
               onChange={(e) => handleFrom(e.target.value)}
               className="rounded-lg border border-border/60 bg-background px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
@@ -195,6 +281,7 @@ export function OrgHistoryPanel({
             <input
               type="date"
               value={to}
+              min={from}
               onChange={(e) => handleTo(e.target.value)}
               className="rounded-lg border border-border/60 bg-background px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
@@ -206,7 +293,8 @@ export function OrgHistoryPanel({
             kind="attendance"
             initialFrom={from}
             initialTo={to}
-            employees={employees}
+            employees={exportEmployees}
+            scopedToEmployees
           />
         </div>
 
@@ -272,6 +360,7 @@ export function OrgHistoryPanel({
             {rows.map((row) => {
               const inTime = fmtTime(row.timeIn, timezone)
               const outTime = fmtTime(row.timeOut, timezone)
+              const shown = displayStatus(row)
               return (
                 <div
                   key={row.id}
@@ -322,9 +411,10 @@ export function OrgHistoryPanel({
                     {fmtHours(row.durationMin ?? null)}
                   </p>
                   <div>
-                    <Badge variant={STATUS_BADGE[row.status] as never}>
-                      {attendanceStatusMeta[row.status as keyof typeof attendanceStatusMeta]
-                        ?.label ?? row.status}
+                    <Badge variant={STATUS_BADGE[shown] as never}>
+                      {attendanceStatusMeta[
+                        shown as keyof typeof attendanceStatusMeta
+                      ]?.label ?? shown}
                     </Badge>
                   </div>
                 </div>
