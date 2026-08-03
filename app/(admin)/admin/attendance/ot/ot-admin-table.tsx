@@ -179,7 +179,12 @@ export function OtAdminTable({ initialRows, initialFrom, initialTo }: Props) {
 
         {/* Filters */}
         <div className="grid gap-2 sm:grid-cols-[1fr_160px]">
-          <div className="relative">
+          {/* flex items-center, not just relative: this is a grid item, so
+              it stretches to the row height set by the taller Select next
+              to it. The h-9 Input would otherwise sit at the top of that
+              box while the icon's top-1/2 centred against the box, leaving
+              the two misaligned. Centring the input makes both agree. */}
+          <div className="relative flex items-center">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search employee or project"

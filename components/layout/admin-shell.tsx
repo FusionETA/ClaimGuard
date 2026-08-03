@@ -299,14 +299,10 @@ function getTitle(pathname: string) {
     return "System Settings"
   }
 
-  if (pathname.startsWith("/admin/attendance/employees")) {
-    return "Employees"
-  }
-
-  if (pathname.startsWith("/admin/attendance/ot")) {
-    return "Overtime"
-  }
-
+  // Every /admin/attendance/* route is a sub-tab of the same module —
+  // Overview, Employees, Overtime, Shifts — and the sub-nav already
+  // names which one you're on. The page title stays "Attendance" so the
+  // header doesn't appear to navigate away from the module.
   if (pathname.startsWith("/admin/attendance")) {
     return "Attendance"
   }

@@ -705,6 +705,54 @@ export const leaveRepository = {
     })
   },
 
+  /**
+   * Leave overlapping a date range for many employees at once, keyed by
+   * the *user* id rather than the EmployeeProfile id so attendance code
+   * can join it directly.
+   *
+   * Bulk form of `listApplicationsForEmployee` — the day-by-day
+   * attendance export needs leave for every employee in scope, and
+   * per-employee calls would be one query per person.
+   */
+  async listApplicationsInRangeForUsers(
+    userIds: string[],
+    from: Date,
+    to: Date,
+  ): Promise<
+    Array<{
+      userId: string
+      leaveTypeName: string
+      startDate: Date
+      endDate: Date
+      status: string
+    }>
+  > {
+    if (userIds.length === 0) return []
+    const prisma = requirePrisma()
+    const rows = await prisma.leaveApplication.findMany({
+      where: {
+        employee: { userId: { in: userIds } },
+        status: { in: ["APPROVED", "PENDING"] },
+        startDate: { lte: to },
+        endDate: { gte: from },
+      },
+      select: {
+        startDate: true,
+        endDate: true,
+        status: true,
+        leaveType: { select: { name: true } },
+        employee: { select: { userId: true } },
+      },
+    })
+    return rows.map((r) => ({
+      userId: r.employee.userId,
+      leaveTypeName: r.leaveType.name,
+      startDate: r.startDate,
+      endDate: r.endDate,
+      status: r.status,
+    }))
+  },
+
   async listApprovedPaidApplicationsInRange(
     employeeId: string,
     from: Date,

@@ -340,6 +340,22 @@ export const adminAttendanceService = {
     })
   },
 
+  /**
+   * Employees covered by the History tab's project/team/search filter.
+   * Feeds the export scope — see the repository method for why the
+   * status pills are deliberately not applied.
+   */
+  async getOrgHistoryEmployees(args: {
+    orgId: string | null
+    projectId?: string | null
+    teamId?: string | null
+    q?: string | null
+    employeeIds?: string[] | null
+    policyIdScope?: string[] | null
+  }) {
+    return attendanceRepository.getOrgHistoryScopeEmployees(args)
+  },
+
   // ─── Shift management (Phase 4) ────────────────────────────────────
   // Admin-facing CRUD for the `Shift` model. The bindings live here
   // rather than the (shorter) attendance repository file so callers

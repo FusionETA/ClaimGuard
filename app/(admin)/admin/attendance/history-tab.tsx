@@ -1,9 +1,11 @@
 import { OrgHistoryPanel } from "@/components/attendance/org-history-panel"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
-import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 
-import { loadOrgHistoryAction } from "./history-actions"
+import {
+  loadOrgHistoryAction,
+  loadOrgHistoryEmployeesAction,
+} from "./history-actions"
 
 export async function HistoryTab({
   orgId,
@@ -21,15 +23,17 @@ export async function HistoryTab({
   teamOptions: { id: string; name: string; projectName: string }[]
 }) {
   const policyIdScope = await getActiveAdminPolicyScope()
-  const [initialHistory, orgEmployees] = await Promise.all([
-    adminAttendanceService.getOrgHistory({
-      orgId,
-      from: new Date(initialFrom),
-      to: new Date(initialTo),
-      page: 0,
-      policyIdScope,
-    }),
-    orgId ? attendanceRepository.getOrgEmployeeList(orgId) : Promise.resolve([]),
+  const range = {
+    orgId,
+    from: new Date(initialFrom),
+    to: new Date(initialTo),
+    policyIdScope,
+  }
+  // Seed the export scope from the same filter the table opens on, so
+  // the dialog is already correct before the admin touches anything.
+  const [initialHistory, scopedEmployees] = await Promise.all([
+    adminAttendanceService.getOrgHistory({ ...range, page: 0 }),
+    adminAttendanceService.getOrgHistoryEmployees(range),
   ])
 
   return (
@@ -39,10 +43,11 @@ export async function HistoryTab({
       initialRows={initialHistory.rows}
       initialTotal={initialHistory.total}
       loadAction={loadOrgHistoryAction}
+      loadEmployeesAction={loadOrgHistoryEmployeesAction}
       projects={projectOptions}
       teams={teamOptions}
       timezone={timezone}
-      employees={orgEmployees.map((e) => ({ id: e.id, name: e.name }))}
+      employees={scopedEmployees}
     />
   )
 }

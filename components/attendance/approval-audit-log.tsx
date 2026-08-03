@@ -284,7 +284,11 @@ export function ApprovalAuditLog({
         ) : null}
 
         <div className="grid gap-2 sm:grid-cols-[1fr_160px_160px] sm:gap-3">
-          <div className="relative">
+          {/* flex items-center — same grid-stretch fix as the OT table's
+              search box: the wrapper grows to the Select's height, so the
+              shorter h-9 Input has to be centred or the icon's top-1/2
+              lands below it. */}
+          <div className="relative flex items-center">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search employee, reviewer, or project"
