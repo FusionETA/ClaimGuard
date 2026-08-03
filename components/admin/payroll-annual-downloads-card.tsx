@@ -1,10 +1,8 @@
 "use client"
 
-import * as React from "react"
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { Download, FileText, Loader2 } from "lucide-react"
 
-import { generatePayrollAnnualReportAction } from "@/app/(admin)/admin/payroll/annual-forms/actions"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -21,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/components/ui/toaster"
-import { cn, formatShortDate } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import {
   PAYROLL_ANNUAL_REPORT_GROUP_LABELS,
   type PayrollAnnualReportGroup,
@@ -34,8 +32,10 @@ import {
  * modal pattern but renders inline (no modal wrapping) since the page
  * is dedicated to this one task.
  *
- * Year picker → list of report rows. First download click renders +
- * caches; later clicks serve from cache.
+ * Year picker → list of report rows. Every download is rendered on
+ * demand and streamed from `/admin/payroll/annual-forms/<year>/<kind>` —
+ * nothing is stored on disk, so the forms always reflect the live
+ * approved payroll year.
  */
 export function PayrollAnnualDownloadsCard(props: {
   organizationName: string
@@ -49,17 +49,10 @@ export function PayrollAnnualDownloadsCard(props: {
 }) {
   const { toast } = useToast()
   const [year, setYear] = useState<number>(props.selectedYear)
-  const [rows, setRows] = useState(props.rows)
+  const rows = props.rows
   const [pendingKind, setPendingKind] = useState<PayrollAnnualReportKind | null>(
     null,
   )
-  const [, startTransition] = useTransition()
-
-  // Keep local rows synced with year selection. When the user changes
-  // year, we ask the server to re-fetch via a soft refresh.
-  React.useEffect(() => {
-    setRows(props.rows)
-  }, [props.rows])
 
   function handleYearChange(newYear: string) {
     const parsed = Number(newYear)
@@ -74,38 +67,29 @@ export function PayrollAnnualDownloadsCard(props: {
     }
   }
 
-  function handleDownload(kind: PayrollAnnualReportKind) {
+  async function handleDownload(kind: PayrollAnnualReportKind) {
     setPendingKind(kind)
-    startTransition(async () => {
-      try {
-        const result = await generatePayrollAnnualReportAction({
-          year,
-          kind,
-        })
-        if (result.status === "error") {
-          toast({ title: result.message, variant: "error" })
-          return
-        }
-        triggerDownload(result.fileUrl, result.fileName)
-        setRows((prev) =>
-          prev.map((r) =>
-            r.kind === kind
-              ? {
-                  ...r,
-                  generated: {
-                    fileName: result.fileName,
-                    fileUrl: result.fileUrl,
-                    sizeBytes: result.sizeBytes,
-                    generatedAt: new Date().toISOString(),
-                  },
-                }
-              : r,
-          ),
-        )
-      } finally {
-        setPendingKind(null)
+    try {
+      const res = await fetch(
+        `/admin/payroll/annual-forms/${year}/${kind}`,
+      )
+      if (!res.ok) {
+        toast({ title: await readErrorMessage(res), variant: "error" })
+        return
       }
-    })
+      const blob = await res.blob()
+      const fileName = fileNameFromResponse(res, fallbackFileName(rows, kind))
+      const url = URL.createObjectURL(blob)
+      triggerDownload(url, fileName)
+      setTimeout(() => URL.revokeObjectURL(url), 1500)
+    } catch (e) {
+      toast({
+        title: e instanceof Error ? e.message : "Could not download this file.",
+        variant: "error",
+      })
+    } finally {
+      setPendingKind(null)
+    }
   }
 
   const grouped: Record<PayrollAnnualReportGroup, PayrollAnnualReportRow[]> = {
@@ -221,12 +205,6 @@ function AnnualRow(props: {
           <p className="mt-0.5 text-xs text-muted-foreground">
             {row.description}
           </p>
-          {row.generated ? (
-            <p className="mt-0.5 text-[11px] text-muted-foreground/80">
-              Generated {formatShortDate(new Date(row.generated.generatedAt))} ·{" "}
-              {formatFileSize(row.generated.sizeBytes)}
-            </p>
-          ) : null}
         </div>
       </div>
       <Button
@@ -240,7 +218,7 @@ function AnnualRow(props: {
         {props.pending ? (
           <>
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            {row.generated ? "Downloading…" : "Generating…"}
+            Downloading…
           </>
         ) : (
           <>
@@ -253,10 +231,45 @@ function AnnualRow(props: {
   )
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+/**
+ * Read a filename out of a `Content-Disposition` response header, falling
+ * back to `fallback` when the header is missing/unparseable.
+ */
+function fileNameFromResponse(res: Response, fallback: string): string {
+  const cd = res.headers.get("Content-Disposition") ?? ""
+  const m = cd.match(/filename\*?="?([^";]+)"?/i)
+  return m?.[1] ?? fallback
+}
+
+/**
+ * Sensible fallback filename for a kind when the response didn't carry a
+ * Content-Disposition — the report's title slugged + its extension.
+ */
+function fallbackFileName(
+  rows: PayrollAnnualReportRow[],
+  kind: PayrollAnnualReportKind,
+): string {
+  const row = rows.find((r) => r.kind === kind)
+  if (!row) return kind.toLowerCase()
+  const slug = row.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+  return `${slug || kind.toLowerCase()}.${row.extension}`
+}
+
+/**
+ * Read a JSON `{ error }` message off a failed response, falling back to
+ * the HTTP status when the body isn't JSON.
+ */
+async function readErrorMessage(res: Response): Promise<string> {
+  try {
+    const data = (await res.json()) as { error?: string }
+    if (data?.error) return data.error
+  } catch {
+    /* not JSON */
+  }
+  return `Could not download this file (HTTP ${res.status}).`
 }
 
 function monthShortName(month: number): string {

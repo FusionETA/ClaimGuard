@@ -1,11 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { useEffect, useMemo, useRef, useState, useTransition } from "react"
+import { useMemo, useState } from "react"
 import { Download, FileText, Loader2 } from "lucide-react"
 import JSZip from "jszip"
 
-import { generatePayrollReportAction } from "@/app/(admin)/admin/payroll/runs/[id]/actions"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -18,26 +17,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/toaster"
-import { cn, formatShortDate } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import {
   PAYROLL_REPORT_GROUP_LABELS,
   type PayrollReportGroup,
   type PayrollReportKind,
   type PayrollReportRow,
 } from "@/modules/payroll/domain/reports"
-
-// The 7 kinds we pre-generate on approval. We only poll while at least
-// one of these is still missing — PCB_TXT / BANK_* are excluded because
-// they're never pre-generated.
-const PRE_GEN_KINDS: PayrollReportKind[] = [
-  "PAYROLL_SUMMARY_PDF",
-  "PAYMENT_SCHEDULE_PDF",
-  "PCB_LHDN_FORM_PDF",
-  "EPF_CSV",
-  "SOCSO_EIS_TXT",
-  "SOCSO_EIS_SKBBK_TXT",
-  "BULK_PAYSLIPS_PDF",
-]
 
 /**
  * "Download files" modal on the payroll run detail page.
@@ -46,17 +32,15 @@ const PRE_GEN_KINDS: PayrollReportKind[] = [
  * CSV" buttons with a single entry point. The modal lists every
  * downloadable file grouped into Reports / Statutory uploads /
  * Payslips, plus the bank disbursement CSV at the bottom (which has
- * its own non-cached `/disbursement` endpoint and skips the generator
- * flow entirely).
+ * its own `/disbursement` endpoint).
  *
- * Each row's Download button:
- *   - first click  → triggers `generatePayrollReportAction`, which
- *                    renders the file server-side, persists under
- *                    `public/uploads/payroll-reports/<runId>/`, and
- *                    returns the URL. The browser then triggers a
- *                    download against that URL.
- *   - later clicks → reads the cached file from the same URL (no
- *                    server-side render).
+ * Every file is rendered ON DEMAND and streamed — nothing is stored on
+ * disk. Each row's Download button fetches
+ * `/admin/payroll/runs/<runId>/reports/<kind>` (which renders the bytes
+ * fresh and returns them with a `Content-Disposition` filename), then
+ * triggers a browser download of the resulting blob. Repeat clicks
+ * simply re-render — there's no cached copy to go stale against the
+ * live run.
  *
  * Each row ALSO has a checkbox. Tick a few rows (or the header "Select
  * all"), then hit "Download N selected" in the footer to grab them as
@@ -67,10 +51,10 @@ export function PayrollDownloadsModal(props: {
   runId: string
   organizationName: string
   periodLabel: string
-  /// True iff the run is SUBMITTED. The 7 cached files require this.
+  /// True iff the run is SUBMITTED. Downloads require this.
   canGenerate: boolean
-  /// Already-cached rows so the modal can pre-populate "generated on…"
-  /// stamps without an extra round-trip.
+  /// Static per-kind meta rows to render (their `generated` is always
+  /// null now — files are produced on demand, nothing is pre-generated).
   rows: PayrollReportRow[]
   /// Whether to show the bank disbursement CSV row (always available
   /// when SUBMITTED, served from the existing `/disbursement` route).
@@ -78,67 +62,12 @@ export function PayrollDownloadsModal(props: {
 }) {
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
-  // `pending` is keyed by report kind so each row has its own spinner.
+  // `pendingKind` is keyed by report kind so each row has its own spinner.
   const [pendingKind, setPendingKind] = useState<PayrollReportKind | null>(
     null,
   )
-  const [, startTransition] = useTransition()
-  // Local row state so a successful generation immediately shows the
-  // "Generated <date>" label without waiting for a server refresh.
-  const [rows, setRows] = useState(props.rows)
-
-  // Poll for background pre-generation completing. Runs only while the
-  // modal is open and at least one pre-gen kind is still missing.
-  // Stops after 60 s (background gen is fast; if it takes longer something
-  // is broken and we shouldn't hammer the server indefinitely).
-  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  useEffect(() => {
-    if (!open || !props.canGenerate) return
-    const allReady = PRE_GEN_KINDS.every(
-      (k) => rows.find((r) => r.kind === k)?.generated,
-    )
-    if (allReady) return
-
-    let stopped = false
-    const deadline = Date.now() + 60_000
-
-    async function poll() {
-      if (stopped || Date.now() > deadline) return
-      try {
-        const res = await fetch(
-          `/admin/payroll/runs/${props.runId}/reports/status`,
-          { cache: "no-store" },
-        )
-        if (!res.ok) return
-        const data = (await res.json()) as { rows: PayrollReportRow[] }
-        setRows((prev) =>
-          prev.map((row) => {
-            const fresh = data.rows.find((r) => r.kind === row.kind)
-            if (!fresh?.generated || row.generated) return row
-            return { ...row, generated: fresh.generated }
-          }),
-        )
-        const doneNow = PRE_GEN_KINDS.every(
-          (k) => data.rows.find((r) => r.kind === k)?.generated,
-        )
-        if (!doneNow && !stopped && Date.now() < deadline) {
-          pollTimeoutRef.current = setTimeout(poll, 2000)
-        }
-      } catch {
-        // Network error — retry after the usual interval
-        if (!stopped && Date.now() < deadline) {
-          pollTimeoutRef.current = setTimeout(poll, 2000)
-        }
-      }
-    }
-
-    pollTimeoutRef.current = setTimeout(poll, 2000)
-    return () => {
-      stopped = true
-      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, props.canGenerate, props.runId])
+  // Static meta list — no local mutation needed any more.
+  const rows = props.rows
 
   // Admin-picked payment date for the PB ECP file. Defaults to the
   // last day of the period month on first open. PB accepts up to 60
@@ -154,46 +83,39 @@ export function PayrollDownloadsModal(props: {
   const [selected, setSelected] = useState<Set<SelectionKey>>(() => new Set())
   const [bulkPending, setBulkPending] = useState(false)
 
-  function handleDownload(kind: PayrollReportKind) {
+  /// Streaming download URL for one report kind. PB ECP carries the
+  /// admin-picked payment date in the query string (it flows into both
+  /// the file content and the bank-spec filename).
+  function reportUrl(kind: PayrollReportKind): string {
+    const base = `/admin/payroll/runs/${props.runId}/reports/${kind}`
+    return kind === "BANK_PB_ECP_XLSX"
+      ? `${base}?paymentDate=${encodeURIComponent(pbEcpPaymentDate)}`
+      : base
+  }
+
+  async function handleDownload(kind: PayrollReportKind) {
     setPendingKind(kind)
-    startTransition(async () => {
-      try {
-        const result = await generatePayrollReportAction({
-          runId: props.runId,
-          kind,
-          paymentDate:
-            kind === "BANK_PB_ECP_XLSX" ? pbEcpPaymentDate : undefined,
-        })
-        if (result.status === "error") {
-          toast({
-            title: result.message,
-            variant: "error",
-          })
-          return
-        }
-        // Trigger the actual file download.
-        triggerDownload(result.fileUrl, result.fileName)
-        // Optimistically update the row so the "generated" stamp shows
-        // up immediately.
-        setRows((prev) =>
-          prev.map((r) =>
-            r.kind === kind
-              ? {
-                  ...r,
-                  generated: {
-                    fileName: result.fileName,
-                    fileUrl: result.fileUrl,
-                    sizeBytes: result.sizeBytes,
-                    generatedAt: new Date().toISOString(),
-                  },
-                }
-              : r,
-          ),
-        )
-      } finally {
-        setPendingKind(null)
+    try {
+      const res = await fetch(reportUrl(kind))
+      if (!res.ok) {
+        toast({ title: await readErrorMessage(res), variant: "error" })
+        return
       }
-    })
+      const blob = await res.blob()
+      const fileName = fileNameFromResponse(res, fallbackFileName(rows, kind))
+      const url = URL.createObjectURL(blob)
+      triggerDownload(url, fileName)
+      // Release the object URL on the next tick — Chrome keeps the
+      // download stream open while the click event is being handled.
+      setTimeout(() => URL.revokeObjectURL(url), 1500)
+    } catch (e) {
+      toast({
+        title: e instanceof Error ? e.message : "Could not download this file.",
+        variant: "error",
+      })
+    } finally {
+      setPendingKind(null)
+    }
   }
 
   // Group rows by section in the order REPORTS → STATUTORY → PAYSLIPS → BANK.
@@ -241,45 +163,27 @@ export function PayrollDownloadsModal(props: {
     let added = 0
 
     try {
-      // 1) Generate (or look up cached) URLs for every selected report
-      //    kind. Server action returns { fileUrl, fileName, sizeBytes }.
-      //    Run sequentially so server-side render queue isn't hammered.
-      const updatedRows = new Map<PayrollReportKind, PayrollReportRow>()
+      // 1) Fetch every selected report kind's streaming URL and add the
+      //    rendered bytes to the ZIP. Run sequentially so the server-side
+      //    render queue isn't hammered by a big multi-select.
       for (const key of selected) {
         if (key === BANK_CSV_KEY) continue
         try {
-          const result = await generatePayrollReportAction({
-            runId: props.runId,
-            kind: key,
-            paymentDate:
-              key === "BANK_PB_ECP_XLSX" ? pbEcpPaymentDate : undefined,
-          })
-          if (result.status === "error") {
-            errors.push(`${key}: ${result.message}`)
+          const res = await fetch(reportUrl(key))
+          if (!res.ok) {
+            errors.push(`${key}: ${await readErrorMessage(res)}`)
             continue
           }
-          const blob = await fetch(result.fileUrl).then((r) => r.blob())
-          zip.file(result.fileName, blob)
+          const blob = await res.blob()
+          const fileName = fileNameFromResponse(res, fallbackFileName(rows, key))
+          zip.file(fileName, blob)
           added++
-          // Update the existing row to show its "Generated" stamp.
-          const row = rows.find((r) => r.kind === key)
-          if (row) {
-            updatedRows.set(key, {
-              ...row,
-              generated: {
-                fileName: result.fileName,
-                fileUrl: result.fileUrl,
-                sizeBytes: result.sizeBytes,
-                generatedAt: new Date().toISOString(),
-              },
-            })
-          }
         } catch (e) {
           errors.push(`${key}: ${e instanceof Error ? e.message : "unknown error"}`)
         }
       }
 
-      // 2) Bank CSV — non-cached, served by the disbursement route.
+      // 2) Bank CSV — served by the disbursement route.
       if (selected.has(BANK_CSV_KEY)) {
         try {
           const href = `/admin/payroll/runs/${props.runId}/disbursement`
@@ -290,9 +194,10 @@ export function PayrollDownloadsModal(props: {
             const blob = await res.blob()
             // Try to read the filename out of Content-Disposition; fall
             // back to a sensible default if the server didn't set it.
-            const cd = res.headers.get("Content-Disposition") ?? ""
-            const m = cd.match(/filename\*?="?([^";]+)"?/i)
-            const fileName = m?.[1] ?? `bank-disbursement-${props.runId}.csv`
+            const fileName = fileNameFromResponse(
+              res,
+              `bank-disbursement-${props.runId}.csv`,
+            )
             zip.file(fileName, blob)
             added++
           }
@@ -317,13 +222,6 @@ export function PayrollDownloadsModal(props: {
       // Release the object URL on the next tick — Chrome keeps the
       // download stream open while the click event is being handled.
       setTimeout(() => URL.revokeObjectURL(url), 1500)
-
-      // Apply optimistic row updates (so the "Generated" stamps appear).
-      if (updatedRows.size > 0) {
-        setRows((prev) =>
-          prev.map((r) => updatedRows.get(r.kind) ?? r),
-        )
-      }
 
       if (errors.length > 0) {
         toast({
@@ -382,7 +280,7 @@ export function PayrollDownloadsModal(props: {
           </div>
         ) : null}
 
-        <div className="nice-scrollbar -mr-2 max-h-[55vh] space-y-5 overflow-y-auto py-2 pr-2">
+        <div className="nice-scrollbar -mr-2 max-h-[55vh] space-y-5 overflow-y-auto py-2 pl-1 pr-2">
           {(["REPORTS", "STATUTORY", "PAYSLIPS", "BANK"] as const).map((group) => {
             const groupRows = grouped[group]
             if (groupRows.length === 0) return null
@@ -426,9 +324,6 @@ export function PayrollDownloadsModal(props: {
                       disabled={!props.canGenerate}
                       pending={pendingKind === row.kind}
                       bulkPending={bulkPending}
-                      preGenPending={
-                        PRE_GEN_KINDS.includes(row.kind) && !row.generated
-                      }
                       checked={selected.has(row.kind)}
                       onToggleSelect={() => toggleSelect(row.kind)}
                       onDownload={() => handleDownload(row.kind)}
@@ -524,7 +419,6 @@ function ReportRow(props: {
   disabled: boolean
   pending: boolean
   bulkPending: boolean
-  preGenPending: boolean
   checked: boolean
   onToggleSelect: () => void
   onDownload: () => void
@@ -559,17 +453,6 @@ function ReportRow(props: {
           <p className="mt-0.5 text-xs text-muted-foreground">
             {row.description}
           </p>
-          {row.generated ? (
-            <p className="mt-0.5 text-[11px] text-muted-foreground/80">
-              Generated {formatShortDate(new Date(row.generated.generatedAt))} ·{" "}
-              {formatFileSize(row.generated.sizeBytes)}
-            </p>
-          ) : props.preGenPending ? (
-            <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground/80">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Generating…
-            </p>
-          ) : null}
         </div>
       </div>
       <Button
@@ -583,7 +466,7 @@ function ReportRow(props: {
         {props.pending ? (
           <>
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            {row.generated ? "Downloading…" : "Generating…"}
+            Downloading…
           </>
         ) : (
           <>
@@ -677,17 +560,47 @@ function SelectAllCheckbox(props: {
   )
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+/**
+ * Read a filename out of a `Content-Disposition` response header, falling
+ * back to `fallback` when the header is missing/unparseable.
+ */
+function fileNameFromResponse(res: Response, fallback: string): string {
+  const cd = res.headers.get("Content-Disposition") ?? ""
+  const m = cd.match(/filename\*?="?([^";]+)"?/i)
+  return m?.[1] ?? fallback
+}
+
+/**
+ * Sensible fallback filename for a kind when the response didn't carry a
+ * Content-Disposition — the report's title slugged + its extension.
+ */
+function fallbackFileName(rows: PayrollReportRow[], kind: PayrollReportKind): string {
+  const row = rows.find((r) => r.kind === kind)
+  if (!row) return kind.toLowerCase()
+  const slug = row.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+  return `${slug || kind.toLowerCase()}.${row.extension}`
+}
+
+/**
+ * Read a JSON `{ error }` message off a failed response, falling back to
+ * the HTTP status when the body isn't JSON.
+ */
+async function readErrorMessage(res: Response): Promise<string> {
+  try {
+    const data = (await res.json()) as { error?: string }
+    if (data?.error) return data.error
+  } catch {
+    /* not JSON */
+  }
+  return `Could not download this file (HTTP ${res.status}).`
 }
 
 /**
  * Force a download against a URL by synthesising an anchor element
- * with `download` set. Works for any same-origin URL — the cached
- * files under `/uploads/...` are served by Next.js' built-in static
- * handler.
+ * with `download` set.
  */
 function triggerDownload(url: string, fileName: string) {
   const a = document.createElement("a")

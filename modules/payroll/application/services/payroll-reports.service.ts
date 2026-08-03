@@ -1,13 +1,8 @@
 import "server-only"
 import { isAdminRole } from "@/lib/auth/types"
 
-import { createHash } from "node:crypto"
-import { access, mkdir, readFile, writeFile } from "node:fs/promises"
-import path from "node:path"
-
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
-import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { key } from "@/lib/redis"
 import {
@@ -18,22 +13,25 @@ import {
   type PayrollReportRow,
 } from "@/modules/payroll/domain/reports"
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
-import { payrollRunReportRepository } from "@/modules/payroll/infrastructure/payroll-run-report.repository"
 import { renderPayrollReport } from "@/modules/payroll/application/services/report-renderers"
 
 /**
- * Page-data + action service for the "Download files" modal on the
- * payroll run detail page.
+ * Page-data + on-demand streaming service for the "Download files" modal
+ * on the payroll run detail page.
  *
- * - `getPayrollReportsModalData` reads the cached report rows for one
- *   run and merges them with the static meta into the row shape the
- *   modal renders.
- * - `generatePayrollReport` lazily renders one file (or returns the
- *   cached entry if it already exists), writes it to disk under
- *   `public/uploads/payroll-reports/<runId>/`, and upserts the row.
+ * Storage model: NOTHING is written to disk and NOTHING is cache-indexed
+ * in the DB. Every download re-renders the requested file from the
+ * (Redis-cached) payroll data and the bytes are streamed straight back
+ * with `Content-Disposition: attachment` + `Cache-Control: no-store`.
+ * The underlying payroll data is cheap to re-read (`getOrSetCache`), so
+ * re-rendering on every click keeps the statutory files always in sync
+ * with the live run — no stale files on disk, no cache-index rows to
+ * clean up on revert.
  *
- * Generation is gated on `status = SUBMITTED` (these are
- * post-finalisation outputs). Revert-to-draft clears everything.
+ * - `getPayrollReportsModalData` returns the static per-kind meta rows
+ *   the modal renders, plus `canGenerate` (gated on `status = SUBMITTED`).
+ * - `readPayrollReportFile` renders one file on demand and returns its
+ *   bytes for a route handler to stream.
  */
 
 export async function getPayrollReportsModalData(input: {
@@ -53,9 +51,9 @@ export async function getPayrollReportsModalData(input: {
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
-  // 10-min TTL; busted by `bustPayrollCaches` on run mutations and on
-  // every file generation (generatePayrollReport), so the per-row
-  // "generated" stamps stay current. Keyed by runId.
+  // 10-min TTL; busted by `bustPayrollCaches` on run mutations. Keyed by
+  // runId. Nothing per-file is stored any more, so this only caches the
+  // run's period/status/org-name for the modal header.
   return getOrSetCache(
     key("org", orgId, "payroll", "page", "reports-modal", input.runId),
     600,
@@ -77,7 +75,7 @@ async function loadReportsModalData(
   const prisma = getPrismaClient()
   if (!prisma) return null
 
-  const [run, org, stored] = await Promise.all([
+  const [run, org] = await Promise.all([
     payrollRunRepository.getByIdForOrg({
       id: runId,
       organizationId: orgId,
@@ -86,28 +84,16 @@ async function loadReportsModalData(
       where: { id: orgId },
       select: { name: true },
     }),
-    payrollRunReportRepository.listForRun(runId),
   ])
 
   if (!run) return null
 
-  const storedByKind = new Map(stored.map((s) => [s.kind, s]))
-
-  const rows: PayrollReportRow[] = payrollReportKinds.map((kind) => {
-    const meta = PAYROLL_REPORT_META[kind]
-    const cached = storedByKind.get(kind)
-    return {
-      ...meta,
-      generated: cached
-        ? {
-            fileName: cached.fileName,
-            fileUrl: cached.fileUrl,
-            sizeBytes: cached.sizeBytes,
-            generatedAt: cached.generatedAt.toISOString(),
-          }
-        : null,
-    }
-  })
+  // Every download is rendered on demand, so there's no per-run
+  // "generated" state to merge — every row is just the static meta.
+  const rows: PayrollReportRow[] = payrollReportKinds.map((kind) => ({
+    ...PAYROLL_REPORT_META[kind],
+    generated: null,
+  }))
 
   return {
     runId: run.id,
@@ -120,117 +106,51 @@ async function loadReportsModalData(
 }
 
 /**
- * Generate (or return the cached entry for) one payroll report file.
+ * Render one payroll report file on demand and return its bytes for a
+ * route handler to stream back with a proper `Content-Disposition`.
  *
- * If the file is already on disk + has a row in `PayrollRunReport`, we
- * short-circuit. Otherwise we call the matching renderer, hash + write
- * the bytes, then upsert the row.
- *
- * Returns the URL the browser should hit (relative `/uploads/...`).
+ * No disk, no repo, no cache read — the file is produced fresh from the
+ * matching renderer every time. Gated on `status = SUBMITTED` (these are
+ * post-finalisation outputs). Returns null when the session/org doesn't
+ * match, the run can't be found, or it isn't submitted yet.
  */
-export async function generatePayrollReport(input: {
+export async function readPayrollReportFile(input: {
   runId: string
   kind: PayrollReportKind
-  /// Override the payment date — only consumed by `BANK_PB_ECP_XLSX`.
-  /// When set, the cached file is invalidated and re-rendered with
-  /// the new date. ISO date string (YYYY-MM-DD).
+  /// Optional admin-supplied payment date (PB ECP only). ISO YYYY-MM-DD.
   paymentDate?: string
 }): Promise<{
+  bytes: Buffer
   fileName: string
-  fileUrl: string
   mimeType: string
-  sizeBytes: number
-  alreadyCached: boolean
-}> {
+} | null> {
   const session = await getCurrentSession()
-  if (!session || !isAdminRole(session.role)) {
-    throw new Error("Session expired. Please log in again.")
-  }
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
-  if (!orgId) throw new Error("No active organisation.")
+  if (!orgId) return null
 
   const run = await payrollRunRepository.getByIdForOrg({
     id: input.runId,
     organizationId: orgId,
   })
-  if (!run) throw new Error("Payroll run not found.")
-  if (run.status !== "SUBMITTED") {
-    throw new Error(
-      "This run hasn't been submitted yet. Submit + approve the run before downloading files.",
-    )
-  }
+  if (!run) return null
+  // SUBMITTED gate — statutory outputs are only produced for finalised
+  // runs. Drafts return null (→ 404) so the browser never gets bytes.
+  if (run.status !== "SUBMITTED") return null
 
-  // PB ECP is the one kind where the user-supplied payment date is
-  // part of the file CONTENT (Row 1) + filename (DDMMYY). Cache key
-  // doesn't include date, so we sidestep the cache for this kind —
-  // each click regenerates with the current admin-supplied date.
-  // File size is small (low KBs) so re-rendering on every click is
-  // cheap.
-  //
-  // PCB TXT is also regenerated on each click because it depends on live
-  // statutory identity fields and LHDN's portal rejects incomplete
-  // fixed-width rows. This prevents an older bad TXT from being served
-  // after the admin corrects passport/employee/tax fields.
-  const skipCacheRead =
-    input.kind === "BANK_PB_ECP_XLSX" || input.kind === "PCB_TXT"
-
-  // Cache hit — return the existing entry without re-rendering.
-  const cached = skipCacheRead
-    ? null
-    : await payrollRunReportRepository.getByRunAndKind({
-        payrollRunId: run.id,
-        kind: input.kind,
-      })
-  if (cached) {
-    // The DB row claims the file exists, but the bytes live on disk
-    // under public/uploads — and that can be wiped by a deploy or a
-    // public/ cleanup while the row survives. If we trust the row
-    // blindly we hand back a URL that 404s ("File wasn't available on
-    // site") with no way to recover, since every retry re-returns the
-    // same dead row. So verify the physical file is still there; only
-    // short-circuit when it is. Otherwise fall through and re-render.
-    const onDiskPath = path.join(
-      process.cwd(),
-      "public",
-      cached.fileUrl.replace(/^\/+/, ""),
-    )
-    const fileExists = await access(onDiskPath).then(
-      () => true,
-      () => false,
-    )
-    // ALSO invalidate when the cached file format (mimeType) no
-    // longer matches the current report meta. Bulk payslips
-    // switched from `application/pdf` to `application/zip` in
-    // 2026-06; without this check, runs that generated the bulk
-    // PDF before the change would forever serve the stale .pdf
-    // instead of the new ZIP. Generic mechanism, not bulk-specific.
-    const expectedMime = PAYROLL_REPORT_META[input.kind].mimeType
-    const mimeStillMatches = cached.mimeType === expectedMime
-    if (fileExists && mimeStillMatches) {
-      return {
-        fileName: cached.fileName,
-        fileUrl: cached.fileUrl,
-        mimeType: cached.mimeType,
-        sizeBytes: cached.sizeBytes,
-        alreadyCached: true,
-      }
-    }
-  }
-
-  // Cache miss — render the bytes via the matching renderer.
-  const meta = PAYROLL_REPORT_META[input.kind]
-  const generatedAt = new Date()
   let fileName = buildReportFileName({
     kind: input.kind,
     periodYear: run.periodYear,
     periodMonth: run.periodMonth,
-    generatedAt,
+    generatedAt: new Date(),
   })
-  // PB ECP filename is bank-spec'd (`<account>PR<DDMMYY><NN>.xlsx`).
-  // Override the generic name with the proper PB filename so the
-  // file the admin downloads is upload-ready into PB enterprise.
-  // Payment date defaults to the last day of the period month when
-  // the admin doesn't override it.
+
+  // PB ECP is the one kind where the admin-supplied payment date is part
+  // of the file CONTENT (Row 1) + filename (DDMMYY). Payment date
+  // defaults to the last day of the period month when the admin doesn't
+  // override it. The bank-spec filename (`<account>PR<DDMMYY><NN>.xlsx`)
+  // overrides the generic name so the download is upload-ready into PB
+  // enterprise.
   let resolvedPaymentDate: Date | undefined
   if (input.kind === "BANK_PB_ECP_XLSX") {
     const { payrollSettingsRepository } = await import(
@@ -256,157 +176,11 @@ export async function generatePayrollReport(input: {
     paymentDate: resolvedPaymentDate,
   })
 
-  // Persist to disk under public/uploads/payroll-reports/<runId>/.
-  const uploadDir = path.join(
-    process.cwd(),
-    "public",
-    "uploads",
-    "payroll-reports",
-    run.id,
-  )
-  await mkdir(uploadDir, { recursive: true })
-
-  // Filesystem-safe filename based on the kind (not the
-  // user-facing one) — the user-facing name is set via the
-  // Content-Disposition header on download.
-  const onDiskName = `${input.kind.toLowerCase()}.${meta.extension}`
-  const onDiskPath = path.join(uploadDir, onDiskName)
-  await writeFile(onDiskPath, bytes)
-
-  const fileUrl = `/uploads/payroll-reports/${run.id}/${onDiskName}`
-  const contentHash = createHash("sha256").update(bytes).digest("hex")
-
-  await payrollRunReportRepository.upsert({
-    payrollRunId: run.id,
-    kind: input.kind,
-    fileName,
-    fileUrl,
-    mimeType: meta.mimeType,
-    sizeBytes: bytes.byteLength,
-    contentHash,
-  })
-
-  // Bust the run-detail cache so the modal sees the new "generated"
-  // state on its next load (the modal data is loaded inside the
-  // run-detail server component).
-  await bustPayrollCaches({ organizationId: orgId })
-
   return {
+    bytes,
     fileName,
-    fileUrl,
-    mimeType: meta.mimeType,
-    sizeBytes: bytes.byteLength,
-    alreadyCached: false,
+    mimeType: PAYROLL_REPORT_META[input.kind].mimeType,
   }
-}
-
-/**
- * Read the bytes of one generated report so a route handler can stream
- * it back to the browser with a proper `Content-Disposition`.
- *
- * Why this exists: the files live under `public/uploads/...`, but
- * Next.js only serves files that were present in `public/` when the
- * server started — anything written at runtime (which is exactly how
- * these reports are produced) is NOT served by the static handler and
- * 404s ("File wasn't available on site"). So instead of linking the
- * browser straight at `/uploads/...`, we stream the bytes through an
- * admin route that reads them off disk here.
- *
- * Prefers the already-generated file on disk; if the row exists but the
- * bytes are gone (e.g. a deploy wiped `public/`), it falls back to
- * re-rendering via `generatePayrollReport`. Returns null when the
- * session/org doesn't match or the run/file can't be produced.
- */
-export async function readPayrollReportFile(input: {
-  runId: string
-  kind: PayrollReportKind
-}): Promise<{
-  bytes: Buffer
-  fileName: string
-  mimeType: string
-} | null> {
-  const session = await getCurrentSession()
-  if (!session || !isAdminRole(session.role)) return null
-  const orgId = resolveActiveOrgId(session)
-  if (!orgId) return null
-
-  const run = await payrollRunRepository.getByIdForOrg({
-    id: input.runId,
-    organizationId: orgId,
-  })
-  if (!run) return null
-
-  // Fast path — the row exists and the bytes are still on disk.
-  const row = await payrollRunReportRepository.getByRunAndKind({
-    payrollRunId: run.id,
-    kind: input.kind,
-  })
-  if (row && input.kind !== "PCB_TXT") {
-    const onDiskPath = path.join(
-      process.cwd(),
-      "public",
-      row.fileUrl.replace(/^\/+/, ""),
-    )
-    const bytes = await readFile(onDiskPath).then(
-      (b) => b,
-      () => null,
-    )
-    if (bytes) {
-      return { bytes, fileName: row.fileName, mimeType: row.mimeType }
-    }
-  }
-
-  // Missing on disk (or never generated) — re-render. This re-runs the
-  // SUBMITTED gate + writes the file, then we read it straight back.
-  const gen = await generatePayrollReport({
-    runId: run.id,
-    kind: input.kind,
-  })
-  const regenPath = path.join(
-    process.cwd(),
-    "public",
-    gen.fileUrl.replace(/^\/+/, ""),
-  )
-  const bytes = await readFile(regenPath)
-  return { bytes, fileName: gen.fileName, mimeType: gen.mimeType }
-}
-
-/**
- * Return only the generation status rows for a run, bypassing the Redis
- * cache so polling sees real-time state. Used by the status API route.
- */
-export async function getPayrollReportStatusRows(input: {
-  runId: string
-}): Promise<PayrollReportRow[] | null> {
-  const session = await getCurrentSession()
-  if (!session || !isAdminRole(session.role)) return null
-  const orgId = resolveActiveOrgId(session)
-  if (!orgId) return null
-
-  const run = await payrollRunRepository.getByIdForOrg({
-    id: input.runId,
-    organizationId: orgId,
-  })
-  if (!run) return null
-
-  const stored = await payrollRunReportRepository.listForRun(input.runId)
-  const storedByKind = new Map(stored.map((s) => [s.kind, s]))
-
-  return payrollReportKinds.map((kind) => {
-    const meta = PAYROLL_REPORT_META[kind]
-    const cached = storedByKind.get(kind)
-    return {
-      ...meta,
-      generated: cached
-        ? {
-            fileName: cached.fileName,
-            fileUrl: cached.fileUrl,
-            sizeBytes: cached.sizeBytes,
-            generatedAt: cached.generatedAt.toISOString(),
-          }
-        : null,
-    }
-  })
 }
 
 /// Parse a YYYY-MM-DD string into a Date at local midnight.

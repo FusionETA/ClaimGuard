@@ -93,8 +93,6 @@ export const ModelName = {
   PayrollCompanyInfo: 'PayrollCompanyInfo',
   PayrollPortalCredential: 'PayrollPortalCredential',
   PayrollRun: 'PayrollRun',
-  PayrollRunReport: 'PayrollRunReport',
-  PayrollAnnualReport: 'PayrollAnnualReport',
   PayrollRunClaim: 'PayrollRunClaim',
   PayrollRunAdjustment: 'PayrollRunAdjustment',
   Payslip: 'Payslip',
@@ -1024,37 +1022,6 @@ export const PayrollRunScalarFieldEnum = {
 } as const
 
 export type PayrollRunScalarFieldEnum = (typeof PayrollRunScalarFieldEnum)[keyof typeof PayrollRunScalarFieldEnum]
-
-
-export const PayrollRunReportScalarFieldEnum = {
-  id: 'id',
-  payrollRunId: 'payrollRunId',
-  kind: 'kind',
-  fileName: 'fileName',
-  fileUrl: 'fileUrl',
-  mimeType: 'mimeType',
-  sizeBytes: 'sizeBytes',
-  contentHash: 'contentHash',
-  generatedAt: 'generatedAt'
-} as const
-
-export type PayrollRunReportScalarFieldEnum = (typeof PayrollRunReportScalarFieldEnum)[keyof typeof PayrollRunReportScalarFieldEnum]
-
-
-export const PayrollAnnualReportScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  year: 'year',
-  kind: 'kind',
-  fileName: 'fileName',
-  fileUrl: 'fileUrl',
-  mimeType: 'mimeType',
-  sizeBytes: 'sizeBytes',
-  contentHash: 'contentHash',
-  generatedAt: 'generatedAt'
-} as const
-
-export type PayrollAnnualReportScalarFieldEnum = (typeof PayrollAnnualReportScalarFieldEnum)[keyof typeof PayrollAnnualReportScalarFieldEnum]
 
 
 export const PayrollRunClaimScalarFieldEnum = {
@@ -2019,30 +1986,6 @@ export const PayrollRunOrderByRelevanceFieldEnum = {
 } as const
 
 export type PayrollRunOrderByRelevanceFieldEnum = (typeof PayrollRunOrderByRelevanceFieldEnum)[keyof typeof PayrollRunOrderByRelevanceFieldEnum]
-
-
-export const PayrollRunReportOrderByRelevanceFieldEnum = {
-  id: 'id',
-  payrollRunId: 'payrollRunId',
-  fileName: 'fileName',
-  fileUrl: 'fileUrl',
-  mimeType: 'mimeType',
-  contentHash: 'contentHash'
-} as const
-
-export type PayrollRunReportOrderByRelevanceFieldEnum = (typeof PayrollRunReportOrderByRelevanceFieldEnum)[keyof typeof PayrollRunReportOrderByRelevanceFieldEnum]
-
-
-export const PayrollAnnualReportOrderByRelevanceFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  fileName: 'fileName',
-  fileUrl: 'fileUrl',
-  mimeType: 'mimeType',
-  contentHash: 'contentHash'
-} as const
-
-export type PayrollAnnualReportOrderByRelevanceFieldEnum = (typeof PayrollAnnualReportOrderByRelevanceFieldEnum)[keyof typeof PayrollAnnualReportOrderByRelevanceFieldEnum]
 
 
 export const PayrollRunClaimOrderByRelevanceFieldEnum = {

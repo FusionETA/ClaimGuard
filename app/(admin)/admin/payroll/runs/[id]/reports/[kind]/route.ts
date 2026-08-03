@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { safeErrorMessage } from "@/lib/errors"
 import { readPayrollReportFile } from "@/modules/payroll/application/services/payroll-reports.service"
 import {
   payrollReportKinds,
@@ -7,20 +8,20 @@ import {
 } from "@/modules/payroll/domain/reports"
 
 /**
- * GET /admin/payroll/runs/[id]/reports/[kind]
+ * GET /admin/payroll/runs/[id]/reports/[kind]?paymentDate=YYYY-MM-DD
  *
- * Streams one cached payroll report file (EPF CSV, SOCSO+EIS TXT,
- * PCB TXT, the PDFs, the PB ECP xlsx, …) back to the browser with a
- * `Content-Disposition: attachment` header.
+ * Renders one payroll report file (EPF CSV, SOCSO+EIS TXT, PCB TXT, the
+ * PDFs, the PB ECP xlsx, …) ON DEMAND and streams it back to the browser
+ * with a `Content-Disposition: attachment` header. Nothing is stored —
+ * the bytes are produced fresh from the (Redis-cached) payroll data on
+ * every request, so the statutory files always match the live run.
  *
- * Why a route handler instead of linking `/uploads/...` directly:
- * Next.js only serves files that existed in `public/` at server start.
- * These reports are written at runtime, so the static handler 404s
- * them ("File wasn't available on site"). Reading the bytes here and
- * streaming them sidesteps static serving entirely.
+ * `paymentDate` is only consumed by `BANK_PB_ECP_XLSX` (it flows into
+ * both the file content and the bank-spec filename); it's ignored for
+ * every other kind.
  *
- * Auth: admin only, scoped to the active org inside the service.
- * Also behind the `/admin/:path*` middleware role gate.
+ * Auth: admin only, scoped to the active org inside the service. Also
+ * behind the `/admin/:path*` middleware role gate.
  */
 export async function GET(
   _req: NextRequest,
@@ -32,10 +33,24 @@ export async function GET(
     return NextResponse.json({ error: "Unknown report kind." }, { status: 400 })
   }
 
-  const file = await readPayrollReportFile({
-    runId: id,
-    kind: kind as PayrollReportKind,
-  })
+  const paymentDate =
+    new URL(_req.url).searchParams.get("paymentDate") ?? undefined
+
+  let file: Awaited<ReturnType<typeof readPayrollReportFile>>
+  try {
+    file = await readPayrollReportFile({
+      runId: id,
+      kind: kind as PayrollReportKind,
+      paymentDate,
+    })
+  } catch (err) {
+    // A renderer can throw (e.g. payroll not run). Return a clean JSON
+    // error so the modal can toast it instead of getting a raw 500.
+    return NextResponse.json(
+      { error: safeErrorMessage(err, "Could not generate this file.") },
+      { status: 500 },
+    )
+  }
 
   if (!file) {
     return NextResponse.json(

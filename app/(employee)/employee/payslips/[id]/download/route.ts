@@ -5,10 +5,10 @@ import { getEmployeePayslipPdfBytes } from "@/modules/payroll/application/servic
 /**
  * GET /employee/payslips/[id]/download
  *
- * Streams the employee's individual payslip PDF extracted from the
- * pre-generated bulk payslips ZIP. Returns 404 when the ZIP hasn't been
- * generated yet (admin hasn't approved the run, or pre-gen is still in
- * progress).
+ * Renders the employee's individual payslip PDF ON DEMAND and streams it
+ * back. Nothing is stored — the PDF is produced fresh from the payslip
+ * snapshot each time. Returns 404 when the caller doesn't own the
+ * payslip or the run isn't SUBMITTED (drafts are admin-only).
  */
 export async function GET(
   _req: NextRequest,

@@ -397,38 +397,6 @@ export type PayrollPortalCredential = Prisma.PayrollPortalCredentialModel
  */
 export type PayrollRun = Prisma.PayrollRunModel
 /**
- * Model PayrollRunReport
- * One row per generated downloadable file for a payroll run (payroll
- * summary PDF, EPF CSV, SOCSO+EIS TXT, PCB TXT, etc.). Built lazily on
- * the first "Download" click from the modal, then cached so repeat
- * clicks serve instantly without re-rendering.
- * 
- * Lifecycle:
- * - Created on first download click after a run is SUBMITTED.
- * - Cascade-deleted when the run is deleted.
- * - Explicitly deleted (+ file removed from disk) when the run is
- * reverted to draft, so the next re-submit produces fresh files
- * matching the (potentially changed) numbers.
- * 
- * The actual file bytes live under
- * `public/uploads/payroll-reports/{runId}/{kind}.{ext}`
- * and are reachable via `fileUrl`. We keep a `contentHash` for
- * optional change detection if we later add a "regenerate if changed"
- * flow.
- */
-export type PayrollRunReport = Prisma.PayrollRunReportModel
-/**
- * Model PayrollAnnualReport
- * Year-level annual tax forms aggregating every SUBMITTED run in a
- * calendar year. Cached lazily on first download — busted whenever
- * any underlying run for the year changes state (approve / revert /
- * delete) so the cached file always reflects the live SUBMITTED set.
- * 
- * Cascade on org delete; explicit cleanup on run state changes via
- * `payrollAnnualReportRepository.deleteForYear`.
- */
-export type PayrollAnnualReport = Prisma.PayrollAnnualReportModel
-/**
  * Model PayrollRunClaim
  * Join row attaching an approved (SYNCED + PERSONAL paymentType)
  * AltomateHR claim to a payroll run as a REIMBURSEMENT. Persisted

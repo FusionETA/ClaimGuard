@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache"
 
 import { safeErrorMessage } from "@/lib/errors"
 import { applySalaryChangeHint } from "@/modules/payroll/application/services/salary-change-hints.service"
-import { generatePayrollReport } from "@/modules/payroll/application/services/payroll-reports.service"
 import {
   generatePayrollPayslips,
   getPayrollPayslipDetailPageData,
@@ -14,7 +13,6 @@ import {
   type AdjustmentImportError,
   type AdjustmentImportSummary,
 } from "@/modules/payroll/application/services/payroll-run-adjustment-import.service"
-import type { PayrollReportKind } from "@/modules/payroll/domain/reports"
 import type { PayslipData } from "@/modules/payroll/domain/runs"
 
 /**
@@ -35,64 +33,6 @@ export async function fetchPayslipDetailForExpansionAction(input: {
   })
   if (!result) return null
   return result.payslip
-}
-
-/**
- * Server action called from the "Download files" modal. Generates the
- * requested report on the first click (caching to disk + DB), or
- * returns the cached entry on subsequent clicks. The client then
- * triggers a download against `fileUrl`.
- *
- * Always returns a result object — never throws — so the client can
- * surface a clean toast on failure.
- */
-export type GeneratePayrollReportActionResult =
-  | {
-      status: "ready"
-      fileName: string
-      fileUrl: string
-      mimeType: string
-      sizeBytes: number
-      alreadyCached: boolean
-    }
-  | {
-      status: "error"
-      message: string
-    }
-
-export async function generatePayrollReportAction(input: {
-  runId: string
-  kind: PayrollReportKind
-  /// Optional admin-supplied payment date (PB ECP only). ISO YYYY-MM-DD.
-  paymentDate?: string
-}): Promise<GeneratePayrollReportActionResult> {
-  try {
-    const result = await generatePayrollReport({
-      runId: input.runId,
-      kind: input.kind,
-      paymentDate: input.paymentDate,
-    })
-    // Hand the browser a route-handler URL, NOT the raw `/uploads/...`
-    // path. Next.js doesn't serve files written to `public/` at
-    // runtime, so the static path 404s; the route streams the bytes
-    // off disk instead. The file itself was just written to disk by
-    // `generatePayrollReport` above (with the correct PB ECP payment
-    // date when applicable), so the route reads exactly that copy.
-    const downloadUrl = `/admin/payroll/runs/${input.runId}/reports/${input.kind}`
-    return {
-      status: "ready",
-      fileName: result.fileName,
-      fileUrl: downloadUrl,
-      mimeType: result.mimeType,
-      sizeBytes: result.sizeBytes,
-      alreadyCached: result.alreadyCached,
-    }
-  } catch (err) {
-    return {
-      status: "error",
-      message: safeErrorMessage(err, "Could not generate this file."),
-    }
-  }
 }
 
 /**

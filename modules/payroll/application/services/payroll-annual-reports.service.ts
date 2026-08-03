@@ -1,13 +1,8 @@
 import "server-only"
 import { isAdminRole } from "@/lib/auth/types"
 
-import { createHash } from "node:crypto"
-import { mkdir, writeFile } from "node:fs/promises"
-import path from "node:path"
-
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
-import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { key } from "@/lib/redis"
 import {
@@ -18,7 +13,6 @@ import {
   type PayrollAnnualReportRow,
 } from "@/modules/payroll/domain/annual-reports"
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
-import { payrollAnnualReportRepository } from "@/modules/payroll/infrastructure/payroll-annual-report.repository"
 import { payrollCompanyInfoRepository } from "@/modules/payroll/infrastructure/payroll-company-info.repository"
 import { renderFormEaBulkPdf } from "@/modules/payroll/application/services/report-renderers/form-ea-bulk-pdf"
 import { renderFormECp8dPdf } from "@/modules/payroll/application/services/report-renderers/form-e-cp8d-pdf"
@@ -26,16 +20,20 @@ import { renderCp8dEmployerTxt } from "@/modules/payroll/application/services/re
 import { renderCp8dEmployeeTxt } from "@/modules/payroll/application/services/report-renderers/cp8d-employee-txt"
 
 /**
- * Page-data + action service for the "Annual Tax Forms" page.
+ * Page-data + on-demand streaming service for the "Annual Tax Forms"
+ * page.
  *
- * - `getPayrollAnnualReportsModalData(year)` returns the cached rows
- *   joined with static meta, plus the list of years we have any
- *   SUBMITTED runs for (drives the year picker).
- * - `generatePayrollAnnualReport(year, kind)` renders/saves the
- *   requested file (or short-circuits on cache hit).
+ * Storage model matches the per-run reports: NOTHING is written to disk
+ * or cache-indexed. Every download re-renders the file from the live
+ * SUBMITTED payroll runs and streams the bytes back. The year gate (all
+ * Jan-Dec runs approved) is enforced on both the page (`canGenerate`)
+ * and the read path.
  *
- * Year is bound by a complete Jan-Dec set of SUBMITTED runs — annual
- * statutory forms must not be generated from a partial year.
+ * - `getPayrollAnnualReportsPageData(year)` returns the static per-kind
+ *   meta rows joined with coverage info, plus the list of years we have
+ *   any SUBMITTED runs for (drives the year picker).
+ * - `readPayrollAnnualReportFile(year, kind)` renders one file on demand
+ *   and returns its bytes for a route handler to stream.
  */
 
 export async function getPayrollAnnualReportsPageData(input: {
@@ -64,8 +62,7 @@ export async function getPayrollAnnualReportsPageData(input: {
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
-  // 10-min TTL; busted by `bustPayrollCaches` on run submissions AND on
-  // annual-report generation (see generatePayrollAnnualReport). Keyed
+  // 10-min TTL; busted by `bustPayrollCaches` on run submissions. Keyed
   // by the selected year so each year's modal caches independently.
   return getOrSetCache(
     key("org", orgId, "payroll", "page", "annual-reports", String(input.year ?? "default")),
@@ -108,34 +105,18 @@ async function loadAnnualReportsPageData(
   const fallbackYear = availableYears[0] ?? new Date().getFullYear()
   const selectedYear = year ?? fallbackYear
 
-  const [stored, coverage] = await Promise.all([
-    payrollAnnualReportRepository.listForYear({
-      organizationId: orgId,
-      year: selectedYear,
-    }),
-    payrollRunRepository.getAnnualSubmissionCoverage({
-      organizationId: orgId,
-      year: selectedYear,
-    }),
-  ])
-  const storedByKind = new Map(stored.map((s) => [s.kind, s]))
+  const coverage = await payrollRunRepository.getAnnualSubmissionCoverage({
+    organizationId: orgId,
+    year: selectedYear,
+  })
 
+  // Every download is rendered on demand, so there's no per-year
+  // "generated" state to merge — every row is just the static meta.
   const rows: PayrollAnnualReportRow[] = payrollAnnualReportKinds.map(
-    (kind) => {
-      const meta = PAYROLL_ANNUAL_REPORT_META[kind]
-      const cached = storedByKind.get(kind)
-      return {
-        ...meta,
-        generated: cached
-          ? {
-              fileName: cached.fileName,
-              fileUrl: cached.fileUrl,
-              sizeBytes: cached.sizeBytes,
-              generatedAt: cached.generatedAt.toISOString(),
-            }
-          : null,
-      }
-    },
+    (kind) => ({
+      ...PAYROLL_ANNUAL_REPORT_META[kind],
+      generated: null,
+    }),
   )
 
   const canGenerate = coverage.complete
@@ -155,45 +136,36 @@ async function loadAnnualReportsPageData(
   }
 }
 
-export async function generatePayrollAnnualReport(input: {
+/**
+ * Render one annual tax form on demand and return its bytes for a route
+ * handler to stream. No disk, no repo, no cache read — produced fresh
+ * from the live SUBMITTED runs every time.
+ *
+ * Gated on the complete Jan-Dec set of SUBMITTED runs (annual statutory
+ * forms must not be generated from a partial year). Returns null when
+ * the session/org doesn't match or the year isn't complete.
+ */
+export async function readPayrollAnnualReportFile(input: {
   year: number
   kind: PayrollAnnualReportKind
 }): Promise<{
+  bytes: Buffer
   fileName: string
-  fileUrl: string
   mimeType: string
-  sizeBytes: number
-  alreadyCached: boolean
-}> {
+} | null> {
   const session = await getCurrentSession()
-  if (!session || !isAdminRole(session.role)) {
-    throw new Error("Session expired. Please log in again.")
-  }
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
-  if (!orgId) throw new Error("No active organisation.")
+  if (!orgId) return null
 
-  await assertAnnualYearComplete({
+  // Complete-year gate — the full Jan-Dec set of SUBMITTED runs must
+  // exist before any annual statutory form is produced.
+  const coverage = await payrollRunRepository.getAnnualSubmissionCoverage({
     organizationId: orgId,
     year: input.year,
   })
+  if (!coverage.complete) return null
 
-  // Cache hit — short-circuit.
-  const cached = await payrollAnnualReportRepository.getByYearAndKind({
-    organizationId: orgId,
-    year: input.year,
-    kind: input.kind,
-  })
-  if (cached) {
-    return {
-      fileName: cached.fileName,
-      fileUrl: cached.fileUrl,
-      mimeType: cached.mimeType,
-      sizeBytes: cached.sizeBytes,
-      alreadyCached: true,
-    }
-  }
-
-  // Render bytes via the matching renderer.
   const bytes = await renderAnnual({ year: input.year, kind: input.kind })
 
   // Look up employer number for the filename — CP8D files include it.
@@ -207,63 +179,7 @@ export async function generatePayrollAnnualReport(input: {
     employerNo,
   })
 
-  const uploadDir = path.join(
-    process.cwd(),
-    "public",
-    "uploads",
-    "payroll-annual-reports",
-    orgId,
-    String(input.year),
-  )
-  await mkdir(uploadDir, { recursive: true })
-
-  const onDiskName = `${input.kind.toLowerCase()}.${meta.extension}`
-  const onDiskPath = path.join(uploadDir, onDiskName)
-  await writeFile(onDiskPath, bytes)
-
-  const fileUrl = `/uploads/payroll-annual-reports/${orgId}/${input.year}/${onDiskName}`
-  const contentHash = createHash("sha256").update(bytes).digest("hex")
-
-  await payrollAnnualReportRepository.upsert({
-    organizationId: orgId,
-    year: input.year,
-    kind: input.kind,
-    fileName,
-    fileUrl,
-    mimeType: meta.mimeType,
-    sizeBytes: bytes.byteLength,
-    contentHash,
-  })
-
-  // The annual-forms modal caches each row's "generated" state — bust
-  // so the new file shows as available on the next page load.
-  await bustPayrollCaches({ organizationId: orgId })
-
-  return {
-    fileName,
-    fileUrl,
-    mimeType: meta.mimeType,
-    sizeBytes: bytes.byteLength,
-    alreadyCached: false,
-  }
-}
-
-async function assertAnnualYearComplete(input: {
-  organizationId: string
-  year: number
-}): Promise<void> {
-  const coverage = await payrollRunRepository.getAnnualSubmissionCoverage(input)
-  if (coverage.complete) return
-  const missing = coverage.missingMonths
-    .map((month) =>
-      new Intl.DateTimeFormat("en-US", { month: "short" }).format(
-        new Date(Date.UTC(input.year, month - 1, 1)),
-      ),
-    )
-    .join(", ")
-  throw new Error(
-    `Annual tax forms require all Jan-Dec payroll runs to be approved. Missing: ${missing}.`,
-  )
+  return { bytes, fileName, mimeType: meta.mimeType }
 }
 
 async function renderAnnual(input: {

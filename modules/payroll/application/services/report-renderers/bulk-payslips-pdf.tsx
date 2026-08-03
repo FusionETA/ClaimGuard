@@ -3,10 +3,13 @@ import "server-only"
 import JSZip from "jszip"
 import { renderToBuffer } from "@react-pdf/renderer"
 
-import { EmployeePayslipPdfDocument } from "@/components/admin/payroll-report-pdf-documents"
+import {
+  EmployeePayslipPdfDocument,
+  type BulkPayslipPdfRow,
+} from "@/components/admin/payroll-report-pdf-documents"
 import { getPayrollRunDetailWithPayslipsPageData } from "@/modules/payroll/application/services/payroll-run.service"
 import { payslipRepository } from "@/modules/payroll/infrastructure/payslip.repository"
-import { periodLabel } from "@/modules/payroll/domain/runs"
+import { periodLabel, type PayslipData } from "@/modules/payroll/domain/runs"
 
 /**
  * Bulk payslip download — one PDF per employee, all bundled into a
@@ -143,6 +146,59 @@ export async function renderBulkPayslipsPdf(input: {
     compression: "DEFLATE",
   })
   return zipBytes
+}
+
+/**
+ * Render ONE employee's payslip PDF on demand — the same
+ * `EmployeePayslipPdfDocument` the bulk ZIP bundles, but for a single
+ * payslip and decoupled from the ZIP. Used by the employee-portal
+ * single-payslip download so an employee can pull their own PDF without
+ * the whole run's bulk ZIP being generated/stored first.
+ *
+ * Enriches the payslip with the same per-employee identity + calendar-
+ * year YTD the dense payslip PDF needs (mirrors the per-row enrichment
+ * inside `renderBulkPayslipsPdf`).
+ */
+export async function renderEmployeePayslipPdf(input: {
+  organizationName: string
+  periodYear: number
+  periodMonth: number
+  payslip: PayslipData
+}): Promise<Buffer> {
+  const [identity, ytd] = await Promise.all([
+    payslipRepository.getPayslipHeaderIdentity({
+      employeeProfileId: input.payslip.employeeProfileId,
+    }),
+    payslipRepository.getYtdSummaryThroughPeriod({
+      employeeProfileId: input.payslip.employeeProfileId,
+      year: input.periodYear,
+      month: input.periodMonth,
+    }),
+  ])
+
+  const enriched: BulkPayslipPdfRow = {
+    ...input.payslip,
+    lineItemCount: input.payslip.lineItems.length,
+    identity,
+    ytd,
+  }
+
+  const issueDate = new Date(
+    input.periodYear,
+    input.periodMonth,
+    0, // day 0 of next month = last day of period month
+  )
+  const period = periodLabel(input.periodYear, input.periodMonth)
+
+  return renderToBuffer(
+    <EmployeePayslipPdfDocument
+      organizationName={input.organizationName}
+      period={period}
+      issueDate={issueDate}
+      payslip={enriched}
+      generatedAt={new Date()}
+    />,
+  )
 }
 
 /**

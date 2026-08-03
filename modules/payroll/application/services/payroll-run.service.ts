@@ -1,6 +1,5 @@
 import "server-only"
 import { isAdminRole } from "@/lib/auth/types"
-import { generatePayrollReport } from "./payroll-reports.service"
 
 import { getOrSetCache } from "@/lib/cache"
 import { bustPayrollCaches } from "@/lib/cache-invalidation"
@@ -41,8 +40,6 @@ import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payro
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { payrollRunAdjustmentRepository } from "@/modules/payroll/infrastructure/payroll-run-adjustment.repository"
 import { payrollRunClaimRepository } from "@/modules/payroll/infrastructure/payroll-run-claim.repository"
-import { payrollAnnualReportRepository } from "@/modules/payroll/infrastructure/payroll-annual-report.repository"
-import { payrollRunReportRepository } from "@/modules/payroll/infrastructure/payroll-run-report.repository"
 import {
   countActiveMalaysianEmployeesForOrg,
   hrdfTierFromCount,
@@ -769,13 +766,6 @@ async function approvePayrollRunCore(input: {
   // and any errors there bust again. The early bust guarantees the
   // status flip is visible even if sync hangs or the request aborts.
   await bustPayrollCaches({ organizationId: orgId })
-  // Approving this run added a new month into the year's annual
-  // aggregates — clear cached annual reports so the next generate
-  // includes this period.
-  await payrollAnnualReportRepository.deleteForYear({
-    organizationId: orgId,
-    year: run.periodYear,
-  })
 
   // Best-effort Xero sync. Lazy-imported to keep the payroll-run
   // service light when Xero isn't configured.
@@ -807,38 +797,8 @@ async function approvePayrollRunCore(input: {
     }
   }
 
-  // Pre-generate the run's downloadable reports in the background so
-  // they're ready by the time the admin opens the downloads modal.
-  //
-  // Fire-and-forget (`void`) — the approval response returns immediately.
-  // Crucially, this runs the reports SEQUENTIALLY with an event-loop
-  // yield between each, instead of firing all seven concurrently. The
-  // bulk-payslips PDF is a heavy react-pdf render; seven of these racing
-  // on the single Node process saturated the event loop and stalled the
-  // very next request (the admin clicking Back after approving). Ordered
-  // lightest-first so the common files are ready soonest and the heavy
-  // bulk-payslips PDF renders last, after the admin has navigated away.
-  void (async () => {
-    const kinds = [
-      "EPF_CSV",
-      "SOCSO_EIS_TXT",
-      "SOCSO_EIS_SKBBK_TXT",
-      "PAYMENT_SCHEDULE_PDF",
-      "PCB_LHDN_FORM_PDF",
-      "PAYROLL_SUMMARY_PDF",
-      "BULK_PAYSLIPS_PDF",
-    ] as const
-    for (const kind of kinds) {
-      try {
-        await generatePayrollReport({ runId: run.id, kind })
-      } catch (err) {
-        console.error(`[approvePayrollRun] pre-gen failed for ${kind}:`, err)
-      }
-      // Hand the event loop back so pending requests (e.g. the
-      // post-approve navigation) get CPU time between each render.
-      await new Promise<void>((resolve) => setImmediate(resolve))
-    }
-  })()
+  // Downloadable reports are rendered on demand when the admin opens the
+  // downloads modal — nothing is pre-generated or stored on disk here.
 
   return result
 }
@@ -900,22 +860,14 @@ export async function revertPayrollRunToDraft(input: {
     afterMonth: run.periodMonth,
   })
 
-  // Revert the target run plus every later submitted month.
+  // Revert the target run plus every later submitted month. Reports are
+  // rendered on demand (nothing cached on disk), so there's nothing to
+  // clean up here beyond the run state itself.
   const runIdsToRevert = [input.runId, ...laterRuns.map((r) => r.id)]
   for (const id of runIdsToRevert) {
     await payrollRunRepository.revertToDraft({ id, organizationId: orgId })
-    // Clear cached generated reports for each reverted run — their
-    // numbers may become stale once the admin edits the draft, so we
-    // force a re-generation on the next submit.
-    await payrollRunReportRepository.deleteForRun(id)
   }
 
-  // Annual reports for this run's year are invalidated — these runs are
-  // no longer SUBMITTED so their contribution shouldn't be included.
-  await payrollAnnualReportRepository.deleteForYear({
-    organizationId: orgId,
-    year: run.periodYear,
-  })
   await bustPayrollCaches({ organizationId: orgId })
 }
 
