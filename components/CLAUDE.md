@@ -35,6 +35,14 @@ Reusable React components. Subfolders:
   primitives already have `aria-invalid` styling — red border + ring).
 - Status filter dropdowns for claims: use `visibleStatusOptions` from
   `modules/claims/domain/models.ts`, NOT a local `claimStatuses.filter(...)`.
+- **Long dropdowns get a search box automatically.** `SelectContent`
+  (`components/ui/select.tsx`) counts its `SelectItem` children and renders
+  a sticky search field once there are more than 7 — see
+  `SEARCHABLE_OPTION_THRESHOLD`. Don't hand-roll a filter input inside a
+  `SelectContent`; override per-dropdown with `searchable` /
+  `searchPlaceholder` if you need to force it on or off. While a query is
+  active, `SelectLabel` and `SelectSeparator` rows are hidden so no empty
+  section headers are left behind.
 - **Dialog/modal scroll areas: always add `pl-1` (or `px-1`) on the
   overflow container.** Inputs, buttons, and focus rings inside a
   `DialogContent`'s scrolling div extend a few pixels past their
