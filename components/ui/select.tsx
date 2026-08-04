@@ -167,6 +167,21 @@ const SelectContent = React.forwardRef<
 
   const hasMatches = !showSearch || !trimmedQuery || (visibleChildren as React.ReactNode[]).length > 0
 
+  // Radix's SelectPrimitive.Content re-asserts DOM focus onto a list item
+  // every time the visible item set changes. As the query filters the list
+  // that yanks the caret out of the search box after the very first
+  // keystroke (you type one char, then the cursor vanishes). Once the
+  // filtered list has re-rendered, put focus back on the search input —
+  // but only while a query is active, and only if focus actually left it,
+  // so arrow-key navigation (which doesn't change the query) is never
+  // disturbed.
+  const searchInputRef = React.useRef<HTMLInputElement>(null)
+  React.useEffect(() => {
+    if (!showSearch || !trimmedQuery) return
+    const el = searchInputRef.current
+    if (el && document.activeElement !== el) el.focus()
+  }, [visibleChildren, showSearch, trimmedQuery])
+
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -192,6 +207,7 @@ const SelectContent = React.forwardRef<
             <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-background px-2.5 py-1.5">
               <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <input
+                ref={searchInputRef}
                 autoFocus
                 type="text"
                 value={query}

@@ -17,7 +17,10 @@ import { attendanceStatusMeta } from "@/modules/attendance/domain/metadata"
 import type { AttendanceRecordView } from "@/modules/attendance/domain/models"
 import { cn } from "@/lib/utils"
 
-const PAGE_SIZE = 50
+// Rows per page. MUST match `pageSize` in adminAttendanceService.getOrgHistory
+// (the server returns this many rows per page; the client uses it to derive
+// the page count + the "start–end of total" label).
+const PAGE_SIZE = 20
 
 /**
  * The four outcomes a day can have, plus OT. `CLOCKED_IN` / `CLOCKED_OUT`

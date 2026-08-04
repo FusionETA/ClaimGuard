@@ -336,7 +336,8 @@ export const adminAttendanceService = {
   }) {
     return attendanceRepository.getOrgAttendanceHistory({
       ...args,
-      pageSize: 50,
+      // MUST match PAGE_SIZE in components/attendance/org-history-panel.tsx.
+      pageSize: 20,
     })
   },
 
