@@ -128,6 +128,28 @@ export async function readPayrollReportFile(input: {
   if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
+  return renderPayrollReportFileForOrg({ ...input, organizationId: orgId })
+}
+
+/**
+ * Session-independent twin of `readPayrollReportFile`. Takes an explicit
+ * `organizationId` that the caller has already authorised, instead of
+ * reading the admin session — so the token-authenticated `/api/v1`
+ * payroll download endpoint can reuse the exact same on-demand renderer.
+ * Same SUBMITTED gate + cross-tenant scoping: `getByIdForOrg` returns null
+ * for a run that belongs to a different org, so no bytes ever cross tenants.
+ */
+export async function renderPayrollReportFileForOrg(input: {
+  runId: string
+  kind: PayrollReportKind
+  organizationId: string
+  paymentDate?: string
+}): Promise<{
+  bytes: Buffer
+  fileName: string
+  mimeType: string
+} | null> {
+  const orgId = input.organizationId
 
   const run = await payrollRunRepository.getByIdForOrg({
     id: input.runId,

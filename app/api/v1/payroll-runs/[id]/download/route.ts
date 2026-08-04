@@ -1,0 +1,135 @@
+import { NextResponse } from "next/server"
+import JSZip from "jszip"
+
+import { handleApiRequest } from "@/lib/api-auth"
+import { renderPayrollReportFileForOrg } from "@/modules/payroll/application/services/payroll-reports.service"
+import type { PayrollReportKind } from "@/modules/payroll/domain/reports"
+import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
+
+/**
+ * GET /api/v1/payroll-runs/[id]/download?paymentDate=YYYY-MM-DD
+ *
+ * Required scope: `payroll:read`.
+ *
+ * Streams a ZIP bundle of a submitted run's disbursement + statutory
+ * files so an external system (e.g. the ABPay importer) can pull
+ * everything it needs after approving the run — without an admin logging
+ * into AltomateHR.
+ *
+ * The bundle contains the bank payment file, the payslips, a summary PDF,
+ * and the three statutory upload files. Each file is rendered ON DEMAND
+ * from the live run (nothing is stored), reusing the same generator the
+ * in-app downloads modal uses.
+ *
+ * Security model (per design): the endpoint itself is the gate —
+ *   - Bearer token auth (`payroll:read` scope) + HTTPS,
+ *   - the token is org-scoped, and `getByIdForOrg` returns null for a run
+ *     in another org, so one tenant can never pull another's files,
+ *   - only SUBMITTED runs are downloadable (drafts → 409).
+ * The zip itself is NOT password-protected (a direct download, as agreed);
+ * add encryption at the zip layer later if the file needs at-rest
+ * protection on the caller's side.
+ *
+ * `paymentDate` (optional, ISO YYYY-MM-DD) only affects the bank PB ECP
+ * file's content + filename; it defaults to the last day of the period.
+ */
+
+// The disbursement bundle: bank payment file, payslips, a run summary,
+// and the three statutory upload files. A kind that can't be rendered for
+// this run (e.g. bank settings missing) is skipped rather than failing
+// the whole bundle — see the try/catch in the loop.
+const BUNDLE_KINDS: PayrollReportKind[] = [
+  "PAYROLL_SUMMARY_PDF",
+  "BANK_PB_ECP_XLSX",
+  "BULK_PAYSLIPS_PDF",
+  "EPF_CSV",
+  "SOCSO_EIS_TXT",
+  "PCB_TXT",
+]
+
+export const GET = handleApiRequest<{ id: string }>(
+  ["payroll:read"],
+  async (request, ctx) => {
+    const { id } = ctx.params
+    const organizationId = ctx.integration.organizationId
+
+    const run = await payrollRunRepository.getByIdForOrg({ id, organizationId })
+    if (!run) {
+      return NextResponse.json(
+        { error: { status: 404, message: "Payroll run not found." } },
+        { status: 404 },
+      )
+    }
+    if (run.status !== "SUBMITTED") {
+      return NextResponse.json(
+        {
+          error: {
+            status: 409,
+            message:
+              "Run is not submitted yet — approve it before downloading its files.",
+          },
+        },
+        { status: 409 },
+      )
+    }
+
+    const paymentDate =
+      new URL(request.url).searchParams.get("paymentDate") ?? undefined
+
+    const zip = new JSZip()
+    const included: string[] = []
+    for (const kind of BUNDLE_KINDS) {
+      try {
+        const file = await renderPayrollReportFileForOrg({
+          runId: id,
+          kind,
+          organizationId,
+          paymentDate,
+        })
+        if (file) {
+          zip.file(file.fileName, file.bytes)
+          included.push(file.fileName)
+        }
+      } catch (err) {
+        // A single renderer can throw (e.g. no bank account configured).
+        // Skip just that file so the caller still gets the rest.
+        console.error(
+          `[api/v1] payroll download: skipped ${kind} for run ${id}:`,
+          err,
+        )
+      }
+    }
+
+    if (included.length === 0) {
+      return NextResponse.json(
+        {
+          error: {
+            status: 422,
+            message: "No files could be generated for this run.",
+          },
+        },
+        { status: 422 },
+      )
+    }
+
+    const zipBytes = await zip.generateAsync({
+      type: "nodebuffer",
+      compression: "DEFLATE",
+    })
+    const bundleName = `payroll-${run.periodYear}-${String(
+      run.periodMonth,
+    ).padStart(2, "0")}.zip`
+
+    return new NextResponse(zipBytes as unknown as BodyInit, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/zip",
+        "Content-Disposition": `attachment; filename="${bundleName}"`,
+        "Cache-Control": "no-store",
+        // Lets the caller see how many files made it into the bundle
+        // without unzipping first.
+        "X-Bundle-File-Count": String(included.length),
+      },
+    })
+  },
+)
