@@ -34,6 +34,14 @@ import {
 import { useToast } from "@/components/ui/toaster"
 import { cn, formatCurrency, formatShortDate } from "@/lib/utils"
 import type { ClaimRecord } from "@/modules/claims/domain/models"
+
+/** Local (not UTC) YYYY-MM-DD — matches `<input type="date">` for range compares. */
+function toDayString(value: Date | string): string {
+  const d = typeof value === "string" ? new Date(value) : value
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`
+}
 import type { PayrollRunRow } from "@/modules/payroll/domain/runs"
 
 /**
@@ -57,19 +65,26 @@ export function ClaimPayrollReadyList({
   xeroConnected: boolean
 }) {
   const [searchTerm, setSearchTerm] = useState("")
+  const [fromDate, setFromDate] = useState("")
+  const [toDate, setToDate] = useState("")
   const [detailClaim, setDetailClaim] = useState<ClaimRecord | null>(null)
 
   const filtered = useMemo(() => {
     const q = searchTerm.trim().toLowerCase()
-    if (!q) return claims
-    return claims.filter((claim) =>
-      [claim.claimNumber, claim.title, claim.employee.name, claim.employee.jobTitle]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(q),
-    )
-  }, [claims, searchTerm])
+    return claims.filter((claim) => {
+      const matchesQuery =
+        q === "" ||
+        [claim.claimNumber, claim.title, claim.employee.name, claim.employee.jobTitle]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(q)
+      const day = toDayString(claim.submittedAt)
+      const matchesFrom = fromDate === "" || day >= fromDate
+      const matchesTo = toDate === "" || day <= toDate
+      return matchesQuery && matchesFrom && matchesTo
+    })
+  }, [claims, searchTerm, fromDate, toDate])
 
   const personalClaims = useMemo(
     () => filtered.filter((c) => c.paymentType === "PERSONAL"),
@@ -105,7 +120,7 @@ export function ClaimPayrollReadyList({
 
       <div className="space-y-6">
         <Card>
-          <CardContent className="px-5 pb-5 pt-3 sm:p-6">
+          <CardContent className="space-y-3 px-5 pb-5 pt-3 sm:p-6">
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -113,6 +128,27 @@ export function ClaimPayrollReadyList({
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by claim or employee"
                 className="pl-10"
+              />
+            </div>
+            {/* Submitted-date range — attendance-style FROM / TO. */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
+              <span className="font-medium uppercase tracking-wide">From</span>
+              <Input
+                type="date"
+                value={fromDate}
+                max={toDate || undefined}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="h-9 w-auto"
+                aria-label="From submitted date"
+              />
+              <span className="font-medium uppercase tracking-wide">To</span>
+              <Input
+                type="date"
+                value={toDate}
+                min={fromDate || undefined}
+                onChange={(e) => setToDate(e.target.value)}
+                className="h-9 w-auto"
+                aria-label="To submitted date"
               />
             </div>
           </CardContent>

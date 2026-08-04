@@ -330,13 +330,26 @@ function AdminFinalApprovalDialog({
   )
 }
 
+/** Local (not UTC) YYYY-MM-DD for a claim date — matches the `<input type="date">`
+ *  values so range comparisons are string-safe and timezone-stable. */
+function toDayString(value: Date | string): string {
+  const d = typeof value === "string" ? new Date(value) : value
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
+}
+
 export function AdminClaimsTable({
   claims,
   chartAccounts,
+  metrics,
 }: {
   claims: ClaimRecord[]
   /** Selectable chart accounts shown in the admin's "Final approve" dialog. */
   chartAccounts: ChartOfAccountOption[]
+  /** Compact stats shown by the count row (replaces the three big cards). */
+  metrics: { totalClaims: number; needsReview: number; approvedValue: number }
 }) {
   const [status, setStatus] = useState<ClaimStatus | "ALL">("ALL")
   // Distinguishes EXPENSE vs MILEAGE claims. "ALL" shows both. The table now
@@ -347,6 +360,9 @@ export function AdminClaimsTable({
   // Admin", etc.). Pending/unreviewed claims only ever show under "All".
   const [reviewerFilter, setReviewerFilter] = useState<ReviewerFilter>("ALL")
   const [searchTerm, setSearchTerm] = useState("")
+  // Submitted-date range (YYYY-MM-DD, "" = open end). Same UX as attendance.
+  const [fromDate, setFromDate] = useState("")
+  const [toDate, setToDate] = useState("")
   const [page, setPage] = useState(1)
   // Claim currently open in the AdminFinalApprovalDialog, if any.
   const [reviewingClaim, setReviewingClaim] = useState<ClaimRecord | null>(null)
@@ -376,13 +392,24 @@ export function AdminClaimsTable({
               .toLowerCase()
               .includes(normalizedQuery)
 
-      return matchesStatus && matchesType && matchesReviewer && matchesQuery
+      const claimDay = toDayString(claim.submittedAt)
+      const matchesFrom = fromDate === "" || claimDay >= fromDate
+      const matchesTo = toDate === "" || claimDay <= toDate
+
+      return (
+        matchesStatus &&
+        matchesType &&
+        matchesReviewer &&
+        matchesQuery &&
+        matchesFrom &&
+        matchesTo
+      )
     })
-  }, [claims, searchTerm, status, typeFilter, reviewerFilter])
+  }, [claims, searchTerm, status, typeFilter, reviewerFilter, fromDate, toDate])
 
   useEffect(() => {
     setPage(1)
-  }, [searchTerm, status, typeFilter, reviewerFilter])
+  }, [searchTerm, status, typeFilter, reviewerFilter, fromDate, toDate])
 
   const totalPages = Math.max(1, Math.ceil(filteredClaims.length / PAGE_SIZE))
 
@@ -401,7 +428,9 @@ export function AdminClaimsTable({
     status !== "ALL" ||
     typeFilter !== "ALL" ||
     reviewerFilter !== "ALL" ||
-    searchTerm.trim().length > 0
+    searchTerm.trim().length > 0 ||
+    fromDate !== "" ||
+    toDate !== ""
 
   const typeFilterOptions: Array<{ value: ClaimType | "ALL"; label: string }> = [
     { value: "ALL", label: "All types" },
@@ -502,27 +531,66 @@ export function AdminClaimsTable({
               </Select>
             </div>
 
+            {/* Submitted-date range — attendance-style FROM / TO. */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
+              <span className="font-medium uppercase tracking-wide">From</span>
+              <Input
+                type="date"
+                value={fromDate}
+                max={toDate || undefined}
+                onChange={(event) => setFromDate(event.target.value)}
+                className="h-9 w-auto"
+                aria-label="From submitted date"
+              />
+              <span className="font-medium uppercase tracking-wide">To</span>
+              <Input
+                type="date"
+                value={toDate}
+                min={fromDate || undefined}
+                onChange={(event) => setToDate(event.target.value)}
+                className="h-9 w-auto"
+                aria-label="To submitted date"
+              />
+            </div>
+
             <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <p>
                 Showing <span className="font-semibold text-foreground">{filteredClaims.length}</span>{" "}
                 of <span className="font-semibold text-foreground">{claims.length}</span> claims
               </p>
-              {hasActiveFilters && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="w-fit rounded-full"
-                  onClick={() => {
-                    setStatus("ALL")
-                    setTypeFilter("ALL")
-                    setReviewerFilter("ALL")
-                    setSearchTerm("")
-                  }}
-                >
-                  Clear filters
-                </Button>
-              )}
+              {/* Compact stats — replaces the three big cards that used to sit
+                  above the table. */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                <span>
+                  <span className="font-semibold text-foreground">{metrics.totalClaims}</span> total
+                </span>
+                <span className="text-border">·</span>
+                <span>
+                  <span className="font-semibold text-foreground">{metrics.needsReview}</span> need review
+                </span>
+                <span className="text-border">·</span>
+                <span>
+                  <span className="font-semibold text-foreground">{formatCurrency(metrics.approvedValue)}</span> approved
+                </span>
+                {hasActiveFilters && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="ml-1 h-7 rounded-full"
+                    onClick={() => {
+                      setStatus("ALL")
+                      setTypeFilter("ALL")
+                      setReviewerFilter("ALL")
+                      setSearchTerm("")
+                      setFromDate("")
+                      setToDate("")
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

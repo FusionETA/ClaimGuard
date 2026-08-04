@@ -1,11 +1,8 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { CircleDollarSign, Clock3, Files } from "lucide-react"
 
 import { AdminClaimsTable } from "@/components/admin/admin-claims-table"
-import { MetricCard } from "@/components/claims/metric-card"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { formatCurrency } from "@/lib/utils"
 import { getAdminClaimsPageData } from "@/modules/claims/application/services/admin-page-data.service"
 import { requireAdminModule } from "@/modules/organization/application/services/admin-access.service"
 
@@ -31,31 +28,15 @@ export default async function AdminClaimsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        <MetricCard
-          title="Total claims"
-          value={String(dashboard.totals.totalClaims)}
-          icon={Files}
-          detail="All time"
-          compact
-        />
-        <MetricCard
-          title="Needs review"
-          value={String(dashboard.totals.pending)}
-          icon={Clock3}
-          detail="Supervisor + admin queue"
-          compact
-        />
-        <MetricCard
-          title="Approved value"
-          value={formatCurrency(dashboard.totals.approvedValue)}
-          icon={CircleDollarSign}
-          detail="All approved claims"
-          compact
-        />
-      </div>
-
-      <AdminClaimsTable claims={claims} chartAccounts={chartAccounts} />
+      <AdminClaimsTable
+        claims={claims}
+        chartAccounts={chartAccounts}
+        metrics={{
+          totalClaims: dashboard.totals.totalClaims,
+          needsReview: dashboard.totals.pending,
+          approvedValue: dashboard.totals.approvedValue,
+        }}
+      />
     </div>
   )
 }
