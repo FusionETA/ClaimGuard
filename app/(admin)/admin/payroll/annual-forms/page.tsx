@@ -32,9 +32,6 @@ export default async function AdminAnnualPayrollFormsPage({
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">
-          Annual Tax Forms
-        </h1>
         <p className="text-sm text-muted-foreground">
           Year-end statutory forms generated only after every Jan-Dec
           payroll run is approved. Forms EA must be issued to employees

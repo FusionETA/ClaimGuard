@@ -123,7 +123,6 @@ export default async function AdminClaimsReportsPage({
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-0.5">
-          <h2 className="text-lg font-semibold text-foreground">Reports</h2>
           <p className="text-xs text-muted-foreground">
             Flat list of claims for the selected period and scope. Filter by
             project, team, or member; export the matching set as XLSX or PDF.

@@ -63,9 +63,6 @@ export default async function AdminPayrollRunsPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">
-          Payroll Runs
-        </h1>
         <p className="text-sm text-muted-foreground">
           {data.organizationName ? `${data.organizationName} — ` : ""}
           {data.eligibleEmployeeCount} employee

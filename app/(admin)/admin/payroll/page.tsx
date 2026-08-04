@@ -45,9 +45,6 @@ export default async function AdminPayrollPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">
-          Payroll
-        </h1>
         <p className="text-sm text-muted-foreground">
           Automated payroll for Malaysian operations. Set up employee
           statutory information, run monthly payroll, and issue payslips.

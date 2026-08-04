@@ -80,7 +80,6 @@ export default async function AdminClaimsPayrollReadyPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Ready to Pay</h1>
         <p className="text-sm text-muted-foreground">
           Reviewed claims awaiting payment. Personal-money claims can be
           added to a payroll run (paid via payroll) or

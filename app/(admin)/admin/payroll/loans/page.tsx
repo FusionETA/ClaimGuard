@@ -20,9 +20,6 @@ export default async function AdminPayrollLoansPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">
-          Loans &amp; advances
-        </h1>
         <p className="text-sm text-muted-foreground">
           Record a staff loan or cash advance and set its repayment
           timeline. The monthly installment is deducted automatically on
