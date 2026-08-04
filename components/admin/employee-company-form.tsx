@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { CheckSquare, ChevronDown, Loader2, Plus, Square } from "lucide-react"
+import { CheckSquare, ChevronDown, Loader2, Plus, Search, Square } from "lucide-react"
 
 import { createInitialHierarchyFormState } from "@/app/(admin)/admin/hierarchy/form-state"
 import { updateHierarchyAction } from "@/app/(admin)/admin/hierarchy/actions"
@@ -79,6 +79,7 @@ function ProjectMultiSelect({
   disabled?: boolean
 }) {
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState("")
   const containerRef = useRef<HTMLDivElement | null>(null)
   const selectedProjects = projects.filter((project) =>
     selectedProjectIds.includes(project.id),
@@ -88,6 +89,38 @@ function ProjectMultiSelect({
       ? selectedProjects.map((project) => project.name).join(", ")
       : "Select project(s)"
 
+  // Selected projects float to the top of the list; a case-insensitive
+  // name search filters both groups. Kept as two arrays so we can drop a
+  // divider between "picked" and "the rest".
+  const q = query.trim().toLowerCase()
+  const matchesQuery = (project: OrganizationProjectOption) =>
+    q.length === 0 || project.name.toLowerCase().includes(q)
+  const selectedMatches = projects.filter(
+    (project) => selectedProjectIds.includes(project.id) && matchesQuery(project),
+  )
+  const unselectedMatches = projects.filter(
+    (project) => !selectedProjectIds.includes(project.id) && matchesQuery(project),
+  )
+  const renderRow = (project: OrganizationProjectOption) => {
+    const isSelected = selectedProjectIds.includes(project.id)
+    return (
+      <button
+        key={project.id}
+        type="button"
+        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-low disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={disabled}
+        onClick={() => onToggle(project.id)}
+      >
+        {isSelected ? (
+          <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
+        ) : (
+          <Square className="h-4 w-4 shrink-0 text-muted-foreground" />
+        )}
+        <span>{project.name}</span>
+      </button>
+    )
+  }
+
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
       if (!containerRef.current?.contains(event.target as Node)) {
@@ -96,6 +129,12 @@ function ProjectMultiSelect({
     }
     if (open) document.addEventListener("mousedown", handlePointerDown)
     return () => document.removeEventListener("mousedown", handlePointerDown)
+  }, [open])
+
+  // Clear the search each time the panel opens so it never reopens
+  // pre-filtered from a previous session.
+  useEffect(() => {
+    if (open) setQuery("")
   }, [open])
 
   return (
@@ -124,26 +163,37 @@ function ProjectMultiSelect({
           </button>
           {open ? (
             <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 rounded-2xl border border-border/80 bg-card p-2 shadow-panel">
-              <div className="max-h-64 space-y-1 overflow-y-auto">
-                {projects.map((project) => {
-                  const isSelected = selectedProjectIds.includes(project.id)
-                  return (
-                    <button
-                      key={project.id}
-                      type="button"
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-low disabled:cursor-not-allowed disabled:opacity-50"
-                      disabled={disabled}
-                      onClick={() => onToggle(project.id)}
-                    >
-                      {isSelected ? (
-                        <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
-                      ) : (
-                        <Square className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      )}
-                      <span>{project.name}</span>
-                    </button>
-                  )
-                })}
+              {/* Sticky search — Enter is swallowed so it never submits the
+                  surrounding employee form; Escape closes the panel. */}
+              <div className="relative mb-2">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  autoFocus
+                  type="text"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") event.preventDefault()
+                    if (event.key === "Escape") setOpen(false)
+                  }}
+                  placeholder="Search projects…"
+                  className="h-9 w-full rounded-xl border border-border/70 bg-surface-low pl-9 pr-3 text-sm text-foreground outline-none transition focus:border-primary/50"
+                />
+              </div>
+              <div className="nice-scrollbar max-h-64 space-y-1 overflow-y-auto">
+                {selectedMatches.length === 0 && unselectedMatches.length === 0 ? (
+                  <p className="px-3 py-6 text-center text-xs text-muted-foreground">
+                    No projects match &ldquo;{query.trim()}&rdquo;.
+                  </p>
+                ) : (
+                  <>
+                    {selectedMatches.map(renderRow)}
+                    {selectedMatches.length > 0 && unselectedMatches.length > 0 ? (
+                      <div className="my-1 h-px bg-border/60" role="separator" />
+                    ) : null}
+                    {unselectedMatches.map(renderRow)}
+                  </>
+                )}
               </div>
             </div>
           ) : null}
