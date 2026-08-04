@@ -176,97 +176,99 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
   }, [props.memberOptions, teamIds])
 
   return (
-    <div className="space-y-3 rounded-2xl border border-border/70 bg-card/94 p-4 shadow-ambient">
-      {/* Two-row grid on wide screens: row 1 is the "when + what money"
-          scope (dates + payment source), row 2 is the "who + which
-          work" scope (project → team → member cascade + Apply). Each
-          row holds 4 slots on `xl` so nothing gets squeezed. */}
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="report-from" className="text-xs uppercase tracking-wide text-muted-foreground">
+    <div className="space-y-3">
+      {/* Attendance-style filter: inline small-caps labels + compact
+          controls wrapping in a single subtle-surface bar. Mirrors the
+          History filter (components/attendance/org-history-panel +
+          table-filter-bar). */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-border/60 bg-surface-low px-3 py-3">
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor="report-from" className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             From
           </Label>
-          <Input
+          <input
             id="report-from"
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
+            className="rounded-lg border border-border/60 bg-background px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="report-to" className="text-xs uppercase tracking-wide text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor="report-to" className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             To
           </Label>
-          <Input
+          <input
             id="report-to"
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
+            className="rounded-lg border border-border/60 bg-background px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
-        <div className="space-y-1.5">
+        <div className="flex items-center gap-2">
           <Label
             htmlFor="report-date-field"
-            className="text-xs uppercase tracking-wide text-muted-foreground"
+            className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
           >
             Filter by
           </Label>
-          {/* Spent = accounting view ("money spent in this period",
-              based on the receipt's purchase date). Submitted = audit
-              view ("claims filed in this period", which surfaces
-              late-filed receipts from earlier months).
-
-              Uses the design-system Select (Radix-backed) instead of
-              a raw HTML <select> so the trigger + popover match the
-              rest of the filter row visually (rounded-2xl, h-12,
-              purple focus ring) instead of falling back to the
-              browser's native styling. */}
-          <Select
-            value={dateField}
-            onValueChange={(v) =>
-              setDateField(v === "submitted" ? "submitted" : "spent")
-            }
-          >
-            <SelectTrigger id="report-date-field">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="spent">Spent date</SelectItem>
-              <SelectItem value="submitted">Submitted date</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Spent = accounting view (receipt's purchase date). Submitted
+              = audit view (surfaces late-filed receipts from earlier
+              months). */}
+          <div className="w-[140px]">
+            <Select
+              value={dateField}
+              onValueChange={(v) =>
+                setDateField(v === "submitted" ? "submitted" : "spent")
+              }
+            >
+              <SelectTrigger
+                id="report-date-field"
+                className="h-9 rounded-lg border-border/60 text-xs"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="spent">Spent date</SelectItem>
+                <SelectItem value="submitted">Submitted date</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="space-y-1.5">
+        <div className="flex items-center gap-2">
           <Label
             htmlFor="report-payment-type"
-            className="text-xs uppercase tracking-wide text-muted-foreground"
+            className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
           >
-            Payment source
+            Source
           </Label>
-          {/* PERSONAL = employee paid out of pocket → shows up in the
-              reimbursement queue. COMPANY = paid from a company
-              account (card, petty cash, e-wallet held by the org) →
-              already settled, just needs to land in the right Xero
-              account. `All` = default, shows both. */}
-          <Select
-            value={paymentType}
-            onValueChange={(v) => {
-              if (v === "PERSONAL" || v === "COMPANY") {
-                setPaymentType(v)
-              } else {
-                setPaymentType("ALL")
-              }
-            }}
-          >
-            <SelectTrigger id="report-payment-type">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All sources</SelectItem>
-              <SelectItem value="PERSONAL">Personal (reimbursable)</SelectItem>
-              <SelectItem value="COMPANY">Company account</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* PERSONAL = paid out of pocket → reimbursement queue. COMPANY =
+              paid from a company account (already settled). All = both. */}
+          <div className="w-[180px]">
+            <Select
+              value={paymentType}
+              onValueChange={(v) => {
+                if (v === "PERSONAL" || v === "COMPANY") {
+                  setPaymentType(v)
+                } else {
+                  setPaymentType("ALL")
+                }
+              }}
+            >
+              <SelectTrigger
+                id="report-payment-type"
+                className="h-9 rounded-lg border-border/60 text-xs"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All sources</SelectItem>
+                <SelectItem value="PERSONAL">Personal (reimbursable)</SelectItem>
+                <SelectItem value="COMPANY">Company account</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <MultiSelect
           label="Projects"
@@ -338,22 +340,21 @@ export function ClaimsReportFilters(props: ClaimsReportFiltersProps) {
               : undefined
           }
         />
-      </div>
-
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        {hasAnyActive ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={resetFilters}
-          >
-            Clear filters
+        <div className="ml-auto flex items-center gap-2">
+          {hasAnyActive ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={resetFilters}
+            >
+              Clear filters
+            </Button>
+          ) : null}
+          <Button type="button" size="sm" onClick={applyFilters}>
+            Apply
           </Button>
-        ) : null}
-        <Button type="button" size="sm" onClick={applyFilters}>
-          Apply
-        </Button>
+        </div>
       </div>
     </div>
   )
@@ -446,19 +447,19 @@ function MultiSelect({
   // the dropdowns visually line up with the date inputs in the same
   // row. Add the disabled treatment in muted colours.
   const triggerClass = cn(
-    "flex h-12 w-full min-w-0 items-center justify-between gap-2",
-    "rounded-2xl border border-border/80 bg-card px-4 py-2 text-base text-foreground shadow-sm sm:text-sm",
+    "flex h-9 w-full min-w-0 items-center justify-between gap-2",
+    "rounded-lg border border-border/60 bg-background px-2.5 py-1.5 text-xs text-foreground",
     "transition-colors hover:bg-surface-low",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background",
+    "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
     "disabled:cursor-not-allowed disabled:bg-surface-low/60 disabled:text-muted-foreground disabled:hover:bg-surface-low/60",
   )
 
   return (
-    <div className="space-y-1.5" ref={rootRef}>
-      <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+    <div className="flex items-center gap-2" ref={rootRef}>
+      <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </Label>
-      <div className="relative">
+      <div className="relative w-[168px]">
         <button
           type="button"
           onClick={() => {
