@@ -219,23 +219,6 @@ export type AdminOrgOverview = {
   }>
 }
 
-export type RollCallPerson = {
-  id: string
-  name: string
-  employeeId: string
-  jobTitle: string
-  project: string
-  // Late-only metadata.
-  lateByMin?: number
-  timeIn?: string
-}
-
-export type TodayRollCall = {
-  late: RollCallPerson[]
-  onLeave: RollCallPerson[]
-  notClockedIn: RollCallPerson[]
-}
-
 /**
  * View model for the per-employee attendance detail page. Lives here (not in
  * the React view file) so the service `employee-detail-loader` can depend on

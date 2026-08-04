@@ -11,7 +11,6 @@ import type {
   AdminOrgOverview,
   ApprovalRequestView,
   ShiftView,
-  TodayRollCall,
 } from "@/modules/attendance/domain/models"
 import {
   loadEmployeeDetailForAdmin,
@@ -58,35 +57,6 @@ export const adminAttendanceService = {
       60,
       () =>
         attendanceRepository.getOrgOverview(orgId, projectId, {
-          policyIdScope,
-        }),
-    )
-  },
-
-  async getTodayRollCall(
-    orgId: string | null,
-    projectId?: string | null,
-    teamId?: string | null,
-    q?: string | null,
-  ): Promise<TodayRollCall> {
-    const policyIdScope = await getActiveAdminPolicyScope()
-    // "Today" — include date so caches don't survive a midnight rollover.
-    const today = new Date().toISOString().slice(0, 10)
-    return getOrSetCache(
-      key(
-        "org",
-        seg(orgId),
-        "attendance",
-        "rollcall",
-        today,
-        seg(projectId),
-        seg(teamId),
-        seg(q),
-        scopeSeg(policyIdScope),
-      ),
-      60,
-      () =>
-        attendanceRepository.getTodayRollCall(orgId, projectId, teamId, q, {
           policyIdScope,
         }),
     )
@@ -229,22 +199,6 @@ export const adminAttendanceService = {
     return attendanceRepository.getDailyActivity(orgId, projectId, teamId, q, {
       policyIdScope,
     })
-  },
-
-  async getOffSiteClockIns(
-    orgId: string | null,
-    projectId?: string | null,
-    teamId?: string | null,
-    q?: string | null,
-  ) {
-    const policyIdScope = await getActiveAdminPolicyScope()
-    return attendanceRepository.getOffSiteClockInsForToday(
-      orgId,
-      projectId,
-      teamId,
-      q,
-      { policyIdScope },
-    )
   },
 
   async overrideAttendanceTimes(

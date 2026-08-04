@@ -42,6 +42,10 @@ export type DailyActivityRow = {
   clockOutLat?: number | null
   clockOutLng?: number | null
   offSite?: boolean
+  /// True when the employee clocked in late today (any session flagged
+  /// LATE). `lateByMin` is the minutes-late on the record, when known.
+  late?: boolean
+  lateByMin?: number | null
   attendanceRecordId?: string | null
   hasSelfie?: boolean
   hasClockOutSelfie?: boolean
@@ -84,18 +88,6 @@ function statusBadge(s: DailyActivityDerivedStatus | null | undefined) {
   }
 }
 
-type StatusGroup = "clocked_in" | "not_clocked_in" | "on_leave"
-
-// Anyone who clocked in today (working / on break / already out) groups as
-// "clocked in"; the rest fall into their own buckets.
-const STATUS_GROUP: Record<DailyActivityDerivedStatus, StatusGroup> = {
-  WORKING: "clocked_in",
-  ON_BREAK: "clocked_in",
-  CLOCKED_OUT: "clocked_in",
-  NOT_CLOCKED_IN: "not_clocked_in",
-  ON_LEAVE: "on_leave",
-}
-
 // Sort priority — actively working on top, not-clocked-in last.
 const STATUS_ORDER: Record<DailyActivityDerivedStatus, number> = {
   WORKING: 0,
@@ -105,10 +97,43 @@ const STATUS_ORDER: Record<DailyActivityDerivedStatus, number> = {
   NOT_CLOCKED_IN: 4,
 }
 
-const STATUS_FILTERS: { key: "all" | StatusGroup; label: string }[] = [
+function isClockedIn(r: DailyActivityRow): boolean {
+  return (
+    r.derivedStatus === "WORKING" ||
+    r.derivedStatus === "ON_BREAK" ||
+    r.derivedStatus === "CLOCKED_OUT"
+  )
+}
+
+type PillKey =
+  | "all"
+  | "on_time"
+  | "late"
+  | "on_site"
+  | "off_site"
+  | "no_clock_in"
+  | "on_leave"
+
+// Pills overlap on purpose: On time / Late split the clocked-in group by
+// punctuality; On-site / Off-site split it by geofence. Both are sub-slices
+// of "clocked in", so their counts intentionally don't sum to All.
+const PILL_PREDICATES: Record<PillKey, (r: DailyActivityRow) => boolean> = {
+  all: () => true,
+  on_time: (r) => isClockedIn(r) && !r.late,
+  late: (r) => isClockedIn(r) && !!r.late,
+  on_site: (r) => isClockedIn(r) && !r.offSite,
+  off_site: (r) => isClockedIn(r) && !!r.offSite,
+  no_clock_in: (r) => r.derivedStatus === "NOT_CLOCKED_IN",
+  on_leave: (r) => r.derivedStatus === "ON_LEAVE",
+}
+
+const PILLS: { key: PillKey; label: string }[] = [
   { key: "all", label: "All" },
-  { key: "clocked_in", label: "Clocked in" },
-  { key: "not_clocked_in", label: "Not clocked in" },
+  { key: "on_time", label: "On time" },
+  { key: "late", label: "Late" },
+  { key: "on_site", label: "On-site" },
+  { key: "off_site", label: "Off-site" },
+  { key: "no_clock_in", label: "No clock-in" },
   { key: "on_leave", label: "On leave" },
 ]
 
@@ -201,27 +226,29 @@ export function DailyActivityTable({
     timeZone: timezone,
   }).format(new Date())
 
-  const [statusFilter, setStatusFilter] = useState<"all" | StatusGroup>("all")
+  const [statusFilter, setStatusFilter] = useState<PillKey>("all")
   const [page, setPage] = useState(1)
 
   const counts = useMemo(() => {
-    const c = { all: rows.length, clocked_in: 0, not_clocked_in: 0, on_leave: 0 }
+    const c: Record<PillKey, number> = {
+      all: 0,
+      on_time: 0,
+      late: 0,
+      on_site: 0,
+      off_site: 0,
+      no_clock_in: 0,
+      on_leave: 0,
+    }
     for (const r of rows) {
-      const g = r.derivedStatus ? STATUS_GROUP[r.derivedStatus] : null
-      if (g) c[g] += 1
+      for (const p of PILLS) {
+        if (PILL_PREDICATES[p.key](r)) c[p.key] += 1
+      }
     }
     return c
   }, [rows])
 
   const visibleRows = useMemo(() => {
-    const filtered =
-      statusFilter === "all"
-        ? rows
-        : rows.filter(
-            (r) =>
-              r.derivedStatus != null &&
-              STATUS_GROUP[r.derivedStatus] === statusFilter,
-          )
+    const filtered = rows.filter(PILL_PREDICATES[statusFilter])
     // Stable sort, clocked-in on top → not-clocked-in last.
     return [...filtered].sort((a, b) => {
       const oa = a.derivedStatus != null ? STATUS_ORDER[a.derivedStatus] : 5
@@ -265,29 +292,26 @@ export function DailyActivityTable({
         ) : (
           <>
             <div className="flex flex-wrap gap-2">
-              {STATUS_FILTERS.map((f) => {
-                const n = f.key === "all" ? counts.all : counts[f.key]
-                return (
-                  <button
-                    key={f.key}
-                    type="button"
-                    onClick={() => {
-                      setStatusFilter(f.key)
-                      // Reset to page 1 whenever the filter changes so
-                      // admins don't land on an empty tail page.
-                      setPage(1)
-                    }}
-                    className={cn(
-                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                      statusFilter === f.key
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {f.label} · {n}
-                  </button>
-                )
-              })}
+              {PILLS.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter(f.key)
+                    // Reset to page 1 whenever the filter changes so
+                    // admins don't land on an empty tail page.
+                    setPage(1)
+                  }}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                    statusFilter === f.key
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {f.label} · {counts[f.key]}
+                </button>
+              ))}
             </div>
             {visibleRows.length === 0 ? (
               <p className="rounded-2xl bg-surface-low px-4 py-6 text-center text-sm text-muted-foreground">
@@ -328,6 +352,12 @@ export function DailyActivityTable({
                         {row.clockInDistanceMeters != null
                           ? ` · ${formatDistance(row.clockInDistanceMeters)}`
                           : ""}
+                      </p>
+                    ) : null}
+                    {row.late ? (
+                      <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-tertiary">
+                        Late
+                        {row.lateByMin != null ? ` · +${row.lateByMin}m` : ""}
                       </p>
                     ) : null}
                     {sessionCount > 1 ? (

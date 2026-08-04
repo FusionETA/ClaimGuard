@@ -11,9 +11,7 @@ import type {
   AttendanceSessionView,
   AttendanceStatus,
   ClockEventLite,
-  RollCallPerson,
   SupervisorTeamOverview,
-  TodayRollCall,
 } from "@/modules/attendance/domain/models"
 import {
   DEFAULT_LUNCH_BREAK_MIN,
@@ -2786,7 +2784,8 @@ export const attendanceRepository = {
     if (existing.employeeId !== args.employeeId) {
       throw new Error("You can only edit your own attendance.")
     }
-    const today = startOfDay(new Date())
+    const tz = await this.getEmployeeTimezone(args.employeeId)
+    const today = startOfLocalDay(new Date(), tz)
     if (existing.date.getTime() !== today.getTime()) {
       throw new Error("Remarks can only be edited on today's record.")
     }
@@ -2812,7 +2811,8 @@ export const attendanceRepository = {
 
   async getTeamOverview(supervisorId: string): Promise<SupervisorTeamOverview> {
     const prisma = getClient()
-    const today = startOfDay(new Date())
+    const tz = await this.getEmployeeTimezone(supervisorId)
+    const today = startOfLocalDay(new Date(), tz)
 
     const memberIds = await this.getTeamMemberIds(supervisorId)
     const users = memberIds.length
@@ -3002,7 +3002,8 @@ export const attendanceRepository = {
     const policyIdScope = options?.policyIdScope ?? null
     if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const prisma = getClient()
-    const today = startOfDay(new Date())
+    const tz = await this.getOrgTimezone(orgId)
+    const today = startOfLocalDay(new Date(), tz)
     const users = await prisma.user.findMany({
       where: {
         organizationId: orgId,
@@ -3148,7 +3149,8 @@ export const attendanceRepository = {
     const policyIdScope = options?.policyIdScope ?? null
     if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const prisma = getClient()
-    const today = startOfDay(new Date())
+    const tz = await this.getOrgTimezone(orgId)
+    const today = startOfLocalDay(new Date(), tz)
 
     const employeeIds = await this.resolveScopedEmployeeIds(orgId, {
       projectId,
@@ -3192,6 +3194,7 @@ export const attendanceRepository = {
         id: true,
         employeeId: true,
         status: true,
+        lateByMin: true,
         timeIn: true,
         timeOut: true,
         clockInDistanceMeters: true,
@@ -3232,11 +3235,10 @@ export const attendanceRepository = {
     const radiusM = radius ?? 200
 
     return users
-      // Only employees with actual activity today (any AttendanceRecord
-      // — clock event OR on-leave row). Employees who haven't touched
-      // attendance today are excluded from the roster so the table
-      // focuses on what HR is actually reviewing.
-      .filter((u) => byUser.has(u.id))
+      // Every in-scope employee appears in the unified roster; those with
+      // no record today fall through as NOT_CLOCKED_IN so the "No clock-in"
+      // pill can surface them (this table subsumes the old roll call +
+      // off-site cards).
       .map((u) => {
       const rec = byUser.get(u.id)
       const projectName =
@@ -3283,6 +3285,13 @@ export const attendanceRepository = {
         clockOutNotes: s.clockOutNotes,
       }))
 
+      // Late = clocked in late today. Prefer the per-session snapshot
+      // (survives clock-out, which overwrites record.status) and fall back
+      // to the record status for legacy rows without sessions.
+      const lateByMin = rec?.lateByMin ?? null
+      const late =
+        status === "LATE" || sessions.some((s) => s.status === "LATE")
+
       return {
         id: u.id,
         name: u.name,
@@ -3298,86 +3307,14 @@ export const attendanceRepository = {
         clockOutLat: rec?.clockOutLat ?? null,
         clockOutLng: rec?.clockOutLng ?? null,
         offSite,
+        late,
+        lateByMin,
         attendanceRecordId: rec?.id ?? null,
         hasSelfie: !!rec?.xeroSelfieFileId,
         hasClockOutSelfie: !!rec?.clockOutXeroSelfieFileId,
         sessions,
       }
     })
-  },
-
-  async getOffSiteClockInsForToday(
-    orgId: string | null,
-    projectId?: string | null,
-    teamId?: string | null,
-    q?: string | null,
-    options?: { policyIdScope?: string[] | null },
-  ): Promise<
-    Array<{
-      id: string
-      employeeId: string
-      employeeName: string
-      project: string | null
-      timeIn: string | null
-      clockInLat: number | null
-      clockInLng: number | null
-      clockInDistanceMeters: number
-      notes: string | null
-    }>
-  > {
-    if (!orgId) return []
-    const policyIdScope = options?.policyIdScope ?? null
-    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
-    const prisma = getClient()
-    const today = startOfDay(new Date())
-
-    const employeeIds = await this.resolveScopedEmployeeIds(orgId, {
-      projectId,
-      teamId,
-      q,
-    })
-    if (employeeIds && employeeIds.length === 0) return []
-
-    const radius = (await this.getGeofenceRadiusForOrganization(orgId)) ?? 200
-
-    const records = await prisma.attendanceRecord.findMany({
-      where: {
-        date: today,
-        clockInDistanceMeters: { gt: radius },
-        ...(projectId ? { projectId } : {}),
-        ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
-        employee: {
-          organizationId: orgId,
-          ...(policyIdScope && policyIdScope.length > 0
-            ? { employeeProfiles: { some: { policyId: { in: policyIdScope } } } }
-            : {}),
-        },
-      },
-      orderBy: { clockInDistanceMeters: "desc" },
-      select: {
-        id: true,
-        employeeId: true,
-        project: true,
-        timeIn: true,
-        clockInLat: true,
-        clockInLng: true,
-        clockInDistanceMeters: true,
-        notes: true,
-        employee: { select: { name: true } },
-      },
-    })
-
-    return records.map((r) => ({
-      id: r.id,
-      employeeId: r.employeeId,
-      employeeName: r.employee?.name ?? r.employeeId,
-      project: r.project,
-      timeIn: r.timeIn?.toISOString() ?? null,
-      clockInLat: r.clockInLat,
-      clockInLng: r.clockInLng,
-      clockInDistanceMeters: r.clockInDistanceMeters ?? 0,
-      notes: r.notes,
-    }))
   },
 
   async getEmployeeMonthSummary(
@@ -3737,7 +3674,8 @@ export const attendanceRepository = {
       }
     }
     const prisma = getClient()
-    const today = startOfDay(new Date())
+    const tz = await this.getOrgTimezone(orgId)
+    const today = startOfLocalDay(new Date(), tz)
 
     // When a project filter is set, scope every count/list to employees who
     // are assigned to that project (via EmployeeProjectAssignment) and to
@@ -3896,129 +3834,6 @@ export const attendanceRepository = {
    *   - onLeave   → AttendanceRecord.status = ON_LEAVE
    *   - notClockedIn → no record OR record.status = MISSING (and not on leave)
    */
-  async getTodayRollCall(
-    orgId: string | null,
-    projectId?: string | null,
-    teamId?: string | null,
-    q?: string | null,
-    options?: { policyIdScope?: string[] | null },
-  ): Promise<TodayRollCall> {
-    const policyIdScope = options?.policyIdScope ?? null
-    if (Array.isArray(policyIdScope) && policyIdScope.length === 0) {
-      return { late: [], onLeave: [], notClockedIn: [] }
-    }
-    const prisma = getClient()
-    const today = startOfDay(new Date())
-
-    let employeeIds: string[] | null = null
-    if (orgId) {
-      employeeIds = await this.resolveScopedEmployeeIds(orgId, {
-        projectId,
-        teamId,
-        q,
-      })
-      if (employeeIds && employeeIds.length === 0) {
-        return { late: [], onLeave: [], notClockedIn: [] }
-      }
-    }
-
-    const policyEmployeeFilter =
-      policyIdScope && policyIdScope.length > 0
-        ? { employeeProfiles: { some: { policyId: { in: policyIdScope } } } }
-        : {}
-
-    const userWhere = orgId ? { organizationId: orgId } : {}
-
-    const [employees, todayRecords] = await Promise.all([
-      prisma.user.findMany({
-        where: {
-          ...userWhere,
-          role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-          ...(employeeIds ? { id: { in: employeeIds } } : {}),
-          ...policyEmployeeFilter,
-        },
-        select: {
-          id: true,
-          name: true,
-          employeeProfiles: {
-            select: {
-              employeeId: true,
-              jobTitle: true,
-              projectAssignments: {
-                select: { project: { select: { name: true } } },
-                orderBy: { createdAt: "asc" },
-              },
-            },
-          },
-        },
-        orderBy: { name: "asc" },
-      }),
-      prisma.attendanceRecord.findMany({
-        where: {
-          date: today,
-          ...(orgId ? { employee: { organizationId: orgId } } : {}),
-          ...(projectId ? { projectId } : {}),
-          ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
-        },
-        select: {
-          employeeId: true,
-          status: true,
-          lateByMin: true,
-          timeIn: true,
-        },
-      }),
-    ])
-
-    const recordByEmployee = new Map<string, (typeof todayRecords)[number]>()
-    for (const r of todayRecords) {
-      recordByEmployee.set(r.employeeId, r)
-    }
-
-    const toPerson = (
-      e: (typeof employees)[number],
-      record?: (typeof todayRecords)[number]
-    ): RollCallPerson => ({
-      id: e.id,
-      name: e.name,
-      employeeId: e.employeeProfiles[0]?.employeeId ?? "",
-      jobTitle: e.employeeProfiles[0]?.jobTitle ?? "",
-      project:
-        e.employeeProfiles[0]?.projectAssignments
-          ?.map((a) => a.project.name)
-          .join(", ") ?? "",
-      lateByMin: record?.lateByMin ?? undefined,
-      timeIn: record?.timeIn?.toISOString() ?? undefined,
-    })
-
-    const late: RollCallPerson[] = []
-    const onLeave: RollCallPerson[] = []
-    const notClockedIn: RollCallPerson[] = []
-
-    for (const e of employees) {
-      const record = recordByEmployee.get(e.id)
-      if (!record) {
-        notClockedIn.push(toPerson(e))
-        continue
-      }
-      switch (record.status) {
-        case "LATE":
-          late.push(toPerson(e, record))
-          break
-        case "ON_LEAVE":
-          onLeave.push(toPerson(e))
-          break
-        case "MISSING":
-          notClockedIn.push(toPerson(e))
-          break
-        // ON_TIME / CLOCKED_IN / CLOCKED_OUT → present, not surfaced here.
-        default:
-          break
-      }
-    }
-
-    return { late, onLeave, notClockedIn }
-  },
-
   async getHoursSummary(args: {
     orgId?: string | null
     employeeId?: string
