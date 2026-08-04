@@ -81,19 +81,26 @@ export function LoansManager(props: {
 }) {
   return (
     <div className="space-y-6">
-      <CreateLoanCard employees={props.employees} />
-      <LoanList loans={props.loans} />
+      <LoanList loans={props.loans} employees={props.employees} />
     </div>
   )
 }
 
-function CreateLoanCard(props: { employees: LoanEmployeeOption[] }) {
+function CreateLoanDialog(props: { employees: LoanEmployeeOption[] }) {
+  const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(
     createLoanAction,
     initialSettingsActionState,
   )
   useToastOnAction(state)
 
+  // Close the dialog once a create succeeds. `state` only changes identity
+  // after a submission completes, so this fires on success — not on reopen.
+  useEffect(() => {
+    if (state.status === "success") setOpen(false)
+  }, [state])
+
+  const noEmployees = props.employees.length === 0
   const now = new Date()
   const [mode, setMode] = useState<LoanRepaymentMode>("FIXED")
   const [principal, setPrincipal] = useState("")
@@ -145,34 +152,34 @@ function CreateLoanCard(props: { employees: LoanEmployeeOption[] }) {
     principalNum > 0 &&
     Math.abs(customTotal - round2(principalNum)) < 0.01
 
-  if (props.employees.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">New loan</CardTitle>
-          <CardDescription>
-            No payroll-ready employees yet. Complete at least one
-            employee&apos;s payroll profile first.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    )
-  }
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Plus className="h-4 w-4 text-primary" />
-          New loan / advance
-        </CardTitle>
-        <CardDescription>
-          The monthly installment is deducted automatically on each
-          payroll run from the start month, until the loan is repaid.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form action={action} className="space-y-4">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          size="sm"
+          disabled={noEmployees}
+          title={
+            noEmployees
+              ? "Add a payroll-ready employee before creating a loan"
+              : undefined
+          }
+        >
+          <Plus className="h-4 w-4" />
+          New Loan
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>New loan / advance</DialogTitle>
+          <DialogDescription>
+            The monthly installment is deducted automatically on each payroll
+            run from the start month, until the loan is repaid.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          action={action}
+          className="nice-scrollbar -mr-2 max-h-[65vh] space-y-4 overflow-y-auto py-2 pl-1 pr-2"
+        >
           {state.status === "error" && state.message ? (
             <div
               role="alert"
@@ -339,16 +346,24 @@ function CreateLoanCard(props: { employees: LoanEmployeeOption[] }) {
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   )
 }
 
-function LoanList(props: { loans: EmployeeLoanWithProgress[] }) {
+function LoanList(props: {
+  loans: EmployeeLoanWithProgress[]
+  employees: LoanEmployeeOption[]
+}) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<
     "ALL" | "ACTIVE" | "COMPLETED" | "CANCELLED"
   >("ALL")
+  // Range filter on the loan's first-repayment month. Values are "YYYY-MM"
+  // (from <input type="month">) compared against each loan's own start key —
+  // loans are month-based, so a month picker fits the data better than a day.
+  const [fromMonth, setFromMonth] = useState("")
+  const [toMonth, setToMonth] = useState("")
   const q = search.trim().toLowerCase()
   const filtered = props.loans.filter((loan) => {
     const matchesStatus =
@@ -357,18 +372,24 @@ function LoanList(props: { loans: EmployeeLoanWithProgress[] }) {
       q === "" ||
       (loan.employeeName ?? "").toLowerCase().includes(q) ||
       (loan.employeeCode ?? "").toLowerCase().includes(q)
-    return matchesStatus && matchesSearch
+    const loanMonth = `${loan.startYear}-${String(loan.startMonth).padStart(2, "0")}`
+    const matchesFrom = fromMonth === "" || loanMonth >= fromMonth
+    const matchesTo = toMonth === "" || loanMonth <= toMonth
+    return matchesStatus && matchesSearch && matchesFrom && matchesTo
   })
 
   if (props.loans.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <HandCoins className="h-4 w-4 text-primary" />
-            Loans
-          </CardTitle>
-          <CardDescription>No loans recorded yet.</CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div className="space-y-1.5">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <HandCoins className="h-4 w-4 text-primary" />
+              Loans
+            </CardTitle>
+            <CardDescription>No loans recorded yet.</CardDescription>
+          </div>
+          <CreateLoanDialog employees={props.employees} />
         </CardHeader>
       </Card>
     )
@@ -376,14 +397,17 @@ function LoanList(props: { loans: EmployeeLoanWithProgress[] }) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <HandCoins className="h-4 w-4 text-primary" />
-          Loans ({props.loans.length})
-        </CardTitle>
-        <CardDescription>
-          Repayment progress is derived from submitted payroll runs.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between gap-4">
+        <div className="space-y-1.5">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <HandCoins className="h-4 w-4 text-primary" />
+            Loans ({props.loans.length})
+          </CardTitle>
+          <CardDescription>
+            Repayment progress is derived from submitted payroll runs.
+          </CardDescription>
+        </div>
+        <CreateLoanDialog employees={props.employees} />
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -401,13 +425,45 @@ function LoanList(props: { loans: EmployeeLoanWithProgress[] }) {
             onChange={(e) =>
               setStatusFilter(e.target.value as typeof statusFilter)
             }
-            className="w-[180px] shrink-0"
+            className="w-[150px] shrink-0"
           >
             <option value="ALL">All statuses</option>
             <option value="ACTIVE">Active</option>
             <option value="COMPLETED">Completed</option>
             <option value="CANCELLED">Cancelled</option>
           </NativeSelect>
+          {/* Start-month range filter. Clear appears once a bound is set. */}
+          <div className="flex items-center gap-1.5 rounded-2xl border border-border/70 bg-card px-3 py-1.5 shadow-sm">
+            <span className="text-xs font-medium text-muted-foreground">From</span>
+            <input
+              type="month"
+              value={fromMonth}
+              onChange={(e) => setFromMonth(e.target.value)}
+              className="bg-transparent text-sm text-foreground outline-none"
+              aria-label="Loans starting from month"
+            />
+            <span className="text-xs font-medium text-muted-foreground">To</span>
+            <input
+              type="month"
+              value={toMonth}
+              onChange={(e) => setToMonth(e.target.value)}
+              className="bg-transparent text-sm text-foreground outline-none"
+              aria-label="Loans starting up to month"
+            />
+            {fromMonth || toMonth ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setFromMonth("")
+                  setToMonth("")
+                }}
+                className="ml-0.5 rounded-md px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="Clear month range"
+              >
+                Clear
+              </button>
+            ) : null}
+          </div>
         </div>
         {/* `grid-cols-[minmax(0,1fr)]` caps the track at the card width
             so the wide table scrolls inside its own box instead of
@@ -433,7 +489,7 @@ function LoanList(props: { loans: EmployeeLoanWithProgress[] }) {
                   colSpan={8}
                   className="py-8 text-center text-sm text-muted-foreground"
                 >
-                  No loans match your search.
+                  No loans match your filters.
                 </TableCell>
               </TableRow>
             ) : (
