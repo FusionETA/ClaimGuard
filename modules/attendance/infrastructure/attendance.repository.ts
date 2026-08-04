@@ -31,6 +31,7 @@ import {
   DEFAULT_TIMEZONE,
   expectedTimeOnLocalDay as expectedTimeOnLocalDayInTz,
   formatLocalHm,
+  startOfLocalDay,
 } from "@/modules/attendance/domain/timezone"
 import {
   shouldAutoApprove,
@@ -743,10 +744,11 @@ export const attendanceRepository = {
   ): Promise<{ id: string; kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK" } | null> {
     const prisma = getClient()
     if (!prisma) return null
+    const tz = await this.getEmployeeTimezone(employeeId)
     const row = await prisma.approvalRequest.findFirst({
       where: {
         employeeId,
-        date: startOfDay(day),
+        date: startOfLocalDay(day, tz),
         status: "PENDING",
         kind: { in: ["CLOCK_IN", "CLOCK_OUT", "BREAK"] },
       },
@@ -989,6 +991,21 @@ export const attendanceRepository = {
       select: { organizationId: true },
     })
     return user?.organizationId ?? null
+  },
+
+  /**
+   * The employee's organisation timezone in a single query (user →
+   * organization.timezone), falling back to `DEFAULT_TIMEZONE`. Used by the
+   * day-bucketing reads so "today" is the employee's *local* day, not the
+   * UTC day — see `startOfLocalDay`.
+   */
+  async getEmployeeTimezone(employeeId: string): Promise<string> {
+    const prisma = getClient()
+    const user = await prisma.user.findUnique({
+      where: { id: employeeId },
+      select: { organization: { select: { timezone: true } } },
+    })
+    return user?.organization?.timezone || DEFAULT_TIMEZONE
   },
 
   /**
@@ -1283,7 +1300,8 @@ export const attendanceRepository = {
 
   async getTodayProjectId(employeeId: string): Promise<string | null> {
     const prisma = getClient()
-    const today = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00.000Z")
+    const tz = await this.getEmployeeTimezone(employeeId)
+    const today = startOfLocalDay(new Date(), tz)
     const record = await prisma.attendanceRecord.findUnique({
       where: { employeeId_date: { employeeId, date: today } },
       select: { projectId: true },
@@ -1426,9 +1444,15 @@ export const attendanceRepository = {
 
   async findOpenSessionAcrossDays(
     employeeId: string,
-  ): Promise<{ sessionId: string; startedAt: string; date: string } | null> {
+  ): Promise<{
+    sessionId: string
+    startedAt: string
+    date: string
+    projectName: string | null
+  } | null> {
     const prisma = getClient()
-    const today = startOfDay(new Date())
+    const tz = await this.getEmployeeTimezone(employeeId)
+    const today = startOfLocalDay(new Date(), tz)
     // Query from the record side to avoid Prisma nested-select type inference
     // issues that cause `session.record` to be typed as `never`.
     const record = await prisma.attendanceRecord.findFirst({
@@ -1439,6 +1463,7 @@ export const attendanceRepository = {
       },
       select: {
         date: true,
+        project: true,
         sessions: {
           where: { endedAt: null },
           select: { id: true, startedAt: true },
@@ -1454,12 +1479,14 @@ export const attendanceRepository = {
       sessionId: session.id,
       startedAt: session.startedAt.toISOString(),
       date: record.date.toISOString().slice(0, 10),
+      projectName: record.project,
     }
   },
 
   async getTodayAttendance(employeeId: string): Promise<AttendanceRecordView | null> {
     const prisma = getClient()
-    const today = startOfDay(new Date())
+    const tz = await this.getEmployeeTimezone(employeeId)
+    const today = startOfLocalDay(new Date(), tz)
     const r = await prisma.attendanceRecord.findUnique({
       where: { employeeId_date: { employeeId, date: today } },
       include: BREAK_INCLUDE,
@@ -1469,9 +1496,12 @@ export const attendanceRepository = {
 
   async getWeekAttendance(employeeId: string): Promise<AttendanceRecordView[]> {
     const prisma = getClient()
-    const now = new Date()
-    const dayOfWeek = now.getUTCDay() // 0 = Sun
-    const monday = startOfDay(now)
+    const tz = await this.getEmployeeTimezone(employeeId)
+    // Base the week off *local* today (UTC-midnight of the local calendar
+    // date), so getUTCDay() reads the local day-of-week and an early-morning
+    // shift lands in the correct week rather than the previous one.
+    const monday = startOfLocalDay(new Date(), tz)
+    const dayOfWeek = monday.getUTCDay() // 0 = Sun
     monday.setUTCDate(monday.getUTCDate() - ((dayOfWeek + 6) % 7))
     const records = await prisma.attendanceRecord.findMany({
       where: { employeeId, date: { gte: monday } },
@@ -1483,7 +1513,8 @@ export const attendanceRepository = {
 
   async getTodayEvents(employeeId: string): Promise<ClockEventLite[]> {
     const prisma = getClient()
-    const today = startOfDay(new Date())
+    const tz = await this.getEmployeeTimezone(employeeId)
+    const today = startOfLocalDay(new Date(), tz)
     const events = await prisma.approvalRequest.findMany({
       where: {
         employeeId,
@@ -1697,7 +1728,6 @@ export const attendanceRepository = {
   }> {
     const prisma = getClient()
     const now = new Date()
-    const today = startOfDay(now)
 
     const employee = await prisma.user.findUnique({
       where: { id: employeeId },
@@ -1708,6 +1738,9 @@ export const attendanceRepository = {
       this.getWorkingHours(orgId, projectId ?? null),
       this.getOrgTimezone(orgId),
     ])
+    // Local calendar day (org timezone), not UTC — so an early-morning
+    // clock-in files under today rather than yesterday. See startOfLocalDay.
+    const today = startOfLocalDay(now, tz)
     const expected = expectedTimeOnLocalDay(now, hours.start, tz)
     const diff = diffMinutes(expected, now)
     const lateMin = diff > 0 ? diff : 0
@@ -1862,13 +1895,17 @@ export const attendanceRepository = {
   }> {
     const prisma = getClient()
     const now = new Date()
-    const today = startOfDay(now)
 
     const employee = await prisma.user.findUnique({
       where: { id: employeeId },
       select: { role: true, organizationId: true },
     })
     const orgId = employee?.organizationId ?? null
+    // Local calendar day (org timezone), not UTC — must match how clock-in
+    // stamped the record's `date`, else clock-out can't find today's row and
+    // an early-morning shift is mis-read as a previous-day orphan.
+    const tz = await this.getOrgTimezone(orgId)
+    const today = startOfLocalDay(now, tz)
 
     // When closing an orphaned session from a previous day, load that
     // session's parent record instead of today's record.
@@ -1997,10 +2034,8 @@ export const attendanceRepository = {
 
     if (!openSession || !existing) throw new Error("NOT_CLOCKED_IN")
 
-    const [hours, tz] = await Promise.all([
-      this.getWorkingHours(orgId, existing?.projectId ?? null),
-      this.getOrgTimezone(orgId),
-    ])
+    // `tz` was resolved above (needed to compute the local `today`).
+    const hours = await this.getWorkingHours(orgId, existing?.projectId ?? null)
 
     // Close any open break sessions on this session.
     await prisma.breakSession.updateMany({
@@ -2140,7 +2175,8 @@ export const attendanceRepository = {
   ): Promise<{ approvalId: string; pendingApproverIds: string[] }> {
     const prisma = getClient()
     const now = new Date()
-    const today = startOfDay(now)
+    const tz = await this.getEmployeeTimezone(employeeId)
+    const today = startOfLocalDay(now, tz)
     const [existing, employee] = await Promise.all([
       prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },
@@ -2172,7 +2208,6 @@ export const attendanceRepository = {
     if (openSession.breaks.length > 0) {
       throw new Error("You're already on break.")
     }
-    const tz = await this.getOrgTimezone(employee?.organizationId ?? null)
 
     const appendedNotes = notes
       ? [existing!.notes, `BREAK_START: ${notes}`].filter(Boolean).join("\n")
@@ -2251,7 +2286,8 @@ export const attendanceRepository = {
   ): Promise<{ approvalId: string; pendingApproverIds: string[] }> {
     const prisma = getClient()
     const now = new Date()
-    const today = startOfDay(now)
+    const tz = await this.getEmployeeTimezone(employeeId)
+    const today = startOfLocalDay(now, tz)
     const [existing, employee] = await Promise.all([
       prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },
@@ -2286,7 +2322,6 @@ export const attendanceRepository = {
     if (!existing || !openSession || !openBreak) {
       throw new Error("Start a break before ending one.")
     }
-    const tz = await this.getOrgTimezone(employee?.organizationId ?? null)
 
     const appendedNotes = notes
       ? [existing.notes, `BREAK_END: ${notes}`].filter(Boolean).join("\n")

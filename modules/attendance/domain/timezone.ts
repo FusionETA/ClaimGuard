@@ -39,6 +39,33 @@ export function isValidTimezone(value: string): boolean {
 }
 
 /**
+ * Start of the local calendar day for `now`, expressed as the UTC-midnight
+ * instant of that local date — e.g. the Kuala Lumpur day 2026-08-04 maps to
+ * `2026-08-04T00:00:00.000Z`.
+ *
+ * This is the canonical per-day key for attendance. Records are grouped and
+ * displayed by their local calendar date (`.toISOString().slice(0, 10)`), so
+ * a shift starting at 06:43 in KL — which is still the *previous* day in UTC
+ * — must be filed under the correct local day, not "yesterday". Plain UTC
+ * midnight (`setUTCHours(0,0,0,0)`) rolls the day over at 08:00 MYT and
+ * mis-files every early-morning shift, which then trips the "session from
+ * yesterday still running" orphan check the moment UTC midnight passes.
+ */
+export function startOfLocalDay(now: Date, timezone: string): Date {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now)
+  const get = (t: string) => parts.find((p) => p.type === t)?.value
+  const year = get("year") ?? "1970"
+  const month = get("month") ?? "01"
+  const day = get("day") ?? "01"
+  return new Date(`${year}-${month}-${day}T00:00:00.000Z`)
+}
+
+/**
  * Format the time portion of a Date as 24-hour HH:mm in the given timezone.
  * Used for approval titles ("Clock-in 14:50") so they show local time.
  */

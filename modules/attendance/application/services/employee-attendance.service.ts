@@ -323,7 +323,10 @@ export const employeeAttendanceService = {
           attendanceRepository.findOpenSessionAcrossDays(employeeId),
         ])
 
-        const geofenceRadiusMeters = await resolveGeofenceRadius(orgId)
+        const [geofenceRadiusMeters, timezone] = await Promise.all([
+          resolveGeofenceRadius(orgId),
+          attendanceRepository.getOrgTimezone(orgId),
+        ])
 
         let activeProjectCoords:
           | { latitude: number | null; longitude: number | null }
@@ -346,6 +349,7 @@ export const employeeAttendanceService = {
           todayEvents,
           recentOT,
           geofenceRadiusMeters,
+          timezone,
           activeProjectCoords,
           activeProjectGeoLocations,
           pendingApproval,

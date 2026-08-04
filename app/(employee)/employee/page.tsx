@@ -180,6 +180,7 @@ export default async function EmployeeDashboardPage() {
             activeProjectGeoLocations={attendanceDashboard.activeProjectGeoLocations ?? []}
             geofenceRadiusMeters={attendanceDashboard.geofenceRadiusMeters}
             now={nowIso}
+            timezone={attendanceDashboard.timezone}
             onBreak={attendanceDashboard.today?.onBreak ?? false}
             currentBreakStartedAt={attendanceDashboard.today?.currentBreakStartedAt ?? null}
             requiresSelfieOnClockIn={requiresSelfieOnClockIn}

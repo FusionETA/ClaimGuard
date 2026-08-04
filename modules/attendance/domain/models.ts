@@ -162,6 +162,10 @@ export type EmployeeAttendanceDashboard = {
   todayEvents: ClockEventLite[]
   recentOT: ApprovalRequestView[]
   geofenceRadiusMeters: number
+  /// Organisation timezone (IANA, e.g. "Asia/Kuala_Lumpur"). Drives the
+  /// live "Right now" wall-clock on the clock card so it shows org-local
+  /// time regardless of the employee's device timezone.
+  timezone: string
   activeProjectCoords: { latitude: number | null; longitude: number | null } | null
   /// Labelled fence locations for the active project (the one the
   /// employee already clocked into). Client uses these for the
@@ -179,7 +183,12 @@ export type EmployeeAttendanceDashboard = {
   /// Open session from a PREVIOUS day — employee forgot to clock out.
   /// When set, the clock card shows "IN" state with a running timer and
   /// requires a reason before the session can be closed.
-  orphanedSession: { sessionId: string; startedAt: string; date: string } | null
+  orphanedSession: {
+    sessionId: string
+    startedAt: string
+    date: string
+    projectName: string | null
+  } | null
 }
 
 export type SupervisorTeamOverview = {

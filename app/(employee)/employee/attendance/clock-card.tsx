@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useRef, useState, useTransition } from "react"
+import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
 import { AlertTriangle, Camera, Coffee, Fingerprint, Loader2, LogOut, MapPin, RotateCcw, X } from "lucide-react"
@@ -142,6 +142,9 @@ type Props = {
   activeProjectLng: number | null
   geofenceRadiusMeters: number
   now: string
+  /// Organisation timezone (IANA). The "Right now" clock renders in this
+  /// zone and ticks live, so it matches org-local time on any device.
+  timezone: string
   onBreak: boolean
   /** ISO timestamp of the currently-open break, if any (for the "On break since…" label). */
   currentBreakStartedAt: string | null
@@ -183,7 +186,12 @@ type Props = {
   /** Open session from a previous day — employee forgot to clock out. When
    *  set, the card shows the timer still running, hides Break, and requires
    *  a reason before the clock-out can be submitted. */
-  orphanedSession?: { sessionId: string; startedAt: string; date: string } | null
+  orphanedSession?: {
+    sessionId: string
+    startedAt: string
+    date: string
+    projectName: string | null
+  } | null
 }
 
 function ClockInButton({ pending }: { pending: boolean }) {
@@ -297,6 +305,7 @@ export function ClockCard({
   activeProjectLng,
   geofenceRadiusMeters,
   now,
+  timezone,
   onBreak,
   currentBreakStartedAt,
   requiresSelfieOnClockIn,
@@ -872,10 +881,27 @@ export function ClockCard({
     setRemarkError(null)
   }
 
-  const formattedTime = new Date(now).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  })
+  // Live "Right now" clock. Seed from the server `now` (formatted in the org
+  // timezone, so the SSR and first client render match — no hydration flash),
+  // then re-sync to the real current time on mount and tick every second.
+  // Always formatted in the org `timezone`, so it shows org-local time even if
+  // the employee's device clock/zone is off.
+  const formatNow = useCallback(
+    (value: Date) =>
+      value.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: timezone,
+      }),
+    [timezone],
+  )
+  const [formattedTime, setFormattedTime] = useState(() => formatNow(new Date(now)))
+  useEffect(() => {
+    const tick = () => setFormattedTime(formatNow(new Date()))
+    tick() // snap to the actual current time immediately on mount
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [formatNow])
 
   return (
     <>
@@ -1086,6 +1112,11 @@ export function ClockCard({
                   <p className="text-sm font-bold text-amber-900">
                     Session from {orphanedSession.date} — still running
                   </p>
+                  {orphanedSession.projectName ? (
+                    <p className="mt-0.5 text-xs font-semibold text-amber-900">
+                      {orphanedSession.projectName}
+                    </p>
+                  ) : null}
                   <p className="mt-0.5 text-xs text-amber-800">
                     <ElapsedTimer startedAt={orphanedSession.startedAt} />
                   </p>
