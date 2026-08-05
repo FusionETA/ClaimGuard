@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CoordsLink } from "@/components/attendance/coords-link"
+import { SessionsExpander } from "@/components/attendance/sessions-expander"
 import {
   TableFilterBar,
   type TableFilterValue,
@@ -361,8 +362,18 @@ export function OrgHistoryPanel({
               <span>Status</span>
             </div>
             {rows.map((row) => {
-              const inTime = fmtTime(row.timeIn, timezone)
-              const outTime = fmtTime(row.timeOut, timezone)
+              const sessions = row.sessions ?? []
+              // Multi-shift day: show the LATEST shift in the main columns
+              // (the second clock-in), and keep the earlier ones one click
+              // away in the shifts dropdown.
+              const latest =
+                sessions.length > 1 ? sessions[sessions.length - 1]! : null
+              const inTime = fmtTime(latest ? latest.startedAt : row.timeIn, timezone)
+              const outTime = fmtTime(latest ? latest.endedAt : row.timeOut, timezone)
+              const inLat = latest ? latest.clockInLat : row.clockInLat
+              const inLng = latest ? latest.clockInLng : row.clockInLng
+              const outLat = latest ? latest.clockOutLat : row.clockOutLat
+              const outLng = latest ? latest.clockOutLng : row.clockOutLng
               const shown = displayStatus(row)
               return (
                 <div
@@ -387,13 +398,16 @@ export function OrgHistoryPanel({
                       In:{" "}
                     </span>
                     {inTime}
-                    {row.clockInLat != null && row.clockInLng != null ? (
+                    {inLat != null && inLng != null ? (
                       <CoordsLink
-                        lat={row.clockInLat}
-                        lng={row.clockInLng}
+                        lat={inLat}
+                        lng={inLng}
                         showCoords={false}
                         label=""
                       />
+                    ) : null}
+                    {sessions.length > 1 ? (
+                      <SessionsExpander sessions={sessions} timezone={timezone} />
                     ) : null}
                   </div>
                   <div className="text-xs sm:text-sm">
@@ -401,10 +415,10 @@ export function OrgHistoryPanel({
                       Out:{" "}
                     </span>
                     {outTime}
-                    {row.clockOutLat != null && row.clockOutLng != null ? (
+                    {outLat != null && outLng != null ? (
                       <CoordsLink
-                        lat={row.clockOutLat}
-                        lng={row.clockOutLng}
+                        lat={outLat}
+                        lng={outLng}
                         showCoords={false}
                         label=""
                       />
