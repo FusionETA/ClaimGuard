@@ -152,31 +152,46 @@ export const adminAttendanceService = {
     // `bustAttendanceCaches` on attendance mutations — every clock-in
     // / clock-out / OT approval / working-hours edit already calls it,
     // which wipes `org:{orgId}:attendance:*`.
-    return getOrSetCache(
-      key(
-        "org",
-        seg(orgId),
-        "attendance",
-        "hours-summary",
-        from.toISOString(),
-        to.toISOString(),
-        seg(projectId),
-        seg(teamId),
-        seg(q),
-        scopeSeg(policyIdScope),
+    const [hours, stats] = await Promise.all([
+      getOrSetCache(
+        key(
+          "org",
+          seg(orgId),
+          "attendance",
+          "hours-summary",
+          from.toISOString(),
+          to.toISOString(),
+          seg(projectId),
+          seg(teamId),
+          seg(q),
+          scopeSeg(policyIdScope),
+        ),
+        60,
+        () =>
+          attendanceRepository.getHoursSummary({
+            orgId,
+            from,
+            to,
+            projectId,
+            teamId,
+            q,
+            policyIdScope,
+          }),
       ),
-      60,
-      () =>
-        attendanceRepository.getHoursSummary({
-          orgId,
-          from,
-          to,
-          projectId,
-          teamId,
-          q,
-          policyIdScope,
-        }),
-    )
+      // Attendance roll-up for the SAME date range + project — surfaced as
+      // the stat strip atop the panel so the summary numbers follow the date
+      // filter instead of a separate fixed "last 30 days" card.
+      adminAttendanceService.getAggregateStats(from, to, orgId, projectId ?? null),
+    ])
+    return {
+      ...hours,
+      stats: {
+        totalAttendanceRecords: stats.totalAttendanceRecords,
+        totalLate: stats.totalLate,
+        totalMissing: stats.totalMissing,
+        totalOnLeave: stats.totalOnLeave,
+      },
+    }
   },
 
   async getEmployeeHoursSummary(employeeId: string, from: Date, to: Date) {

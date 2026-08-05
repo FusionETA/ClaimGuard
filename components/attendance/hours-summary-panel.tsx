@@ -33,6 +33,15 @@ export type HoursSummaryEmployeeRow = {
 export type HoursSummaryData = {
   totals: HoursBuckets & { expectedMin?: number }
   employees: HoursSummaryEmployeeRow[]
+  /// Optional attendance roll-up for the SAME date range + project filter,
+  /// rendered as a stat strip at the top of the panel. Only the org-wide
+  /// admin summary supplies this; the employee / per-employee panels omit it.
+  stats?: {
+    totalAttendanceRecords: number
+    totalLate: number
+    totalMissing: number
+    totalOnLeave: number
+  }
 }
 
 type LoadAction = (fromIso: string, toIso: string) => Promise<HoursSummaryData>
@@ -197,6 +206,29 @@ export function HoursSummaryPanel({
             teams={filterBar.teams}
             value={filterBar.value}
           />
+        ) : null}
+
+        {/* Attendance roll-up for the selected range (records / late / missing
+            / leave). Rides the same re-fetch as the hours, so it follows the
+            From / To filter — replaces the old separate "30-day rolling" card. */}
+        {data.stats ? (
+          <div className="grid grid-cols-2 gap-3 rounded-xl border border-border/60 bg-surface-low px-4 py-3 sm:grid-cols-4">
+            {[
+              {
+                label: "Records",
+                value: data.stats.totalAttendanceRecords.toLocaleString(),
+                tone: "text-foreground",
+              },
+              { label: "Late instances", value: String(data.stats.totalLate), tone: "text-tertiary" },
+              { label: "Missing", value: String(data.stats.totalMissing), tone: "text-destructive" },
+              { label: "Leave days", value: String(data.stats.totalOnLeave), tone: "text-accent" },
+            ].map((s) => (
+              <div key={s.label}>
+                <p className={`font-headline text-xl font-extrabold ${s.tone}`}>{s.value}</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">{s.label}</p>
+              </div>
+            ))}
+          </div>
         ) : null}
 
         {error ? (
