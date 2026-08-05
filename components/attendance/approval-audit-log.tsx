@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/attendance/ui/input"
 import { Label } from "@/components/attendance/ui/label"
 import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { PaginationControls } from "@/components/ui/pagination-controls"
+import { cn } from "@/lib/utils"
 import {
   Select,
   SelectContent,
@@ -70,8 +71,6 @@ type FilterBarProps = {
   value: TableFilterValue
 }
 
-type AuditMode = "APPROVED" | "PENDING_REJECTED"
-
 type Props = {
   initialFrom: string
   initialTo: string
@@ -79,7 +78,6 @@ type Props = {
   loadAction: LoadAction
   /** When the parent's project filter changes, the panel re-fetches automatically. */
   projectId?: string | null
-  mode?: AuditMode
   filterBar?: FilterBarProps
 }
 
@@ -136,22 +134,24 @@ function fmtDelay(min: number | null): string {
 type KindFilter = "ALL" | AuditLogRow["kind"]
 type StatusFilter = "ALL" | AuditLogRow["status"]
 
+const STATUS_PILLS: { key: StatusFilter; label: string }[] = [
+  { key: "ALL", label: "All" },
+  { key: "APPROVED", label: "Approved" },
+  { key: "PENDING", label: "Pending" },
+  { key: "REJECTED", label: "Rejected" },
+]
+
 export function ApprovalAuditLog({
   initialFrom,
   initialTo,
   initialRows,
   loadAction,
   projectId,
-  mode = "APPROVED",
   filterBar,
 }: Props) {
-  const isPendingMode = mode === "PENDING_REJECTED"
-  const headingTitle = isPendingMode
-    ? "Pending / Rejected approvals"
-    : "Approved approvals"
-  const headingSubtitle = isPendingMode
-    ? "Pending and rejected clock-in / clock-out / break / OT requests."
-    : "Reviewed and approved clock-in / clock-out / break / OT requests. The Δ vs event column shows review delay."
+  const headingTitle = "Approvals"
+  const headingSubtitle =
+    "Clock-in / clock-out / break / OT requests. Filter by status with the pills below; Δ vs event shows the review delay."
   const [from, setFrom] = useState(initialFrom)
   const [to, setTo] = useState(initialTo)
   const [rows, setRows] = useState<AuditLogRow[]>(initialRows)
@@ -163,6 +163,7 @@ export function ApprovalAuditLog({
   const [search, setSearch] = useState("")
   const [kindFilter, setKindFilter] = useState<KindFilter>("ALL")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
+  const [page, setPage] = useState(1)
 
   // Mirror server-supplied rows whenever the parent re-renders with a
   // new payload. Without this sync, useState(initialRows) only fires on
@@ -227,6 +228,32 @@ export function ApprovalAuditLog({
       .sort((a, b) => (b.reviewedAt ?? "").localeCompare(a.reviewedAt ?? ""))
   }, [rows, search, kindFilter, statusFilter])
 
+  // Per-status counts over the loaded rows, so each pill shows its own total.
+  const statusCounts = useMemo(() => {
+    const c: Record<StatusFilter, number> = {
+      ALL: rows.length,
+      APPROVED: 0,
+      PENDING: 0,
+      REJECTED: 0,
+    }
+    for (const r of rows) c[r.status] += 1
+    return c
+  }, [rows])
+
+  const PAGE_SIZE = 12
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const paged = useMemo(
+    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filtered, currentPage],
+  )
+
+  // Snap back to page 1 when a filter narrows the set or a re-fetch swaps the
+  // rows, so we never land on an empty tail page.
+  useEffect(() => {
+    setPage(1)
+  }, [search, kindFilter, statusFilter, rows])
+
   return (
     <Card>
       <CardContent className="space-y-4 p-4 sm:p-5">
@@ -283,11 +310,27 @@ export function ApprovalAuditLog({
           </p>
         ) : null}
 
-        <div className="grid gap-2 sm:grid-cols-[1fr_160px_160px] sm:gap-3">
-          {/* flex items-center — same grid-stretch fix as the OT table's
-              search box: the wrapper grows to the Select's height, so the
-              shorter h-9 Input has to be centred or the icon's top-1/2
-              lands below it. */}
+        {/* Status pills — replaces the old status dropdown and merges the
+            former Approved + Pending/Rejected tables into one paginated list. */}
+        <div className="flex flex-wrap gap-2">
+          {STATUS_PILLS.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => setStatusFilter(p.key)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                statusFilter === p.key
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {p.label} · {statusCounts[p.key]}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-[1fr_180px] sm:gap-3">
           <div className="relative flex items-center">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -312,39 +355,21 @@ export function ApprovalAuditLog({
               <SelectItem value="OT">OT</SelectItem>
             </SelectContent>
           </Select>
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v as StatusFilter)}
-          >
-            <SelectTrigger className="h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All statuses</SelectItem>
-              {isPendingMode ? (
-                <>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="REJECTED">Rejected</SelectItem>
-                </>
-              ) : (
-                <SelectItem value="APPROVED">Approved</SelectItem>
-              )}
-            </SelectContent>
-          </Select>
         </div>
 
         <p className="text-[11px] text-muted-foreground">
-          Showing {filtered.length} of {rows.length} reviewed approvals
+          Showing {filtered.length} of {rows.length} approvals
         </p>
 
         {filtered.length === 0 ? (
           <p className="py-6 text-center text-xs text-muted-foreground">
             {rows.length === 0
-              ? "No reviewed approvals in this range."
+              ? "No approvals in this range."
               : "No rows match the current filters."}
           </p>
         ) : (
-          <ScrollArea className="max-h-[420px] overflow-auto rounded-md border border-border/40">
+          <>
+            <div className="overflow-x-auto rounded-md border border-border/40">
             <table className="w-full min-w-[860px] text-sm">
               <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b border-border/60 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -358,7 +383,7 @@ export function ApprovalAuditLog({
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((row) => (
+                {paged.map((row) => (
                   <tr
                     key={row.id}
                     className="border-b border-border/30 text-foreground"
@@ -477,7 +502,16 @@ export function ApprovalAuditLog({
                 ))}
               </tbody>
             </table>
-          </ScrollArea>
+            </div>
+            <PaginationControls
+              className="flex flex-wrap items-center justify-between gap-3 pt-1"
+              currentPage={currentPage}
+              pageSize={PAGE_SIZE}
+              totalItems={filtered.length}
+              itemLabel="approvals"
+              onPageChange={setPage}
+            />
+          </>
         )}
       </CardContent>
     </Card>

@@ -78,7 +78,6 @@ export default async function AdminAttendancePage({
   const daFilter = readFilter(params, "da")
   const hsFilter = readFilter(params, "hs")
   const auFilter = readFilter(params, "au")
-  const prFilter = readFilter(params, "pr")
   const supFilter = readFilter(params, "sup")
 
   const initialFrom = startOfMonthIso()
@@ -146,7 +145,6 @@ export default async function AdminAttendancePage({
         initialTo={initialTo}
         supervisorSettings={supervisorSettings}
         auFilter={auFilter}
-        prFilter={prFilter}
         supFilter={supFilter}
         projectOptions={projectOptions}
         teamOptions={teamOptions}

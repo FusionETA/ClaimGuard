@@ -60,28 +60,15 @@ export async function loadApprovalAuditLogForFiltersAction(
   fromIso: string,
   toIso: string,
 ) {
+  // All statuses in one fetch — the merged Performance approval log filters
+  // Approved / Pending / Rejected client-side via pills.
   return loadApprovalAuditLogAction(
     fromIso,
     toIso,
     filters.projectId,
     filters.teamId,
     filters.q,
-    ["APPROVED"],
-  )
-}
-
-export async function loadPendingRejectedAuditLogForFiltersAction(
-  filters: { projectId: string | null; teamId: string | null; q: string | null },
-  fromIso: string,
-  toIso: string,
-) {
-  return loadApprovalAuditLogAction(
-    fromIso,
-    toIso,
-    filters.projectId,
-    filters.teamId,
-    filters.q,
-    ["PENDING", "REJECTED"],
+    ["APPROVED", "PENDING", "REJECTED"],
   )
 }
 
