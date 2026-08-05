@@ -48,6 +48,16 @@ export function TableFilterBar({ prefix, projects, teams, value, onChange }: Pro
     setSearchDraft(value.q ?? "")
   }, [value.q])
 
+  // Debounced live search: fire ~350ms after the last keystroke so the table
+  // filters as you type, instead of only on Enter / blur. Guarded so it never
+  // re-commits a value that already matches what's applied.
+  useEffect(() => {
+    if ((searchDraft.trim() || null) === (value.q?.trim() || null)) return
+    const id = setTimeout(() => commitSearch(searchDraft), 350)
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchDraft])
+
   function pushParams(mutate: (p: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams.toString())
     mutate(params)
@@ -184,7 +194,6 @@ export function TableFilterBar({ prefix, projects, teams, value, onChange }: Pro
               e.currentTarget.blur()
             }
           }}
-          disabled={pending}
         />
       </div>
     </div>

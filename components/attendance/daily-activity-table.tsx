@@ -152,7 +152,7 @@ function SessionsExpander({
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
       >
-        {sessions.length} sessions
+        {sessions.length} shifts
         {open ? (
           <ChevronUp className="h-3 w-3" />
         ) : (
@@ -169,10 +169,10 @@ function SessionsExpander({
             return (
               <div
                 key={s.id}
-                className="grid grid-cols-[16px_1fr_auto_1fr] items-center gap-x-2 px-3 py-2 text-xs"
+                className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-2 px-3 py-2 text-xs"
               >
-                <span className="text-[10px] font-semibold text-muted-foreground tabular-nums">
-                  {i + 1}
+                <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Shift {i + 1}
                 </span>
                 <span className="flex items-center gap-1 font-semibold text-foreground">
                   {sIn}
@@ -333,6 +333,11 @@ export function DailyActivityTable({
                 [row.project, row.jobTitle].filter(Boolean).join(" · ") || "—"
               const sessions = row.sessions ?? []
               const sessionCount = sessions.length
+              // Off-site clock-ins require a remark — surface it on the row.
+              const offSiteReason = row.offSite
+                ? (sessions.find((s) => s.clockInNotes?.trim())?.clockInNotes ??
+                  null)
+                : null
               return (
                 <div
                   key={row.id}
@@ -352,6 +357,14 @@ export function DailyActivityTable({
                         {row.clockInDistanceMeters != null
                           ? ` · ${formatDistance(row.clockInDistanceMeters)}`
                           : ""}
+                      </p>
+                    ) : null}
+                    {offSiteReason ? (
+                      <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+                        <span className="font-semibold text-foreground/80">
+                          Reason:
+                        </span>{" "}
+                        {offSiteReason}
                       </p>
                     ) : null}
                     {row.late ? (
