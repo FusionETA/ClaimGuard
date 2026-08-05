@@ -1,41 +1,36 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
-import { handleApiRequest } from "@/lib/api-auth"
 import { authenticateUser } from "@/lib/auth/authenticate"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+
+import { handleAuthEndpointRequest } from "../_shared"
 
 /**
  * POST /api/v1/auth/verify
  *
- * Credential-verification endpoint for external, first-party companion
- * apps (e.g. ABPay — the Ayu Borneo payroll importer). Lets an external
- * app authenticate a user against AltomateHR's own password database
- * instead of maintaining a separate credential store. The external app
- * then mints its OWN session (JWT/cookie) from the returned identity —
- * this endpoint only answers "are these credentials valid, and is this
- * person an admin/owner of my org?".
+ * Credential-verification endpoint for first-party companion apps (e.g.
+ * ABPay — the Ayu Borneo payroll importer). Verifies a user against
+ * AltomateHR's own password database and returns the identity + the orgs
+ * they administer, so the companion app can mint its OWN session.
  *
- * Authentication: per-organization API token (`Authorization: Bearer
- * wp_live_*`), same as every other /api/v1 route. No extra scope is
- * required (`[]`) — the org-scoping below is what makes it safe.
+ * Authentication (dual-mode — see `../_shared`):
+ *   - **master key** (`wp_master_*`): the natural fit for a companion app
+ *     whose owner spans several orgs. Gate: the user administers ≥ 1 org.
+ *   - **per-org token** (`wp_live_*`): backward-compat. Gate: the user
+ *     administers THAT token's org.
  *
- * SECURITY — why the org check matters:
- *   `authenticateUser()` verifies the password against ANY active user
- *   with that email, platform-wide. Returning success on that alone
- *   would turn any partner's token into a cross-tenant password oracle
- *   (brute-force another customer's users). So after the password check
- *   we require the user to be an ADMIN/OWNER of the SPECIFIC org this
- *   token belongs to — mirroring the same gate the SSO-ticket route
- *   uses (`isAdminOfOrganization`). A token can therefore only verify
- *   credentials for its own tenant's admins.
+ * SECURITY — `authenticateUser()` checks the password against ANY active
+ * user platform-wide, so returning success on the password alone would be
+ * a cross-tenant oracle. The ADMIN/OWNER role check + the org gate below
+ * are what contain it: only an admin/owner who actually administers an org
+ * (the token's org, or any org, per mode) can be verified here.
  *
  * Responses:
- *   200 { data: { id, name, email, role, organizationId, organizationName } }
+ *   200 { data: { id, name, email, role, organizationId, organizationName, organizations } }
  *   400 invalid body
- *   401 invalid email or password (uniform — never leaks whether the
- *       email exists)
- *   403 valid credentials but not an admin/owner of this token's org
+ *   401 invalid email or password (uniform — never leaks whether the email exists)
+ *   403 valid credentials but not an admin/owner (of the required scope)
  */
 
 const bodySchema = z.object({
@@ -48,7 +43,7 @@ const bodySchema = z.object({
   password: z.string().min(1, "Password is required."),
 })
 
-export const POST = handleApiRequest([], async (request, { integration }) => {
+export const POST = handleAuthEndpointRequest(async (request, ctx) => {
   let body: unknown
   try {
     body = await request.json()
@@ -89,8 +84,7 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
 
   const user = result.user
 
-  // Only admin-tier accounts may sign in to an external companion app,
-  // and only for the org this token was issued for (see SECURITY note).
+  // Only admin-tier accounts may sign in to an external companion app.
   if (user.role !== "ADMIN" && user.role !== "OWNER") {
     return NextResponse.json(
       {
@@ -103,29 +97,34 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
     )
   }
 
-  const hasAccess = await organizationRepository.isAdminOfOrganization(
+  // The companies this owner can manage — returned to the app AND used for
+  // the master-mode gate.
+  const organizations = await organizationRepository.getAdminOrganizations(
     user.userId,
-    integration.organizationId,
   )
-  if (!hasAccess) {
+
+  // Org gate — depends on how the caller authenticated (see `../_shared`).
+  const authorized =
+    ctx.mode === "master"
+      ? organizations.length > 0
+      : await organizationRepository.isAdminOfOrganization(
+          user.userId,
+          ctx.organizationId,
+        )
+  if (!authorized) {
     return NextResponse.json(
       {
         error: {
           status: 403,
           message:
-            "This account is not an admin or owner of the organization this token belongs to.",
+            ctx.mode === "master"
+              ? "This account does not administer any organization."
+              : "This account is not an admin or owner of the organization this token belongs to.",
         },
       },
       { status: 403 },
     )
   }
-
-  // The companies this owner can manage in AltomateHR — ABPay lists these
-  // so the owner can connect a per-company API token to each. Reuses the
-  // same source the admin org-switcher uses (primary org + linked orgs).
-  const organizations = await organizationRepository.getAdminOrganizations(
-    user.userId,
-  )
 
   return NextResponse.json({
     data: {

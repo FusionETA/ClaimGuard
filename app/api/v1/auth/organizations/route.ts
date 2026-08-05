@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
-import { handleApiRequest } from "@/lib/api-auth"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+
+import { handleAuthEndpointRequest } from "../_shared"
 
 /**
  * POST /api/v1/auth/organizations
@@ -10,28 +11,24 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
  * Returns the AltomateHR organizations a given user administers — the same
  * list POST /api/v1/auth/verify returns at login, but WITHOUT re-checking
  * the password. Lets a first-party companion app (ABPay) refresh its
- * company roster on demand from an existing session, instead of only being
- * able to re-sync at login.
+ * company roster on demand from an existing session.
  *
- * Authentication: per-organization API token (`Authorization: Bearer
- * wp_live_*`), same as every /api/v1 route. No scope required (`[]`) — the
- * org-admin gate below is what makes it safe.
- *
- * SECURITY — mirrors /auth/verify: we only return a user's org list if
- * that user is an ADMIN/OWNER of the SPECIFIC org this token belongs to
- * (`isAdminOfOrganization`). A partner token can therefore only enumerate
- * orgs for its own tenant's admins, never for arbitrary user ids.
+ * Authentication (dual-mode — see `../_shared`):
+ *   - **master key** (`wp_master_*`): partner identity is enough; returns
+ *     whatever the user administers (`[]` for non-admins).
+ *   - **per-org token** (`wp_live_*`): backward-compat. The user must
+ *     administer THAT token's org.
  *
  * Responses:
  *   200 { data: { organizations: [{ id, name }, ...] } }
  *   400 invalid body
- *   403 the user is not an admin/owner of this token's org
+ *   403 (per-org mode) the user is not an admin/owner of this token's org
  */
 const bodySchema = z.object({
   userId: z.string().trim().min(1, "userId is required."),
 })
 
-export const POST = handleApiRequest([], async (request, { integration }) => {
+export const POST = handleAuthEndpointRequest(async (request, ctx) => {
   let body: unknown
   try {
     body = await request.json()
@@ -56,23 +53,25 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
     )
   }
 
-  // Same gate as /auth/verify: only return this user's org list if they
-  // actually administer the org this token belongs to.
-  const hasAccess = await organizationRepository.isAdminOfOrganization(
-    parsed.data.userId,
-    integration.organizationId,
-  )
-  if (!hasAccess) {
-    return NextResponse.json(
-      {
-        error: {
-          status: 403,
-          message:
-            "This user is not an admin or owner of the organization this token belongs to.",
-        },
-      },
-      { status: 403 },
+  // Per-org callers may only look up a user who administers THEIR org.
+  // Master callers are trusted partner identities — no org to gate on.
+  if (ctx.mode === "org") {
+    const hasAccess = await organizationRepository.isAdminOfOrganization(
+      parsed.data.userId,
+      ctx.organizationId,
     )
+    if (!hasAccess) {
+      return NextResponse.json(
+        {
+          error: {
+            status: 403,
+            message:
+              "This user is not an admin or owner of the organization this token belongs to.",
+          },
+        },
+        { status: 403 },
+      )
+    }
   }
 
   const organizations = await organizationRepository.getAdminOrganizations(
