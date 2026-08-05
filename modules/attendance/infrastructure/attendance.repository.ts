@@ -1749,7 +1749,7 @@ export const attendanceRepository = {
     // forgot to clock out). Must call clockOut on that session first.
     const orphan = await this.findOpenSessionAcrossDays(employeeId)
     if (orphan) {
-      throw new Error("ALREADY_CLOCKED_IN")
+      throw new Error("You still have an open session — please clock out before clocking in again.")
     }
 
     // Find or create today's roll-up record, then check for an open session.
@@ -1771,7 +1771,7 @@ export const attendanceRepository = {
     })
 
     if (record.sessions.length > 0) {
-      throw new Error("ALREADY_CLOCKED_IN")
+      throw new Error("You still have an open session — please clock out before clocking in again.")
     }
 
     // Create the new session for this clock-in.
@@ -1905,6 +1905,31 @@ export const attendanceRepository = {
     const tz = await this.getOrgTimezone(orgId)
     const today = startOfLocalDay(now, tz)
 
+    // Resolve which open session this clock-out closes. The orphan dialog
+    // passes an explicit id; the plain "Clock Out" button passes nothing —
+    // and historically that path only looked at TODAY's record, so a session
+    // left open on a PREVIOUS day (forgot to clock out, or the day rolled
+    // over) was unreachable: clock-out threw NOT_CLOCKED_IN while the
+    // clock-in guard threw ALREADY_CLOCKED_IN, trapping the employee on both
+    // buttons. So when nothing was passed and there's no open session on
+    // today's record, fall back to the same cross-day open session the
+    // clock-in guard finds, and close THAT.
+    let effectiveOrphanId = orphanedSessionId
+    if (!effectiveOrphanId) {
+      const hasOpenToday = await prisma.attendanceRecord.findFirst({
+        where: {
+          employeeId,
+          date: today,
+          sessions: { some: { endedAt: null } },
+        },
+        select: { id: true },
+      })
+      if (!hasOpenToday) {
+        const orphan = await this.findOpenSessionAcrossDays(employeeId)
+        if (orphan) effectiveOrphanId = orphan.sessionId
+      }
+    }
+
     // When closing an orphaned session from a previous day, load that
     // session's parent record instead of today's record.
     let existing: {
@@ -1922,11 +1947,11 @@ export const attendanceRepository = {
     } | null = null
     let openSession: { id: string; startedAt: Date; breaks: { startedAt: Date; endedAt: Date | null }[] } | null = null
 
-    if (orphanedSessionId) {
+    if (effectiveOrphanId) {
       // Fetch session and its parent record separately to avoid Prisma
       // nested-select type inference issues where `session.record` is `never`.
       const orphanSession = await prisma.attendanceSession.findUnique({
-        where: { id: orphanedSessionId },
+        where: { id: effectiveOrphanId },
         select: {
           id: true,
           startedAt: true,
@@ -1934,7 +1959,7 @@ export const attendanceRepository = {
           breaks: { select: { startedAt: true, endedAt: true } },
         },
       })
-      if (!orphanSession) throw new Error("NOT_CLOCKED_IN")
+      if (!orphanSession) throw new Error("You're not clocked in right now.")
       const orphanRecord = await prisma.attendanceRecord.findUniqueOrThrow({
         where: { id: orphanSession.attendanceRecordId },
         select: {
@@ -1959,13 +1984,13 @@ export const attendanceRepository = {
         where: {
           employeeId,
           date: { lt: today },
-          sessions: { some: { endedAt: null, id: { not: orphanedSessionId } } },
+          sessions: { some: { endedAt: null, id: { not: effectiveOrphanId } } },
         },
         select: { id: true },
       })
       for (const r of otherOrphanRecords) {
         await prisma.attendanceSession.updateMany({
-          where: { attendanceRecordId: r.id, endedAt: null, id: { not: orphanedSessionId } },
+          where: { attendanceRecordId: r.id, endedAt: null, id: { not: effectiveOrphanId } },
           data: { endedAt: now, durationMin: 0 },
         })
         await prisma.attendanceRecord.update({
@@ -2023,14 +2048,14 @@ export const attendanceRepository = {
           })
           openSession = retroSession
         } else {
-          throw new Error("NOT_CLOCKED_IN")
+          throw new Error("You're not clocked in right now.")
         }
       } else {
         openSession = record.sessions[0]
       }
     }
 
-    if (!openSession || !existing) throw new Error("NOT_CLOCKED_IN")
+    if (!openSession || !existing) throw new Error("You're not clocked in right now.")
 
     // `tz` was resolved above (needed to compute the local `today`).
     const hours = await this.getWorkingHours(orgId, existing?.projectId ?? null)
@@ -2059,9 +2084,15 @@ export const attendanceRepository = {
       breakMin += Math.max(0, diffMinutes(b.startedAt, end))
     }
 
-    // Clamp effective clock-in to the project's working-hours start.
+    // Clamp effective clock-in to the shift's working-hours start — anchored
+    // to the day the SESSION started, not `now`. Anchoring to `now` breaks
+    // shifts that cross midnight: an 11:59pm→2am shift would build the
+    // expected start on the clock-OUT day (~9am the next day), clamp the
+    // start forward past the actual clock-out, and record 0 minutes. Using
+    // the clock-in day keeps cross-midnight shifts correct while still
+    // trimming genuine early logins on same-day shifts.
     let effectiveTimeIn: Date = openSession.startedAt
-    const expectedStart = expectedTimeOnLocalDay(now, hours.start, tz)
+    const expectedStart = expectedTimeOnLocalDay(openSession.startedAt, hours.start, tz)
     if (effectiveTimeIn.getTime() < expectedStart.getTime()) {
       effectiveTimeIn = expectedStart
     }
