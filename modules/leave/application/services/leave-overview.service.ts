@@ -85,6 +85,89 @@ async function loadOnLeaveTodayForOrg(
   }))
 }
 
+/**
+ * User IDs of employees on APPROVED leave covering today, scoped to the org
+ * (+ the caller's policy grant). The attendance Today tab uses this to mark
+ * on-leave employees — its "On leave" pill reads the attendance record
+ * status, which is never set to ON_LEAVE from an approved leave on its own,
+ * so without this the pill is always 0 and on-leave staff show as
+ * "No clock-in". Mirrors the scoping of `getOnLeaveTodayForOrg`.
+ */
+export async function getOnLeaveUserIdsTodayForOrg(
+  orgId: string,
+): Promise<string[]> {
+  const policyIdScope = await getActiveAdminPolicyScope()
+  if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+  const scopeTag =
+    policyIdScope === null ? "_all" : `p:${[...policyIdScope].sort().join(",")}`
+  return getOrSetCache(
+    key("org", orgId, "leave", "on-leave-today-userids", scopeTag),
+    600,
+    () => loadOnLeaveUserIdsTodayForOrg(orgId, policyIdScope),
+  )
+}
+
+async function loadOnLeaveUserIdsTodayForOrg(
+  orgId: string,
+  policyIdScope: string[] | null,
+): Promise<string[]> {
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) return []
+  const today = new Date()
+  const todayStart = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()),
+  )
+  const todayEnd = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59),
+  )
+  const apps = await prisma.leaveApplication.findMany({
+    where: {
+      status: "APPROVED",
+      startDate: { lte: todayEnd },
+      endDate: { gte: todayStart },
+      employee: {
+        user: { organizationId: orgId },
+        ...(policyIdScope && policyIdScope.length > 0
+          ? { policyId: { in: policyIdScope } }
+          : {}),
+      },
+    },
+    select: { employee: { select: { userId: true } } },
+  })
+  const ids = new Set<string>()
+  for (const a of apps) {
+    if (a.employee?.userId) ids.add(a.employee.userId)
+  }
+  return [...ids]
+}
+
+/**
+ * Total approved leave days for a user (by User id) overlapping [from, to].
+ * Sums each application's `totalDays` (half-days already encoded as 0.5).
+ * Powers the employee attendance detail's "This month · On leave" tile —
+ * attendance records are never stamped ON_LEAVE, so the count has to come from
+ * the leave book. Applications straddling the range boundary are counted in
+ * full (rare, and good enough for a summary tile).
+ */
+export async function getApprovedLeaveDaysInRangeForUser(
+  userId: string,
+  from: Date,
+  to: Date,
+): Promise<number> {
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) return 0
+  const apps = await prisma.leaveApplication.findMany({
+    where: {
+      status: "APPROVED",
+      startDate: { lte: to },
+      endDate: { gte: from },
+      employee: { userId },
+    },
+    select: { totalDays: true },
+  })
+  return apps.reduce((acc, a) => acc + a.totalDays, 0)
+}
+
 export type LeaveAuditEntry = {
   id: string
   employeeId: string

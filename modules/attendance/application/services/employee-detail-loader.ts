@@ -3,6 +3,7 @@ import "server-only"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type { EmployeeDetailData } from "@/modules/attendance/domain/models"
 import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
+import { getApprovedLeaveDaysInRangeForUser } from "@/modules/leave/application/services/leave-overview.service"
 
 export async function loadEmployeeDetail(
   employeeId: string,
@@ -12,17 +13,26 @@ export async function loadEmployeeDetail(
 
   const now = new Date()
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const monthEnd = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59),
+  )
+  // Recent-attendance list looks back ~1 month; the panel paginates and
+  // date-filters this window client-side. (Admin + supervisor share the view
+  // and the supervisor page has no server-side range action to lean on, so a
+  // one-shot load beats wiring a paged action through both flows.)
+  const historyStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-  const [todayRecord, todayEvents, history, otRecords, monthSummary] = await Promise.all(
-    [
+  const [todayRecord, todayEvents, history, otRecords, monthSummary, onLeaveDays] =
+    await Promise.all([
       attendanceRepository.getTodayAttendance(employeeId),
       attendanceRepository.getTodayEvents(employeeId),
-      attendanceRepository.getAttendanceHistory(employeeId, thirtyDaysAgo, now),
+      attendanceRepository.getAttendanceHistory(employeeId, historyStart, now),
       attendanceRepository.getEmployeeOTApprovals(employeeId),
       attendanceRepository.getEmployeeMonthSummary(employeeId, monthStart),
-    ],
-  )
+      // employeeId here is the User id (attendance keys on User.id); the leave
+      // helper joins via employee.userId.
+      getApprovedLeaveDaysInRangeForUser(employeeId, monthStart, monthEnd),
+    ])
 
   return {
     profile: {
@@ -37,7 +47,7 @@ export async function loadEmployeeDetail(
     },
     todayRecord,
     todayEvents,
-    monthSummary,
+    monthSummary: { ...monthSummary, onLeave: onLeaveDays },
     history,
     otRecords,
   }

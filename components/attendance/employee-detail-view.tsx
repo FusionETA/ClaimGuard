@@ -1,8 +1,8 @@
-import { AlertTriangle, CheckCircle2, FileText } from "lucide-react"
+import { FileText } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
-import { CoordsLink } from "@/components/attendance/coords-link"
+import { RecentAttendancePanel } from "@/components/attendance/recent-attendance-panel"
 import { SessionEditorDialog } from "@/components/attendance/session-editor-dialog"
 import {
   approvalStatusMeta,
@@ -227,7 +227,7 @@ export function EmployeeDetailView({
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             This month
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div>
               <p className="font-headline text-2xl font-extrabold text-foreground">
                 {monthHours}h <span className="text-base">{monthMins}m</span>
@@ -247,99 +247,32 @@ export function EmployeeDetailView({
               <p className="text-[11px] text-muted-foreground">Late</p>
             </div>
             <div>
+              <p className="font-headline text-2xl font-extrabold text-amber-600">
+                {monthSummary.offSite}
+              </p>
+              <p className="text-[11px] text-muted-foreground">Off-site</p>
+            </div>
+            <div>
               <p className="font-headline text-2xl font-extrabold text-destructive">
                 {monthSummary.missing}
               </p>
-              <p className="text-[11px] text-muted-foreground">Missing</p>
+              <p className="text-[11px] text-muted-foreground">Not clocked in</p>
+            </div>
+            <div>
+              <p className="font-headline text-2xl font-extrabold text-primary">
+                {monthSummary.onLeave}
+              </p>
+              <p className="text-[11px] text-muted-foreground">On leave</p>
             </div>
           </div>
         </Card>
       </div>
 
-      <Card>
-        <CardContent className="p-4">
-          <p className="mb-3 text-sm font-bold text-foreground">Recent attendance</p>
-          {history.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No attendance records in the last 30 days.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {history.slice(0, 30).map((r) => (
-                <div
-                  key={r.id}
-                  className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/40 px-3 py-2.5 transition-colors hover:bg-muted/40"
-                >
-                  {r.status === "MISSING" ? (
-                    <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
-                  ) : (
-                    <CheckCircle2
-                      className={cn(
-                        "h-4 w-4 shrink-0",
-                        r.status === "ON_TIME" ? "text-success" : "text-tertiary",
-                      )}
-                    />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">
-                      {r.date}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {fmtTime(r.timeIn, timezone)}{" "}
-                      {r.timeOut ? `– ${fmtTime(r.timeOut, timezone)}` : ""}{" "}
-                      {r.project ? `• ${r.project}` : ""}
-                    </p>
-                    {r.clockInLat != null && r.clockInLng != null ? (
-                      <div className="mt-0.5">
-                        <CoordsLink
-                          lat={r.clockInLat}
-                          lng={r.clockInLng}
-                          label="Clock-in map"
-                        />
-                      </div>
-                    ) : null}
-                    {r.timeOut &&
-                    r.clockOutLat != null &&
-                    r.clockOutLng != null ? (
-                      <div className="mt-0.5">
-                        <CoordsLink
-                          lat={r.clockOutLat}
-                          lng={r.clockOutLng}
-                          label="Clock-out map"
-                        />
-                      </div>
-                    ) : null}
-                    {r.notes ? (
-                      <p className="mt-1 text-[11px] font-semibold text-amber-700">
-                        ⚠ {r.notes.split("\n").length} off-site remark
-                        {r.notes.split("\n").length > 1 ? "s" : ""}
-                      </p>
-                    ) : null}
-                    {r.remark ? (
-                      <p className="mt-1 text-[11px] font-semibold text-sky-700">
-                        ✏️ Adjustment request
-                      </p>
-                    ) : null}
-                  </div>
-                  <Badge variant={STATUS_VARIANT[r.status] as never}>
-                    {attendanceStatusMeta[r.status].label}
-                  </Badge>
-                  {canEdit ? (
-                    <SessionEditorDialog
-                      recordId={r.id}
-                      employeeId={r.employeeId}
-                      initialTimeIn={r.timeIn}
-                      initialTimeOut={r.timeOut}
-                      triggerLabel="Edit"
-                      contextLabel={`Record · ${r.date}`}
-                    />
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <RecentAttendancePanel
+        records={history}
+        timezone={timezone}
+        canEdit={canEdit}
+      />
 
       <Card>
         <CardContent className="p-4">

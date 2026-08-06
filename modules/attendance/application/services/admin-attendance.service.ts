@@ -6,6 +6,7 @@ import { attendanceRepository } from "@/modules/attendance/infrastructure/attend
 import { shiftRepository } from "@/modules/attendance/infrastructure/shift.repository"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
+import { getOnLeaveUserIdsTodayForOrg } from "@/modules/leave/application/services/leave-overview.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import type {
   AdminOrgOverview,
@@ -211,9 +212,23 @@ export const adminAttendanceService = {
     q?: string | null,
   ) {
     const policyIdScope = await getActiveAdminPolicyScope()
-    return attendanceRepository.getDailyActivity(orgId, projectId, teamId, q, {
+    const rows = await attendanceRepository.getDailyActivity(orgId, projectId, teamId, q, {
       policyIdScope,
     })
+    if (!orgId) return rows
+    // The attendance record status is never set to ON_LEAVE from an approved
+    // leave, so the "On leave" pill would otherwise always read 0 and on-leave
+    // staff would land in "No clock-in". Cross-reference the leave module and
+    // mark employees on approved leave today (who didn't clock in) as ON_LEAVE,
+    // so the pill matches the Leave page's "on leave today".
+    const onLeave = new Set(await getOnLeaveUserIdsTodayForOrg(orgId))
+    if (onLeave.size === 0) return rows
+    return rows.map((r) =>
+      onLeave.has(r.id) &&
+      (r.derivedStatus == null || r.derivedStatus === "NOT_CLOCKED_IN")
+        ? { ...r, derivedStatus: "ON_LEAVE" as const }
+        : r,
+    )
   },
 
   async overrideAttendanceTimes(

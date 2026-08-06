@@ -3233,6 +3233,7 @@ export const attendanceRepository = {
         clockInLng: true,
         clockOutLat: true,
         clockOutLng: true,
+        notes: true,
         xeroSelfieFileId: true,
         clockOutXeroSelfieFileId: true,
         sessions: {
@@ -3299,8 +3300,14 @@ export const attendanceRepository = {
       }
 
       const clockInDistanceMeters = rec?.clockInDistanceMeters ?? null
+      // Off-site when the clock GPS is beyond the geofence radius OR the
+      // record carries an off-site remark (`notes`). The remark path matters
+      // for a face-scan / no-GPS off-site clock-in (e.g. guard house): the
+      // reason is captured in `notes` but no distance is recorded, so a
+      // distance-only check would let it slip through as on-site.
       const offSite =
-        clockInDistanceMeters != null && clockInDistanceMeters > radiusM
+        (clockInDistanceMeters != null && clockInDistanceMeters > radiusM) ||
+        (rec?.notes != null && rec.notes.trim() !== "")
 
       const sessions: AttendanceSessionView[] = (rec?.sessions ?? []).map((s) => ({
         id: s.id,
@@ -3356,19 +3363,25 @@ export const attendanceRepository = {
     onTime: number
     late: number
     missing: number
+    offSite: number
   }> {
     const prisma = getClient()
     const monthEnd = new Date(monthStart)
     monthEnd.setUTCMonth(monthEnd.getUTCMonth() + 1)
     const records = await prisma.attendanceRecord.findMany({
       where: { employeeId, date: { gte: monthStart, lt: monthEnd } },
-      select: { durationMin: true, status: true },
+      select: { durationMin: true, status: true, notes: true },
     })
     return {
       totalMin: records.reduce((acc, r) => acc + (r.durationMin ?? 0), 0),
       onTime: records.filter((r) => r.status === "ON_TIME").length,
       late: records.filter((r) => r.status === "LATE").length,
       missing: records.filter((r) => r.status === "MISSING").length,
+      // Off-site == the day carried an off-site remark (same signal the
+      // roll-call uses). Distance alone isn't enough — no-GPS off-site
+      // clock-ins record only the remark.
+      offSite: records.filter((r) => r.notes != null && r.notes.trim() !== "")
+        .length,
     }
   },
 

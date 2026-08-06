@@ -242,7 +242,15 @@ export type EmployeeDetailData = {
     totalMin: number
     onTime: number
     late: number
+    /** Expected-but-no-clock-in days (AttendanceStatus MISSING). Labelled
+     *  "Not clocked in" in the UI. */
     missing: number
+    /** Days with an off-site remark this month. */
+    offSite: number
+    /** Approved leave days overlapping this month (from the leave book —
+     *  attendance records are never stamped ON_LEAVE). May be fractional
+     *  (half-days count as 0.5). */
+    onLeave: number
   }
   history: AttendanceRecordView[]
   otRecords: ApprovalRequestView[]
