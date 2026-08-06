@@ -1,7 +1,5 @@
 import "server-only"
-import { isAdminRole } from "@/lib/auth/types"
 
-import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
 import {
   loadStatutoryRunPayload,
@@ -39,17 +37,13 @@ import {
  */
 export async function renderSocsoEisTxt(input: {
   runId: string
+  /// Already-authorised org that owns the run (threaded from
+  /// `renderPayrollReport`). Replaces the old admin-session read.
+  organizationId: string
 }): Promise<Buffer> {
-  const session = await getCurrentSession()
-  if (!session || !isAdminRole(session.role)) {
-    throw new Error("Session expired. Please log in again.")
-  }
-  const orgId = resolveActiveOrgId(session)
-  if (!orgId) throw new Error("No active organisation.")
-
   const payload = await loadStatutoryRunPayload({
     runId: input.runId,
-    organizationId: orgId,
+    organizationId: input.organizationId,
   })
   if (!payload) throw new Error("Payroll run not found.")
 

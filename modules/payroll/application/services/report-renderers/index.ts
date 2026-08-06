@@ -19,29 +19,41 @@ import { renderSocsoEisTxt } from "@/modules/payroll/application/services/report
 export async function renderPayrollReport(input: {
   runId: string
   kind: PayrollReportKind
+  /// Already-authorised org that owns the run. Threaded into every renderer
+  /// so they can load data without an admin session — this is what lets the
+  /// token-authed `/api/v1` payroll download reuse the same generators.
+  organizationId: string
+  /// Policy scope for the payslip-backed PDFs. null (or omitted) = whole
+  /// run (token endpoint); the in-app caller passes the admin's scope so a
+  /// restricted admin keeps seeing only their employees. Ignored by the
+  /// statutory + bank files, which are always whole-run.
+  policyIdScope?: string[] | null
   /// Admin-supplied payment date — only consumed by PB ECP today.
   paymentDate?: Date
 }): Promise<Buffer> {
+  const { runId, organizationId } = input
+  const policyIdScope = input.policyIdScope ?? null
   switch (input.kind) {
     case "PAYROLL_SUMMARY_PDF":
-      return renderPayrollSummaryPdf({ runId: input.runId })
+      return renderPayrollSummaryPdf({ runId, organizationId, policyIdScope })
     case "PAYMENT_SCHEDULE_PDF":
-      return renderPaymentSchedulePdf({ runId: input.runId })
+      return renderPaymentSchedulePdf({ runId, organizationId, policyIdScope })
     case "PCB_LHDN_FORM_PDF":
-      return renderPcbLhdnFormPdf({ runId: input.runId })
+      return renderPcbLhdnFormPdf({ runId, organizationId, policyIdScope })
     case "BULK_PAYSLIPS_PDF":
-      return renderBulkPayslipsPdf({ runId: input.runId })
+      return renderBulkPayslipsPdf({ runId, organizationId, policyIdScope })
     case "EPF_CSV":
-      return renderEpfCsv({ runId: input.runId })
+      return renderEpfCsv({ runId, organizationId })
     case "SOCSO_EIS_TXT":
-      return renderSocsoEisTxt({ runId: input.runId })
+      return renderSocsoEisTxt({ runId, organizationId })
     case "SOCSO_EIS_SKBBK_TXT":
-      return renderSocsoEisSkbbkTxt({ runId: input.runId })
+      return renderSocsoEisSkbbkTxt({ runId, organizationId })
     case "PCB_TXT":
-      return renderPcbTxt({ runId: input.runId })
+      return renderPcbTxt({ runId, organizationId })
     case "BANK_PB_ECP_XLSX":
       return renderPbEcpXlsx({
-        runId: input.runId,
+        runId,
+        organizationId,
         paymentDate: input.paymentDate,
       })
   }

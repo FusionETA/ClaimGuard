@@ -2,6 +2,7 @@ import "server-only"
 import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { getActiveAdminPolicyScope } from "@/modules/organization/application/services/admin-access.service"
 import { getOrSetCache } from "@/lib/cache"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { key } from "@/lib/redis"
@@ -128,7 +129,16 @@ export async function readPayrollReportFile(input: {
   if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
-  return renderPayrollReportFileForOrg({ ...input, organizationId: orgId })
+  // Preserve the admin's policy scope for the PDF reports (summary /
+  // payslips / schedule / PCB form) — a restricted admin only sees their
+  // employees, exactly as before this went session-free. The token
+  // endpoint passes no scope, so it renders the whole run.
+  const policyIdScope = await getActiveAdminPolicyScope()
+  return renderPayrollReportFileForOrg({
+    ...input,
+    organizationId: orgId,
+    policyIdScope,
+  })
 }
 
 /**
@@ -143,6 +153,11 @@ export async function renderPayrollReportFileForOrg(input: {
   runId: string
   kind: PayrollReportKind
   organizationId: string
+  /// Policy scope for the payslip-backed PDF reports. Omit (or null) to
+  /// render the whole run — correct for the org-scoped token endpoint. The
+  /// in-app caller passes the admin's scope so restricted admins keep
+  /// seeing only their employees.
+  policyIdScope?: string[] | null
   paymentDate?: string
 }): Promise<{
   bytes: Buffer
@@ -195,6 +210,8 @@ export async function renderPayrollReportFileForOrg(input: {
   const bytes = await renderPayrollReport({
     runId: run.id,
     kind: input.kind,
+    organizationId: orgId,
+    policyIdScope: input.policyIdScope ?? null,
     paymentDate: resolvedPaymentDate,
   })
 

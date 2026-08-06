@@ -1,13 +1,11 @@
 import "server-only"
-import { isAdminRole } from "@/lib/auth/types"
 
 import * as XLSX from "xlsx"
 
-import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { findBankByName } from "@/modules/payroll/domain/malaysian-banks"
 import type { IdType } from "@/modules/payroll/domain/models"
 import {
-  getPayrollDisbursementRows,
+  getPayrollDisbursementRowsForOrg,
 } from "@/modules/payroll/application/services/payroll-run.service"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 
@@ -45,22 +43,20 @@ import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payr
  */
 export async function renderPbEcpXlsx(input: {
   runId: string
+  /// Already-authorised org that owns the run (threaded from
+  /// `renderPayrollReport`). Replaces the old admin-session read.
+  organizationId: string
   /// Payment date for the upload. Defaults to the last day of the
   /// run's period month when not specified. PB ECP accepts up to 60
   /// days future-dated.
   paymentDate?: Date
 }): Promise<Buffer> {
-  const session = await getCurrentSession()
-  if (!session || !isAdminRole(session.role)) {
-    throw new Error("Session expired. Please log in again.")
-  }
-  const orgId = resolveActiveOrgId(session)
-  if (!orgId) throw new Error("No active organisation.")
+  const orgId = input.organizationId
 
   // Load settings + disbursement rows in parallel.
   const [settings, data] = await Promise.all([
     payrollSettingsRepository.getByOrgId(orgId),
-    getPayrollDisbursementRows({ runId: input.runId }),
+    getPayrollDisbursementRowsForOrg({ runId: input.runId, organizationId: orgId }),
   ])
 
   if (!data) throw new Error("Payroll run not found.")

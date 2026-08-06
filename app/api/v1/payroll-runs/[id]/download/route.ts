@@ -78,6 +78,7 @@ export const GET = handleApiRequest<{ id: string }>(
 
     const zip = new JSZip()
     const included: string[] = []
+    const skipped: Array<{ kind: PayrollReportKind; reason: string }> = []
     for (const kind of BUNDLE_KINDS) {
       try {
         const file = await renderPayrollReportFileForOrg({
@@ -89,10 +90,18 @@ export const GET = handleApiRequest<{ id: string }>(
         if (file) {
           zip.file(file.fileName, file.bytes)
           included.push(file.fileName)
+        } else {
+          skipped.push({
+            kind,
+            reason: "Renderer returned no file (run not submitted or no data).",
+          })
         }
       } catch (err) {
         // A single renderer can throw (e.g. no bank account configured).
-        // Skip just that file so the caller still gets the rest.
+        // Skip just that file so the caller still gets the rest — but keep
+        // the reason so it can be surfaced instead of silently swallowed.
+        const reason = err instanceof Error ? err.message : String(err)
+        skipped.push({ kind, reason })
         console.error(
           `[api/v1] payroll download: skipped ${kind} for run ${id}:`,
           err,
@@ -101,11 +110,15 @@ export const GET = handleApiRequest<{ id: string }>(
     }
 
     if (included.length === 0) {
+      // Return the collected per-file reasons so the caller can tell
+      // "not configured" from an auth / rendering fault, instead of a
+      // generic string that hides which renderers failed and why.
       return NextResponse.json(
         {
           error: {
             status: 422,
             message: "No files could be generated for this run.",
+            skipped,
           },
         },
         { status: 422 },
@@ -129,6 +142,12 @@ export const GET = handleApiRequest<{ id: string }>(
         // Lets the caller see how many files made it into the bundle
         // without unzipping first.
         "X-Bundle-File-Count": String(included.length),
+        // Names of any bundle files that couldn't be rendered (e.g. bank
+        // payor account not configured), so a partial (< 6-file) bundle
+        // isn't mistaken for a complete one.
+        ...(skipped.length > 0
+          ? { "X-Bundle-Skipped": skipped.map((s) => s.kind).join(",") }
+          : {}),
       },
     })
   },

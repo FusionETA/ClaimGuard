@@ -202,6 +202,31 @@ export async function getPayrollRunDetailPageData(input: {
   if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
+  const policyIdScope = await getActiveAdminPolicyScope()
+  return getPayrollRunDetailPageDataForOrg({
+    runId: input.runId,
+    organizationId: orgId,
+    policyIdScope,
+  })
+}
+
+/**
+ * Session-free core of `getPayrollRunDetailPageData`. Takes an already-
+ * authorised `organizationId` (+ optional policy scope) instead of reading
+ * the admin session, so the token-authed `/api/v1` payroll download can
+ * reuse it. `policyIdScope` defaults to null (= all employees) — correct for
+ * a token caller, whose token is org-scoped, not admin-scoped.
+ */
+export async function getPayrollRunDetailPageDataForOrg(input: {
+  runId: string
+  organizationId: string
+  policyIdScope?: string[] | null
+}): Promise<{
+  organizationName: string
+  run: PayrollRunRow
+  employees: Array<PayrollEmployeeRow & { ready: boolean }>
+} | null> {
+  const orgId = input.organizationId
 
   const prisma = getPrismaClient()
   if (!prisma) return null
@@ -209,7 +234,7 @@ export async function getPayrollRunDetailPageData(input: {
   // Restrict the per-run "Will be included" / "Incomplete" preview to
   // the admin's policy scope. For SUBMITTED runs this also restricts
   // which payslips appear in the detail view.
-  const adminPolicyIdScope = await getActiveAdminPolicyScope()
+  const adminPolicyIdScope = input.policyIdScope ?? null
   const [org, run] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: orgId },
@@ -1949,12 +1974,34 @@ export async function getPayrollRunDetailWithPayslipsPageData(input: {
   )
 }
 
+/**
+ * Session-free twin of `getPayrollRunDetailWithPayslipsPageData`. Takes an
+ * already-authorised `organizationId` so the token-authed `/api/v1` payroll
+ * download can render the summary + payslip PDFs without an admin session.
+ * `policyIdScope` defaults to null (all employees) — the token is org-scoped.
+ */
+export async function getPayrollRunDetailWithPayslipsPageDataForOrg(input: {
+  runId: string
+  organizationId: string
+  policyIdScope?: string[] | null
+}): Promise<PayrollRunDetailWithPayslipsPageData | null> {
+  return loadPayrollRunDetailWithPayslipsPageData(
+    { runId: input.runId },
+    input.organizationId,
+    input.policyIdScope ?? null,
+  )
+}
+
 async function loadPayrollRunDetailWithPayslipsPageData(
   input: { runId: string },
   orgId: string,
   policyIdScope: string[] | null = null,
 ): Promise<PayrollRunDetailWithPayslipsPageData | null> {
-  const base = await getPayrollRunDetailPageData(input)
+  const base = await getPayrollRunDetailPageDataForOrg({
+    runId: input.runId,
+    organizationId: orgId,
+    policyIdScope,
+  })
   if (!base) return null
 
   const [payslips, attachments, attachableClaims, adjustments, readyProfiles, policies] =
@@ -2160,6 +2207,26 @@ export async function getPayrollDisbursementRows(input: {
   if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
+  return getPayrollDisbursementRowsForOrg({
+    runId: input.runId,
+    organizationId: orgId,
+  })
+}
+
+/**
+ * Session-free core of `getPayrollDisbursementRows`. Takes an already-
+ * authorised `organizationId` so the token-authed `/api/v1` payroll download
+ * can render the PB ECP bank file without an admin session.
+ */
+export async function getPayrollDisbursementRowsForOrg(input: {
+  runId: string
+  organizationId: string
+}): Promise<{
+  organizationName: string
+  run: PayrollRunRow
+  rows: DisbursementRow[]
+} | null> {
+  const orgId = input.organizationId
 
   const prisma = getPrismaClient()
   if (!prisma) return null

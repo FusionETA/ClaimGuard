@@ -7,7 +7,7 @@ import {
   EmployeePayslipPdfDocument,
   type BulkPayslipPdfRow,
 } from "@/components/admin/payroll-report-pdf-documents"
-import { getPayrollRunDetailWithPayslipsPageData } from "@/modules/payroll/application/services/payroll-run.service"
+import { getPayrollRunDetailWithPayslipsPageDataForOrg } from "@/modules/payroll/application/services/payroll-run.service"
 import { payslipRepository } from "@/modules/payroll/infrastructure/payslip.repository"
 import { periodLabel, type PayslipData } from "@/modules/payroll/domain/runs"
 
@@ -58,9 +58,17 @@ async function mapInBatches<T, R>(
 
 export async function renderBulkPayslipsPdf(input: {
   runId: string
+  /// Already-authorised org that owns the run (threaded from
+  /// `renderPayrollReport`). Replaces the old admin-session read.
+  organizationId: string
+  /// Policy scope for the payslip data — null (or omitted) renders the whole
+  /// run (token endpoint); the in-app caller passes the admin's scope.
+  policyIdScope?: string[] | null
 }): Promise<Buffer> {
-  const data = await getPayrollRunDetailWithPayslipsPageData({
+  const data = await getPayrollRunDetailWithPayslipsPageDataForOrg({
     runId: input.runId,
+    organizationId: input.organizationId,
+    policyIdScope: input.policyIdScope ?? null,
   })
   if (!data) throw new Error("Payroll run not found.")
   if (data.payslips.length === 0) {

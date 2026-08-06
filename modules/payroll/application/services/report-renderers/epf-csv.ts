@@ -1,7 +1,5 @@
 import "server-only"
-import { isAdminRole } from "@/lib/auth/types"
 
-import { resolveActiveOrgId, getCurrentSession } from "@/lib/auth/session"
 import {
   loadStatutoryRunPayload,
   type StatutoryEmployeeRow,
@@ -26,17 +24,14 @@ import {
  */
 export async function renderEpfCsv(input: {
   runId: string
+  /// Already-authorised org that owns the run (threaded from
+  /// `renderPayrollReport`). Replaces the old admin-session read so the
+  /// token-authed `/api/v1` download can render this file.
+  organizationId: string
 }): Promise<Buffer> {
-  const session = await getCurrentSession()
-  if (!session || !isAdminRole(session.role)) {
-    throw new Error("Session expired. Please log in again.")
-  }
-  const orgId = resolveActiveOrgId(session)
-  if (!orgId) throw new Error("No active organisation.")
-
   const payload = await loadStatutoryRunPayload({
     runId: input.runId,
-    organizationId: orgId,
+    organizationId: input.organizationId,
   })
   if (!payload) throw new Error("Payroll run not found.")
 

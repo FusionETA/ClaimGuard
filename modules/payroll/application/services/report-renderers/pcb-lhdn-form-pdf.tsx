@@ -4,7 +4,7 @@ import JSZip from "jszip"
 import { renderToBuffer } from "@react-pdf/renderer"
 
 import { PcbCalculationDetailsPdfDocument } from "@/components/admin/payroll-report-pdf-documents"
-import { getPayrollRunDetailWithPayslipsPageData } from "@/modules/payroll/application/services/payroll-run.service"
+import { getPayrollRunDetailWithPayslipsPageDataForOrg } from "@/modules/payroll/application/services/payroll-run.service"
 import { periodLabel } from "@/modules/payroll/domain/runs"
 import { sanitiseFilenamePart } from "@/lib/filename"
 
@@ -25,9 +25,17 @@ import { sanitiseFilenamePart } from "@/lib/filename"
  */
 export async function renderPcbLhdnFormPdf(input: {
   runId: string
+  /// Already-authorised org that owns the run (threaded from
+  /// `renderPayrollReport`). Replaces the old admin-session read.
+  organizationId: string
+  /// Policy scope for the payslip data — null (or omitted) renders the whole
+  /// run (token endpoint); the in-app caller passes the admin's scope.
+  policyIdScope?: string[] | null
 }): Promise<Buffer> {
-  const data = await getPayrollRunDetailWithPayslipsPageData({
+  const data = await getPayrollRunDetailWithPayslipsPageDataForOrg({
     runId: input.runId,
+    organizationId: input.organizationId,
+    policyIdScope: input.policyIdScope ?? null,
   })
   if (!data) throw new Error("Payroll run not found.")
   if (data.payslips.length === 0) {
