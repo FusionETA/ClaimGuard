@@ -17,6 +17,7 @@ import {
   Plus,
   Receipt,
   Settings2,
+  Wrench,
 } from "lucide-react"
 
 import { ChangePasswordButton } from "@/components/layout/change-password-button"
@@ -59,6 +60,15 @@ import { cn } from "@/lib/utils"
  * `onValueChange` to open the create-company dialog instead of switching.
  */
 const ADD_COMPANY_SENTINEL = "__add_company"
+
+/**
+ * Sentinel for the superadmin "Support: switch to any org" item. Like the
+ * add-company sentinel, it's intercepted in `onValueChange` and navigates to
+ * /admin/support instead of being set as the active org — so it renders as a
+ * normal SelectItem (same hover, and the dropdown closes on select) rather
+ * than a raw link that left the menu open.
+ */
+const SUPPORT_SWITCH_SENTINEL = "__support_switch_org"
 
 type AdminNavItem = {
   href: Route
@@ -588,10 +598,14 @@ export function AdminShell({
                   <Select
                     value={resolvedActiveOrganizationId ?? undefined}
                     onValueChange={(v) => {
-                      // Intercept the sentinel before treating it as an org id —
-                      // we never want to set it as the active company.
+                      // Intercept the sentinels before treating the value as an
+                      // org id — we never want to set them as the active company.
                       if (v === ADD_COMPANY_SENTINEL) {
                         setAddCompanyOpen(true)
+                        return
+                      }
+                      if (v === SUPPORT_SWITCH_SENTINEL) {
+                        router.push("/admin/support" as Route)
                         return
                       }
                       handleOrgSwitch(v)
@@ -633,14 +647,15 @@ export function AdminShell({
                       {user.isSuperadmin ? (
                         <>
                           <SelectSeparator />
-                          <div className="px-2 py-1.5">
-                            <Link
-                              href={"/admin/support" as Route}
-                              className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-                            >
-                              🛠 Support: switch to any org →
-                            </Link>
-                          </div>
+                          <SelectItem
+                            value={SUPPORT_SWITCH_SENTINEL}
+                            className="font-semibold text-primary focus:text-primary"
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <Wrench className="h-4 w-4" />
+                              Support: switch to any org
+                            </span>
+                          </SelectItem>
                         </>
                       ) : null}
                     </SelectContent>
