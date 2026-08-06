@@ -9,6 +9,18 @@ import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import { ReportExportButtons } from "@/components/attendance/report-export-buttons"
+
+function startOfMonthIso(): string {
+  const d = new Date()
+  d.setUTCDate(1)
+  d.setUTCHours(0, 0, 0, 0)
+  return d.toISOString().slice(0, 10)
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
+}
 
 export default async function SupervisorEmployeeDetailPage({
   params,
@@ -32,15 +44,27 @@ export default async function SupervisorEmployeeDetailPage({
   ])
   if (!data) notFound()
 
+  const initialFrom = startOfMonthIso()
+  const initialTo = todayIso()
+  const year = new Date().getUTCFullYear()
+
   return (
     <div className="space-y-4">
-      <Link
-        href="/employee/attendance/team"
-        className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Back to team
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link
+          href="/employee/attendance/team"
+          className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to team
+        </Link>
+        <ReportExportButtons
+          employeeId={employeeId}
+          from={initialFrom}
+          to={initialTo}
+          year={year}
+        />
+      </div>
       <EmployeeDetailView data={data} viewerRole="SUPERVISOR" timezone={timezone} />
       <ShiftAssignmentPanel
         employeeId={employeeId}

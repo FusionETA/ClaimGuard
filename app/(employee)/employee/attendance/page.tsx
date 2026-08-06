@@ -1,5 +1,6 @@
 import { HoursProgress } from "@/components/attendance/hours-progress"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
+import { ReportExportButtons } from "@/components/attendance/report-export-buttons"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
@@ -26,6 +27,7 @@ export default async function EmployeeAttendancePage() {
   const orgId = resolveActiveOrgId(session) ?? null
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
+  const year = new Date().getUTCFullYear()
   // ClockCard now lives ONLY on /employee (the landing dashboard) —
   // no clock-in fetches needed here. This page is history + today's
   // remark + recent shifts + hours summary. All the policy / selfie /
@@ -46,6 +48,14 @@ export default async function EmployeeAttendancePage() {
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <ReportExportButtons
+          employeeId={session.userId}
+          from={initialFrom}
+          to={initialTo}
+          year={year}
+        />
+      </div>
       <EmployeeAttendanceDashboardView
         dashboard={dashboard}
         workingHours={workingHours}
