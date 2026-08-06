@@ -58,7 +58,7 @@ export function SessionsExpander({
                 <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Shift {i + 1}
                 </span>
-                <span className="flex items-center gap-1 font-semibold text-foreground">
+                <span className="flex items-center gap-1 whitespace-nowrap font-semibold text-foreground">
                   {sIn}
                   {hasInGps ? (
                     <CoordsLink
@@ -70,7 +70,7 @@ export function SessionsExpander({
                   ) : null}
                 </span>
                 <span className="text-muted-foreground">→</span>
-                <span className="flex items-center gap-1 text-foreground">
+                <span className="flex items-center gap-1 whitespace-nowrap text-foreground">
                   {sOut ? (
                     <>
                       <span className="font-semibold">{sOut}</span>

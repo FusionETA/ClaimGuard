@@ -378,18 +378,23 @@ export function OrgHistoryPanel({
               return (
                 <div
                   key={row.id}
-                  className="grid grid-cols-1 gap-1 rounded-2xl border border-border/60 bg-surface-low px-4 py-3 sm:grid-cols-[1fr_1.4fr_1fr_1fr_1fr_0.7fr_1fr] sm:items-center sm:gap-3"
+                  className="grid grid-cols-1 gap-1 rounded-2xl border border-border/60 bg-surface-low px-4 py-3 sm:grid-cols-[1fr_1.4fr_1fr_1fr_1fr_0.7fr_1fr] sm:items-start sm:gap-3"
                 >
                   <p className="text-xs font-semibold text-foreground sm:text-sm">
                     {fmtDate(row.date, timezone)}
                   </p>
-                  <Link
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    href={`/admin/attendance/employees/${row.employeeId}` as any}
-                    className="truncate text-sm font-bold hover:underline"
-                  >
-                    {row.name}
-                  </Link>
+                  <div className="min-w-0">
+                    <Link
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      href={`/admin/attendance/employees/${row.employeeId}` as any}
+                      className="block truncate text-sm font-bold hover:underline"
+                    >
+                      {row.name}
+                    </Link>
+                    {sessions.length > 1 ? (
+                      <SessionsExpander sessions={sessions} timezone={timezone} />
+                    ) : null}
+                  </div>
                   <p className="truncate text-xs text-muted-foreground">
                     {row.project ?? "—"}
                   </p>
@@ -405,9 +410,6 @@ export function OrgHistoryPanel({
                         showCoords={false}
                         label=""
                       />
-                    ) : null}
-                    {sessions.length > 1 ? (
-                      <SessionsExpander sessions={sessions} timezone={timezone} />
                     ) : null}
                   </div>
                   <div className="text-xs sm:text-sm">
