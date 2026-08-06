@@ -51,6 +51,36 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  // Disk-stored fallback: the id is a `/uploads/...` path (no Xero connection
+  // was available when the selfie was captured). Stream it straight off disk
+  // instead of proxying Xero, keeping the same auth gate as the Xero path.
+  if (record.xeroSelfieFileId.startsWith("/uploads/")) {
+    try {
+      const { readFile } = await import("node:fs/promises")
+      const { join, normalize } = await import("node:path")
+      const rel = normalize(record.xeroSelfieFileId).replace(/^(\.\.[/\\])+/, "")
+      const abs = join(process.cwd(), "public", rel)
+      const bytes = await readFile(abs)
+      const contentType = abs.toLowerCase().endsWith(".png")
+        ? "image/png"
+        : "image/jpeg"
+      return new NextResponse(new Uint8Array(bytes), {
+        status: 200,
+        headers: {
+          "Content-Type": contentType,
+          "Content-Length": String(bytes.byteLength),
+          "Cache-Control": "private, max-age=300",
+        },
+      })
+    } catch (err) {
+      console.error("[selfie proxy] disk read failed", err)
+      return NextResponse.json(
+        { error: "Failed to load selfie." },
+        { status: 502 },
+      )
+    }
+  }
+
   // Resolve the org's single Xero connection.
   const connectionId = record.employeeOrgId
     ? await organizationRepository.getActiveXeroConnectionId(record.employeeOrgId)

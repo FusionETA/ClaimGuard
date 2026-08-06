@@ -25,12 +25,16 @@ import type {
   EmployeeAttendanceDashboard,
 } from "@/modules/attendance/domain/models"
 import { getUsableXeroAccessToken } from "@/modules/organization/application/services/xero-connection.service"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { notify } from "@/modules/notifications/application/services/notification.service"
 
 const ARCHIVED_XERO_STATUSES = new Set(["CLOSED", "ARCHIVED"])
 
 const OFF_SITE_REMARK_REQUIRED =
   "You're outside the project geofence. Please add a remark before continuing."
+
+const OFF_SITE_PHOTO_REQUIRED =
+  "You're outside the project geofence. Please take or attach a photo before continuing."
 
 const OFF_NETWORK_REMARK_REQUIRED =
   "You're not on the office network. If you're at a site visit or WFH, add a remark below to clock in from elsewhere."
@@ -127,52 +131,63 @@ async function enforceGeofenceForActiveRecord(
   employeeId: string,
   coords: { lat: number; lng: number } | undefined,
   notes: string | undefined,
-): Promise<{ distanceMeters: number | null }> {
+): Promise<{ distanceMeters: number | null; offSite: boolean }> {
   const projectId = await attendanceRepository.getTodayProjectId(employeeId)
-  if (!projectId) return { distanceMeters: null }
+  if (!projectId) return { distanceMeters: null, offSite: false }
 
   const [project, orgId, enforce] = await Promise.all([
     attendanceRepository.getProjectGeoById(projectId),
     attendanceRepository.getOrganizationIdForUser(employeeId),
     policyEnforcesGeofence(employeeId),
   ])
-  if (!project) return { distanceMeters: null }
+  if (!project) return { distanceMeters: null, offSite: false }
 
   const radius = await resolveGeofenceRadius(orgId)
   const fence = resolveFenceVerdict(coords ?? null, project, radius)
-  if (enforce && !fence.withinRadius && !notes) {
+  const offSite = enforce && !fence.withinRadius
+  if (offSite && !notes) {
     throw new Error(OFF_SITE_REMARK_REQUIRED)
   }
-  return { distanceMeters: fence.distanceMeters }
+  return { distanceMeters: fence.distanceMeters, offSite }
 }
 
-/// Decode a `data:image/…;base64,…` data URL, write it to
-/// `public/uploads/attendance-selfies/`, and store the resulting
-/// public path on the AttendanceRecord (and AttendanceSession for
-/// clock-in). Works without any Xero connection.
-async function uploadSelfieToXero({
+/// Persist a clock selfie from a `data:image/…;base64,…` data URL. Stores to
+/// Xero Files when the employee's org has a usable Xero connection (mirrors
+/// leave attachments + claim receipts); otherwise writes to disk under
+/// `public/uploads/attendance-selfies/`. The value saved on the record is a
+/// Xero file id, or a `/uploads/...` path for the disk fallback — the selfie
+/// proxy route distinguishes the two by the leading slash.
+///
+/// Clock-in normally saves only when the org's `requireSelfie` policy is on;
+/// pass `required: true` (off-site clock-in, where the photo is mandatory
+/// regardless of policy) to persist it anyway. Clock-out always saves.
+async function saveClockSelfie({
   employeeId,
   attendanceRecordId,
   sessionId,
   dataUrl,
   phase = "clock-in",
+  required = false,
 }: {
   employeeId: string
   attendanceRecordId: string
   sessionId?: string
   dataUrl: string
   phase?: "clock-in" | "clock-out"
+  required?: boolean
 }): Promise<void> {
   const prisma = getAttendancePrismaClientSafe()
-  if (!prisma) { console.warn("[saveSelfie] no prisma client"); return }
+  if (!prisma) {
+    console.warn("[saveClockSelfie] no prisma client")
+    return
+  }
 
-  if (phase !== "clock-out") {
+  if (phase === "clock-in" && !required) {
     const profile = await prisma.employeeProfile.findFirst({
       where: { userId: employeeId },
       select: { policy: { select: { requireSelfie: true } } },
     })
-    const selfieRequired = profile?.policy?.requireSelfie ?? false
-    if (!selfieRequired) return
+    if (!(profile?.policy?.requireSelfie ?? false)) return
   }
 
   // data URL → Buffer
@@ -182,41 +197,95 @@ async function uploadSelfieToXero({
   const fileBuffer = Buffer.from(match[2] ?? "", "base64")
   if (fileBuffer.length === 0) return
 
-  const { writeFile, mkdir } = await import("fs/promises")
-  const { join } = await import("path")
   const { randomUUID } = await import("crypto")
-
   const ext = mimeType === "image/png" ? "png" : "jpg"
   const stamp = new Date().toISOString().replace(/[:.]/g, "-")
   const fileName = `${employeeId}_${stamp}_${randomUUID().slice(0, 8)}.${ext}`
-  const dir = join(process.cwd(), "public", "uploads", "attendance-selfies")
-  await mkdir(dir, { recursive: true })
-  await writeFile(join(dir, fileName), fileBuffer)
 
-  const fileUrl = `/uploads/attendance-selfies/${fileName}`
+  const orgId = await attendanceRepository.getOrganizationIdForUser(employeeId)
+  const storedId = await storeSelfieBytes({
+    organizationId: orgId,
+    fileBuffer,
+    mimeType,
+    fileName,
+  })
+  if (!storedId) return
+
   const now = new Date()
-
   if (phase === "clock-out") {
     await prisma.attendanceRecord.update({
       where: { id: attendanceRecordId },
-      data: { clockOutXeroSelfieFileId: fileUrl },
+      data: { clockOutXeroSelfieFileId: storedId },
     })
   } else {
     await Promise.all([
       prisma.attendanceRecord.update({
         where: { id: attendanceRecordId },
-        data: { xeroSelfieFileId: fileUrl, selfieUploadedAt: now },
+        data: { xeroSelfieFileId: storedId, selfieUploadedAt: now },
       }),
       ...(sessionId
         ? [
             prisma.attendanceSession.update({
               where: { id: sessionId },
-              data: { xeroSelfieFileId: fileUrl, selfieUploadedAt: now },
+              data: { xeroSelfieFileId: storedId, selfieUploadedAt: now },
             }),
           ]
         : []),
     ])
   }
+}
+
+/// Store selfie bytes to Xero Files (when the org has a usable connection,
+/// resolved via `getActiveXeroConnectionId` so it matches what the selfie
+/// proxy fetches from) or fall back to local disk. Returns the value to save
+/// on the record: a Xero file id, or a `/uploads/attendance-selfies/...` path.
+async function storeSelfieBytes({
+  organizationId,
+  fileBuffer,
+  mimeType,
+  fileName,
+}: {
+  organizationId: string | null
+  fileBuffer: Buffer
+  mimeType: string
+  fileName: string
+}): Promise<string | null> {
+  const connectionId = organizationId
+    ? await organizationRepository.getActiveXeroConnectionId(organizationId)
+    : null
+
+  if (connectionId) {
+    try {
+      const token = await getUsableXeroAccessToken(connectionId)
+      if (!token) throw new Error("Xero token unavailable.")
+      const folderId = await getOrCreateAttendanceSelfieFolder({
+        accessToken: token.accessToken,
+        tenantId: token.tenantId,
+      })
+      const uploaded = await uploadFileToXero({
+        accessToken: token.accessToken,
+        tenantId: token.tenantId,
+        folderId,
+        fileBuffer,
+        fileName,
+        mimeType,
+      })
+      return uploaded.fileId
+    } catch (err) {
+      console.error(
+        "[saveClockSelfie] Xero upload failed, falling back to disk",
+        err,
+      )
+    }
+  }
+
+  // Local fallback under public/uploads (served by Next + the selfie proxy).
+  const { writeFile, mkdir } = await import("fs/promises")
+  const { join } = await import("path")
+  const dir = join(process.cwd(), "public", "uploads", "attendance-selfies")
+  await mkdir(dir, { recursive: true })
+  await writeFile(join(dir, fileName), fileBuffer)
+  return `/uploads/attendance-selfies/${fileName}`
 }
 
 /// Resolves the [Mon..Sun] week and [first..last day of month] month UTC
@@ -462,8 +531,14 @@ export const employeeAttendanceService = {
     const radius = await resolveGeofenceRadius(orgId)
     const fence = resolveFenceVerdict(coords ?? null, project, radius)
     const enforceFence = await policyEnforcesGeofence(employeeId)
-    if (enforceFence && !fence.withinRadius && !notes) {
+    const offSite = enforceFence && !fence.withinRadius
+    if (offSite && !notes) {
       throw new Error(OFF_SITE_REMARK_REQUIRED)
+    }
+    // Off-site (outside geofence) clock-in must attach a photo alongside the
+    // remark, regardless of the org's requireSelfie policy.
+    if (offSite && !selfie) {
+      throw new Error(OFF_SITE_PHOTO_REQUIRED)
     }
 
     // IP-whitelist check. Runs BEFORE the repo call so we can throw
@@ -512,11 +587,14 @@ export const employeeAttendanceService = {
     // succeed even when Xero is misconfigured / rate-limited / down.
     if (selfie) {
       try {
-        await uploadSelfieToXero({
+        await saveClockSelfie({
           employeeId,
           attendanceRecordId: result.recordId,
           sessionId: result.sessionId,
           dataUrl: selfie,
+          // Off-site makes the photo mandatory even if the policy doesn't
+          // otherwise require selfies — persist it regardless.
+          required: offSite,
         })
       } catch (err) {
         console.error("[clockIn] selfie upload failed", err)
@@ -543,11 +621,15 @@ export const employeeAttendanceService = {
     selfie?: string,
     orphanedSessionId?: string,
   ) {
-    const { distanceMeters } = await enforceGeofenceForActiveRecord(
+    const { distanceMeters, offSite } = await enforceGeofenceForActiveRecord(
       employeeId,
       coords,
       notes,
     )
+    // Off-site (outside geofence) clock-out must attach a photo too.
+    if (offSite && !selfie) {
+      throw new Error(OFF_SITE_PHOTO_REQUIRED)
+    }
     const location = coords
       ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
       : undefined
@@ -561,7 +643,7 @@ export const employeeAttendanceService = {
 
     if (selfie) {
       try {
-        await uploadSelfieToXero({
+        await saveClockSelfie({
           employeeId,
           attendanceRecordId: result.recordId,
           dataUrl: selfie,

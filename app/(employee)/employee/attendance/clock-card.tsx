@@ -416,6 +416,10 @@ export function ClockCard({
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [remark, setRemark] = useState("")
   const [remarkError, setRemarkError] = useState<string | null>(null)
+  /// Photo attached in the off-site remark panel. Off-site (geofence)
+  /// clock-in / clock-out require it; the server rejects the event without
+  /// one. Off-network (IP) clock-ins still only need the remark.
+  const [offSiteSelfie, setOffSiteSelfie] = useState<string | null>(null)
   const [orphanedReason, setOrphanedReason] = useState("")
   const [orphanedReasonError, setOrphanedReasonError] = useState<string | null>(null)
   /// Snapshot of the most recent clock-in submission (formData + display
@@ -868,10 +872,21 @@ export function ClockCard({
       )
       return
     }
+    // Off-site (geofence) clock-in / clock-out must also attach a photo;
+    // off-network (IP) still only needs the remark.
+    const requiresPhoto = pendingAction.offNetwork !== true
+    if (requiresPhoto && !offSiteSelfie) {
+      setRemarkError(
+        "A photo is required when you're off-site — take or attach one below.",
+      )
+      return
+    }
     pendingAction.formData.set("notes", trimmed)
+    if (offSiteSelfie) pendingAction.formData.set("selfie", offSiteSelfie)
     dispatch(pendingAction)
     setRemark("")
     setRemarkError(null)
+    setOffSiteSelfie(null)
     setPendingAction(null)
   }
 
@@ -879,6 +894,7 @@ export function ClockCard({
     setPendingAction(null)
     setRemark("")
     setRemarkError(null)
+    setOffSiteSelfie(null)
   }
 
   // Live "Right now" clock. Seed from the server `now` (formatted in the org
@@ -1173,6 +1189,9 @@ export function ClockCard({
           fence={pendingAction.fence}
           projectName={pendingAction.projectName}
           offNetwork={pendingAction.offNetwork === true}
+          requirePhoto={pendingAction.offNetwork !== true}
+          selfie={offSiteSelfie}
+          onSelfieChange={setOffSiteSelfie}
           remark={remark}
           onChange={setRemark}
           onConfirm={confirmRemark}
@@ -1410,10 +1429,35 @@ function SelfieCaptureModal({
   )
 }
 
+/// Load an image File, downscale so its longest edge is <= maxSize, and
+/// return a JPEG data URL. Keeps the off-site photo small enough for the
+/// clock-in / clock-out server-action payload — a raw phone photo would
+/// otherwise blow the body-size limit.
+async function downscaleImageToDataUrl(
+  file: File,
+  maxSize: number,
+): Promise<string> {
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height))
+  const w = Math.max(1, Math.round(bitmap.width * scale))
+  const h = Math.max(1, Math.round(bitmap.height * scale))
+  const canvas = document.createElement("canvas")
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext("2d")
+  if (!ctx) throw new Error("Canvas 2D context unavailable.")
+  ctx.drawImage(bitmap, 0, 0, w, h)
+  bitmap.close?.()
+  return canvas.toDataURL("image/jpeg", 0.8)
+}
+
 function RemarkPanel({
   fence,
   projectName,
   offNetwork,
+  requirePhoto,
+  selfie,
+  onSelfieChange,
   remark,
   onChange,
   onConfirm,
@@ -1423,12 +1467,27 @@ function RemarkPanel({
   fence: GeofenceCheck
   projectName: string | null
   offNetwork: boolean
+  requirePhoto: boolean
+  selfie: string | null
+  onSelfieChange: (dataUrl: string | null) => void
   remark: string
   onChange: (value: string) => void
   onConfirm: () => void
   onCancel: () => void
   error: string | null
 }) {
+  async function handlePhotoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    // Reset so re-picking the same file still fires onChange.
+    e.target.value = ""
+    if (!file) return
+    try {
+      onSelfieChange(await downscaleImageToDataUrl(file, 720))
+    } catch {
+      // Decode failure (unsupported format etc.) — leave the photo unset so
+      // the confirm gate keeps blocking; the user can retry.
+    }
+  }
   const heading = offNetwork
     ? "You're not on the office network"
     : fence.reason === "no_gps"
@@ -1461,6 +1520,46 @@ function RemarkPanel({
         className="mt-2 block w-full rounded-[14px] border border-amber-300 bg-white px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:text-sm"
       />
       {error ? <p className="mt-1 text-xs font-semibold text-destructive">{error}</p> : null}
+      {requirePhoto ? (
+        <div className="mt-3">
+          <p className="text-xs font-bold text-amber-900">Photo (required)</p>
+          <p className="text-[11px] text-amber-800">
+            Take a photo now or attach one — proof of where you are.
+          </p>
+          {selfie ? (
+            <div className="mt-2 flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selfie}
+                alt="Attached"
+                className="h-16 w-16 rounded-lg border border-amber-300 object-cover"
+              />
+              <label className="cursor-pointer text-xs font-bold text-amber-900 underline">
+                Change photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  onChange={handlePhotoFile}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          ) : (
+            <label className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-[14px] border border-amber-300 bg-white px-3 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100">
+              <Camera className="h-4 w-4" />
+              Take or attach a photo
+              <input
+                type="file"
+                accept="image/*"
+                capture="user"
+                onChange={handlePhotoFile}
+                className="hidden"
+              />
+            </label>
+          )}
+        </div>
+      ) : null}
       <div className="mt-3 flex gap-2">
         <button
           type="button"
