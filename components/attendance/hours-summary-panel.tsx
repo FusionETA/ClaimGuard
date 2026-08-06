@@ -7,7 +7,7 @@ import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/attendance/ui/input"
 import { Label } from "@/components/attendance/ui/label"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import {
   TableFilterBar,
   type TableFilterValue,
@@ -344,6 +344,10 @@ function BucketTotals({
 }
 
 function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) {
+  const PAGE_SIZE = 10
+  const [page, setPage] = useState(1)
+  // Reset to the first page whenever the (re-fetched / re-sorted) list changes.
+  useEffect(() => setPage(1), [employees])
   if (employees.length === 0) {
     return (
       <p className="py-6 text-center text-xs text-muted-foreground">
@@ -351,9 +355,13 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
       </p>
     )
   }
+  const totalPages = Math.max(1, Math.ceil(employees.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageRows = employees.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
   return (
-    <ScrollArea className="max-h-[420px] overflow-auto rounded-md border border-border/40">
-      <table className="w-full min-w-[720px] text-sm">
+    <div className="space-y-3">
+      <div className="overflow-x-auto rounded-md border border-border/40">
+        <table className="w-full min-w-[720px] text-sm">
         <thead className="sticky top-0 z-10 bg-card">
           <tr className="border-b border-border/60 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
             <th className="bg-card py-2 pl-3 pr-3 font-semibold">Employee</th>
@@ -370,7 +378,7 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
           </tr>
         </thead>
         <tbody>
-          {employees.map((row) => {
+          {pageRows.map((row) => {
             const expectedMin = row.buckets.expectedMin ?? 0
             // Still needed for the Status column badge — shortfall
             // means clocked-normal-hours < expected. Column
@@ -445,8 +453,17 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
             )
           })}
         </tbody>
-      </table>
-    </ScrollArea>
+        </table>
+      </div>
+      <PaginationControls
+        className="flex flex-wrap items-center justify-between gap-2"
+        currentPage={safePage}
+        pageSize={PAGE_SIZE}
+        totalItems={employees.length}
+        itemLabel="employees"
+        onPageChange={setPage}
+      />
+    </div>
   )
 }
 
