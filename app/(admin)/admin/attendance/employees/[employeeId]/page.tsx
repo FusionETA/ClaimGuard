@@ -1,7 +1,6 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
 
+import { BackButton } from "@/components/ui/back-button"
 import { EmployeeDetailView } from "@/components/attendance/employee-detail-view"
 import { HoursProgress } from "@/components/attendance/hours-progress"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
@@ -57,13 +56,7 @@ export default async function AdminEmployeeDetailPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
-        <Link
-          href="/admin/attendance/employees"
-          className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to employees
-        </Link>
+        <BackButton href="/admin/attendance/employees" />
         <div className="flex items-center gap-2">
           {/* Plain download anchors — no target="_blank" — so the
               browser triggers a direct save from the server's
