@@ -374,6 +374,7 @@ export const organizationRepository = {
       name: string
       plan: string
       tier: string | null
+      addons: string[]
       ownerEmail: string | null
       employeeCount: number
     }>
@@ -386,6 +387,7 @@ export const organizationRepository = {
         name: true,
         plan: true,
         tier: true,
+        addons: true,
         users: {
           where: { role: "OWNER" },
           select: { email: true },
@@ -404,9 +406,37 @@ export const organizationRepository = {
       name: r.name,
       plan: r.plan,
       tier: r.tier,
+      addons: Array.isArray(r.addons)
+        ? r.addons.filter((a): a is string => typeof a === "string")
+        : [],
       ownerEmail: r.users[0]?.email ?? null,
       employeeCount: r._count.employeeProfiles,
     }))
+  },
+
+  /**
+   * Superadmin-only: overwrite an org's subscription package + addons.
+   * `tier` is stored null for EXPERT (no tier split). `addons` is the full
+   * replacement list (["expense_claim", "clock"] etc.). Drives
+   * `deriveOrgEnabledModules`, so this is what turns Claims / Attendance on
+   * or off for the whole company.
+   */
+  async updateOrgPlan(input: {
+    organizationId: string
+    plan: "DIY" | "EXPERT"
+    tier: "FREE" | "PAID" | null
+    addons: string[]
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.organization.update({
+      where: { id: input.organizationId },
+      data: {
+        plan: input.plan,
+        tier: input.tier,
+        addons: input.addons,
+      },
+    })
   },
 
   /**

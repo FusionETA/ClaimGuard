@@ -1,5 +1,7 @@
 import "server-only"
 
+import { getCurrentSession } from "@/lib/auth/session"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -20,12 +22,49 @@ export async function getSupportPickerPageData(): Promise<{
     name: string
     plan: string
     tier: string | null
+    addons: string[]
     ownerEmail: string | null
     employeeCount: number
   }>
 }> {
   const orgs = await organizationRepository.listAllForSuperadmin()
   return { orgs }
+}
+
+/**
+ * Superadmin-only: change a company's subscription package + addon modules
+ * (Claims / Attendance). Persists to the Organization row and writes an audit
+ * entry — `writeAudit` routes it to the org's own log (as "System (Support)")
+ * AND the Fusioneta-side SuperadminAuditLog with the real actor. The page
+ * guard is the source of truth for the superadmin gate; this doesn't re-check.
+ */
+export async function updateOrgPlanForSupport(input: {
+  organizationId: string
+  plan: "DIY" | "EXPERT"
+  tier: "FREE" | "PAID" | null
+  addons: string[]
+}): Promise<void> {
+  await organizationRepository.updateOrgPlan(input)
+
+  const session = await getCurrentSession()
+  if (session) {
+    void writeAudit({
+      organizationId: input.organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action: "org.plan.update",
+      status: "SUCCESS",
+      summary: `Set package to ${input.plan}${
+        input.tier ? ` · ${input.tier}` : ""
+      } · add-ons: ${input.addons.length ? input.addons.join(", ") : "none"}`,
+      targetType: "organization",
+      targetId: input.organizationId,
+    })
+  }
 }
 
 /**

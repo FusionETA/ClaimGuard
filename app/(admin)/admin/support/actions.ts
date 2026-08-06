@@ -7,9 +7,18 @@ import { z } from "zod"
 
 import { getCurrentSession, updateCurrentSession } from "@/lib/auth/session"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { updateOrgPlanForSupport } from "@/modules/organization/application/services/superadmin-support.service"
 
 const switchSchema = z.object({
   organizationId: z.string().min(1, "Pick an organisation."),
+})
+
+const planSchema = z.object({
+  organizationId: z.string().min(1),
+  plan: z.enum(["DIY", "EXPERT"]),
+  tier: z.enum(["FREE", "PAID"]),
+  claims: z.boolean(),
+  attendance: z.boolean(),
 })
 
 /**
@@ -85,4 +94,44 @@ export async function exitSupportModeAction() {
 
   revalidatePath("/admin")
   redirect("/admin")
+}
+
+/**
+ * Superadmin-only: change a company's package (plan + tier) and toggle the
+ * Claims / Attendance add-on modules. Called directly from the support
+ * picker's "Manage plan" dialog (object arg, not a form). Returns a small
+ * result the dialog toasts; the actual change + audit happen in the service.
+ */
+export async function updateOrgPlanAction(input: {
+  organizationId: string
+  plan: "DIY" | "EXPERT"
+  tier: "FREE" | "PAID"
+  claims: boolean
+  attendance: boolean
+}): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || !session.isSuperadmin) {
+    return { ok: false, message: "Not authorized." }
+  }
+
+  const parsed = planSchema.safeParse(input)
+  if (!parsed.success) {
+    return { ok: false, message: "Invalid plan input." }
+  }
+  const { organizationId, plan, tier, claims, attendance } = parsed.data
+
+  const addons: string[] = []
+  if (claims) addons.push("expense_claim")
+  if (attendance) addons.push("clock")
+
+  await updateOrgPlanForSupport({
+    organizationId,
+    plan,
+    // EXPERT has no tier split — store null.
+    tier: plan === "EXPERT" ? null : tier,
+    addons,
+  })
+
+  revalidatePath("/admin/support")
+  return { ok: true, message: "Plan updated." }
 }
