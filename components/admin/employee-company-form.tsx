@@ -274,9 +274,15 @@ function ChainLayerMultiPicker({
             : `${selectedIds.length} approvers — any one of them approves.`}
         </p>
       ) : null}
-      {selectedIds.map((userId) => (
-        <input key={userId} type="hidden" name={namePrefix} value={userId} />
-      ))}
+      {/* Only submit approvers who are genuine candidates at this layer, so a
+          stale / mis-filed selection can never be posted under a layer the
+          person doesn't belong to (the server rejects that as "not a layer-N
+          member"). Belt-and-suspenders behind the real-layer reconstruction. */}
+      {selectedIds
+        .filter((userId) => candidates.some((c) => c.id === userId))
+        .map((userId) => (
+          <input key={userId} type="hidden" name={namePrefix} value={userId} />
+        ))}
     </div>
   )
 }
@@ -409,10 +415,25 @@ export function EmployeeCompanyForm({
       { teamId: string; layer: number; chainApproverByLayer: Record<number, string[]> }
     > = {}
     for (const t of member.teams) {
+      // Bucket saved approvers by their REAL layer in this team (looked up
+      // from allMembers), NOT a consecutive offset from the employee's layer.
+      // The saved chain renumbers its steps and drops the layer, so when the
+      // chain skips an empty layer the old `t.layer + idx + 1` guess filed an
+      // approver one (or more) layers too low — e.g. an L3 approver landing in
+      // the empty L2 slot, which then failed "not a layer-2 member" on save.
+      // An approver no longer on the team (removed) resolves to null and is
+      // dropped rather than resurrected under the wrong layer.
       const map: Record<number, string[]> = {}
-      t.chain.forEach((step, idx) => {
-        map[t.layer + idx + 1] = step.approvers.map((a) => a.approverId)
-      })
+      for (const step of t.chain) {
+        for (const a of step.approvers) {
+          const approverLayer = allMembers
+            .find((mm) => mm.id === a.approverId)
+            ?.teams.find((tm) => tm.teamId === t.teamId)?.layer
+          if (approverLayer == null) continue
+          if (!map[approverLayer]) map[approverLayer] = []
+          map[approverLayer].push(a.approverId)
+        }
+      }
       // No saved chain yet (e.g. just added via company structure) → auto-fill
       // each higher layer with that layer's supervisors.
       const chain = Object.keys(map).length
@@ -454,6 +475,9 @@ export function EmployeeCompanyForm({
     const team = teams.find((t) => t.id === cfg.teamId)
     if (!team) return false
     for (let l = cfg.layer + 1; l <= team.layerCount; l++) {
+      // A layer with no supervisors in the team can't be filled — the chain
+      // routes past it, so treat it as skippable rather than "incomplete".
+      if (supervisorsAtLayerInTeam(cfg.teamId, l).length === 0) continue
       if ((cfg.chainApproverByLayer[l] ?? []).length === 0) return false
     }
     return true
