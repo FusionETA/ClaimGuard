@@ -21,14 +21,27 @@ type QuickAction = {
   icon: typeof Receipt
   /// Live count; when > 0 a badge is shown. undefined = no badge.
   count?: number
+  /// Module keys that gate this action — shown when the admin has ANY of
+  /// them (same semantics as the sidebar nav's `requiresModules`). Omit for
+  /// always-visible actions (e.g. Manage employees).
+  requiresModules?: readonly string[]
 }
 
 /**
  * Shortcut row pinned at the top of the executive overview. The
  * actionable items carry a live badge so the page doubles as a
- * "what needs me" cue.
+ * "what needs me" cue. Actions are filtered by `accessModules` so a shortcut
+ * never points at a module the admin can't see in the sidebar.
  */
-export function QuickActionsCard({ counts }: { counts: AdminQuickActionCounts }) {
+export function QuickActionsCard({
+  counts,
+  accessModules,
+}: {
+  counts: AdminQuickActionCounts
+  /// Effective admin module set (per-admin grant ∩ org plan) — the same set
+  /// the sidebar filters its nav by. `null` = full access.
+  accessModules: readonly string[] | null
+}) {
   const actions: QuickAction[] = [
     {
       href: "/admin/claims" as Route,
@@ -36,6 +49,7 @@ export function QuickActionsCard({ counts }: { counts: AdminQuickActionCounts })
       hint: "Approval queue",
       icon: Receipt,
       count: counts.pendingClaims,
+      requiresModules: ["claims_personal", "claims_company"],
     },
     {
       href: "/admin/payroll/runs" as Route,
@@ -43,8 +57,11 @@ export function QuickActionsCard({ counts }: { counts: AdminQuickActionCounts })
       hint: "Draft runs",
       icon: Banknote,
       count: counts.draftPayrollRuns,
+      requiresModules: ["payroll"],
     },
     {
+      // Manage employees mirrors the sidebar's "Manage Employee" — no module
+      // gate (read-only browse when `hierarchy` isn't granted), always shown.
       href: "/admin/hierarchy" as Route,
       label: "Manage employees",
       hint: "Add & edit people",
@@ -57,20 +74,33 @@ export function QuickActionsCard({ counts }: { counts: AdminQuickActionCounts })
       hint: "Pending approvals",
       icon: CalendarDays,
       count: counts.pendingLeave,
+      requiresModules: ["leave"],
     },
     {
       href: "/admin/attendance" as Route,
       label: "Attendance",
       hint: "Last 30 days",
       icon: CalendarClock,
+      requiresModules: ["attendance"],
     },
     {
       href: "/admin/settings?tab=policies" as Route,
       label: "Create policy",
       hint: "Employee policies",
       icon: ShieldCheck,
+      requiresModules: ["settings"],
     },
   ]
+
+  // Match the sidebar's nav filter: null = full access; otherwise keep an
+  // action when it has no module gate or the admin holds one of its modules.
+  const granted = accessModules === null ? null : new Set(accessModules)
+  const visibleActions = actions.filter(
+    (action) =>
+      !action.requiresModules ||
+      granted === null ||
+      action.requiresModules.some((m) => granted.has(m)),
+  )
 
   return (
     <Card>
@@ -82,7 +112,7 @@ export function QuickActionsCard({ counts }: { counts: AdminQuickActionCounts })
       </CardHeader>
       <CardContent>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {actions.map((action) => {
+          {visibleActions.map((action) => {
             const Icon = action.icon
             const showBadge = typeof action.count === "number" && action.count > 0
             return (

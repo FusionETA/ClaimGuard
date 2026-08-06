@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { deriveOrgEnabledModulesFromRow } from "@/modules/organization/domain/plan"
 
 /**
  * Admin access-scope service.
@@ -65,6 +66,42 @@ export async function getActiveAdminAccessScope(): Promise<AdminAccessScope | nu
   })
 
   return { modules, policyIds }
+}
+
+/**
+ * The effective admin module set for the active org: the per-admin grant
+ * (`getActiveAdminAccessScope().modules`) capped to the org's plan-enabled
+ * modules. `null` = full access (owner / legacy admin in an org with no
+ * recorded plan).
+ *
+ * This is EXACTLY what the admin sidebar filters its nav by (see
+ * `filterAdminNav` in admin-shell.tsx), so any surface that must match the
+ * sidebar's show/hide — e.g. the dashboard Quick actions — should gate on
+ * this, not on `hasAdminModule` alone (which ignores the org-plan cap).
+ */
+export async function getActiveAdminAccessModules(): Promise<
+  readonly string[] | null
+> {
+  const session = await getCurrentSession()
+  if (!session) return null
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return null
+
+  const scope = await getActiveAdminAccessScope()
+  const adminModules = scope?.modules ?? null
+
+  const orgPlanRow = await organizationRepository.getOrgPlanModules(organizationId)
+  const orgEnabledModules = orgPlanRow
+    ? deriveOrgEnabledModulesFromRow(orgPlanRow)
+    : null
+
+  // No org plan recorded (legacy) → per-admin grant passes through.
+  if (!orgEnabledModules) return adminModules
+  // Full-access admin → narrow to what the org's plan enables.
+  if (adminModules === null) return orgEnabledModules
+  // Restricted admin → intersect the two.
+  const orgSet = new Set<string>(orgEnabledModules)
+  return adminModules.filter((m) => orgSet.has(m))
 }
 
 /**
