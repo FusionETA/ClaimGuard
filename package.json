@@ -25,6 +25,7 @@
     "db:backfill-stints": "tsx prisma/backfill-stints.ts",
     "db:backfill-project-geolocations": "tsx prisma/backfill-project-geolocations.ts",
     "db:diagnose-ytd-duplicates": "tsx scripts/diagnose-ytd-duplicates.ts",
+    "db:check-attendance-daykeys": "tsx scripts/check-attendance-daykeys.ts",
     "db:create-master-key": "tsx prisma/create-master-key.ts",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
