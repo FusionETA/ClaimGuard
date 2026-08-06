@@ -1,9 +1,14 @@
 /**
- * Download buttons for the per-employee Leave & Attendance report PDFs.
+ * Download buttons for the Leave & Attendance report PDFs.
  *
- * The routes authorise by role (`resolveEmployeeReportAccess`) — admin = any
- * employee in the org, supervisor = their team, employee = themselves — so the
- * same component drops onto the admin, supervisor, and employee detail pages.
+ * With `employeeId` set → a single employee's report, via the per-employee
+ * routes gated by `resolveEmployeeReportAccess` (admin = anyone in the org,
+ * supervisor = their team, employee = themselves). Used on the employee's own
+ * page.
+ *
+ * Without `employeeId` → a WHOLE-TEAM report, via the team-bulk routes gated
+ * by `resolveTeamReportAccess` (supervisor = their team in one PDF, admin =
+ * whole org). Used on the supervisor Team tab.
  *
  * Plain download anchors (no target="_blank") so the browser saves straight
  * from the server's `Content-Disposition: attachment` header instead of
@@ -16,8 +21,8 @@ export function ReportExportButtons({
   to,
   year,
 }: {
-  /** User id of the employee whose report to download. */
-  employeeId: string
+  /** User id for a single-employee report. Omit for a whole-team report. */
+  employeeId?: string
   /** Attendance range start, ISO yyyy-mm-dd. */
   from: string
   /** Attendance range end, ISO yyyy-mm-dd. */
@@ -27,23 +32,19 @@ export function ReportExportButtons({
 }) {
   const cls =
     "inline-flex items-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+  const attendanceHref = employeeId
+    ? `/api/attendance/export/report?employeeId=${employeeId}&from=${from}&to=${to}`
+    : `/api/attendance/export/team-report?from=${from}&to=${to}`
+  const leaveHref = employeeId
+    ? `/api/leave/export/summary?employeeId=${employeeId}&year=${year}`
+    : `/api/leave/export/team-summary?year=${year}`
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <a
-        href={`/api/attendance/export/report?employeeId=${employeeId}&from=${from}&to=${to}`}
-        download=""
-        rel="noopener"
-        className={cls}
-      >
-        Export Attendance PDF
+      <a href={attendanceHref} download="" rel="noopener" className={cls}>
+        {employeeId ? "Export Attendance PDF" : "Export Team Attendance PDF"}
       </a>
-      <a
-        href={`/api/leave/export/summary?employeeId=${employeeId}&year=${year}`}
-        download=""
-        rel="noopener"
-        className={cls}
-      >
-        Export Leave PDF
+      <a href={leaveHref} download="" rel="noopener" className={cls}>
+        {employeeId ? "Export Leave PDF" : "Export Team Leave PDF"}
       </a>
     </div>
   )

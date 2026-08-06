@@ -54,3 +54,47 @@ export async function resolveEmployeeReportAccess(
     message: "You don't have access to this employee's report.",
   }
 }
+
+export type TeamReportAccess =
+  | { ok: true; orgId: string; userIds: string[] | null }
+  | { ok: false; status: number; message: string }
+
+/**
+ * Authorises a WHOLE-TEAM Leave / Attendance report for the current session
+ * and returns the employee filter for the bulk PDF generators:
+ *
+ *   - ADMIN / OWNER: the whole org (`userIds: null` → the bulk generators
+ *     render every employee, no filter).
+ *   - SUPERVISOR: the employees in their approval chain (their team); 404
+ *     when they have none.
+ *   - anyone else: 403.
+ */
+export async function resolveTeamReportAccess(): Promise<TeamReportAccess> {
+  const session = await getCurrentSession()
+  if (!session) return { ok: false, status: 401, message: "Unauthorized." }
+
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) {
+    return { ok: false, status: 400, message: "No active organization." }
+  }
+
+  if (isAdminRole(session.role)) return { ok: true, orgId, userIds: null }
+
+  if (session.role === "SUPERVISOR") {
+    const userIds = await attendanceRepository.getTeamMemberIds(session.userId)
+    if (userIds.length === 0) {
+      return {
+        ok: false,
+        status: 404,
+        message: "You have no team members to report on.",
+      }
+    }
+    return { ok: true, orgId, userIds }
+  }
+
+  return {
+    ok: false,
+    status: 403,
+    message: "Only supervisors and admins can download team reports.",
+  }
+}

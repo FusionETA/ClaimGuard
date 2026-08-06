@@ -4,6 +4,7 @@ import { ClipboardCheck, Clock, UmbrellaOff, Users } from "lucide-react"
 import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { TeamDirectory } from "@/components/attendance/team-directory"
+import { ReportExportButtons } from "@/components/attendance/report-export-buttons"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
@@ -19,6 +20,17 @@ function fmtTime(iso: string | null, tz: string) {
     : "—"
 }
 
+function startOfMonthIso(): string {
+  const d = new Date()
+  d.setUTCDate(1)
+  d.setUTCHours(0, 0, 0, 0)
+  return d.toISOString().slice(0, 10)
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
 export default async function TeamOverviewPage() {
   const session = await requirePortalSession("SUPERVISOR")
   const orgId = resolveActiveOrgId(session) ?? null
@@ -31,6 +43,10 @@ export default async function TeamOverviewPage() {
     overview.teamSize > 0
       ? Math.round((overview.presentToday / overview.teamSize) * 100)
       : 0
+
+  const initialFrom = startOfMonthIso()
+  const initialTo = todayIso()
+  const year = new Date().getUTCFullYear()
 
   // Shape the directory for the client component: each member's status group
   // (clocked-in / on-leave / not-clocked-in) + a pre-formatted subtitle. On-leave
@@ -60,13 +76,16 @@ export default async function TeamOverviewPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Real-time
-        </p>
-        <h2 className="font-headline mt-0.5 text-xl font-bold text-foreground">
-          {session.organizationName ?? "Your team"}
-        </h2>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Real-time
+          </p>
+          <h2 className="font-headline mt-0.5 text-xl font-bold text-foreground">
+            {session.organizationName ?? "Your team"}
+          </h2>
+        </div>
+        <ReportExportButtons from={initialFrom} to={initialTo} year={year} />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
