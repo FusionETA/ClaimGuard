@@ -296,6 +296,16 @@ function CreateTokenDialog({
     })
   }
 
+  const allSelected = scopes.size === API_SCOPE_CATALOG.length
+
+  function toggleSelectAll() {
+    setScopes((prev) =>
+      prev.size === API_SCOPE_CATALOG.length
+        ? new Set<string>()
+        : new Set<string>(API_SCOPE_CATALOG),
+    )
+  }
+
   function handleSubmit(formData: FormData) {
     startTransition(async () => {
       const result = await createApiTokenAction(formData)
@@ -354,9 +364,19 @@ function CreateTokenDialog({
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-muted-foreground">
-              Scopes ({scopes.size} selected)
-            </p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-muted-foreground">
+                Scopes ({scopes.size} selected)
+              </p>
+              <button
+                type="button"
+                onClick={toggleSelectAll}
+                disabled={pending}
+                className="text-xs font-semibold text-primary hover:underline disabled:opacity-50"
+              >
+                {allSelected ? "Clear all" : "Select all"}
+              </button>
+            </div>
             {/* Scroll the (long) scope list inside a capped height so the
                 Label stays pinned above and the Cancel / Create footer
                 stays on-screen — without this the 20+ scopes push the
