@@ -7,6 +7,7 @@ import { Check } from "lucide-react"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectLabel,
   SelectTrigger,
@@ -46,6 +47,7 @@ export function NativeSelect({
   value,
 }: NativeSelectProps) {
   const options = useMemo(() => parseSelectOptions(children), [children])
+  const sections = useMemo(() => groupSelectOptions(options), [options])
   const isControlled = value !== undefined
   const [localValue, setLocalValue] = useState(String(defaultValue ?? ""))
   const selectedValue = isControlled ? String(value ?? "") : localValue
@@ -78,15 +80,8 @@ export function NativeSelect({
         {/* SelectContent adds the search box itself once the list gets
             long enough — see SEARCHABLE_OPTION_THRESHOLD. */}
         <SelectContent>
-          {options.map((option) =>
-            option.groupLabel ? (
-              <SelectLabel
-                key={option.value}
-                className="mt-1 text-[11px] font-bold"
-              >
-                {option.label}
-              </SelectLabel>
-            ) : (
+          {sections.map((section, sectionIndex) => {
+            const items = section.options.map((option) => (
               <SelectItem
                 key={option.value === "" ? EMPTY_SELECT_VALUE : option.value}
                 value={option.value === "" ? EMPTY_SELECT_VALUE : option.value}
@@ -94,12 +89,63 @@ export function NativeSelect({
               >
                 {option.label}
               </SelectItem>
-            ),
-          )}
+            ))
+
+            // Radix throws "`SelectLabel` must be used within `SelectGroup`"
+            // if a label is rendered as a bare child of SelectContent, so a
+            // titled section always gets its own SelectGroup wrapper.
+            if (!section.heading) {
+              return <React.Fragment key={sectionIndex}>{items}</React.Fragment>
+            }
+            return (
+              <SelectGroup key={section.heading.value}>
+                <SelectLabel className="mt-1 text-[11px] font-bold">
+                  {section.heading.label}
+                </SelectLabel>
+                {items}
+              </SelectGroup>
+            )
+          })}
         </SelectContent>
       </Select>
     </>
   )
+}
+
+type SelectSection = {
+  /// The `<optgroup label>` this run of options sat under, or null for
+  /// options that appeared before any group (or in a flat list).
+  heading: SelectOption | null
+  options: SelectOption[]
+}
+
+/**
+ * Re-nests the flat list from `parseSelectOptions` into sections.
+ *
+ * `parseSelectOptions` deliberately flattens `<optgroup>` into a marker
+ * entry followed by its options, which mirrors how a native <select>
+ * reads. Radix needs the opposite shape: a label has to be wrapped in a
+ * `SelectGroup` together with the items it titles. Each `groupLabel`
+ * marker therefore opens a new section that runs until the next marker.
+ */
+function groupSelectOptions(options: SelectOption[]): SelectSection[] {
+  const sections: SelectSection[] = []
+  for (const option of options) {
+    if (option.groupLabel) {
+      sections.push({ heading: option, options: [] })
+      continue
+    }
+    const current = sections[sections.length - 1]
+    // Options before the first `<optgroup>` belong to an untitled section.
+    if (!current) {
+      sections.push({ heading: null, options: [option] })
+      continue
+    }
+    current.options.push(option)
+  }
+  // A group whose options were all filtered out upstream would render as a
+  // lone heading — drop it rather than show an empty section title.
+  return sections.filter((s) => s.options.length > 0)
 }
 
 function parseSelectOptions(children: React.ReactNode): SelectOption[] {
