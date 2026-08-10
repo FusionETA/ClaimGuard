@@ -5007,6 +5007,24 @@ export const organizationRepository = {
         }
       }
 
+      // A layer move can strip this member of approver rights — org-wide when
+      // the role sync above dropped them to EMPLOYEE, or just here when they
+      // land on layer 1 but stay a supervisor in some other team. Rows naming
+      // them as approver survive both changes on their own, so drop them now
+      // and re-fill whatever chain that empties.
+      if (!isAdminRole(profile.user.role)) {
+        if (profile.user.role !== "SUPERVISOR") {
+          await pruneDanglingApproverChains(tx, {
+            approverUserId: profile.user.id,
+          })
+        } else if (data.layer < 2) {
+          await pruneDanglingApproverChains(tx, {
+            approverUserId: profile.user.id,
+            teamIds: [team.id],
+          })
+        }
+      }
+
       // Auto-fill the (employee, team) approval chain when none exists
       // yet. Without this, adding a member via the Company Structure ›
       // Members table writes the membership row but leaves the chain
@@ -5156,7 +5174,9 @@ export const organizationRepository = {
 
     // Wipe the per-(employee, team) chain rows alongside the membership so
     // we don't leave dangling approval chains pointing at a team the
-    // employee no longer belongs to.
+    // employee no longer belongs to. The mirror case — rows where they were
+    // the APPROVER for other members of this team — is pruned further down,
+    // after the role re-evaluation.
     await prisma.$transaction(async (tx) => {
       await tx.approvalChainStep.deleteMany({
         where: {
@@ -5184,6 +5204,17 @@ export const organizationRepository = {
             data: { role: desiredRole },
           })
         }
+        // They can no longer approve for the team they just left, and if the
+        // role fell back to EMPLOYEE they can no longer approve anywhere.
+        await pruneDanglingApproverChains(tx, {
+          approverUserId: membership.employeeProfile.user.id,
+          ...(desiredRole === "SUPERVISOR" ? { teamIds: [membership.teamId] } : {}),
+        })
+      } else if (user && !isAdminRole(user.role)) {
+        await pruneDanglingApproverChains(tx, {
+          approverUserId: membership.employeeProfile.user.id,
+          teamIds: [membership.teamId],
+        })
       }
     })
   },
@@ -5401,6 +5432,101 @@ type TeamRow = {
   requireBreakEndApproval: boolean
   project: { id: string; name: string }
   _count: { memberships: number }
+}
+
+/**
+ * Delete `ApprovalChainStep` rows naming `approverUserId` as an approver that
+ * can no longer be honoured, then re-fill any chain left empty by the delete.
+ *
+ * Every other chain write in this file deletes by `employeeId` — the person
+ * whose own chain is being rewritten — so nothing ever cleaned up rows where a
+ * demoted or removed user was the APPROVER for somebody else. Those rows
+ * outlived the demotion pointing at a user who had dropped to role EMPLOYEE,
+ * and the requests they were meant to route went nowhere: the supervisor queue
+ * is gated on `requirePortalSession("SUPERVISOR")` so the named approver could
+ * not open it, and the admin chain editor only offers layer-2+ approvers so the
+ * stale row was invisible there too. Affected requests sat PENDING forever with
+ * `reviewerId` null, visible only in the admin all-pending list.
+ *
+ * `teamIds` scopes the prune: pass the single team when the user drops to layer
+ * 1 there but stays a supervisor elsewhere, and omit it when their role fell
+ * back to EMPLOYEE, which disqualifies them as an approver org-wide.
+ *
+ * Call this AFTER the caller's role/layer sync so the re-fill below sees
+ * up-to-date roles and layers and cannot pick the very user being pruned.
+ */
+async function pruneDanglingApproverChains(
+  tx: Prisma.TransactionClient,
+  args: { approverUserId: string; teamIds?: string[] },
+): Promise<void> {
+  const dangling = await tx.approvalChainStep.findMany({
+    where: {
+      approverId: args.approverUserId,
+      ...(args.teamIds ? { teamId: { in: args.teamIds } } : {}),
+    },
+    select: { id: true, employeeId: true, teamId: true },
+  })
+  if (dangling.length === 0) return
+
+  await tx.approvalChainStep.deleteMany({
+    where: { id: { in: dangling.map((row) => row.id) } },
+  })
+
+  // Only rebuild the (employee, team) pairs the delete emptied. A chain that
+  // still has approvers keeps them as-is — read-time resolution renumbers
+  // steps consecutively, so the gap left behind is harmless.
+  const affected = new Map<string, { employeeId: string; teamId: string }>()
+  for (const row of dangling) {
+    if (!row.teamId) continue
+    affected.set(`${row.employeeId}:${row.teamId}`, {
+      employeeId: row.employeeId,
+      teamId: row.teamId,
+    })
+  }
+
+  for (const { employeeId, teamId } of affected.values()) {
+    const remaining = await tx.approvalChainStep.findFirst({
+      where: { employeeId, teamId },
+      select: { id: true },
+    })
+    if (remaining) continue
+
+    const membership = await tx.employeeTeamMembership.findFirst({
+      where: { teamId, employeeProfile: { user: { id: employeeId } } },
+      select: { layer: true, employeeProfileId: true },
+    })
+    if (!membership) continue
+
+    // Same shape as the auto-fill in `assignTeamMember`: every supervisor
+    // above them becomes an approver, one step per distinct layer.
+    const supersAbove = await tx.employeeTeamMembership.findMany({
+      where: {
+        teamId,
+        layer: { gt: membership.layer },
+        employeeProfileId: { not: membership.employeeProfileId },
+        employeeProfile: { user: { role: "SUPERVISOR" } },
+      },
+      select: {
+        layer: true,
+        employeeProfile: { select: { user: { select: { id: true } } } },
+      },
+    })
+    if (supersAbove.length === 0) continue
+
+    const layersSorted = [...new Set(supersAbove.map((m) => m.layer))].sort(
+      (a, b) => a - b,
+    )
+    const layerToStep = new Map<number, number>()
+    layersSorted.forEach((layer, idx) => layerToStep.set(layer, idx + 1))
+    await tx.approvalChainStep.createMany({
+      data: supersAbove.map((m) => ({
+        employeeId,
+        teamId,
+        approverId: m.employeeProfile.user.id,
+        step: layerToStep.get(m.layer)!,
+      })),
+    })
+  }
 }
 
 function mapTeamSummary(row: TeamRow): TeamSummary {
