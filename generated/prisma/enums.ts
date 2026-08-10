@@ -21,9 +21,7 @@ export const NotificationType = {
   CLAIM_SUBMITTED: 'CLAIM_SUBMITTED',
   CLAIM_REVIEWED: 'CLAIM_REVIEWED',
   ATTENDANCE_APPROVAL: 'ATTENDANCE_APPROVAL',
-  TEMPORARY_REVIEW: 'TEMPORARY_REVIEW',
-  APPRAISAL_PHASE_READY: 'APPRAISAL_PHASE_READY',
-  APPRAISAL_COMPLETED: 'APPRAISAL_COMPLETED'
+  TEMPORARY_REVIEW: 'TEMPORARY_REVIEW'
 } as const
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
@@ -370,22 +368,3 @@ export const Claim_reviewerRole = {
 } as const
 
 export type Claim_reviewerRole = (typeof Claim_reviewerRole)[keyof typeof Claim_reviewerRole]
-
-
-export const AppraisalStage = {
-  INITIALIZED: 'INITIALIZED',
-  REVIEWER_PENDING: 'REVIEWER_PENDING',
-  PARTNER_PENDING: 'PARTNER_PENDING',
-  SUBMITTED: 'SUBMITTED'
-} as const
-
-export type AppraisalStage = (typeof AppraisalStage)[keyof typeof AppraisalStage]
-
-
-export const AppraisalType = {
-  ANNUAL: 'ANNUAL',
-  MID_YEAR: 'MID_YEAR',
-  PROBATION: 'PROBATION'
-} as const
-
-export type AppraisalType = (typeof AppraisalType)[keyof typeof AppraisalType]

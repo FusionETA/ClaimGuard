@@ -8,7 +8,6 @@ import { useCallback, useEffect, useState } from "react"
 import {
   CalendarClock,
   CalendarDays,
-  ClipboardCheck,
   FileText,
   Home,
   Receipt,
@@ -84,11 +83,6 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     ],
   },
   {
-    href: "/employee/appraisals" as Route,
-    label: "Appraisals",
-    icon: ClipboardCheck,
-  },
-  {
     href: "/employee/payslips" as Route,
     label: "Payslips",
     icon: Receipt,
@@ -104,7 +98,6 @@ function getSectionTitle(pathname: string) {
   if (pathname.startsWith("/employee/review")) return "Claims"
   if (pathname.startsWith("/employee/leave")) return "Leave"
   if (pathname.startsWith("/employee/payslips")) return "Payslips"
-  if (pathname.startsWith("/employee/appraisals")) return "Appraisals"
   if (pathname.startsWith("/employee/attendance")) return "Attendance"
   return "Employee"
 }
@@ -132,7 +125,6 @@ const ATTENDANCE_HREF = "/employee/attendance"
 const CLAIMS_HREF = "/employee/claims"
 const CLAIMS_QUEUE_HREF = "/employee/review"
 const LEAVE_HREF = "/employee/leave"
-const APPRAISALS_HREF = "/employee/appraisals"
 // Cast through `string` so the comparison below doesn't get narrowed against
 // the cached next/types Route union (which may not yet include the new
 // leave approvals route after a fresh code generation).
@@ -167,7 +159,6 @@ export function EmployeeShell({
   const [pendingApprovals, setPendingApprovals] = useState(0)
   const [pendingClaimApprovals, setPendingClaimApprovals] = useState(0)
   const [pendingLeaveApprovals, setPendingLeaveApprovals] = useState(0)
-  const [pendingAppraisals, setPendingAppraisals] = useState(0)
 
   const fetchContext = useCallback(
     (signal?: AbortSignal) => {
@@ -186,7 +177,6 @@ export function EmployeeShell({
             pendingApprovals?: number
             pendingClaimApprovals?: number
             pendingLeaveApprovals?: number
-            pendingAppraisals?: number
           }>
         })
         .then((data) => {
@@ -197,7 +187,6 @@ export function EmployeeShell({
           setPendingApprovals(data?.pendingApprovals ?? 0)
           setPendingClaimApprovals(data?.pendingClaimApprovals ?? 0)
           setPendingLeaveApprovals(data?.pendingLeaveApprovals ?? 0)
-          setPendingAppraisals(data?.pendingAppraisals ?? 0)
         })
         .catch(() => null)
     },
@@ -215,20 +204,22 @@ export function EmployeeShell({
     }
   }, [organizationName])
 
-  // Fetches on mount for everyone (not just supervisors) — the appraisals
-  // count applies to any employee (reviewee/reviewer/partner), not only the
-  // three supervisor-only approval queues this same payload also carries.
   useEffect(() => {
+    if (user.role !== "SUPERVISOR" && organizationName) {
+      return
+    }
+
     const controller = new AbortController()
     void fetchContext(controller.signal)
     return () => controller.abort()
   }, [organizationName, user.role, fetchContext])
 
-  // Re-pull the badge counts whenever the user navigates between pages.
-  // Belt-and-braces for the rare case where the optimistic event path below
-  // misses (HMR, dropped event, etc.) — at worst the badge becomes correct
-  // the next time they click a nav item.
+  // Re-pull the badge counts whenever the supervisor navigates between
+  // pages. Belt-and-braces for the rare case where the optimistic event
+  // path below misses (HMR, dropped event, etc.) — at worst the badge
+  // becomes correct the next time they click a nav item.
   useEffect(() => {
+    if (user.role !== "SUPERVISOR") return
     const controller = new AbortController()
     void fetchContext(controller.signal)
     return () => controller.abort()
@@ -278,24 +269,24 @@ export function EmployeeShell({
     return () => registerBadgeRefreshHandler(null)
   }, [user.role, fetchContext])
 
-  // SSE: when the realtime listener (mounted lower in this shell) gets a
-  // push from the server — e.g. a subordinate submitted a new claim,
-  // attendance approval, or leave application aimed at THIS supervisor, or
-  // (for any employee) an appraisal notify() targeting them — re-pull the
-  // badge counts so the sidebar pills + homepage shortcut cards update
-  // without waiting for navigation or the page reload.
+  // SSE: when the realtime listener (mounted lower in this shell) gets
+  // a push from the server — e.g. a subordinate submitted a new claim,
+  // attendance approval, or leave application aimed at THIS supervisor
+  // — re-pull the badge counts so the sidebar pills + homepage shortcut
+  // cards update without waiting for navigation or the page reload.
   //
   // Without this, RealtimeListener's `router.refresh()` re-renders the
-  // current server-rendered page (the queue list updates) but the shell's
-  // `pending*` state is client-side and would stay stale until the user
-  // clicked something.
+  // current server-rendered page (the queue list updates) but the
+  // shell's `pending*Approvals` state is client-side and would stay
+  // stale until the supervisor clicked something.
   useEffect(() => {
+    if (user.role !== "SUPERVISOR") return
     function handleRealtime() {
       void fetchContext()
     }
     window.addEventListener("altomate:realtime", handleRealtime)
     return () => window.removeEventListener("altomate:realtime", handleRealtime)
-  }, [fetchContext])
+  }, [user.role, fetchContext])
 
   const visibleNav = employeeNav
     .filter((item) => !("supervisorOnly" in item) || user.role === "SUPERVISOR")
@@ -353,8 +344,6 @@ export function EmployeeShell({
                     <NotificationCountBadge count={pendingClaimApprovals} />
                   ) : item.href === LEAVE_HREF ? (
                     <NotificationCountBadge count={pendingLeaveApprovals} />
-                  ) : item.href === APPRAISALS_HREF ? (
-                    <NotificationCountBadge count={pendingAppraisals} />
                   ) : null}
                 </Link>
 
@@ -451,15 +440,14 @@ export function EmployeeShell({
 
         <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden print:hidden">
           <div
-            className="grid grid-cols-6 gap-1"
+            className="grid grid-cols-5 gap-1"
           >
             {visibleNav.map((item) => {
               const active = pathname === item.href
               const Icon = item.icon
 
               // Unified pending count per primary tab (attendance / claims /
-              // leave / appraisals) so the bottom bar matches the side-nav
-              // number badges.
+              // leave) so the bottom bar matches the side-nav number badges.
               const badgeCount =
                 item.href === ATTENDANCE_HREF
                   ? pendingApprovals
@@ -467,9 +455,7 @@ export function EmployeeShell({
                     ? pendingClaimApprovals
                     : item.href === LEAVE_HREF
                       ? pendingLeaveApprovals
-                      : item.href === APPRAISALS_HREF
-                        ? pendingAppraisals
-                        : 0
+                      : 0
 
               return (
                 <Link

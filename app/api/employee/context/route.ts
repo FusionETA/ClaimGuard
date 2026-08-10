@@ -3,7 +3,6 @@ import { NextResponse } from "next/server"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isEmployeePortalRole } from "@/lib/auth/types"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
-import { countPendingAppraisalsForUser } from "@/modules/appraisify/application/services/appraisal-page-data.service"
 import { countPendingClaimsForSupervisor } from "@/modules/claims/application/services/claim-workflow.service"
 import { countPendingApprovalsForReviewer as countPendingLeaveApprovalsForReviewer } from "@/modules/leave/application/services/leave-application.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
@@ -41,20 +40,12 @@ export async function GET() {
         ])
       : [0, 0, 0]
 
-  // Unlike the three approval queues above (supervisor-only), any employee
-  // can be an appraisal reviewee/reviewer/partner — so this count runs for
-  // every portal role, not just supervisors.
-  const pendingAppraisals = orgId
-    ? await countPendingAppraisalsForUser(session.userId, orgId)
-    : 0
-
   return NextResponse.json(
     {
       organizationName,
       pendingApprovals,
       pendingClaimApprovals,
       pendingLeaveApprovals,
-      pendingAppraisals,
     },
     {
       headers: { "Cache-Control": "no-store" },

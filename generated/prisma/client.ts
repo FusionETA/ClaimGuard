@@ -565,25 +565,3 @@ export type OrganizationAuditLog = Prisma.OrganizationAuditLogModel
  * Fusioneta staff via a dedicated internal page.
  */
 export type SuperadminAuditLog = Prisma.SuperadminAuditLogModel
-/**
- * Model Appraisal
- * 
- */
-export type Appraisal = Prisma.AppraisalModel
-/**
- * Model AppraisalQuestion
- * 
- */
-export type AppraisalQuestion = Prisma.AppraisalQuestionModel
-/**
- * Model AppraisalTemplate
- * A reusable, admin-authored question set. When an appraisal is started the
- * chosen template's questions are *snapshotted* into AppraisalQuestion rows,
- * so editing a template later never changes existing appraisals.
- */
-export type AppraisalTemplate = Prisma.AppraisalTemplateModel
-/**
- * Model AppraisalTemplateQuestion
- * 
- */
-export type AppraisalTemplateQuestion = Prisma.AppraisalTemplateQuestionModel

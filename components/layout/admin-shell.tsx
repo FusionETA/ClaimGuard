@@ -9,7 +9,6 @@ import {
   Banknote,
   CalendarClock,
   CalendarDays,
-  ClipboardCheck,
   History,
   LayoutDashboard,
   Loader2,
@@ -187,11 +186,6 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     ],
   },
   {
-    href: "/admin/appraisals" as Route,
-    label: "Appraisals",
-    icon: ClipboardCheck,
-  },
-  {
     // Per-org activity feed. Server-side fetch (auditLogRepository) with a
     // 7-day rolling retention prune-cron. Standalone page for now — can
     // move into Settings later if we want fewer top-level items.
@@ -315,10 +309,6 @@ function getTitle(pathname: string) {
   // header doesn't appear to navigate away from the module.
   if (pathname.startsWith("/admin/attendance")) {
     return "Attendance"
-  }
-
-  if (pathname.startsWith("/admin/appraisals")) {
-    return "Appraisals"
   }
 
   if (pathname.startsWith("/admin/audit")) {
