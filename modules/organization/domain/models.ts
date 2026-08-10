@@ -153,6 +153,12 @@ export type OrganizationProjectOption = {
   /// fields still serve as fallback in that case.
   geoLocations: ProjectGeoLocation[]
   isManual: boolean
+  /// Archived flag (backed by `XeroProject.isDisabled`). Archived
+  /// projects are hidden from clock-in pickers and every other listing;
+  /// they only surface on the Settings → Projects tab (behind the status
+  /// filter) so an admin can restore them. History keeps its FK — nothing
+  /// is deleted.
+  isDisabled: boolean
   workingHoursStart?: string | null
   workingHoursEnd?: string | null
   workingDays?: string | null

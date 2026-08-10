@@ -4,7 +4,7 @@ import { useActionState, useEffect, useLayoutEffect, useMemo, useRef, useState, 
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
-import { CalendarDays, ChevronDown, ChevronUp, Clock, Coins, Download, Loader2, MapPin, Pencil, Plus, Search, ShieldCheck, Trash2, UserPlus, X } from "lucide-react"
+import { Archive, ArchiveRestore, CalendarDays, ChevronDown, ChevronUp, Clock, Coins, Download, Loader2, MapPin, Pencil, Plus, Search, ShieldCheck, Trash2, UserPlus, X } from "lucide-react"
 
 import { CURRENCY_CATALOG } from "@/lib/currencies"
 
@@ -14,6 +14,7 @@ import {
   type InviteAdminActionState,
 } from "@/app/(admin)/admin/settings/form-state"
 import {
+  archiveProjectAction,
   createCustomAccountAction,
   createManualProjectAction,
   deleteManualProjectAction,
@@ -494,6 +495,7 @@ function ProjectCard({
   project,
   members,
   onUpdate,
+  onArchive,
   onDelete,
 }: {
   project: OrganizationProjectOption
@@ -507,6 +509,7 @@ function ProjectCard({
     allowedIps: AllowedIp[],
     geoLocations: Array<Omit<ProjectGeoLocation, "id">>,
   ) => void
+  onArchive?: (id: string, archived: boolean) => void
   onDelete?: (id: string) => void
 }) {
   // Multi-select PM state. Prefilled from the project's join-table-backed
@@ -679,6 +682,11 @@ function ProjectCard({
           >
             {project.name}
           </p>
+          {project.isDisabled ? (
+            <span className="mt-0.5 inline-block rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Archived
+            </span>
+          ) : null}
           {project.status && project.status !== "ACTIVE" ? (
             <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
               {project.status}
@@ -888,16 +896,44 @@ function ProjectCard({
           {formError}
         </p>
       ) : null}
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        className="rounded-lg w-full h-8 text-xs"
-        onClick={handleSave}
-        disabled={saving}
-      >
-        {saving ? <><Loader2 className="mr-2 h-3 w-3 animate-spin" />Saving…</> : "Save"}
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="rounded-lg flex-1 h-8 text-xs"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? <><Loader2 className="mr-2 h-3 w-3 animate-spin" />Saving…</> : "Save"}
+        </Button>
+        {onArchive ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="rounded-lg h-8 shrink-0 px-2.5 text-xs"
+            onClick={() => onArchive(project.id, !project.isDisabled)}
+            title={
+              project.isDisabled
+                ? "Restore this project to active use"
+                : "Archive — hides it from clock-in and every picker"
+            }
+          >
+            {project.isDisabled ? (
+              <>
+                <ArchiveRestore className="mr-1 h-3.5 w-3.5" />
+                Restore
+              </>
+            ) : (
+              <>
+                <Archive className="mr-1 h-3.5 w-3.5" />
+                Archive
+              </>
+            )}
+          </Button>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -1053,6 +1089,13 @@ export function AdminSettingsPanel({
   const [accountTypeFilter, setAccountTypeFilter] = useState<string>("all")
   const [accountSearch, setAccountSearch] = useState("")
   const [projectSearch, setProjectSearch] = useState("")
+  // Status filter for the Projects tab. Default "active" so the grid only
+  // shows in-use projects on landing — archived (previously-used) ones are
+  // hidden until the admin flips this to "archived" / "all". Archiving is
+  // backed by `XeroProject.isDisabled`.
+  const [projectStatus, setProjectStatus] = useState<
+    "active" | "archived" | "all"
+  >("active")
   // Search/filter for the Spend Limits card. By default we hide accounts that
   // don't have a limit set — admins with many accounts shouldn't have to scroll
   // past every row to review the few that have policy.
@@ -1105,7 +1148,7 @@ export function AdminSettingsPanel({
   const [projectPage, setProjectPage] = useState(1)
   useEffect(() => {
     setProjectPage(1)
-  }, [projectSearch])
+  }, [projectSearch, projectStatus])
 
   // Pagination for the selectable claim-accounts checkbox grid. Orgs
   // synced from Xero can have hundreds of accounts; without paging the
@@ -1257,6 +1300,15 @@ export function AdminSettingsPanel({
 
   async function handleDeleteProject(id: string) {
     const result = await deleteManualProjectAction(id)
+    if (result.ok) {
+      toast({ title: result.message, variant: "success" })
+    } else {
+      toast({ title: result.message, variant: "error" })
+    }
+  }
+
+  async function handleArchiveProject(id: string, archived: boolean) {
+    const result = await archiveProjectAction(id, archived)
     if (result.ok) {
       toast({ title: result.message, variant: "success" })
     } else {
@@ -2797,11 +2849,21 @@ export function AdminSettingsPanel({
                   // Filter + paginate. Both derive from the projects
                   // array on every render — fine at this scale (~hundreds
                   // of rows max); no useMemo needed.
-                  const filtered = projects.filter(
-                    (p) =>
+                  const filtered = projects.filter((p) => {
+                    const matchesSearch =
                       projectSearchLower === "" ||
-                      p.name.toLowerCase().includes(projectSearchLower),
-                  )
+                      p.name.toLowerCase().includes(projectSearchLower)
+                    const matchesStatus =
+                      projectStatus === "all"
+                        ? true
+                        : projectStatus === "archived"
+                          ? p.isDisabled
+                          : !p.isDisabled
+                    return matchesSearch && matchesStatus
+                  })
+                  const archivedCount = projects.filter(
+                    (p) => p.isDisabled,
+                  ).length
                   const totalPages = Math.max(
                     1,
                     Math.ceil(filtered.length / PROJECTS_PER_PAGE),
@@ -2812,14 +2874,33 @@ export function AdminSettingsPanel({
                   const pageItems = filtered.slice(startIdx, endIdx)
                   return (
                     <>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          placeholder="Search projects…"
-                          value={projectSearch}
-                          onChange={(e) => setProjectSearch(e.target.value)}
-                          className="pl-9"
-                        />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="relative min-w-[180px] max-w-xs flex-1">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            placeholder="Search projects…"
+                            value={projectSearch}
+                            onChange={(e) => setProjectSearch(e.target.value)}
+                            className="pl-9"
+                          />
+                        </div>
+                        <Select
+                          value={projectStatus}
+                          onValueChange={(v) =>
+                            setProjectStatus(v as "active" | "archived" | "all")
+                          }
+                        >
+                          <SelectTrigger className="w-[150px] shrink-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="archived">
+                              Archived{archivedCount > 0 ? ` · ${archivedCount}` : ""}
+                            </SelectItem>
+                            <SelectItem value="all">All</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       {/* One-line hint shown above the grid instead of
@@ -2841,21 +2922,32 @@ export function AdminSettingsPanel({
                         if you are on site.
                       </p>
 
-                      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-                        {pageItems.map((project) => (
-                          <ProjectCard
-                            key={project.id}
-                            project={project}
-                            members={members}
-                            onUpdate={handleUpdateProject}
-                            onDelete={
-                              project.isManual
-                                ? handleDeleteProject
-                                : undefined
-                            }
-                          />
-                        ))}
-                      </div>
+                      {filtered.length === 0 ? (
+                        <div className="rounded-[16px] border border-dashed border-border/70 bg-surface-low px-4 py-8 text-center text-xs text-muted-foreground">
+                          {projectStatus === "archived"
+                            ? "No archived projects."
+                            : projectStatus === "active"
+                              ? "No active projects match. Try the Archived or All filter."
+                              : "No projects match your search."}
+                        </div>
+                      ) : (
+                        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                          {pageItems.map((project) => (
+                            <ProjectCard
+                              key={project.id}
+                              project={project}
+                              members={members}
+                              onUpdate={handleUpdateProject}
+                              onArchive={handleArchiveProject}
+                              onDelete={
+                                project.isManual
+                                  ? handleDeleteProject
+                                  : undefined
+                              }
+                            />
+                          ))}
+                        </div>
+                      )}
 
                       {filtered.length > PROJECTS_PER_PAGE ? (
                         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -3500,11 +3592,13 @@ function ProjectCalendarPanel({
               <SelectValue placeholder="Pick a project" />
             </SelectTrigger>
             <SelectContent>
-              {projects.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
+              {projects
+                .filter((p) => !p.isDisabled)
+                .map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </CardContent>
@@ -4617,11 +4711,13 @@ function ProjectWorkingDaysCard({ projects }: { projects: OrganizationProjectOpt
             <SelectValue placeholder="Pick a project" />
           </SelectTrigger>
           <SelectContent>
-            {projects.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.name}
-              </SelectItem>
-            ))}
+            {projects
+              .filter((p) => !p.isDisabled)
+              .map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
 

@@ -262,7 +262,12 @@ async function loadAdminSettingsPageData(input: {
         ? organizationRepository.getChartAccountsForOrganization(input.organizationId)
         : Promise.resolve([]),
       input.organizationId
-        ? organizationRepository.getProjectsForOrganization(input.organizationId)
+        ? // Settings → Projects tab shows archived projects too (behind
+          // its status filter) so admins can restore them. Every other
+          // surface keeps the default active-only listing.
+          organizationRepository.getProjectsForOrganization(input.organizationId, {
+            includeDisabled: true,
+          })
         : Promise.resolve([]),
       input.organizationId
         ? organizationRepository.getCustomChartAccountsForOrganization(input.organizationId)

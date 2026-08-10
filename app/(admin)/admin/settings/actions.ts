@@ -1222,6 +1222,69 @@ export async function deleteManualProjectAction(
   return { ok: true, message: "Project deleted." }
 }
 
+/**
+ * Archive or restore a project. Archiving flips `XeroProject.isDisabled`,
+ * which drops the project out of clock-in pickers, calendars, team
+ * pickers, and every other active-only listing — but keeps its history
+ * (attendance / claim FKs) intact so it can be restored later. Used by
+ * the Settings → Projects tab to declutter the list of projects that are
+ * no longer in use, without deleting synced rows (which would just
+ * re-sync from Xero).
+ */
+export async function archiveProjectAction(
+  projectId: string,
+  archived: boolean,
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { ok: false, message: "No organization found." }
+  }
+
+  try {
+    const ok = await organizationRepository.setProjectArchived({
+      organizationId,
+      projectId,
+      archived,
+    })
+    if (!ok) {
+      return { ok: false, message: "Project not found." }
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      message: safeErrorMessage(error, "Unable to update project."),
+    }
+  }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: archived ? "project.archive" : "project.restore",
+    status: "SUCCESS",
+    summary: archived ? "Archived project" : "Restored project",
+    targetType: "project",
+    targetId: projectId,
+  })
+
+  await revalidateAdminSurfaces(organizationId)
+
+  return {
+    ok: true,
+    message: archived ? "Project archived." : "Project restored.",
+  }
+}
+
 export async function saveClaimRunSettingsAction(
   _previousState: SettingsActionState,
   formData: FormData

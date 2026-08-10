@@ -3919,6 +3919,7 @@ export const organizationRepository = {
       allowedIps: coerceAllowedIps(row),
       geoLocations: mapProjectGeoLocations(row.geoLocations),
       isManual: row.isManual,
+      isDisabled: row.isDisabled,
     }))
   },
 
@@ -3954,7 +3955,10 @@ export const organizationRepository = {
     }))
   },
 
-  async getProjectsForOrganization(organizationId: string): Promise<OrganizationProjectOption[]> {
+  async getProjectsForOrganization(
+    organizationId: string,
+    opts?: { includeDisabled?: boolean },
+  ): Promise<OrganizationProjectOption[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
@@ -3972,7 +3976,13 @@ export const organizationRepository = {
     const rows = await prisma.xeroProject.findMany({
       where: {
         organizationId,
-        isDisabled: false,
+        // `isDisabled` is the manual "archived" flag. Excluded by default
+        // (clock-in pickers, calendars, etc.); the Settings → Projects
+        // tab passes `includeDisabled` so it can show + restore archived
+        // rows behind its status filter. `archivedByXeroConnect` is a
+        // separate, automatic hide (Xero category swap) and stays filtered
+        // either way.
+        ...(opts?.includeDisabled ? {} : { isDisabled: false }),
         archivedByXeroConnect: false,
         ...(activeCategory
           ? {
@@ -4014,6 +4024,7 @@ export const organizationRepository = {
       allowedIps: coerceAllowedIps(row),
       geoLocations: mapProjectGeoLocations(row.geoLocations),
       isManual: row.isManual,
+      isDisabled: row.isDisabled,
       workingHoursStart: row.workingHoursStart,
       workingHoursEnd: row.workingHoursEnd,
       workingDays: row.workingDays,
@@ -4023,6 +4034,26 @@ export const organizationRepository = {
         name: h.name,
       })),
     }))
+  },
+
+  /// Archive / restore a project by flipping `isDisabled`. Org-scoped via
+  /// `updateMany` so an admin can only touch their own org's rows (a
+  /// mismatched id simply updates nothing). Archived rows drop out of
+  /// every listing that filters `isDisabled: false` (clock-in pickers,
+  /// calendars, team pickers, …) while keeping their attendance / claim
+  /// FKs intact. Returns true when a row was actually updated.
+  async setProjectArchived(data: {
+    organizationId: string
+    projectId: string
+    archived: boolean
+  }): Promise<boolean> {
+    const prisma = getPrismaClient()
+    if (!prisma) return false
+    const result = await prisma.xeroProject.updateMany({
+      where: { id: data.projectId, organizationId: data.organizationId },
+      data: { isDisabled: data.archived },
+    })
+    return result.count > 0
   },
 
   async createManualProject(data: {
@@ -4099,6 +4130,7 @@ export const organizationRepository = {
       allowedIps: [],
       geoLocations: [],
       isManual: true,
+      isDisabled: false,
     }
   },
 
