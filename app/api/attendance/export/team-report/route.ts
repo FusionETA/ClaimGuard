@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { generateAttendancePdfBulk } from "@/modules/attendance/application/services/attendance-pdf.service"
+import { generateTeamAttendancePdf } from "@/modules/attendance/application/services/attendance-pdf.service"
 import { resolveTeamReportAccess } from "@/modules/attendance/application/services/report-access.service"
 
 /**
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const buffer = await generateAttendancePdfBulk(
+    const buffer = await generateTeamAttendancePdf(
       access.orgId,
       from,
       to,

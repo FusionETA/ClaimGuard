@@ -10,6 +10,7 @@ import { parseWorkingDays, isoWeekday } from "@/modules/attendance/domain/hours-
 import { sanitiseFilenamePart } from "@/lib/filename"
 import {
   AttendanceReportDocument,
+  AttendanceReportBulkDocument,
   type AttendanceDayRow,
   type AttendanceReportEmployeeSection,
 } from "@/modules/attendance/application/services/report-renderers/attendance-report-pdf"
@@ -192,12 +193,17 @@ export async function generateAttendancePdf(
  * can forward individual reports without splitting a giant file first.
  * Same rationale as `bulk-payslips-pdf.tsx`.
  */
-export async function generateAttendancePdfBulk(
+/**
+ * Shared prep for both team outputs: load org context + build one section
+ * per in-scope employee. Throws when the scope resolves to nobody so the
+ * caller can surface a clean 500 instead of emitting an empty document.
+ */
+async function buildAllSections(
   orgId: string,
   from: Date,
   to: Date,
   userIds?: string[],
-): Promise<Buffer> {
+): Promise<{ sections: AttendanceReportEmployeeSection[]; generatedAt: string }> {
   const [org, timezone, allEmployees, holidays] = await Promise.all([
     organizationRepository.getOrganizationById(orgId),
     attendanceRepository.getOrgTimezone(orgId),
@@ -215,9 +221,6 @@ export async function generateAttendancePdfBulk(
   const orgHolidayMap = new Map(holidays.map((h) => [h.date, h.name]))
   const generatedAt = fmtNow()
 
-  // Build every section + render its PDF concurrently. @react-pdf is
-  // CPU-heavy; a throttle may be warranted past ~200 employees but
-  // typical SME runs (≤100) stay well under a minute.
   const sections = await Promise.all(
     employees.map((emp) =>
       buildEmployeeSection(
@@ -226,6 +229,43 @@ export async function generateAttendancePdfBulk(
       ),
     ),
   )
+  return { sections, generatedAt }
+}
+
+/**
+ * ONE combined PDF for the whole team — a page per employee in a single
+ * document. Backs the team-report route (supervisor → their team,
+ * admin/owner → the org). Rendering one document (vs. one buffer per
+ * employee) is both correct for an `application/pdf` response and far
+ * lighter on memory for large orgs.
+ */
+export async function generateTeamAttendancePdf(
+  orgId: string,
+  from: Date,
+  to: Date,
+  userIds?: string[],
+): Promise<Buffer> {
+  const { sections, generatedAt } = await buildAllSections(orgId, from, to, userIds)
+  return renderToBuffer(
+    <AttendanceReportBulkDocument sections={sections} generatedAt={generatedAt} />,
+  )
+}
+
+/**
+ * ZIP of per-employee PDFs — one file each, so HR can forward an
+ * individual's report without splitting a combined document. Backs the
+ * admin bulk-export route.
+ */
+export async function generateAttendancePdfBulk(
+  orgId: string,
+  from: Date,
+  to: Date,
+  userIds?: string[],
+): Promise<Buffer> {
+  const { sections } = await buildAllSections(orgId, from, to, userIds)
+
+  // @react-pdf is CPU-heavy; a throttle may be warranted past ~200
+  // employees but typical SME runs (≤100) stay well under a minute.
   const pdfBuffers = await Promise.all(
     sections.map((section) =>
       renderToBuffer(<AttendanceReportDocument {...section} />),
