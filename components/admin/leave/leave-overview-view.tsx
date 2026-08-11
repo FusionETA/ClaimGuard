@@ -11,6 +11,7 @@ import {
   ApplyLeaveOnBehalfDialog,
   type ApplyLeaveEmployeeOption,
 } from "@/components/admin/leave/apply-leave-on-behalf-dialog"
+import { ImportLeaveHistoryButton } from "@/components/admin/leave/import-leave-history-button"
 import { LeaveAuditLog } from "@/components/admin/leave/leave-audit-log"
 import type {
   LeaveAuditEntry,
@@ -47,10 +48,13 @@ export function LeaveOverviewView({
             Snapshot of leave activity in {report.year}.
           </p>
         </div>
-        <ApplyLeaveOnBehalfDialog
-          employees={employees}
-          leaveTypes={leaveTypes}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <ImportLeaveHistoryButton />
+          <ApplyLeaveOnBehalfDialog
+            employees={employees}
+            leaveTypes={leaveTypes}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

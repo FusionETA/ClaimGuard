@@ -584,6 +584,29 @@ export const leaveRepository = {
   // -------------------------------------------------------------------------
   // Applications
   // -------------------------------------------------------------------------
+  /// Find an existing application matching an employee + leave type +
+  /// exact date range. Used by the leave-history importer to skip rows
+  /// already imported, so a re-run is idempotent (no double `usedDays`).
+  async findMatchingApplicationId(input: {
+    employeeId: string
+    leaveTypeId: string
+    startDate: Date
+    endDate: Date
+  }): Promise<string | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.leaveApplication.findFirst({
+      where: {
+        employeeId: input.employeeId,
+        leaveTypeId: input.leaveTypeId,
+        startDate: input.startDate,
+        endDate: input.endDate,
+      },
+      select: { id: true },
+    })
+    return row?.id ?? null
+  },
+
   async createApplication(input: {
     employeeId: string
     leaveTypeId: string
