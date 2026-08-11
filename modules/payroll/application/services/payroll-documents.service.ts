@@ -49,7 +49,10 @@ export async function uploadPayrollDocument(input: {
 
   // Verify the employee belongs to this admin's org.
   const employee = await prisma.user.findFirst({
-    where: { id: input.userId, organizationId: orgId },
+    // Scope by employee-profile membership in the active org (not the
+    // user's home `organizationId`) so multi-company / linked employees
+    // stay editable — matches the profile-scoped edit-page loader.
+    where: { id: input.userId, employeeProfiles: { some: { organizationId: orgId } } },
     select: {
       employeeProfiles: {
         where: { organizationId: orgId },
@@ -139,7 +142,10 @@ export async function deletePayrollDocument(input: {
   if (!prisma) throw new Error("Database is not configured.")
 
   const employee = await prisma.user.findFirst({
-    where: { id: input.userId, organizationId: orgId },
+    // Scope by employee-profile membership in the active org (not the
+    // user's home `organizationId`) so multi-company / linked employees
+    // stay editable — matches the profile-scoped edit-page loader.
+    where: { id: input.userId, employeeProfiles: { some: { organizationId: orgId } } },
     select: {
       employeeProfiles: {
         where: { organizationId: orgId },

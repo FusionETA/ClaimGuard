@@ -279,7 +279,10 @@ export async function upsertPayrollProfile(input: {
   if (!prisma) throw new Error("Database is not configured.")
 
   const user = await prisma.user.findFirst({
-    where: { id: input.userId, organizationId: orgId },
+    // Scope by employee-profile membership in the active org (not the
+    // user's home `organizationId`) so multi-company / linked employees
+    // stay editable — matches the profile-scoped edit-page loader.
+    where: { id: input.userId, employeeProfiles: { some: { organizationId: orgId } } },
     select: {
       employeeProfiles: {
         where: { organizationId: orgId },
@@ -412,7 +415,10 @@ export async function archivePayrollProfile(input: {
   if (!prisma) throw new Error("Database is not configured.")
 
   const user = await prisma.user.findFirst({
-    where: { id: input.userId, organizationId: orgId },
+    // Scope by employee-profile membership in the active org (not the
+    // user's home `organizationId`) so multi-company / linked employees
+    // stay editable — matches the profile-scoped edit-page loader.
+    where: { id: input.userId, employeeProfiles: { some: { organizationId: orgId } } },
     select: {
       employeeProfiles: {
         where: { organizationId: orgId },
@@ -519,7 +525,10 @@ export async function updateEmployeeEmail(input: {
   }
 
   const target = await prisma.user.findFirst({
-    where: { id: input.userId, organizationId: orgId },
+    // Scope by employee-profile membership in the active org (not the
+    // user's home `organizationId`) so multi-company / linked employees
+    // stay editable — matches the profile-scoped edit-page loader.
+    where: { id: input.userId, employeeProfiles: { some: { organizationId: orgId } } },
     select: { id: true, email: true },
   })
   if (!target) {
@@ -602,7 +611,10 @@ export async function updateEmployeeName(input: {
   }
 
   const target = await prisma.user.findFirst({
-    where: { id: input.userId, organizationId: orgId },
+    // Scope by employee-profile membership in the active org (not the
+    // user's home `organizationId`) so multi-company / linked employees
+    // stay editable — matches the profile-scoped edit-page loader.
+    where: { id: input.userId, employeeProfiles: { some: { organizationId: orgId } } },
     select: { id: true, name: true },
   })
   if (!target) {
@@ -664,7 +676,10 @@ export async function resetEmployeePasswordToDefault(input: {
   if (!prisma) throw new Error("Database is not configured.")
 
   const target = await prisma.user.findFirst({
-    where: { id: input.userId, organizationId: orgId },
+    // Scope by employee-profile membership in the active org (not the
+    // user's home `organizationId`) so multi-company / linked employees
+    // stay editable — matches the profile-scoped edit-page loader.
+    where: { id: input.userId, employeeProfiles: { some: { organizationId: orgId } } },
     select: { id: true, email: true, role: true, name: true },
   })
   if (!target) {
@@ -735,7 +750,10 @@ export async function unarchivePayrollProfile(input: {
   if (!prisma) throw new Error("Database is not configured.")
 
   const user = await prisma.user.findFirst({
-    where: { id: input.userId, organizationId: orgId },
+    // Scope by employee-profile membership in the active org (not the
+    // user's home `organizationId`) so multi-company / linked employees
+    // stay editable — matches the profile-scoped edit-page loader.
+    where: { id: input.userId, employeeProfiles: { some: { organizationId: orgId } } },
     select: {
       employeeProfiles: {
         where: { organizationId: orgId },
