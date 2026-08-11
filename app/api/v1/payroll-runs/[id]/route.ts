@@ -38,6 +38,13 @@ export const GET = handleApiRequest<{ id: string }>(
     }
 
     const payslips = await payslipRepository.listForRun(run.id)
+    // SKBBK has no stored run-total column (unlike PCB / EPF / SOCSO /
+    // …), so derive the run-level figure by summing the frozen payslips.
+    // Round to 2dp to avoid float drift when adding many Decimal(12,2)s.
+    const totalSkbbk =
+      Math.round(
+        payslips.reduce((sum, p) => sum + p.skbbkEmployee, 0) * 100,
+      ) / 100
 
     return NextResponse.json({
       data: {
@@ -53,6 +60,7 @@ export const GET = handleApiRequest<{ id: string }>(
             pcb: run.totalPcb,
             zakat: run.totalZakat,
             hrdf: run.totalHrdf,
+            skbbk: totalSkbbk,
             employeeEpf: run.totalEmployeeEpf,
             employerEpf: run.totalEmployerEpf,
             employeeSocso: run.totalEmployeeSocso,
@@ -149,6 +157,13 @@ function toExternalPayslip(p: PayslipRow) {
       hrdf: p.hrdf,
       hrdfWage: p.hrdfWage,
       zakat: p.zakat,
+      /// SKBBK (Skim LINDUNG 24 Jam) — employee-only PERKESO scheme.
+      /// `skbbkEmployee` is the contribution, `skbbkWage` the gazette
+      /// wage base it was looked up from, `contributeToSkbbk` the frozen
+      /// per-employee opt-in at run time.
+      skbbkEmployee: p.skbbkEmployee,
+      skbbkWage: p.skbbkWage,
+      contributeToSkbbk: p.contributeToSkbbk,
     },
     /// Full line-item breakdown. Every allowance, deduction,
     /// reimbursement, and benefit-in-kind is its own row with the

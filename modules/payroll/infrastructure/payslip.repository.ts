@@ -408,6 +408,27 @@ export const payslipRepository = {
   },
 
   /**
+   * Total employee SKBBK contribution per run, for a set of run ids.
+   * SKBBK has no stored total column on `PayrollRun` (unlike PCB / EPF /
+   * SOCSO / …), so the run-level figure is derived by summing the frozen
+   * payslips. Used by the v1 payroll-runs list endpoint to expose
+   * `totals.skbbk`. Runs with no payslips are absent from the map — the
+   * caller defaults those to 0.
+   */
+  async sumSkbbkByRunIds(runIds: string[]): Promise<Map<string, number>> {
+    const prisma = getPrismaClient()
+    if (!prisma || runIds.length === 0) return new Map()
+    const rows = await prisma.payslip.groupBy({
+      by: ["payrollRunId"],
+      where: { payrollRunId: { in: runIds } },
+      _sum: { skbbkEmployee: true },
+    })
+    return new Map(
+      rows.map((r) => [r.payrollRunId, toNumber(r._sum.skbbkEmployee, 0)]),
+    )
+  },
+
+  /**
    * Light-weight list of payslips for a single run. Used by the run
    * detail page. Does NOT include line items — fetch those via
    * `getForRunAndOrg` on the detail page.

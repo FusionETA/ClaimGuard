@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { handleApiRequest } from "@/lib/api-auth"
 import type { PayrollRunRow } from "@/modules/payroll/domain/runs"
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
+import { payslipRepository } from "@/modules/payroll/infrastructure/payslip.repository"
 
 /**
  * GET /api/v1/payroll-runs
@@ -64,8 +65,14 @@ export const GET = handleApiRequest(["payroll:read"], async (request, ctx) => {
     : all
   const slice = filtered.slice(offset, offset + limit)
 
+  // SKBBK has no stored run-total column, so derive per-run sums for the
+  // current page only — one grouped aggregate over its payslips.
+  const skbbkByRun = await payslipRepository.sumSkbbkByRunIds(
+    slice.map((r) => r.id),
+  )
+
   return NextResponse.json({
-    data: slice.map(toExternalRun),
+    data: slice.map((row) => toExternalRun(row, skbbkByRun.get(row.id) ?? 0)),
     pagination: {
       total: filtered.length,
       limit,
@@ -85,7 +92,7 @@ export const GET = handleApiRequest(["payroll:read"], async (request, ctx) => {
  *     (submittedAt, submittedForApprovalAt) so an automated system can
  *     reconcile against its own logs.
  */
-function toExternalRun(row: PayrollRunRow) {
+function toExternalRun(row: PayrollRunRow, skbbk: number) {
   return {
     id: row.id,
     organizationId: row.organizationId,
@@ -98,6 +105,9 @@ function toExternalRun(row: PayrollRunRow) {
       pcb: row.totalPcb,
       zakat: row.totalZakat,
       hrdf: row.totalHrdf,
+      // Employee-only SKBBK (Skim LINDUNG 24 Jam), summed from this
+      // run's payslips — no stored column on PayrollRun.
+      skbbk,
       employeeEpf: row.totalEmployeeEpf,
       employerEpf: row.totalEmployerEpf,
       employeeSocso: row.totalEmployeeSocso,
