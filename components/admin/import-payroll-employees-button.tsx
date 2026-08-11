@@ -1055,14 +1055,15 @@ function UploadStep({
               Use our template (optional)
             </p>
             <p className="text-xs text-muted-foreground">
-              Header-only template. Required columns prefixed with{" "}
+              Styled Excel template — friendly headers, dropdowns, and an
+              example row. Required columns marked{" "}
               <span className="font-mono">*</span>.
             </p>
           </div>
           <Button asChild variant="outline" size="sm" className="gap-2">
             <a href="/admin/payroll/employees/import-template" download>
               <Download className="h-4 w-4" />
-              Download template
+              Download Excel template
             </a>
           </Button>
         </div>
@@ -1071,13 +1072,13 @@ function UploadStep({
       <form action={action} className="space-y-3">
         <div className="space-y-1.5">
           <Label htmlFor="csv-file" className="text-xs">
-            CSV file
+            CSV or Excel file
           </Label>
           <input
             id="csv-file"
             type="file"
             name="file"
-            accept=".csv,text/csv"
+            accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             required
             className="block w-full rounded-md border border-border bg-card px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-medium file:text-primary"
             aria-describedby="csv-file-leading-zero-tip"

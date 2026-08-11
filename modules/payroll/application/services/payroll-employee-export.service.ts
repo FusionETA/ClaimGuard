@@ -6,19 +6,19 @@ import {
   EMPLOYEE_IMPORT_COLUMNS,
   MAX_TEMPLATE_CHILDREN,
 } from "@/modules/payroll/domain/employee-import-columns"
+import { buildEmployeeWorkbookBuffer } from "@/modules/payroll/application/services/report-renderers/employee-workbook"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 
 /**
- * Export every employee in the active org to a CSV that mirrors the
- * bulk-import template exactly (same header, same order, `*`-required
- * markers, comment row), so the file is directly re-importable.
- *
- * Column definitions are the single source of truth shared with the
- * import template (`domain/employee-import-columns.ts`) — add a column
- * there once and both the template and this export pick it up.
+ * Export every employee in the active org to a styled XLSX that shares
+ * its design + column order with the bulk-import template
+ * (`report-renderers/employee-workbook.ts`), so the file is directly
+ * re-importable. Column definitions are the single source of truth in
+ * `domain/employee-import-columns.ts` — add a column there once and both
+ * the template and this export pick it up.
  */
-export async function exportPayrollEmployeesCsv(): Promise<{
-  csv: string
+export async function exportPayrollEmployeesXlsx(): Promise<{
+  buffer: Buffer
   filename: string
   employeeCount: number
 }> {
@@ -29,6 +29,19 @@ export async function exportPayrollEmployeesCsv(): Promise<{
   const orgId = resolveActiveOrgId(session)
   if (!orgId) throw new Error("No active organisation.")
 
+  const dataRows = await buildEmployeeExportRows(orgId)
+  const buffer = await buildEmployeeWorkbookBuffer({ mode: "export", dataRows })
+  return {
+    buffer,
+    filename: "payroll-employees-export.xlsx",
+    employeeCount: dataRows.length,
+  }
+}
+
+/// Build one string[] per employee, in EMPLOYEE_IMPORT_COLUMNS order.
+/// Session-free (the caller checks auth) so the XLSX builder can consume
+/// it directly.
+async function buildEmployeeExportRows(orgId: string): Promise<string[][]> {
   const employees = await payrollProfileRepository.listForExport(orgId)
 
   const str = (v: unknown): string => (v == null ? "" : String(v))
@@ -116,29 +129,5 @@ export async function exportPayrollEmployeesCsv(): Promise<{
     return EMPLOYEE_IMPORT_COLUMNS.map((col) => cell[col.key] ?? "")
   })
 
-  const header = EMPLOYEE_IMPORT_COLUMNS.map(
-    (c) => (c.required ? "*" : "") + c.key,
-  )
-  const comment = EMPLOYEE_IMPORT_COLUMNS.map((c, i) =>
-    i === 0 ? "# " + c.description : c.description,
-  )
-
-  const lines = [header, comment, ...dataRows].map((row) =>
-    row.map(csvField).join(","),
-  )
-  // BOM so Excel opens UTF-8 cleanly; CRLF to match the template.
-  const csv = "﻿" + lines.join("\r\n") + "\r\n"
-
-  return {
-    csv,
-    filename: "payroll-employees-export.csv",
-    employeeCount: employees.length,
-  }
-}
-
-function csvField(value: string): string {
-  if (/[",\r\n]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`
-  }
-  return value
+  return dataRows
 }

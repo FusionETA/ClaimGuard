@@ -21,6 +21,7 @@ import {
 } from "@/modules/payroll/domain/models"
 import { recommendSocsoScheme } from "@/modules/payroll/domain/statutory-tables"
 import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
+import { canonicalImportKey } from "@/modules/payroll/domain/employee-import-columns"
 import {
   countActiveLeaveTypesForOrg,
   type LeaveSeedInput,
@@ -1173,11 +1174,13 @@ export async function bulkImportPayrollEmployees(input: {
     throw new Error("CSV has no data rows.")
   }
 
-  // 3. Build a header → field-name lookup. Unknown headers are
-  // silently ignored.
+  // 3. Build a header → field-name lookup. Each header cell is resolved
+  // to its canonical key so BOTH the friendly XLSX/export labels
+  // ("Monthly Salary (MYR)") and the legacy machine keys ("monthlySalary")
+  // map to the same field. Unknown headers pass through and are ignored.
   const colIndex = new Map<string, number>()
   for (const [i, name] of header.entries()) {
-    colIndex.set(name, i)
+    colIndex.set(canonicalImportKey(name), i)
   }
 
   // 4. Parse + validate each row.

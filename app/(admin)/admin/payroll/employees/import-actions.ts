@@ -43,6 +43,46 @@ export type ImportActionResult =
   | { status: "success"; result: ImportResult }
   | { status: "error"; message: string }
 
+/// Read an uploaded import file as CSV text. `.xlsx` uploads (the styled
+/// template + the employee export) are parsed with ExcelJS — the
+/// "Employees" sheet (falling back to the first non-instruction sheet) is
+/// flattened to CSV so the existing CSV pipeline handles both formats.
+/// Non-exported: this is a "use server" file, so only async actions may
+/// be exported — plain helpers stay internal.
+async function readUploadAsCsv(file: File): Promise<string> {
+  const isXlsx =
+    file.name.toLowerCase().endsWith(".xlsx") ||
+    file.type.includes("spreadsheetml") ||
+    file.type.includes("ms-excel")
+  if (!isXlsx) return file.text()
+
+  const ExcelJS = (await import("exceljs")).default
+  const wb = new ExcelJS.Workbook()
+  await wb.xlsx.load(await file.arrayBuffer())
+  const ws =
+    wb.getWorksheet("Employees") ??
+    wb.worksheets.find(
+      (s) => !/read ?me|instruction|example|sample/i.test(s.name),
+    ) ??
+    wb.worksheets[0]
+  if (!ws) throw new Error("The Excel file has no readable sheet.")
+
+  const colCount = ws.columnCount
+  const lines: string[] = []
+  ws.eachRow({ includeEmpty: false }, (row) => {
+    const cells: string[] = []
+    for (let c = 1; c <= colCount; c++) {
+      cells.push(toCsvCell(String(row.getCell(c).text ?? "")))
+    }
+    lines.push(cells.join(","))
+  })
+  return lines.join("\r\n") + "\r\n"
+}
+
+function toCsvCell(v: string): string {
+  return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
+}
+
 export async function importPayrollEmployeesAction(
   _prev: ImportActionResult | null,
   formData: FormData,
@@ -60,7 +100,7 @@ export async function importPayrollEmployeesAction(
       message: "File too large (max 5 MB). Split into smaller batches.",
     }
   }
-  const csv = await file.text()
+  const csv = await readUploadAsCsv(file)
   try {
     const result = await bulkImportPayrollEmployees({ csv })
     revalidatePath("/admin/payroll/employees")
@@ -120,7 +160,7 @@ export async function aiMapCsvAction(
     }
   }
 
-  const csvText = await file.text()
+  const csvText = await readUploadAsCsv(file)
   const { headers, sampleRows } = extractCsvPreview(csvText)
   if (headers.length === 0) {
     return { status: "error", message: "CSV has no headers." }
