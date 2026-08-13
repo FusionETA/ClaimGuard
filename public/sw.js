@@ -1,7 +1,13 @@
-const CACHE_NAME = "altomatehr-shell-v1"
+// Bumped to v2 to evict the v1 cache, which could hold a rendered "/" page
+// snapshot (see handleNavigationRequest). The `activate` handler below deletes
+// every cache whose key !== CACHE_NAME, so the poisoned entry is dropped on the
+// next launch on every device.
+const CACHE_NAME = "altomatehr-shell-v2"
 const OFFLINE_FALLBACK = "/offline.html"
 const BRAND_ICON_URL = "/brand-icon-white.png?v=4"
-const APP_SHELL = ["/", OFFLINE_FALLBACK, BRAND_ICON_URL]
+// Static, session-independent assets only. "/" is deliberately NOT precached —
+// it renders the employee dashboard with the clock-in/out state baked in.
+const APP_SHELL = [OFFLINE_FALLBACK, BRAND_ICON_URL]
 // On iOS PWA cold-resume, fetch() can hang indefinitely without erroring.
 // Cap navigation requests at this many ms before falling back to cache so the
 // app never gets stuck on a black screen waiting for a half-suspended network.
@@ -79,17 +85,16 @@ async function handleNavigationRequest(event) {
   // can have a half-suspended network where fetch() neither resolves nor
   // rejects — without this guard the user sees a black screen forever.
   //
-  // If the network wins, we also refresh the cached "/" so subsequent slow
-  // resumes have a fresher fallback to serve.
-  const networkPromise = getNavigationNetworkResponse(event)
-    .then((response) => {
-      if (response && response.ok) {
-        const cloned = response.clone()
-        void caches.open(CACHE_NAME).then((cache) => cache.put("/", cloned))
-      }
-      return response
-    })
-    .catch(() => null)
+  // Navigation responses are NEVER cached. A navigation response is a fully
+  // rendered, session-specific page with today's attendance state baked into
+  // the HTML, and the in-app updates after a clock-in go through an RSC
+  // refresh (not a navigation) — so a cached copy freezes at whatever the
+  // state was on the last full page load. That is exactly how an employee who
+  // clocked in at 07:37 was still served a "Clock in" card at 22:09: the
+  // stale snapshot won the 4s race on a weak signal. Wrong state on a clock
+  // card is worse than an honest offline page, so the only fallback now is
+  // the static offline page, which retries by itself.
+  const networkPromise = getNavigationNetworkResponse(event).catch(() => null)
 
   const timeoutPromise = new Promise((resolve) =>
     setTimeout(() => resolve(null), NAV_TIMEOUT_MS),
@@ -98,14 +103,6 @@ async function handleNavigationRequest(event) {
   const winner = await Promise.race([networkPromise, timeoutPromise])
   if (winner) {
     return winner
-  }
-
-  // Network too slow or failed — serve cached "/" first (always installed),
-  // then offline page as last resort. The slow networkPromise keeps running
-  // in the background so the cache refreshes for next launch.
-  const cachedHome = await caches.match("/")
-  if (cachedHome) {
-    return cachedHome
   }
 
   return (await caches.match(OFFLINE_FALLBACK)) || Response.error()

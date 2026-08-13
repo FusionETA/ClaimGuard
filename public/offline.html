@@ -52,15 +52,81 @@
       strong {
         color: var(--primary);
       }
+
+      button {
+        margin-top: 20px;
+        width: 100%;
+        padding: 14px 20px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--primary);
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      #status {
+        margin-top: 12px;
+        font-size: 0.85rem;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
     <main>
       <h1>You’re Offline</h1>
       <p>
-        AltomateHR can still open previously cached pages, but live claim data and
-        submission need a connection. Reconnect to sync with <strong>DigitalOcean MySQL</strong>.
+        AltomateHR needs a connection to show your <strong>live</strong> attendance,
+        leave and claim data — clock in/out state is never served from an offline
+        copy, so it can’t show you the wrong button.
       </p>
+      <button type="button" id="retry">Try again</button>
+      <p id="status">Retrying automatically…</p>
     </main>
+    <script>
+      // Keep probing the page the user actually asked for. The service worker
+      // shows this page when a navigation loses the 4s race, which on a flaky
+      // site connection is often temporary — reload as soon as the network is
+      // genuinely back so nobody is stranded here.
+      (function () {
+        var status = document.getElementById("status")
+        var timer = null
+
+        function probe() {
+          var controller = new AbortController()
+          var abortTimer = setTimeout(function () {
+            controller.abort()
+          }, 4000)
+
+          fetch(location.href, {
+            method: "HEAD",
+            cache: "no-store",
+            credentials: "include",
+            signal: controller.signal,
+          })
+            .then(function () {
+              clearTimeout(abortTimer)
+              status.textContent = "Back online — reloading…"
+              location.reload()
+            })
+            .catch(function () {
+              clearTimeout(abortTimer)
+            })
+        }
+
+        document.getElementById("retry").addEventListener("click", function () {
+          status.textContent = "Reconnecting…"
+          location.reload()
+        })
+
+        window.addEventListener("online", probe)
+        timer = setInterval(probe, 5000)
+        setTimeout(probe, 2000)
+        window.addEventListener("pagehide", function () {
+          clearInterval(timer)
+        })
+      })()
+    </script>
   </body>
 </html>
