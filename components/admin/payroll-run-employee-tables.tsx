@@ -8,6 +8,7 @@ import { AlertTriangle, ChevronRight, CircleCheck, Search } from "lucide-react"
 import { EditAdjustmentDialog } from "@/components/admin/edit-adjustment-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { PageNumbers } from "@/components/ui/pagination-controls"
 import {
   Card,
   CardContent,
@@ -276,31 +277,11 @@ function BalancedPaginationControls({
         <span className="font-semibold text-foreground">{totalItems}</span>{" "}
         {itemLabel}
       </div>
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="rounded-full"
-          disabled={currentPage === 1}
-          onClick={() => onPageChange(currentPage - 1)}
-        >
-          Previous
-        </Button>
-        <span className="text-sm font-medium text-foreground">
-          Page {currentPage} of {totalPages}
-        </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="rounded-full"
-          disabled={currentPage === totalPages}
-          onClick={() => onPageChange(currentPage + 1)}
-        >
-          Next
-        </Button>
-      </div>
+      <PageNumbers
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+      />
     </div>
   )
 }
