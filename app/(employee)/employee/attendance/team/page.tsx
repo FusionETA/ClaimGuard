@@ -49,16 +49,14 @@ export default async function TeamOverviewPage({
   const params = (await searchParams) ?? {}
   const filter = readFilter(params)
 
-  const [overview, activity, tz] = await Promise.all([
-    supervisorAttendanceService.getTeamOverview(session.userId),
+  const [activity, tz] = await Promise.all([
     supervisorAttendanceService.getTeamDailyActivity(session.userId, orgId, filter),
     attendanceRepository.getOrgTimezone(orgId),
   ])
 
+  const { teamSize, presentToday, pendingApprovals } = activity.summary
   const attendanceRate =
-    overview.teamSize > 0
-      ? Math.round((overview.presentToday / overview.teamSize) * 100)
-      : 0
+    teamSize > 0 ? Math.round((presentToday / teamSize) * 100) : 0
 
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
@@ -78,14 +76,22 @@ export default async function TeamOverviewPage({
         <ReportExportButtons from={initialFrom} to={initialTo} year={year} />
       </div>
 
-      {/* Two supervisor-only glances that the table below doesn't cover.
-          The per-status counts (in office / late / on leave / …) live in
-          the table's filter pills, so we don't duplicate them as cards. */}
+      {/* ◄ ► project switcher on top — everything below (tiles + table)
+          repopulates for the chosen project. Auto-hides when the team is
+          in ≤ 1 project. */}
+      <ProjectSwitcher
+        prefix="team"
+        projects={activity.projects}
+        value={filter.projectId}
+      />
+
+      {/* Tiles derive from the project-scoped data, so they track the
+          switcher. Per-status counts live in the table pills below. */}
       <div className="grid grid-cols-2 gap-3">
         <Card className="flex flex-col rounded-2xl bg-secondary/60 p-4">
           <ClipboardCheck className="h-5 w-5 text-primary" />
           <p className="font-headline mt-1 text-2xl font-extrabold text-primary">
-            {String(overview.pendingApprovals).padStart(2, "0")}
+            {String(pendingApprovals).padStart(2, "0")}
           </p>
           <p className="mb-3 text-[11px] font-semibold text-muted-foreground">
             Pending approvals
@@ -105,18 +111,10 @@ export default async function TeamOverviewPage({
             {attendanceRate}%
           </p>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            {overview.presentToday} of {overview.teamSize} present
+            {presentToday} of {teamSize} present
           </p>
         </Card>
       </div>
-
-      {/* ◄ ► project switcher — simpler than a dropdown on mobile, and
-          the table's own project dropdown is hidden below to match. */}
-      <ProjectSwitcher
-        prefix="team"
-        projects={activity.projects}
-        value={filter.projectId}
-      />
 
       <DailyActivityTable
         rows={activity.rows}

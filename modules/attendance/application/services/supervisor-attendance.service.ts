@@ -52,10 +52,19 @@ export const supervisorAttendanceService = {
     rows: Awaited<ReturnType<typeof attendanceRepository.getDailyActivity>>
     projects: { id: string; name: string }[]
     teams: { id: string; name: string; projectName: string }[]
+    /// Counts scoped to the current project/team/search — so switching
+    /// project repopulates the summary tiles, not just the table.
+    summary: { teamSize: number; presentToday: number; pendingApprovals: number }
   }> {
-    if (!orgId) return { rows: [], projects: [], teams: [] }
+    const empty = {
+      rows: [] as Awaited<ReturnType<typeof attendanceRepository.getDailyActivity>>,
+      projects: [],
+      teams: [],
+      summary: { teamSize: 0, presentToday: 0, pendingApprovals: 0 },
+    }
+    if (!orgId) return empty
     const memberIds = await attendanceRepository.getTeamMemberIds(supervisorId)
-    if (memberIds.length === 0) return { rows: [], projects: [], teams: [] }
+    if (memberIds.length === 0) return empty
     const [rawRows, scope] = await Promise.all([
       attendanceRepository.getDailyActivity(
         orgId,
@@ -81,7 +90,27 @@ export const supervisorAttendanceService = {
               ? { ...r, derivedStatus: "ON_LEAVE" as const }
               : r,
           )
-    return { rows, projects: scope.projects, teams: scope.teams }
+
+    // Summary tiles derive from the scoped rows so they track the project
+    // switcher. "Present" = clocked in today (working / on break / done).
+    const presentToday = rows.filter(
+      (r) =>
+        r.derivedStatus === "WORKING" ||
+        r.derivedStatus === "ON_BREAK" ||
+        r.derivedStatus === "CLOCKED_OUT",
+    ).length
+    const pendingApprovals = rows.length
+      ? await attendanceRepository.countPendingApprovalsForEmployees(
+          rows.map((r) => r.id),
+        )
+      : 0
+
+    return {
+      rows,
+      projects: scope.projects,
+      teams: scope.teams,
+      summary: { teamSize: rows.length, presentToday, pendingApprovals },
+    }
   },
 
   async getPendingApprovalsForSupervisor(

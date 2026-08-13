@@ -2520,6 +2520,19 @@ export const attendanceRepository = {
     }
   },
 
+  /// Count of PENDING approval requests for a set of employees — used to
+  /// scope the supervisor Team view's "Pending approvals" tile to the
+  /// currently-selected project.
+  async countPendingApprovalsForEmployees(
+    employeeIds: string[],
+  ): Promise<number> {
+    if (employeeIds.length === 0) return 0
+    const prisma = getClient()
+    return prisma.approvalRequest.count({
+      where: { employeeId: { in: employeeIds }, status: "PENDING" },
+    })
+  },
+
   /**
    * Throws if `employeeId` is not in the supervisor's approval chain. Admin
    * paths skip this guard at the service layer.
