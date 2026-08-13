@@ -31,9 +31,19 @@ type Props = {
    * call a server action directly (e.g. the history panel).
    */
   onChange?: (next: TableFilterValue) => void
+  /// Hide the Project dropdown — used by the supervisor Team view, which
+  /// drives project selection with a ◄ ► ProjectSwitcher instead.
+  hideProject?: boolean
 }
 
-export function TableFilterBar({ prefix, projects, teams, value, onChange }: Props) {
+export function TableFilterBar({
+  prefix,
+  projects,
+  teams,
+  value,
+  onChange,
+  hideProject,
+}: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -125,30 +135,32 @@ export function TableFilterBar({ prefix, projects, teams, value, onChange }: Pro
 
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border/60 bg-surface-low px-3 py-2">
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Project
-        </span>
-        <div className="w-[180px]">
-          <Select
-            value={value.projectId ?? ALL}
-            onValueChange={setProject}
-            disabled={pending}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>All projects</SelectItem>
-              {projects.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {!hideProject ? (
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Project
+          </span>
+          <div className="w-[180px]">
+            <Select
+              value={value.projectId ?? ALL}
+              onValueChange={setProject}
+              disabled={pending}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>All projects</SelectItem>
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div className="flex items-center gap-2">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">

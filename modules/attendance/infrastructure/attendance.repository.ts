@@ -1654,6 +1654,32 @@ export const attendanceRepository = {
     return records.map(attendanceToView)
   },
 
+  /// Per-day project NAME the employee actually clocked into, keyed by
+  /// `yyyy-mm-dd` (same key as `getAttendanceHistory`). Resolves the
+  /// `projectId` FK's name (preferred), falling back to the legacy
+  /// free-string `project`. Used by the attendance-report Project column.
+  async getAttendanceProjectsForRange(
+    employeeId: string,
+    from: Date,
+    to: Date,
+  ): Promise<Map<string, string>> {
+    const prisma = getClient()
+    const rows = await prisma.attendanceRecord.findMany({
+      where: { employeeId, date: { gte: startOfDay(from), lte: endOfDay(to) } },
+      select: {
+        date: true,
+        project: true,
+        projectRef: { select: { name: true } },
+      },
+    })
+    const map = new Map<string, string>()
+    for (const r of rows) {
+      const name = r.projectRef?.name ?? r.project ?? null
+      if (name) map.set(r.date.toISOString().slice(0, 10), name)
+    }
+    return map
+  },
+
   /**
    * Flat clock-in/out rows for many employees over a range — the day-by-
    * day attendance export's source. Deliberately minimal (no sessions or

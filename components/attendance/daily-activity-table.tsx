@@ -57,6 +57,9 @@ type FilterBarProps = {
   projects: { id: string; name: string }[]
   teams: { id: string; name: string; projectName: string }[]
   value: TableFilterValue
+  /// Hide the Project dropdown (the supervisor Team view uses a ◄ ►
+  /// ProjectSwitcher above the table instead).
+  hideProject?: boolean
 }
 
 const TIME_FORMAT: Intl.DateTimeFormatOptions = {
@@ -142,6 +145,7 @@ export function DailyActivityTable({
   timezone,
   filterBar,
   employeeHrefBase = "/admin/attendance/employees",
+  title = "Daily activity",
 }: {
   rows: DailyActivityRow[]
   timezone: string
@@ -150,6 +154,9 @@ export function DailyActivityTable({
   /// the default; the supervisor Team view passes
   /// `/employee/attendance/team` so it stays inside the portal.
   employeeHrefBase?: string
+  /// Card title. Defaults to the admin "Daily activity"; the supervisor
+  /// Team view overrides it to "Your team today".
+  title?: string
 }) {
   const todayLabel = new Intl.DateTimeFormat("en-MY", {
     ...DATE_FORMAT,
@@ -201,7 +208,7 @@ export function DailyActivityTable({
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
-        <CardTitle>Daily activity</CardTitle>
+        <CardTitle>{title}</CardTitle>
         <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           {todayLabel}
         </span>
@@ -213,6 +220,7 @@ export function DailyActivityTable({
             projects={filterBar.projects}
             teams={filterBar.teams}
             value={filterBar.value}
+            hideProject={filterBar.hideProject}
           />
         ) : null}
         {rows.length === 0 ? (

@@ -74,11 +74,13 @@ async function buildEmployeeSection(
   orgHolidayMap: Map<string, string>,
   generatedAt: string,
 ): Promise<AttendanceReportEmployeeSection> {
-  const [attendanceRecords, projectAssignments, leaveApplications] = await Promise.all([
-    attendanceRepository.getAttendanceHistory(employeeId, from, to),
-    attendanceRepository.getEmployeeProjectAssignments(employeeId, orgId),
-    leaveRepository.listApplicationsForEmployee(employeeId),
-  ])
+  const [attendanceRecords, projectAssignments, leaveApplications, projectByDate] =
+    await Promise.all([
+      attendanceRepository.getAttendanceHistory(employeeId, from, to),
+      attendanceRepository.getEmployeeProjectAssignments(employeeId, orgId),
+      leaveRepository.listApplicationsForEmployee(employeeId),
+      attendanceRepository.getAttendanceProjectsForRange(employeeId, from, to),
+    ])
 
   // Index attendance records by date string (yyyy-mm-dd)
   const recordByDate = new Map(attendanceRecords.map((r) => [r.date, r]))
@@ -141,6 +143,7 @@ async function buildEmployeeSection(
         timeOut: record ? fmtTime(record.timeOut, timezone) : null,
         totalHours: record ? fmtDuration(record.durationMin) : "—",
         status: record?.status ?? "MISSING",
+        project: projectByDate.get(dateStr) ?? null,
       })
     }
 

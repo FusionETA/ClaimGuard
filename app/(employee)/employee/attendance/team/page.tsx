@@ -1,15 +1,15 @@
 import Link from "next/link"
-import { ClipboardCheck, Clock, UmbrellaOff, Users } from "lucide-react"
+import { ClipboardCheck } from "lucide-react"
 
 import { Button } from "@/components/attendance/ui/button"
-import { Card, CardContent } from "@/components/attendance/ui/card"
+import { Card } from "@/components/attendance/ui/card"
 import { DailyActivityTable } from "@/components/attendance/daily-activity-table"
+import { ProjectSwitcher } from "@/components/attendance/project-switcher"
 import { type TableFilterValue } from "@/components/attendance/table-filter-bar"
 import { ReportExportButtons } from "@/components/attendance/report-export-buttons"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
-import { cn } from "@/lib/utils"
 
 function startOfMonthIso(): string {
   const d = new Date()
@@ -65,7 +65,7 @@ export default async function TeamOverviewPage({
   const year = new Date().getUTCFullYear()
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -78,42 +78,21 @@ export default async function TeamOverviewPage({
         <ReportExportButtons from={initialFrom} to={initialTo} year={year} />
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: "In Office", value: overview.presentToday, icon: Users, color: "text-success" },
-          { label: "Late", value: overview.lateToday, icon: Clock, color: "text-tertiary" },
-          {
-            label: "On Leave",
-            value: overview.onLeaveToday,
-            icon: UmbrellaOff,
-            color: "text-muted-foreground",
-          },
-        ].map((s) => {
-          const Icon = s.icon
-          return (
-            <Card key={s.label} className="rounded-2xl p-3 text-center">
-              <Icon className={cn("mx-auto h-5 w-5", s.color)} />
-              <p className="font-headline mt-1 text-2xl font-extrabold text-foreground">
-                {s.value}
-              </p>
-              <p className="text-[10px] font-semibold text-muted-foreground">{s.label}</p>
-            </Card>
-          )
-        })}
-      </div>
-
+      {/* Two supervisor-only glances that the table below doesn't cover.
+          The per-status counts (in office / late / on leave / …) live in
+          the table's filter pills, so we don't duplicate them as cards. */}
       <div className="grid grid-cols-2 gap-3">
-        <Card className="rounded-2xl bg-secondary/60 p-4">
+        <Card className="flex flex-col rounded-2xl bg-secondary/60 p-4">
           <ClipboardCheck className="h-5 w-5 text-primary" />
           <p className="font-headline mt-1 text-2xl font-extrabold text-primary">
             {String(overview.pendingApprovals).padStart(2, "0")}
           </p>
           <p className="mb-3 text-[11px] font-semibold text-muted-foreground">
-            Pending Approvals
+            Pending approvals
           </p>
-          <Link href="/employee/attendance/approvals">
+          <Link href="/employee/attendance/approvals" className="mt-auto">
             <Button size="sm" className="w-full text-xs">
-              Review All
+              Review all
             </Button>
           </Link>
         </Card>
@@ -131,22 +110,27 @@ export default async function TeamOverviewPage({
         </Card>
       </div>
 
-      <Card className="rounded-2xl">
-        <CardContent className="p-4">
-          <p className="mb-3 text-sm font-bold text-foreground">Team directory</p>
-          <DailyActivityTable
-            rows={activity.rows}
-            timezone={tz}
-            filterBar={{
-              prefix: "team",
-              projects: activity.projects,
-              teams: activity.teams,
-              value: filter,
-            }}
-            employeeHrefBase="/employee/attendance/team"
-          />
-        </CardContent>
-      </Card>
+      {/* ◄ ► project switcher — simpler than a dropdown on mobile, and
+          the table's own project dropdown is hidden below to match. */}
+      <ProjectSwitcher
+        prefix="team"
+        projects={activity.projects}
+        value={filter.projectId}
+      />
+
+      <DailyActivityTable
+        rows={activity.rows}
+        timezone={tz}
+        title="Your team today"
+        filterBar={{
+          prefix: "team",
+          projects: activity.projects,
+          teams: activity.teams,
+          value: filter,
+          hideProject: true,
+        }}
+        employeeHrefBase="/employee/attendance/team"
+      />
     </div>
   )
 }

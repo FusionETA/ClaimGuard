@@ -8,7 +8,7 @@ export type AttendanceDayRow =
   | { kind: "holiday"; date: string; dayName: string; holidayName: string }
   | { kind: "rest"; date: string; dayName: string }
   | { kind: "leave"; date: string; dayName: string; leaveTypeName: string; leaveStatus: string }
-  | { kind: "work"; date: string; dayName: string; timeIn: string | null; timeOut: string | null; totalHours: string; status: AttendanceStatus }
+  | { kind: "work"; date: string; dayName: string; timeIn: string | null; timeOut: string | null; totalHours: string; status: AttendanceStatus; project: string | null }
 
 export type AttendanceReportDocumentProps = {
   organizationName: string
@@ -48,11 +48,12 @@ const s = StyleSheet.create({
   headerMetaLine: { marginTop: 2 },
   divider: { borderTopWidth: 0.5, borderTopColor: C.divider, marginTop: 10, marginBottom: 10 },
   tableRow: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: C.divider },
-  colDate: { width: "16%", paddingVertical: 5, paddingHorizontal: 4 },
-  colDay: { width: "10%", paddingVertical: 5, paddingHorizontal: 4 },
-  colIn: { width: "18%", paddingVertical: 5, paddingHorizontal: 4 },
-  colOut: { width: "18%", paddingVertical: 5, paddingHorizontal: 4 },
-  colHours: { width: "38%", paddingVertical: 5, paddingHorizontal: 4 },
+  colDate: { width: "14%", paddingVertical: 5, paddingHorizontal: 4 },
+  colDay: { width: "8%", paddingVertical: 5, paddingHorizontal: 4 },
+  colIn: { width: "15%", paddingVertical: 5, paddingHorizontal: 4 },
+  colOut: { width: "15%", paddingVertical: 5, paddingHorizontal: 4 },
+  colHours: { width: "18%", paddingVertical: 5, paddingHorizontal: 4 },
+  colProject: { width: "30%", paddingVertical: 5, paddingHorizontal: 4 },
   tHeaderText: { fontSize: 8, fontFamily: "Helvetica-Bold", color: C.headerText },
   cellText: { fontSize: 8.5 },
   mutedText: { fontSize: 8.5, color: C.muted },
@@ -87,6 +88,7 @@ function TableHeader() {
       <View style={s.colIn}><Text style={s.tHeaderText}>Time In</Text></View>
       <View style={s.colOut}><Text style={s.tHeaderText}>Time Out</Text></View>
       <View style={s.colHours}><Text style={s.tHeaderText}>Total Hours</Text></View>
+      <View style={s.colProject}><Text style={s.tHeaderText}>Project</Text></View>
     </View>
   )
 }
@@ -107,7 +109,7 @@ function DayRow({ row, index }: { row: AttendanceDayRow; index: number }) {
       <View style={[s.tableRow, { backgroundColor: bg }]}>
         <View style={s.colDate}><Text style={s.cellText}>{fmtDate(row.date)}</Text></View>
         <View style={s.colDay}><Text style={[s.cellText, { color: C.muted }]}>{row.dayName}</Text></View>
-        <View style={{ width: "74%", paddingVertical: 5, paddingHorizontal: 4 }}>
+        <View style={{ width: "78%", paddingVertical: 5, paddingHorizontal: 4 }}>
           <Text style={[s.cellText, { color: C.muted, fontFamily: "Helvetica-Oblique" }]}>{row.holidayName}</Text>
         </View>
       </View>
@@ -119,7 +121,7 @@ function DayRow({ row, index }: { row: AttendanceDayRow; index: number }) {
       <View style={[s.tableRow, { backgroundColor: bg }]}>
         <View style={s.colDate}><Text style={s.cellText}>{fmtDate(row.date)}</Text></View>
         <View style={s.colDay}><Text style={[s.cellText, { color: C.muted }]}>{row.dayName}</Text></View>
-        <View style={{ width: "74%", paddingVertical: 5, paddingHorizontal: 4 }}>
+        <View style={{ width: "78%", paddingVertical: 5, paddingHorizontal: 4 }}>
           <Text style={[s.cellText, { color: C.muted, fontFamily: "Helvetica-Oblique" }]}>Weekly Holiday</Text>
         </View>
       </View>
@@ -132,7 +134,7 @@ function DayRow({ row, index }: { row: AttendanceDayRow; index: number }) {
       <View style={[s.tableRow, { backgroundColor: bg }]}>
         <View style={s.colDate}><Text style={s.cellText}>{fmtDate(row.date)}</Text></View>
         <View style={s.colDay}><Text style={[s.cellText, { color: C.muted }]}>{row.dayName}</Text></View>
-        <View style={{ width: "74%", paddingVertical: 5, paddingHorizontal: 4 }}>
+        <View style={{ width: "78%", paddingVertical: 5, paddingHorizontal: 4 }}>
           <Text style={[s.cellText, { color: "#854d0e" }]}>{label}</Text>
         </View>
       </View>
@@ -152,6 +154,9 @@ function DayRow({ row, index }: { row: AttendanceDayRow; index: number }) {
       </View>
       <View style={s.colHours}>
         <Text style={row.totalHours === "—" ? s.mutedText : s.cellText}>{row.totalHours}</Text>
+      </View>
+      <View style={s.colProject}>
+        <Text style={row.project ? s.cellText : s.mutedText}>{row.project ?? "—"}</Text>
       </View>
     </View>
   )
