@@ -134,65 +134,64 @@ export function TableFilterBar({
     : teams
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border/60 bg-surface-low px-3 py-2">
+    // Stacks to full-width rows on mobile (labels above the control so the
+    // fields line up on a single left edge) and snaps to a fixed-width row
+    // on sm+. Heights are matched across the selects and the search box.
+    <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-surface-low p-3 sm:flex-row sm:flex-wrap sm:items-end">
       {!hideProject ? (
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-1.5 sm:w-[180px]">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Project
           </span>
-          <div className="w-[180px]">
-            <Select
-              value={value.projectId ?? ALL}
-              onValueChange={setProject}
-              disabled={pending}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>All projects</SelectItem>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Team
-        </span>
-        <div className="w-[180px]">
           <Select
-            value={value.teamId ?? ALL}
-            onValueChange={setTeam}
-            disabled={pending || filteredTeams.length === 0}
+            value={value.projectId ?? ALL}
+            onValueChange={setProject}
+            disabled={pending}
           >
             <SelectTrigger>
-              <SelectValue placeholder="All teams" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>All teams</SelectItem>
-              {filteredTeams.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.projectName} · {t.name}
+              <SelectItem value={ALL}>All projects</SelectItem>
+              {projects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+      ) : null}
+
+      <div className="flex w-full flex-col gap-1.5 sm:w-[180px]">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Team
+        </span>
+        <Select
+          value={value.teamId ?? ALL}
+          onValueChange={setTeam}
+          disabled={pending || filteredTeams.length === 0}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="All teams" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>All teams</SelectItem>
+            {filteredTeams.map((t) => (
+              <SelectItem key={t.id} value={t.id}>
+                {t.projectName} · {t.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex w-full flex-col gap-1.5 sm:w-[220px]">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           Employee
         </span>
         <Input
-          className="h-9 w-[200px]"
+          className="sm:h-11"
           placeholder="Search by name or email"
           value={searchDraft}
           onChange={(e) => setSearchDraft(e.target.value)}
