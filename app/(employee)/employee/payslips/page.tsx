@@ -1,7 +1,7 @@
 import Link from "next/link"
 import type { Route } from "next"
 import { redirect } from "next/navigation"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Lock } from "lucide-react"
 
 import {
   Card,
@@ -47,15 +47,18 @@ export default async function EmployeePayslipsPage() {
                   <span className="truncate font-medium text-foreground">
                     {periodLabel(p.periodYear, p.periodMonth)}
                   </span>
+                  {/* Amounts are deliberately NOT shown here — the figures
+                      only appear after the password unlock on the detail
+                      page. Keep this line to the issue date only. */}
                   <span className="truncate text-xs text-muted-foreground">
-                    Gross {formatMyr(p.grossPay)} · Net{" "}
-                    {formatMyr(p.netPay)}
                     {p.submittedAt
-                      ? ` · ${new Date(p.submittedAt).toLocaleDateString()}`
-                      : ""}
+                      ? `Issued ${new Date(p.submittedAt).toLocaleDateString()}`
+                      : "Monthly payslip"}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Lock className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">View</span>
                   <ChevronRight className="h-4 w-4" />
                 </div>
               </Link>
@@ -65,12 +68,4 @@ export default async function EmployeePayslipsPage() {
       )}
     </div>
   )
-}
-
-function formatMyr(value: number) {
-  return new Intl.NumberFormat("en-MY", {
-    style: "currency",
-    currency: "MYR",
-    maximumFractionDigits: 2,
-  }).format(value)
 }

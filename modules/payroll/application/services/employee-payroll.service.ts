@@ -1,6 +1,8 @@
 import "server-only"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { verifyPassword } from "@/lib/auth/password"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { getOrSetCache } from "@/lib/cache"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { key } from "@/lib/redis"
@@ -113,6 +115,76 @@ async function loadPayslipDetail(
     payslip,
     run: { id: run.id, periodYear: run.periodYear, periodMonth: run.periodMonth, status: run.status },
   }
+}
+
+/**
+ * Lightweight header for the payslip lock screen — period + identity
+ * only, NO salary figures. Lets the `[id]` page authorise the request
+ * (redirect when the payslip isn't this employee's) and show context on
+ * the password gate, without ever putting the amounts in the initial
+ * page payload. The sensitive body is fetched by `revealEmployeePayslip`
+ * once the password checks out.
+ */
+export async function getEmployeePayslipHeader(input: {
+  payslipId: string
+}): Promise<{
+  periodYear: number
+  periodMonth: number
+  snapshotName: string
+  snapshotEmployeeId: string
+  snapshotPosition: string | null
+} | null> {
+  const data = await getEmployeePayslipDetailPageData(input)
+  if (!data) return null
+  const { payslip, run } = data
+  return {
+    periodYear: run.periodYear,
+    periodMonth: run.periodMonth,
+    snapshotName: payslip.snapshotName,
+    snapshotEmployeeId: payslip.snapshotEmployeeId,
+    snapshotPosition: payslip.snapshotPosition,
+  }
+}
+
+/**
+ * Password-gated reveal of the full payslip. The employee re-enters
+ * their own portal password; we verify it against their `passwordHash`
+ * (the same check the change-password flow uses) and only then return
+ * the salary figures. Called by the `[id]` page's reveal action every
+ * time a payslip is opened — nothing is persisted, so each open
+ * re-prompts. Returns a coarse `reason` so the UI never distinguishes
+ * "wrong password" from "not your payslip" in a way that leaks.
+ */
+export async function revealEmployeePayslip(input: {
+  payslipId: string
+  password: string
+}): Promise<
+  | {
+      ok: true
+      payslip: PayslipData
+      run: Pick<PayrollRunData, "id" | "periodYear" | "periodMonth" | "status">
+    }
+  | { ok: false; reason: "bad-password" | "not-found" }
+> {
+  const session = await getCurrentSession()
+  if (
+    !session ||
+    (session.role !== "EMPLOYEE" && session.role !== "SUPERVISOR")
+  ) {
+    return { ok: false, reason: "not-found" }
+  }
+  if (!input.password) return { ok: false, reason: "bad-password" }
+
+  const user = await organizationRepository.findUserByIdWithHash(session.userId)
+  if (!user?.passwordHash || !verifyPassword(input.password, user.passwordHash)) {
+    return { ok: false, reason: "bad-password" }
+  }
+
+  const data = await getEmployeePayslipDetailPageData({
+    payslipId: input.payslipId,
+  })
+  if (!data) return { ok: false, reason: "not-found" }
+  return { ok: true, payslip: data.payslip, run: data.run }
 }
 
 /**
