@@ -4,6 +4,7 @@ import { bustAttendanceCaches } from "@/lib/cache-invalidation"
 import { publishUserEvents } from "@/lib/realtime"
 import { writeAuditByUserId } from "@/modules/audit/application/services/audit-log.service"
 import { notify } from "@/modules/notifications/application/services/notification.service"
+import { getOnLeaveUserIdsTodayForOrg } from "@/modules/leave/application/services/leave-overview.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import {
   shiftRepository,
@@ -34,6 +35,53 @@ function approvalKindLabel(kind: string): string {
 export const supervisorAttendanceService = {
   async getTeamOverview(supervisorId: string): Promise<SupervisorTeamOverview> {
     return attendanceRepository.getTeamOverview(supervisorId)
+  },
+
+  /// Rich "today" roll-call for the supervisor's team — same data + pills
+  /// as the admin Daily activity table, but scoped to the supervisor's
+  /// direct reports and filterable by the projects/teams they're in.
+  async getTeamDailyActivity(
+    supervisorId: string,
+    orgId: string | null,
+    filters: {
+      projectId?: string | null
+      teamId?: string | null
+      q?: string | null
+    },
+  ): Promise<{
+    rows: Awaited<ReturnType<typeof attendanceRepository.getDailyActivity>>
+    projects: { id: string; name: string }[]
+    teams: { id: string; name: string; projectName: string }[]
+  }> {
+    if (!orgId) return { rows: [], projects: [], teams: [] }
+    const memberIds = await attendanceRepository.getTeamMemberIds(supervisorId)
+    if (memberIds.length === 0) return { rows: [], projects: [], teams: [] }
+    const [rawRows, scope] = await Promise.all([
+      attendanceRepository.getDailyActivity(
+        orgId,
+        filters.projectId ?? null,
+        filters.teamId ?? null,
+        filters.q ?? null,
+        { restrictToEmployeeIds: memberIds },
+      ),
+      attendanceRepository.getScopeOptionsForEmployees(orgId, memberIds),
+    ])
+
+    // Mark approved-leave-today members as ON_LEAVE — mirrors the admin
+    // roll-call. The attendance record never carries ON_LEAVE itself, so
+    // without this the "On leave" pill always reads 0 and on-leave staff
+    // land under "No clock-in".
+    const onLeave = new Set(await getOnLeaveUserIdsTodayForOrg(orgId))
+    const rows =
+      onLeave.size === 0
+        ? rawRows
+        : rawRows.map((r) =>
+            onLeave.has(r.id) &&
+            (r.derivedStatus == null || r.derivedStatus === "NOT_CLOCKED_IN")
+              ? { ...r, derivedStatus: "ON_LEAVE" as const }
+              : r,
+          )
+    return { rows, projects: scope.projects, teams: scope.teams }
   },
 
   async getPendingApprovalsForSupervisor(

@@ -141,10 +141,15 @@ export function DailyActivityTable({
   rows,
   timezone,
   filterBar,
+  employeeHrefBase = "/admin/attendance/employees",
 }: {
   rows: DailyActivityRow[]
   timezone: string
   filterBar?: FilterBarProps
+  /// Base path each employee row links to (append `/${id}`). Admin uses
+  /// the default; the supervisor Team view passes
+  /// `/employee/attendance/team` so it stays inside the portal.
+  employeeHrefBase?: string
 }) {
   const todayLabel = new Intl.DateTimeFormat("en-MY", {
     ...DATE_FORMAT,
@@ -271,7 +276,7 @@ export function DailyActivityTable({
                   <div className="min-w-0">
                     <Link
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      href={`/admin/attendance/employees/${row.id}` as any}
+                      href={`${employeeHrefBase}/${row.id}` as any}
                       className="block truncate text-sm font-bold hover:underline"
                     >
                       {row.name}

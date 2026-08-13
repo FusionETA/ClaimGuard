@@ -2438,6 +2438,62 @@ export const attendanceRepository = {
     return Array.from(new Set(chain.map((c) => c.employeeId)))
   },
 
+  /// Distinct projects + teams the given employees belong to. Populates
+  /// the supervisor Team view's project/team filter dropdowns, so a
+  /// supervisor toggles only across the projects their team is actually in.
+  async getScopeOptionsForEmployees(
+    orgId: string,
+    employeeUserIds: string[],
+  ): Promise<{
+    projects: { id: string; name: string }[]
+    teams: { id: string; name: string; projectName: string }[]
+  }> {
+    if (employeeUserIds.length === 0) return { projects: [], teams: [] }
+    const prisma = getClient()
+    const profiles = await prisma.employeeProfile.findMany({
+      where: { userId: { in: employeeUserIds }, organizationId: orgId },
+      select: {
+        projectAssignments: {
+          select: { project: { select: { id: true, name: true } } },
+        },
+        teamMemberships: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                project: { select: { name: true } },
+              },
+            },
+          },
+        },
+      },
+    })
+    const projMap = new Map<string, string>()
+    const teamMap = new Map<string, { name: string; projectName: string }>()
+    for (const p of profiles) {
+      for (const pa of p.projectAssignments) {
+        if (pa.project) projMap.set(pa.project.id, pa.project.name)
+      }
+      for (const tm of p.teamMemberships) {
+        if (tm.team) {
+          teamMap.set(tm.team.id, {
+            name: tm.team.name,
+            projectName: tm.team.project?.name ?? "",
+          })
+        }
+      }
+    }
+    return {
+      projects: [...projMap]
+        .map(([id, name]) => ({ id, name }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+      teams: [...teamMap]
+        .map(([id, v]) => ({ id, name: v.name, projectName: v.projectName }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    }
+  },
+
   /**
    * Throws if `employeeId` is not in the supervisor's approval chain. Admin
    * paths skip this guard at the service layer.
@@ -3147,7 +3203,12 @@ export const attendanceRepository = {
     projectId?: string | null,
     teamId?: string | null,
     q?: string | null,
-    options?: { policyIdScope?: string[] | null },
+    options?: {
+      policyIdScope?: string[] | null
+      /// Restrict the roll-call to these user ids (e.g. a supervisor's
+      /// team). Intersected with any project/team/search scope.
+      restrictToEmployeeIds?: string[] | null
+    },
   ): Promise<
     Array<{
       id: string
@@ -3179,15 +3240,24 @@ export const attendanceRepository = {
     if (!orgId) return []
     const policyIdScope = options?.policyIdScope ?? null
     if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
+    const restrict = options?.restrictToEmployeeIds ?? null
+    if (restrict && restrict.length === 0) return []
     const prisma = getClient()
     const tz = await this.getOrgTimezone(orgId)
     const today = startOfLocalDay(new Date(), tz)
 
-    const employeeIds = await this.resolveScopedEmployeeIds(orgId, {
+    let employeeIds = await this.resolveScopedEmployeeIds(orgId, {
       projectId,
       teamId,
       q,
     })
+    // Intersect the project/team/search scope with the supervisor-team
+    // restriction (either can be null = no restriction on that axis).
+    if (restrict) {
+      employeeIds = employeeIds
+        ? employeeIds.filter((id) => restrict.includes(id))
+        : restrict
+    }
     if (employeeIds && employeeIds.length === 0) return []
 
     const users = await prisma.user.findMany({

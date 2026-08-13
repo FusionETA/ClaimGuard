@@ -3,22 +3,13 @@ import { ClipboardCheck, Clock, UmbrellaOff, Users } from "lucide-react"
 
 import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
-import { TeamDirectory } from "@/components/attendance/team-directory"
+import { DailyActivityTable } from "@/components/attendance/daily-activity-table"
+import { type TableFilterValue } from "@/components/attendance/table-filter-bar"
 import { ReportExportButtons } from "@/components/attendance/report-export-buttons"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 import { cn } from "@/lib/utils"
-
-function fmtTime(iso: string | null, tz: string) {
-  return iso
-    ? new Date(iso).toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: tz,
-      })
-    : "—"
-}
 
 function startOfMonthIso(): string {
   const d = new Date()
@@ -31,11 +22,36 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-export default async function TeamOverviewPage() {
+type SearchParams = Record<string, string | string[] | undefined>
+
+function readParam(params: SearchParams, key: string): string | null {
+  const v = params[key]
+  return typeof v === "string" && v.trim() ? v : null
+}
+
+// The DailyActivityTable filter bar reads/writes `teamProject`, `teamTeam`,
+// `teamQ` URL params (prefix "team"), same convention as the admin table.
+function readFilter(params: SearchParams): TableFilterValue {
+  return {
+    projectId: readParam(params, "teamProject"),
+    teamId: readParam(params, "teamTeam"),
+    q: readParam(params, "teamQ"),
+  }
+}
+
+export default async function TeamOverviewPage({
+  searchParams,
+}: {
+  searchParams?: Promise<SearchParams>
+}) {
   const session = await requirePortalSession("SUPERVISOR")
   const orgId = resolveActiveOrgId(session) ?? null
-  const [overview, tz] = await Promise.all([
+  const params = (await searchParams) ?? {}
+  const filter = readFilter(params)
+
+  const [overview, activity, tz] = await Promise.all([
     supervisorAttendanceService.getTeamOverview(session.userId),
+    supervisorAttendanceService.getTeamDailyActivity(session.userId, orgId, filter),
     attendanceRepository.getOrgTimezone(orgId),
   ])
 
@@ -47,32 +63,6 @@ export default async function TeamOverviewPage() {
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
   const year = new Date().getUTCFullYear()
-
-  // Shape the directory for the client component: each member's status group
-  // (clocked-in / on-leave / not-clocked-in) + a pre-formatted subtitle. On-leave
-  // members carry a today record with status ON_LEAVE; not-clocked-in have none.
-  const directory = overview.team.map((m) => {
-    const group: "clocked_in" | "on_leave" | "not_clocked_in" = !m.today
-      ? "not_clocked_in"
-      : m.today.status === "ON_LEAVE"
-        ? "on_leave"
-        : "clocked_in"
-    const subtitle =
-      group === "on_leave"
-        ? "On leave today"
-        : group === "clocked_in"
-          ? `${fmtTime(m.today!.timeIn, tz)}${
-              m.today!.location ? ` • ${m.today!.location}` : ""
-            }`
-          : "No clock-in yet today"
-    return {
-      employeeId: m.employeeId,
-      name: m.name,
-      initials: m.initials,
-      group,
-      subtitle,
-    }
-  })
 
   return (
     <div className="space-y-5">
@@ -144,7 +134,17 @@ export default async function TeamOverviewPage() {
       <Card className="rounded-2xl">
         <CardContent className="p-4">
           <p className="mb-3 text-sm font-bold text-foreground">Team directory</p>
-          <TeamDirectory items={directory} />
+          <DailyActivityTable
+            rows={activity.rows}
+            timezone={tz}
+            filterBar={{
+              prefix: "team",
+              projects: activity.projects,
+              teams: activity.teams,
+              value: filter,
+            }}
+            employeeHrefBase="/employee/attendance/team"
+          />
         </CardContent>
       </Card>
     </div>

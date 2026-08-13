@@ -21,8 +21,8 @@ const supervisorItems: ReadonlyArray<AttendanceNavItem> = [
   { href: "/employee/attendance", label: "Dashboard" },
   { href: "/employee/attendance/approvals", label: "Approvals" },
   { href: "/employee/attendance/overtime", label: "Overtime" },
-  { href: "/employee/attendance/history", label: "History" },
   { href: "/employee/attendance/team", label: "Team" },
+  { href: "/employee/attendance/history", label: "History" },
 ]
 
 export default async function EmployeeAttendanceLayout({
