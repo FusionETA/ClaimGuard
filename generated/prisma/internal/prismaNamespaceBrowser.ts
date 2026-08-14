@@ -718,6 +718,7 @@ export const ApprovalRequestScalarFieldEnum = {
   status: 'status',
   date: 'date',
   eventAt: 'eventAt',
+  originalEventAt: 'originalEventAt',
   title: 'title',
   detail: 'detail',
   location: 'location',

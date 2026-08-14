@@ -8,7 +8,7 @@ import type {
 } from "@/modules/attendance/domain/models"
 import { cn } from "@/lib/utils"
 
-import { TodayRemarkCard } from "./today-remark-card"
+import { TodayAdjustmentCard } from "./today-adjustment-card"
 import { ElapsedTimer } from "./elapsed-timer"
 
 // The clock-in card lives on the dashboard (`/employee`) so the
@@ -70,9 +70,10 @@ export function EmployeeAttendanceDashboardView({
       </Card>
 
       {dashboard.today ? (
-        <TodayRemarkCard
+        <TodayAdjustmentCard
           recordId={dashboard.today.id}
-          initialRemark={dashboard.today.remark}
+          currentTimeInUtc={dashboard.today.timeIn}
+          currentTimeOutUtc={dashboard.today.timeOut}
           offSiteNotes={dashboard.today.notes}
         />
       ) : null}

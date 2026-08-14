@@ -767,6 +767,88 @@ export const employeeAttendanceService = {
     })
   },
 
+  /**
+   * Employee-submitted time-correction request for their own record. They
+   * pick a corrected clock-in and/or clock-out time plus a reason; each
+   * becomes a PENDING CLOCK_IN / CLOCK_OUT ApprovalRequest (via the repo)
+   * that the supervisor reviews. The real record is never overwritten
+   * here — approval applies the change with a full AttendanceEditLog trail.
+   */
+  async requestTimeAdjustment(
+    employeeId: string,
+    input: {
+      recordId: string
+      requestedTimeInUtc: string | null
+      requestedTimeOutUtc: string | null
+      reason: string
+    },
+  ): Promise<void> {
+    const reason = input.reason.trim()
+    if (!reason) throw new Error("Please add a reason for the adjustment.")
+
+    const inRaw = input.requestedTimeInUtc?.trim() || null
+    const outRaw = input.requestedTimeOutUtc?.trim() || null
+    if (!inRaw && !outRaw) {
+      throw new Error("Enter at least one corrected time.")
+    }
+
+    const inAt = inRaw ? new Date(inRaw) : null
+    const outAt = outRaw ? new Date(outRaw) : null
+    if (inAt && Number.isNaN(inAt.getTime())) {
+      throw new Error("The corrected clock-in time is invalid.")
+    }
+    if (outAt && Number.isNaN(outAt.getTime())) {
+      throw new Error("The corrected clock-out time is invalid.")
+    }
+    if (inAt && outAt && outAt.getTime() <= inAt.getTime()) {
+      throw new Error("Clock-out must be after clock-in.")
+    }
+
+    const outcomes: Array<
+      | { ok: true }
+      | { ok: false; error: "not-found" | "no-original" | "no-change" }
+    > = []
+    if (inAt) {
+      outcomes.push(
+        await attendanceRepository.createTimeAdjustmentRequest({
+          employeeId,
+          recordId: input.recordId,
+          kind: "CLOCK_IN",
+          requestedAt: inAt,
+          reason,
+        }),
+      )
+    }
+    if (outAt) {
+      outcomes.push(
+        await attendanceRepository.createTimeAdjustmentRequest({
+          employeeId,
+          recordId: input.recordId,
+          kind: "CLOCK_OUT",
+          requestedAt: outAt,
+          reason,
+        }),
+      )
+    }
+
+    // At least one request must have landed; otherwise surface the reason.
+    if (!outcomes.some((o) => o.ok)) {
+      const firstError = outcomes.find((o) => !o.ok)
+      const code = firstError && !firstError.ok ? firstError.error : undefined
+      if (code === "no-change") {
+        throw new Error(
+          "The requested time matches the current record — nothing to change.",
+        )
+      }
+      if (code === "no-original") {
+        throw new Error(
+          "There's no recorded time to correct for that clock event yet.",
+        )
+      }
+      throw new Error("Could not submit the adjustment request.")
+    }
+  },
+
   async submitOtApplication(args: {
     employeeId: string
     date: Date

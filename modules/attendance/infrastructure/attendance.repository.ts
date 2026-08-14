@@ -353,6 +353,9 @@ type PrismaApproval = {
   reviewerId: string | null
   date: Date
   eventAt: Date | null
+  /// Optional so loaders that don't surface employee edit requests can skip
+  /// it in their select; only the pending-approvals list needs it.
+  originalEventAt?: Date | null
   title: string
   detail: string
   location: string | null
@@ -384,6 +387,7 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
     reviewerId: r.reviewerId,
     date: r.date.toISOString().slice(0, 10),
     eventAt: r.eventAt?.toISOString() ?? null,
+    originalEventAt: r.originalEventAt?.toISOString() ?? null,
     title: r.title,
     detail: r.detail,
     location: r.location,
@@ -3015,6 +3019,109 @@ export const attendanceRepository = {
       v.currentStepApproverIds.includes(supervisorId),
     )
     return backfillLateMinutes(filtered, prisma)
+  },
+
+  /**
+   * Employee-submitted time-correction request for one of their own
+   * clock events. Creates (or refreshes) a PENDING CLOCK_IN / CLOCK_OUT
+   * ApprovalRequest where `eventAt` is the REQUESTED corrected time and
+   * `originalEventAt` snapshots the record's current time — so the
+   * supervisor sees "original → requested". The real AttendanceRecord is
+   * left untouched until approval, at which point the existing final-step
+   * apply-branch writes it through `overrideAttendanceTimes` (logging
+   * prev→next in AttendanceEditLog). Returns the first chain step's
+   * approver ids for realtime fan-out, or an error discriminant.
+   */
+  async createTimeAdjustmentRequest(args: {
+    employeeId: string
+    recordId: string
+    kind: "CLOCK_IN" | "CLOCK_OUT"
+    requestedAt: Date
+    reason: string
+  }): Promise<
+    | { ok: true; approvalId: string; approverIds: string[] }
+    | { ok: false; error: "not-found" | "no-original" | "no-change" }
+  > {
+    const prisma = getClient()
+    const record = await prisma.attendanceRecord.findFirst({
+      where: { id: args.recordId, employeeId: args.employeeId },
+      select: {
+        id: true,
+        date: true,
+        timeIn: true,
+        timeOut: true,
+        projectId: true,
+        project: true,
+        employee: { select: { organizationId: true } },
+      },
+    })
+    if (!record) return { ok: false, error: "not-found" }
+
+    const originalAt = args.kind === "CLOCK_IN" ? record.timeIn : record.timeOut
+    if (!originalAt) return { ok: false, error: "no-original" }
+    if (originalAt.getTime() === args.requestedAt.getTime()) {
+      return { ok: false, error: "no-change" }
+    }
+
+    const orgId = record.employee?.organizationId ?? null
+    const tz = await this.getOrgTimezone(orgId)
+    const label = args.kind === "CLOCK_IN" ? "Clock-in" : "Clock-out"
+    const title = `${label} correction → ${localHm(args.requestedAt, tz)}`
+    const detail = buildApprovalDetail(
+      `Requested ${label.toLowerCase()} change from ${localHm(originalAt, tz)} to ${localHm(args.requestedAt, tz)}`,
+      args.reason,
+    )
+
+    // Reuse an existing PENDING request of the same kind for this day so a
+    // re-submission edits it in place rather than stacking duplicates.
+    const existing = await prisma.approvalRequest.findFirst({
+      where: {
+        employeeId: args.employeeId,
+        date: record.date,
+        kind: args.kind,
+        status: "PENDING",
+      },
+      select: { id: true, originalEventAt: true },
+    })
+
+    let approvalId: string
+    if (existing) {
+      await prisma.approvalRequest.update({
+        where: { id: existing.id },
+        data: {
+          eventAt: args.requestedAt,
+          // Keep the earliest captured original so repeated edits still
+          // point at the true starting time, not the last requested one.
+          originalEventAt: existing.originalEventAt ?? originalAt,
+          title,
+          detail,
+        },
+      })
+      approvalId = existing.id
+    } else {
+      const created = await prisma.approvalRequest.create({
+        data: {
+          employeeId: args.employeeId,
+          kind: args.kind,
+          status: "PENDING",
+          date: record.date,
+          eventAt: args.requestedAt,
+          originalEventAt: originalAt,
+          title,
+          detail,
+          project: record.project ?? null,
+        },
+      })
+      approvalId = created.id
+    }
+
+    const approverIds = await resolveCurrentApproverIds(
+      approvalId,
+      args.employeeId,
+      args.kind,
+      record.projectId ?? null,
+    )
+    return { ok: true, approvalId, approverIds }
   },
 
   async getReviewedOtForSupervisor(

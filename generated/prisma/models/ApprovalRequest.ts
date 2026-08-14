@@ -42,6 +42,7 @@ export type ApprovalRequestMinAggregateOutputType = {
   status: $Enums.ApprovalStatus | null
   date: Date | null
   eventAt: Date | null
+  originalEventAt: Date | null
   title: string | null
   detail: string | null
   location: string | null
@@ -67,6 +68,7 @@ export type ApprovalRequestMaxAggregateOutputType = {
   status: $Enums.ApprovalStatus | null
   date: Date | null
   eventAt: Date | null
+  originalEventAt: Date | null
   title: string | null
   detail: string | null
   location: string | null
@@ -92,6 +94,7 @@ export type ApprovalRequestCountAggregateOutputType = {
   status: number
   date: number
   eventAt: number
+  originalEventAt: number
   title: number
   detail: number
   location: number
@@ -128,6 +131,7 @@ export type ApprovalRequestMinAggregateInputType = {
   status?: true
   date?: true
   eventAt?: true
+  originalEventAt?: true
   title?: true
   detail?: true
   location?: true
@@ -153,6 +157,7 @@ export type ApprovalRequestMaxAggregateInputType = {
   status?: true
   date?: true
   eventAt?: true
+  originalEventAt?: true
   title?: true
   detail?: true
   location?: true
@@ -178,6 +183,7 @@ export type ApprovalRequestCountAggregateInputType = {
   status?: true
   date?: true
   eventAt?: true
+  originalEventAt?: true
   title?: true
   detail?: true
   location?: true
@@ -291,6 +297,7 @@ export type ApprovalRequestGroupByOutputType = {
   status: $Enums.ApprovalStatus
   date: Date
   eventAt: Date | null
+  originalEventAt: Date | null
   title: string
   detail: string
   location: string | null
@@ -340,6 +347,7 @@ export type ApprovalRequestWhereInput = {
   status?: Prisma.EnumApprovalStatusFilter<"ApprovalRequest"> | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   eventAt?: Prisma.DateTimeNullableFilter<"ApprovalRequest"> | Date | string | null
+  originalEventAt?: Prisma.DateTimeNullableFilter<"ApprovalRequest"> | Date | string | null
   title?: Prisma.StringFilter<"ApprovalRequest"> | string
   detail?: Prisma.StringFilter<"ApprovalRequest"> | string
   location?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
@@ -370,6 +378,7 @@ export type ApprovalRequestOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   date?: Prisma.SortOrder
   eventAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  originalEventAt?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrder
   detail?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -404,6 +413,7 @@ export type ApprovalRequestWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumApprovalStatusFilter<"ApprovalRequest"> | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   eventAt?: Prisma.DateTimeNullableFilter<"ApprovalRequest"> | Date | string | null
+  originalEventAt?: Prisma.DateTimeNullableFilter<"ApprovalRequest"> | Date | string | null
   title?: Prisma.StringFilter<"ApprovalRequest"> | string
   detail?: Prisma.StringFilter<"ApprovalRequest"> | string
   location?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
@@ -434,6 +444,7 @@ export type ApprovalRequestOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   date?: Prisma.SortOrder
   eventAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  originalEventAt?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrder
   detail?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -468,6 +479,7 @@ export type ApprovalRequestScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumApprovalStatusWithAggregatesFilter<"ApprovalRequest"> | $Enums.ApprovalStatus
   date?: Prisma.DateTimeWithAggregatesFilter<"ApprovalRequest"> | Date | string
   eventAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ApprovalRequest"> | Date | string | null
+  originalEventAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ApprovalRequest"> | Date | string | null
   title?: Prisma.StringWithAggregatesFilter<"ApprovalRequest"> | string
   detail?: Prisma.StringWithAggregatesFilter<"ApprovalRequest"> | string
   location?: Prisma.StringNullableWithAggregatesFilter<"ApprovalRequest"> | string | null
@@ -492,6 +504,7 @@ export type ApprovalRequestCreateInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -521,6 +534,7 @@ export type ApprovalRequestUncheckedCreateInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -546,6 +560,7 @@ export type ApprovalRequestUpdateInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -575,6 +590,7 @@ export type ApprovalRequestUncheckedUpdateInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -602,6 +618,7 @@ export type ApprovalRequestCreateManyInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -626,6 +643,7 @@ export type ApprovalRequestUpdateManyMutationInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -651,6 +669,7 @@ export type ApprovalRequestUncheckedUpdateManyInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -693,6 +712,7 @@ export type ApprovalRequestCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   date?: Prisma.SortOrder
   eventAt?: Prisma.SortOrder
+  originalEventAt?: Prisma.SortOrder
   title?: Prisma.SortOrder
   detail?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -723,6 +743,7 @@ export type ApprovalRequestMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   date?: Prisma.SortOrder
   eventAt?: Prisma.SortOrder
+  originalEventAt?: Prisma.SortOrder
   title?: Prisma.SortOrder
   detail?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -748,6 +769,7 @@ export type ApprovalRequestMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   date?: Prisma.SortOrder
   eventAt?: Prisma.SortOrder
+  originalEventAt?: Prisma.SortOrder
   title?: Prisma.SortOrder
   detail?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -932,6 +954,7 @@ export type ApprovalRequestCreateWithoutEmployeeInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -959,6 +982,7 @@ export type ApprovalRequestUncheckedCreateWithoutEmployeeInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -994,6 +1018,7 @@ export type ApprovalRequestCreateWithoutReviewerInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -1021,6 +1046,7 @@ export type ApprovalRequestUncheckedCreateWithoutReviewerInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -1077,6 +1103,7 @@ export type ApprovalRequestScalarWhereInput = {
   status?: Prisma.EnumApprovalStatusFilter<"ApprovalRequest"> | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   eventAt?: Prisma.DateTimeNullableFilter<"ApprovalRequest"> | Date | string | null
+  originalEventAt?: Prisma.DateTimeNullableFilter<"ApprovalRequest"> | Date | string | null
   title?: Prisma.StringFilter<"ApprovalRequest"> | string
   detail?: Prisma.StringFilter<"ApprovalRequest"> | string
   location?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
@@ -1117,6 +1144,7 @@ export type ApprovalRequestCreateWithoutOtProjectInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -1145,6 +1173,7 @@ export type ApprovalRequestUncheckedCreateWithoutOtProjectInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -1195,6 +1224,7 @@ export type ApprovalRequestCreateWithoutOtAttachmentsInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -1223,6 +1253,7 @@ export type ApprovalRequestUncheckedCreateWithoutOtAttachmentsInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -1263,6 +1294,7 @@ export type ApprovalRequestUpdateWithoutOtAttachmentsInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1291,6 +1323,7 @@ export type ApprovalRequestUncheckedUpdateWithoutOtAttachmentsInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1316,6 +1349,7 @@ export type ApprovalRequestCreateManyEmployeeInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -1341,6 +1375,7 @@ export type ApprovalRequestCreateManyReviewerInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -1365,6 +1400,7 @@ export type ApprovalRequestUpdateWithoutEmployeeInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1392,6 +1428,7 @@ export type ApprovalRequestUncheckedUpdateWithoutEmployeeInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1418,6 +1455,7 @@ export type ApprovalRequestUncheckedUpdateManyWithoutEmployeeInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1442,6 +1480,7 @@ export type ApprovalRequestUpdateWithoutReviewerInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1469,6 +1508,7 @@ export type ApprovalRequestUncheckedUpdateWithoutReviewerInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1495,6 +1535,7 @@ export type ApprovalRequestUncheckedUpdateManyWithoutReviewerInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1521,6 +1562,7 @@ export type ApprovalRequestCreateManyOtProjectInput = {
   status?: $Enums.ApprovalStatus
   date: Date | string
   eventAt?: Date | string | null
+  originalEventAt?: Date | string | null
   title: string
   detail: string
   location?: string | null
@@ -1544,6 +1586,7 @@ export type ApprovalRequestUpdateWithoutOtProjectInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1572,6 +1615,7 @@ export type ApprovalRequestUncheckedUpdateWithoutOtProjectInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1598,6 +1642,7 @@ export type ApprovalRequestUncheckedUpdateManyWithoutOtProjectInput = {
   status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  originalEventAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1654,6 +1699,7 @@ export type ApprovalRequestSelect<ExtArgs extends runtime.Types.Extensions.Inter
   status?: boolean
   date?: boolean
   eventAt?: boolean
+  originalEventAt?: boolean
   title?: boolean
   detail?: boolean
   location?: boolean
@@ -1687,6 +1733,7 @@ export type ApprovalRequestSelectScalar = {
   status?: boolean
   date?: boolean
   eventAt?: boolean
+  originalEventAt?: boolean
   title?: boolean
   detail?: boolean
   location?: boolean
@@ -1705,7 +1752,7 @@ export type ApprovalRequestSelectScalar = {
   otProjectId?: boolean
 }
 
-export type ApprovalRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "reviewerId" | "kind" | "status" | "date" | "eventAt" | "title" | "detail" | "location" | "lateMinutes" | "offsetRef" | "reviewNotes" | "submittedAt" | "reviewedAt" | "createdAt" | "updatedAt" | "project" | "chainHistory" | "otPayoutMethod" | "otStartAt" | "otEndAt" | "otProjectId", ExtArgs["result"]["approvalRequest"]>
+export type ApprovalRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "reviewerId" | "kind" | "status" | "date" | "eventAt" | "originalEventAt" | "title" | "detail" | "location" | "lateMinutes" | "offsetRef" | "reviewNotes" | "submittedAt" | "reviewedAt" | "createdAt" | "updatedAt" | "project" | "chainHistory" | "otPayoutMethod" | "otStartAt" | "otEndAt" | "otProjectId", ExtArgs["result"]["approvalRequest"]>
 export type ApprovalRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reviewer?: boolean | Prisma.ApprovalRequest$reviewerArgs<ExtArgs>
@@ -1730,6 +1777,14 @@ export type $ApprovalRequestPayload<ExtArgs extends runtime.Types.Extensions.Int
     status: $Enums.ApprovalStatus
     date: Date
     eventAt: Date | null
+    /**
+     * Employee-submitted time-correction requests (kind CLOCK_IN / CLOCK_OUT)
+     * snapshot the record's ORIGINAL clock time here at submission, while
+     * `eventAt` carries the REQUESTED corrected time. Lets the supervisor see
+     * "original → requested" and flags the row as an employee edit. Null on
+     * auto-created clock approvals (where eventAt already is the actual time).
+     */
+    originalEventAt: Date | null
     title: string
     detail: string
     location: string | null
@@ -2146,6 +2201,7 @@ export interface ApprovalRequestFieldRefs {
   readonly status: Prisma.FieldRef<"ApprovalRequest", 'ApprovalStatus'>
   readonly date: Prisma.FieldRef<"ApprovalRequest", 'DateTime'>
   readonly eventAt: Prisma.FieldRef<"ApprovalRequest", 'DateTime'>
+  readonly originalEventAt: Prisma.FieldRef<"ApprovalRequest", 'DateTime'>
   readonly title: Prisma.FieldRef<"ApprovalRequest", 'String'>
   readonly detail: Prisma.FieldRef<"ApprovalRequest", 'String'>
   readonly location: Prisma.FieldRef<"ApprovalRequest", 'String'>

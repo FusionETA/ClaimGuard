@@ -1262,6 +1262,12 @@ model ApprovalRequest {
   status         ApprovalStatus  @default(PENDING)
   date           DateTime
   eventAt        DateTime?
+  /// Employee-submitted time-correction requests (kind CLOCK_IN / CLOCK_OUT)
+  /// snapshot the record's ORIGINAL clock time here at submission, while
+  /// `eventAt` carries the REQUESTED corrected time. Lets the supervisor see
+  /// "original → requested" and flags the row as an employee edit. Null on
+  /// auto-created clock approvals (where eventAt already is the actual time).
+  originalEventAt DateTime?
   title          String
   detail         String          @db.Text
   location       String?

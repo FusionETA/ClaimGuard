@@ -81,6 +81,11 @@ export type ApprovalRequestView = {
   reviewerId: string | null
   date: string // ISO yyyy-mm-dd
   eventAt: string | null
+  /// For employee-submitted time corrections (kind CLOCK_IN / CLOCK_OUT):
+  /// the record's ORIGINAL clock time at submission, while `eventAt` holds
+  /// the REQUESTED corrected time. Null on auto-created clock approvals —
+  /// its presence flags the row as an employee edit request.
+  originalEventAt: string | null
   title: string
   detail: string
   location: string | null

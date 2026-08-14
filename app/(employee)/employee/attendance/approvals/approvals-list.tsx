@@ -536,8 +536,18 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
                             </div>
                             <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
-                              <span className="text-sm font-semibold text-foreground">
-                                {CLOCK_LABEL[r.kind] ?? "Clock"}
+                              <span className="flex flex-wrap items-center gap-1.5">
+                                <span className="text-sm font-semibold text-foreground">
+                                  {CLOCK_LABEL[r.kind] ?? "Clock"}
+                                </span>
+                                {/* Employee-submitted time correction — flag it
+                                    so the reviewer notices it's an edit request,
+                                    not an ordinary clock event. */}
+                                {r.originalEventAt ? (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                                    ⚠ Edit request
+                                  </span>
+                                ) : null}
                               </span>
                               {canAdjust ? (
                                 <button
@@ -568,9 +578,28 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
                               ) : null}
                               <div className="min-w-0 flex-1">
                                 <dl className="space-y-1 text-xs">
-                                  <DetailRow label="Time">
-                                    {fmtTime(r.eventAt)}
-                                  </DetailRow>
+                                  {/* For an employee edit request, show the
+                                      original recorded time struck through next
+                                      to the requested one, so the reviewer sees
+                                      exactly what's changing before approving. */}
+                                  {r.originalEventAt ? (
+                                    <>
+                                      <DetailRow label="Original">
+                                        <span className="text-muted-foreground line-through">
+                                          {fmtTime(r.originalEventAt)}
+                                        </span>
+                                      </DetailRow>
+                                      <DetailRow label="Requested">
+                                        <span className="font-semibold text-amber-700 dark:text-amber-400">
+                                          {fmtTime(r.eventAt)}
+                                        </span>
+                                      </DetailRow>
+                                    </>
+                                  ) : (
+                                    <DetailRow label="Time">
+                                      {fmtTime(r.eventAt)}
+                                    </DetailRow>
+                                  )}
                                   {isLate ? (
                                     <DetailRow label="Late">
                                       <span className="font-semibold text-amber-700 dark:text-amber-400">

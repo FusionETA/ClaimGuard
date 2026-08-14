@@ -220,6 +220,49 @@ export async function updateTodayRemarkAction(
   return { ok: true }
 }
 
+export type SubmitAdjustmentState = { ok?: boolean; error?: string }
+
+/**
+ * Employee-submitted time-correction request. The employee picks a
+ * corrected clock-in and/or clock-out time (as UTC ISO, reconstructed
+ * client-side) plus a reason; the service turns each into a PENDING
+ * CLOCK_IN / CLOCK_OUT ApprovalRequest for the supervisor to review. The
+ * real record is never overwritten here — approval applies it with an
+ * AttendanceEditLog trail, so original + adjusted both survive.
+ */
+export async function submitTimeAdjustmentAction(
+  _prev: SubmitAdjustmentState,
+  formData: FormData,
+): Promise<SubmitAdjustmentState> {
+  const session = await requirePortalSession("EMPLOYEE")
+  const recordId = String(formData.get("recordId") ?? "")
+  if (!recordId) return { error: "No record to adjust." }
+
+  const requestedTimeInUtc =
+    (formData.get("requestedTimeInUtc") as string | null)?.trim() || null
+  const requestedTimeOutUtc =
+    (formData.get("requestedTimeOutUtc") as string | null)?.trim() || null
+  const reason = String(formData.get("reason") ?? "")
+
+  try {
+    await employeeAttendanceService.requestTimeAdjustment(session.userId, {
+      recordId,
+      requestedTimeInUtc,
+      requestedTimeOutUtc,
+      reason,
+    })
+  } catch (err) {
+    return {
+      error: safeErrorMessage(err, "Could not submit adjustment request"),
+    }
+  }
+  await revalidateAll({
+    userId: session.userId,
+    organizationId: session.organizationId,
+  })
+  return { ok: true }
+}
+
 export type SubmitOtResult = { ok?: boolean; error?: string }
 
 export async function submitOtAction(
