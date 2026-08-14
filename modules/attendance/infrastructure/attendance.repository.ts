@@ -1773,7 +1773,6 @@ export const attendanceRepository = {
     const diff = diffMinutes(expected, now)
     const lateMin = diff > 0 ? diff : 0
     const earlyMin = diff < 0 ? -diff : 0
-    const status: AttendanceStatus = lateMin > 0 ? "LATE" : "ON_TIME"
 
     // Guard: reject if a previous-day session is still open (employee
     // forgot to clock out). Must call clockOut on that session first.
@@ -1803,6 +1802,17 @@ export const attendanceRepository = {
     if (record.sessions.length > 0) {
       throw new Error("You still have an open session — please clock out before clocking in again.")
     }
+
+    // "Late" applies only to the FIRST clock-in of the day — a shift start.
+    // Re-clock-ins later in the day (after a break / lunch) are NOT late,
+    // so they must not mark their session LATE, inflate the day's lateness,
+    // or overwrite the first clock-in's `lateByMin`.
+    const priorSessionCount = await prisma.attendanceSession.count({
+      where: { attendanceRecordId: record.id },
+    })
+    const isFirstSession = priorSessionCount === 0
+    const effectiveLateMin = isFirstSession ? lateMin : 0
+    const status: AttendanceStatus = effectiveLateMin > 0 ? "LATE" : "ON_TIME"
 
     // Create the new session for this clock-in.
     const session = await prisma.attendanceSession.create({
@@ -1840,7 +1850,9 @@ export const attendanceRepository = {
         project: projectName,
         projectId: projectId ?? null,
         location: location ?? null,
-        lateByMin: lateMin || null,
+        // Only the first clock-in stamps the day's lateness; re-clock-ins
+        // leave the original value untouched.
+        ...(isFirstSession ? { lateByMin: lateMin || null } : {}),
         ...(notes ? { notes: `CLOCK_IN: ${notes}` } : {}),
         ...(geo
           ? {
@@ -1859,8 +1871,8 @@ export const attendanceRepository = {
       kind: "CLOCK_IN",
     })
     const timingNote =
-      lateMin > 0
-        ? ` • ${lateMin}m late`
+      effectiveLateMin > 0
+        ? ` • ${effectiveLateMin}m late`
         : earlyMin > 0
           ? ` • ${earlyMin}m early`
           : ""
@@ -1878,7 +1890,7 @@ export const attendanceRepository = {
         ),
         location: location ?? null,
         project: projectName,
-        lateMinutes: lateMin > 0 ? lateMin : null,
+        lateMinutes: effectiveLateMin > 0 ? effectiveLateMin : null,
         ...(autoApprove
           ? {
               reviewerId: employeeId,

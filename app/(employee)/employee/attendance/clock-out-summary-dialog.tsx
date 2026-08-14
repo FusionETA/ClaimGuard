@@ -62,9 +62,11 @@ function fmtDuration(min: number | null): string {
  * picks "Looks good" or "Submit request"; closing the dialog cancels
  * the clock-out entirely.
  *
- * The projected timeOut / durationMin are computed client-side from
- * `todayRecord.timeIn` and `breakMin`; the server recomputes the
- * authoritative values on commit.
+ * Figures reflect the CURRENT open session (from `todayRecord.sessions`),
+ * not the whole day — so a re-clock-in shows this shift's window and worked
+ * time, and the OT check uses the projected day total rather than the span
+ * from the first clock-in. The server recomputes authoritative values on
+ * commit.
  */
 export function ClockOutSummaryDialog({
   todayRecord,
@@ -87,17 +89,43 @@ export function ClockOutSummaryDialog({
   if (!todayRecord) return null
 
   const now = new Date()
-  let projectedDurationMin: number | null = null
-  if (todayRecord.timeIn) {
-    const inTime = new Date(todayRecord.timeIn)
-    const raw = Math.round((now.getTime() - inTime.getTime()) / 60000)
-    projectedDurationMin = Math.max(0, raw - (todayRecord.breakMin ?? 0))
+
+  // Reflect the CURRENT open session being clocked out — NOT the whole day.
+  // On a re-clock-in (multiple shifts), `todayRecord.timeIn` is the day's
+  // FIRST clock-in, which would wrongly show the full-day span, inflate the
+  // worked total, and trip the OT warning for a short second shift.
+  const openSession =
+    todayRecord.sessions.find((s) => s.startedAt && !s.endedAt) ?? null
+  const sessionStart = openSession?.startedAt ?? todayRecord.timeIn
+  const isReclockIn = todayRecord.sessions.filter((s) => s.endedAt).length > 0
+  // Which shift this is today — the open session is the latest, so its
+  // position is the session count. Gives the employee context that these
+  // times are for their current shift, not the whole day.
+  const shiftNumber = Math.max(1, todayRecord.sessions.length)
+
+  // This session's worked minutes so far (minus any break currently open).
+  let sessionWorkedMin: number | null = null
+  if (sessionStart) {
+    const raw = Math.round(
+      (now.getTime() - new Date(sessionStart).getTime()) / 60000,
+    )
+    let worked = Math.max(0, raw)
+    if (todayRecord.onBreak && todayRecord.currentBreakStartedAt) {
+      const brk = Math.round(
+        (now.getTime() - new Date(todayRecord.currentBreakStartedAt).getTime()) /
+          60000,
+      )
+      worked = Math.max(0, worked - Math.max(0, brk))
+    }
+    sessionWorkedMin = worked
   }
 
-  const isOt =
-    projectedDurationMin !== null &&
-    otThresholdMin != null &&
-    projectedDurationMin >= otThresholdMin
+  // OT is a DAILY threshold — check the projected day total (already-clocked
+  // completed sessions + this session so far), not the span from the first
+  // clock-in. Prevents a 1-minute second shift from reading as overtime.
+  const projectedDayWorkedMin =
+    (todayRecord.durationMin ?? 0) + (sessionWorkedMin ?? 0)
+  const isOt = otThresholdMin != null && projectedDayWorkedMin >= otThresholdMin
   return (
     <Dialog
       open={open}
@@ -117,11 +145,16 @@ export function ClockOutSummaryDialog({
 
         <div className="space-y-3">
           <div className="rounded-2xl border border-border/60 bg-surface-low p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Working hours
-            </p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Working hours
+              </p>
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                Shift {shiftNumber} today
+              </span>
+            </div>
             <p className="mt-1 font-headline text-xl font-extrabold text-foreground">
-              {fmtTime(todayRecord.timeIn)} – {fmtTime(now)}
+              {fmtTime(sessionStart)} – {fmtTime(now)}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
               <div>
@@ -129,7 +162,7 @@ export function ClockOutSummaryDialog({
                   Worked
                 </p>
                 <p className="mt-0.5 text-sm font-bold text-foreground">
-                  {fmtDuration(projectedDurationMin)}
+                  {fmtDuration(sessionWorkedMin)}
                 </p>
               </div>
               <div>
@@ -150,7 +183,7 @@ export function ClockOutSummaryDialog({
                   </p>
                 </div>
               ) : null}
-              {todayRecord.lateByMin && todayRecord.lateByMin > 0 ? (
+              {!isReclockIn && todayRecord.lateByMin && todayRecord.lateByMin > 0 ? (
                 <div className="col-span-2">
                   <p className="text-[10px] uppercase tracking-wider text-tertiary">
                     Started late

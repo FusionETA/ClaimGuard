@@ -265,12 +265,24 @@ export function DailyActivityTable({
                   <span>Status</span>
                 </div>
                 {pagedRows.map((row) => {
-              const inLabel = formatTime(row.timeIn, timezone)
-              const outLabel = formatTime(row.timeOut, timezone)
-              const meta =
-                [row.project, row.jobTitle].filter(Boolean).join(" · ") || "—"
               const sessions = row.sessions ?? []
               const sessionCount = sessions.length
+              // Multi-shift days: the CLOCK IN / CLOCK OUT columns show the
+              // CURRENT (latest) shift; the full per-shift breakdown lives in
+              // the "N shifts" expander below. Single-shift days are
+              // unchanged (the latest session is the only session).
+              const latestSession =
+                sessionCount > 0 ? sessions[sessionCount - 1] : null
+              const inLabel = formatTime(
+                latestSession?.startedAt ?? row.timeIn,
+                timezone,
+              )
+              const outLabel = formatTime(
+                latestSession?.endedAt ?? row.timeOut,
+                timezone,
+              )
+              const meta =
+                [row.project, row.jobTitle].filter(Boolean).join(" · ") || "—"
               // Off-site clock-ins require a remark — surface it on the row.
               const offSiteReason = row.offSite
                 ? (sessions.find((s) => s.clockInNotes?.trim())?.clockInNotes ??

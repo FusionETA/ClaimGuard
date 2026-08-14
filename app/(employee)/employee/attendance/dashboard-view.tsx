@@ -50,6 +50,8 @@ export function EmployeeAttendanceDashboardView({
   timezone,
 }: Props) {
   const state = deriveState(dashboard.todayEvents)
+  // How many shifts today (each clock-in/out pair is a session).
+  const shiftCount = dashboard.today?.sessions.length ?? 0
 
   return (
     <div className="space-y-4">
@@ -63,9 +65,18 @@ export function EmployeeAttendanceDashboardView({
               {workingHours.start} – {workingHours.end}
             </p>
           </div>
-          <Badge variant={state === "IN" ? "clocked-in" : "clocked-out"}>
-            {state === "IN" ? "On the clock" : "Not started"}
-          </Badge>
+          <div className="flex flex-col items-end gap-1">
+            <Badge variant={state === "IN" ? "clocked-in" : "clocked-out"}>
+              {state === "IN" ? "On the clock" : "Not started"}
+            </Badge>
+            {shiftCount > 0 ? (
+              <span className="text-[10px] font-semibold text-muted-foreground">
+                {state === "IN"
+                  ? `Shift ${shiftCount} today`
+                  : `${shiftCount} shift${shiftCount > 1 ? "s" : ""} today`}
+              </span>
+            ) : null}
+          </div>
         </div>
       </Card>
 
