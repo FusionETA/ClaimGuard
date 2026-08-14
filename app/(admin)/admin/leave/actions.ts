@@ -10,6 +10,10 @@ import {
   bulkImportLeaveHistory,
   type LeaveHistoryImportResult,
 } from "@/modules/leave/application/services/leave-history-import.service"
+import {
+  bulkImportLeaveBalances,
+  type LeaveBalanceImportResult,
+} from "@/modules/leave/application/services/leave-balance-import.service"
 
 /**
  * Admin-only: file a leave application on behalf of an employee.
@@ -111,7 +115,14 @@ function parseIsoDate(s: string): Date | null {
  */
 export async function importLeaveHistoryAction(
   formData: FormData,
-): Promise<{ ok: boolean; message: string; result?: LeaveHistoryImportResult }> {
+): Promise<{
+  ok: boolean
+  message: string
+  result?: {
+    balances: LeaveBalanceImportResult | null
+    history: LeaveHistoryImportResult | null
+  }
+}> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
@@ -127,9 +138,9 @@ export async function importLeaveHistoryAction(
     return { ok: false, message: "File too large (max 5 MB). Split into batches." }
   }
 
-  let rows: string[][]
+  let sheets: { balances: string[][]; history: string[][] }
   try {
-    rows = await fileToRows(file)
+    sheets = await fileToSheets(file)
   } catch {
     return {
       ok: false,
@@ -137,28 +148,60 @@ export async function importLeaveHistoryAction(
     }
   }
 
-  const result = await bulkImportLeaveHistory({
-    orgId,
-    adminUserId: session.userId,
-    rows,
-  })
+  const hasBalances = sheets.balances.length >= 2
+  const hasHistory = sheets.history.length >= 2
+  if (!hasBalances && !hasHistory) {
+    return {
+      ok: false,
+      message:
+        "No data rows found. Fill the Leave Balances tab (or Leave History) and try again.",
+    }
+  }
+
+  const balances = hasBalances
+    ? await bulkImportLeaveBalances({ orgId, rows: sheets.balances })
+    : null
+  const history = hasHistory
+    ? await bulkImportLeaveHistory({
+        orgId,
+        adminUserId: session.userId,
+        rows: sheets.history,
+      })
+    : null
 
   revalidatePath("/admin/leave")
   revalidatePath("/admin/leave/balances")
   revalidatePath("/employee/leave")
 
-  const ok = result.imported > 0 || (result.failed === 0 && result.errors.length === 0)
-  const parts = [`Imported ${result.imported}`]
-  if (result.skipped) parts.push(`skipped ${result.skipped} already-imported`)
-  if (result.failed) parts.push(`${result.failed} failed`)
-  return { ok, message: parts.join(", ") + ".", result }
+  const parts: string[] = []
+  if (balances) {
+    parts.push(
+      `Balances: set ${balances.imported}` +
+        (balances.failed ? `, ${balances.failed} failed` : ""),
+    )
+  }
+  if (history) {
+    parts.push(
+      `History: imported ${history.imported}` +
+        (history.skipped ? `, skipped ${history.skipped}` : "") +
+        (history.failed ? `, ${history.failed} failed` : ""),
+    )
+  }
+  const totalFailed = (balances?.failed ?? 0) + (history?.failed ?? 0)
+  const totalImported = (balances?.imported ?? 0) + (history?.imported ?? 0)
+  const ok = totalImported > 0 || totalFailed === 0
+  return { ok, message: parts.join(" · ") + ".", result: { balances, history } }
 }
 
-/// Read an uploaded leave-history file into rows. `.xlsx` (the template)
-/// is read via ExcelJS — the "Leave History" sheet (or first data sheet);
-/// otherwise the text is parsed as CSV. Non-exported: "use server" files
-/// only export async functions.
-async function fileToRows(file: File): Promise<string[][]> {
+/// Read an uploaded leave file into the two tab row-sets. `.xlsx` (the
+/// template) is read via ExcelJS by sheet name — "Leave Balances" and
+/// "Leave History". A CSV (single table) is routed by its header: an
+/// "Entitled" column → balances, otherwise history. Old single-sheet
+/// templates (no Balances tab) still fall back to the first data sheet as
+/// history. Non-exported: "use server" files only export async functions.
+async function fileToSheets(
+  file: File,
+): Promise<{ balances: string[][]; history: string[][] }> {
   const isXlsx =
     file.name.toLowerCase().endsWith(".xlsx") ||
     file.type.includes("spreadsheetml") ||
@@ -167,25 +210,41 @@ async function fileToRows(file: File): Promise<string[][]> {
     const ExcelJS = (await import("exceljs")).default
     const wb = new ExcelJS.Workbook()
     await wb.xlsx.load(await file.arrayBuffer())
-    const ws =
+
+    const toRows = (ws: import("exceljs").Worksheet): string[][] => {
+      const colCount = ws.columnCount
+      const out: string[][] = []
+      ws.eachRow({ includeEmpty: false }, (row) => {
+        const cells: string[] = []
+        for (let c = 1; c <= colCount; c++) {
+          cells.push(String(row.getCell(c).text ?? ""))
+        }
+        out.push(cells)
+      })
+      return out
+    }
+
+    const balancesWs = wb.getWorksheet("Leave Balances")
+    const historyWs =
       wb.getWorksheet("Leave History") ??
-      wb.worksheets.find(
-        (s) => !/read ?me|instruction|example|sample/i.test(s.name),
-      ) ??
-      wb.worksheets[0]
-    if (!ws) return []
-    const colCount = ws.columnCount
-    const rows: string[][] = []
-    ws.eachRow({ includeEmpty: false }, (row) => {
-      const cells: string[] = []
-      for (let c = 1; c <= colCount; c++) {
-        cells.push(String(row.getCell(c).text ?? ""))
-      }
-      rows.push(cells)
-    })
-    return rows
+      (balancesWs
+        ? undefined
+        : wb.worksheets.find(
+            (s) => !/read ?me|instruction|example|sample|balance/i.test(s.name),
+          ) ?? wb.worksheets[0])
+    return {
+      balances: balancesWs ? toRows(balancesWs) : [],
+      history: historyWs ? toRows(historyWs) : [],
+    }
   }
-  return parseCsvText(await file.text())
+
+  // CSV fallback — one table; decide by header.
+  const rows = parseCsvText(await file.text())
+  const header = (rows[0] ?? []).map((h) => h.toLowerCase())
+  const looksBalance = header.some((h) => /entitled/.test(h))
+  return looksBalance
+    ? { balances: rows, history: [] }
+    : { balances: [], history: rows }
 }
 
 /// Minimal RFC-4180 CSV parser (quotes, escaped quotes, CRLF). Enough for

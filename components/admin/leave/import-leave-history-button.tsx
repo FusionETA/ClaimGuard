@@ -18,23 +18,28 @@ import {
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/toaster"
 
-type Summary = {
-  imported: number
-  skipped: number
-  failed: number
-  errors: Array<{ row: number; message: string }>
+type RowError = { row: number; message: string }
+type ImportResult = {
+  balances: { imported: number; failed: number; errors: RowError[] } | null
+  history: {
+    imported: number
+    skipped: number
+    failed: number
+    errors: RowError[]
+  } | null
 }
 
 /**
- * "Import history" dialog on the admin Leave page. Bulk-imports past
- * leave applications from the styled XLSX template (or a CSV) — used when
- * migrating leave from another system. Approved rows count against each
- * employee's balance; a re-upload skips already-imported rows.
+ * "Import leave" dialog on the admin Leave page. Migrates leave from
+ * another system via the styled XLSX template's two tabs:
+ *   • Leave Balances — the simple path (closing figures only)
+ *   • Leave History — optional, full per-application detail
+ * Fill either or both; the importer reads whichever tab has data.
  */
 export function ImportLeaveHistoryButton() {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
-  const [summary, setSummary] = useState<Summary | null>(null)
+  const [result, setResult] = useState<ImportResult | null>(null)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -43,28 +48,37 @@ export function ImportLeaveHistoryButton() {
     const fd = new FormData(e.currentTarget)
     startTransition(async () => {
       const res = await importLeaveHistoryAction(fd)
-      setSummary(res.result ?? null)
+      setResult(res.result ?? null)
       toast({ title: res.message, variant: res.ok ? "success" : "error" })
       if (res.ok) router.refresh()
     })
   }
+
+  const errors: Array<RowError & { tab: string }> = result
+    ? [
+        ...(result.balances?.errors ?? []).map((e) => ({ ...e, tab: "Balances" })),
+        ...(result.history?.errors ?? []).map((e) => ({ ...e, tab: "History" })),
+      ]
+    : []
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Upload className="h-4 w-4" />
-          Import history
+          Import leave
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Import leave history</DialogTitle>
+          <DialogTitle>Import leave</DialogTitle>
           <DialogDescription>
-            Bulk-import past leave applications (e.g. migrating from another
-            system). Approved rows count against each employee&apos;s
-            balance; set entitlements separately so the remaining balance
-            lands right.
+            Migrate leave from another system. Use the{" "}
+            <span className="font-medium text-foreground">Leave Balances</span>{" "}
+            tab for a quick balance migration, or the{" "}
+            <span className="font-medium text-foreground">Leave History</span>{" "}
+            tab if you also want every past application on record. Fill either
+            or both.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4 pl-1">
@@ -72,7 +86,8 @@ export function ImportLeaveHistoryButton() {
             <div className="space-y-0.5">
               <p className="font-medium text-foreground">Use our Excel template</p>
               <p className="text-xs text-muted-foreground">
-                Employee Email · Leave Type · dates · Days · Status. Your
+                Two tabs — <strong>Leave Balances</strong> (entitled · carry
+                forward · taken) and <strong>Leave History</strong>. Your
                 leave types are pre-filled as dropdowns.
               </p>
             </div>
@@ -85,9 +100,9 @@ export function ImportLeaveHistoryButton() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="leave-history-file">File (.xlsx or .csv)</Label>
+            <Label htmlFor="leave-import-file">File (.xlsx or .csv)</Label>
             <input
-              id="leave-history-file"
+              id="leave-import-file"
               type="file"
               name="file"
               accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -96,21 +111,34 @@ export function ImportLeaveHistoryButton() {
             />
           </div>
 
-          {summary ? (
+          {result ? (
             <div className="space-y-1 rounded-lg border border-border/60 bg-muted/20 p-3 text-xs">
-              <p className="font-medium text-foreground">
-                Imported {summary.imported} · Skipped {summary.skipped} ·
-                Failed {summary.failed}
-              </p>
-              {summary.errors.slice(0, 8).map((er, i) => (
+              {result.balances ? (
+                <p className="font-medium text-foreground">
+                  Balances — set {result.balances.imported}
+                  {result.balances.failed
+                    ? ` · ${result.balances.failed} failed`
+                    : ""}
+                </p>
+              ) : null}
+              {result.history ? (
+                <p className="font-medium text-foreground">
+                  History — imported {result.history.imported} · skipped{" "}
+                  {result.history.skipped}
+                  {result.history.failed
+                    ? ` · ${result.history.failed} failed`
+                    : ""}
+                </p>
+              ) : null}
+              {errors.slice(0, 8).map((er, i) => (
                 <p key={i} className="text-destructive">
-                  {er.row > 0 ? `Row ${er.row}: ` : ""}
-                  {er.message}
+                  {er.tab}
+                  {er.row > 0 ? ` row ${er.row}` : ""}: {er.message}
                 </p>
               ))}
-              {summary.errors.length > 8 ? (
+              {errors.length > 8 ? (
                 <p className="text-muted-foreground">
-                  …and {summary.errors.length - 8} more.
+                  …and {errors.length - 8} more.
                 </p>
               ) : null}
             </div>

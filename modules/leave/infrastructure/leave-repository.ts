@@ -504,6 +504,32 @@ export const leaveRepository = {
     })
   },
 
+  /**
+   * Overwrite an entitlement's balance figures directly by id. Used by the
+   * leave-balance migration importer — the source system is authoritative,
+   * so entitled / carried / used / accrued are SET (not incremented).
+   */
+  async setEntitlementBalances(
+    entitlementId: string,
+    input: {
+      entitledDays: number
+      carriedDays: number
+      usedDays: number
+      accruedDays: number
+    },
+  ): Promise<void> {
+    const prisma = requirePrisma()
+    await prisma.leaveEntitlement.update({
+      where: { id: entitlementId },
+      data: {
+        entitledDays: input.entitledDays,
+        carriedDays: input.carriedDays,
+        usedDays: input.usedDays,
+        accruedDays: input.accruedDays,
+      },
+    })
+  },
+
   async listEntitlementsForEmployee(
     employeeId: string,
     year: number,
