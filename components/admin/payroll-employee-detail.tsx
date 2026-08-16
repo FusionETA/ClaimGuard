@@ -34,7 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { ConfirmSubmitButton } from "@/components/ui/confirm-action-dialog"
-import { ResetEmployeePasswordButton } from "@/components/admin/reset-employee-password-button"
+import { SetEmployeePasswordButton } from "@/components/admin/set-employee-password-button"
 import {
   Card,
   CardContent,
@@ -755,13 +755,12 @@ function PersonalTab(props: {
               generation, PCB reliefs, and LHDN filing.
             </CardDescription>
           </div>
-          {/* Admin fallback for the resigned-employee / forgotten-
-              password case. Resets to `<email><MMDD>` per the seed
-              formula used by the XLSX import. See
-              `resetEmployeePasswordToDefault` for the full guardrail
-              list (no self-reset, no owner reset, DOB required, audit
+          {/* Admin overwrite for the resigned-employee / forgotten-
+              password case. The admin types a new password (min 8 chars);
+              see `setEmployeePassword` for the full guardrail list (no
+              self-change, no owner change, org scope, hashed, audit
               trail). */}
-          <ResetEmployeePasswordButton
+          <SetEmployeePasswordButton
             userId={props.userId}
             employeeName={props.name}
             employeeEmail={props.email}

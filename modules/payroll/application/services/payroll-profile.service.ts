@@ -2,7 +2,7 @@ import "server-only"
 import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { defaultPassword, hashPassword } from "@/lib/auth/password"
+import { hashPassword } from "@/lib/auth/password"
 import { getOrSetCache } from "@/lib/cache"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import {
@@ -634,31 +634,29 @@ export async function updateEmployeeName(input: {
 }
 
 /**
- * Admin fallback: reset an employee's login password back to the
- * default (`<email><MMDD-of-DOB>` — same formula the XLSX import uses
- * for seeded employees). Fires when the employee resigns / forgets
- * and admin needs to view their portal to recover data.
+ * Admin action: overwrite an employee's login password with one the
+ * admin chooses (replaces the old "reset to the DOB default" flow).
+ * Fires when the employee resigns / forgets and admin needs to hand
+ * them a fresh password, or set a specific one.
  *
- * Guardrails:
+ * Guardrails (unchanged from the old reset):
  *   - Admin or Owner session required (isAdminRole).
  *   - Target must be in the caller's active org (scope guard).
  *   - Target cannot be the caller (would lock the caller out mid-session).
  *   - Target cannot be another OWNER — owner accounts are the top of
- *     the trust chain; resetting them belongs to a support flow, not
+ *     the trust chain; changing them belongs to a support flow, not
  *     the per-employee button.
- *   - Employee's DOB must be on file (default password formula needs it).
+ *   - New password must be at least 8 characters (matches the
+ *     forgot-password reset policy).
  *
- * Returns the plaintext default password so the caller can surface
- * it in a toast — the admin can compute it anyway from the well-known
- * formula, but returning it explicitly avoids a mental math step.
- *
- * Audits every reset. Superadmin support-mode is honoured by the
- * audit-log service upstream (writeAudit intercepts based on the
- * session's isSuperadmin flag).
+ * The password is hashed before storage and never logged — the audit
+ * summary records only that a change happened, not the value. Superadmin
+ * support-mode is honoured by the audit-log service upstream.
  */
-export async function resetEmployeePasswordToDefault(input: {
+export async function setEmployeePassword(input: {
   userId: string
-}): Promise<{ newPassword: string }> {
+  newPassword: string
+}): Promise<void> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
@@ -668,8 +666,13 @@ export async function resetEmployeePasswordToDefault(input: {
 
   if (input.userId === session.userId) {
     throw new Error(
-      "You cannot reset your own password via this button — sign out and use the Forgot password flow instead.",
+      "You cannot change your own password via this button — sign out and use the Forgot password flow instead.",
     )
+  }
+
+  const newPassword = input.newPassword ?? ""
+  if (newPassword.length < 8) {
+    throw new Error("Password must be at least 8 characters.")
   }
 
   const prisma = getPrismaClient()
@@ -687,16 +690,7 @@ export async function resetEmployeePasswordToDefault(input: {
   }
   if (target.role === "OWNER") {
     throw new Error(
-      "Owner accounts cannot be reset from here. Contact Fusioneta support.",
-    )
-  }
-
-  const profile = await payrollProfileRepository.getByUserId(input.userId)
-  const dob = profile?.dateOfBirth ?? null
-  const newPassword = defaultPassword(target.email, dob)
-  if (!newPassword) {
-    throw new Error(
-      "Set the employee's date of birth first — the default password formula needs it.",
+      "Owner accounts cannot be changed from here. Contact Fusioneta support.",
     )
   }
 
@@ -713,15 +707,13 @@ export async function resetEmployeePasswordToDefault(input: {
       name: session.name,
       role: session.role,
     },
-    action: "user.password.admin-reset",
+    action: "user.password.admin-set",
     status: "SUCCESS",
-    summary: `Reset password for ${target.name} (${target.email}) to default.`,
+    summary: `Set a new password for ${target.name} (${target.email}).`,
     targetType: "user",
     targetId: target.id,
     metadata: { targetEmail: target.email, targetRole: target.role },
   })
-
-  return { newPassword }
 }
 
 export async function unarchivePayrollProfile(input: {

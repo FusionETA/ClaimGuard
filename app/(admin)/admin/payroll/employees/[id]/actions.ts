@@ -24,7 +24,7 @@ import {
 import { SALARY_CHANGE_REASONS } from "@/modules/payroll/domain/salary-change"
 import {
   archivePayrollProfile,
-  resetEmployeePasswordToDefault,
+  setEmployeePassword,
   unarchivePayrollProfile,
   updateEmployeeEmail,
   updateEmployeeName,
@@ -596,39 +596,34 @@ export async function unarchivePayrollProfileAction(
   return { status: "success", message: "Employee restored to payroll." }
 }
 
-// ─── Password reset (admin fallback) ────────────────────────────────────
+// ─── Password overwrite (admin) ─────────────────────────────────────────
 
-export type ResetPasswordActionResult =
-  | { ok: true; newPassword: string; message: string }
+export type SetPasswordActionResult =
+  | { ok: true; message: string }
   | { ok: false; message: string }
 
 /**
- * Reset an employee's login password to the well-known default
- * (`<email><MMDD-of-DOB>`). Called from the Personal tab as a fallback
- * for when the employee resigns / forgets and admin needs to view
- * their portal.
- *
- * NOT a `useActionState` action — returns a discriminated union so the
- * caller can render the new password inline in a toast/dialog. All
- * safety checks (self-reset, owner, DOB, org scope) live in the service.
+ * Overwrite an employee's login password with one the admin chooses.
+ * Called from the Personal tab when the employee resigns / forgets and
+ * admin needs to hand them a fresh password. The plaintext is never
+ * returned or logged — the admin typed it, so they already have it. All
+ * safety checks (self-change, owner, length, org scope) live in the
+ * service.
  */
-export async function resetEmployeePasswordAction(input: {
+export async function setEmployeePasswordAction(input: {
   userId: string
-}): Promise<ResetPasswordActionResult> {
+  newPassword: string
+}): Promise<SetPasswordActionResult> {
   const userId = input.userId.trim()
   if (!userId) return { ok: false, message: "Missing employee id." }
   try {
-    const result = await resetEmployeePasswordToDefault({ userId })
+    await setEmployeePassword({ userId, newPassword: input.newPassword })
     revalidatePath(`/admin/payroll/employees/${userId}`)
-    return {
-      ok: true,
-      newPassword: result.newPassword,
-      message: "Password reset to default.",
-    }
+    return { ok: true, message: "Password updated." }
   } catch (err) {
     return {
       ok: false,
-      message: safeErrorMessage(err, "Could not reset password."),
+      message: safeErrorMessage(err, "Could not update password."),
     }
   }
 }
