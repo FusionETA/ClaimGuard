@@ -1555,6 +1555,47 @@ export const organizationRepository = {
     return mapOrganizationSummary(organization)!
   },
 
+  /**
+   * Rename an organization WITHOUT an admin-membership check. Used by the
+   * partner API (`PATCH /api/v1/settings`), where the caller is an
+   * org-scoped `wp_live_*` token rather than a signed-in admin — the
+   * token's `organizationId` IS the authorization, so there's no adminId
+   * to check membership for.
+   *
+   * Keeps the collision guard from `updateOrganizationName`:
+   * `Organization.name` is `@unique`, so a clash has to surface as a
+   * readable message the route can turn into a 409 rather than a raw
+   * Prisma P2002.
+   */
+  async setOrganizationName(data: {
+    organizationId: string
+    organizationName: string
+  }): Promise<OrganizationSummary> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    const organizationName = data.organizationName.trim()
+    const existingWithName = await prisma.organization.findUnique({
+      where: { name: organizationName },
+      select: { id: true },
+    })
+
+    if (existingWithName && existingWithName.id !== data.organizationId) {
+      throw new Error(
+        "That organization name is already being used by another organization.",
+      )
+    }
+
+    const organization = await prisma.organization.update({
+      where: { id: data.organizationId },
+      data: { name: organizationName },
+    })
+
+    return mapOrganizationSummary(organization)!
+  },
+
   async updateOrganizationOtRates(data: {
     organizationId: string
     rates: OtRates
@@ -4028,6 +4069,7 @@ export const organizationRepository = {
       workingHoursStart: row.workingHoursStart,
       workingHoursEnd: row.workingHoursEnd,
       workingDays: row.workingDays,
+      lunchBreakMinutes: row.lunchBreakMinutes,
       holidays: row.holidays.map((h) => ({
         id: h.id,
         date: h.date.toISOString().slice(0, 10),

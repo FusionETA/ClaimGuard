@@ -1,0 +1,70 @@
+/**
+ * Capability catalogue advertised by `GET /api/v1/whoami`.
+ *
+ * WHY THIS EXISTS: partner clients validate their PATCH bodies with
+ * `.strict()` schemas on their side, and ours reject unknown keys too —
+ * so a single field we haven't shipped yet 400s the whole call,
+ * including the fields that DO work. Without a capability list the only
+ * way to add a field is to coordinate deploy dates by hand, and a
+ * slipped or rolled-back release silently breaks the partner's form.
+ *
+ * With it, the partner reads `features` from the token-introspection
+ * call they already make, and gates each optional block on the matching
+ * flag. Nothing to coordinate, and a rollback degrades instead of
+ * breaking.
+ *
+ * RULES:
+ *   1. Names are `<resource>.<block>` and are PERMANENT once shipped —
+ *      a partner's `if (features.includes(...))` depends on them.
+ *   2. Add a flag in the same commit that ships the capability, never
+ *      ahead of it. The flag's contract is "you may send this today".
+ *   3. Never remove a flag for a capability that still works. If one is
+ *      genuinely withdrawn, drop the flag first, give partners a
+ *      release to stop sending it, then remove the handling.
+ */
+export const API_FEATURE_CATALOG = [
+  // ── /api/v1/settings ────────────────────────────────────────────────
+  /// PATCH accepts `name` (was a documented 501 before this shipped).
+  "settings.name",
+  /// GET returns + PATCH accepts `workingDays` / `nonWorkingDays` as
+  /// weekday-name arrays. Org-wide default; projects can override.
+  "settings.workingDays",
+  /// `GET`/`PUT /api/v1/settings/holidays` — org-wide public-holiday
+  /// calendar as an explicit date list, replaced per year.
+  "settings.holidays",
+
+  // ── /api/v1/payroll-settings ────────────────────────────────────────
+  /// GET returns + PATCH accepts the `profile` block (employer name,
+  /// email, phone, correspondence address) used on payslips + EA/CP8D.
+  "payroll-settings.profile",
+  /// `profile.companyType` (partner vocabulary, lossily mapped) and
+  /// `profile.employerCategory` (LHDN vocabulary, verbatim) are
+  /// writable. Separate flag from `profile` because it shipped later.
+  "payroll-settings.companyType",
+  /// GET returns + PATCH accepts the `calculation` block
+  /// (`prorationBasis`, `hrdf`). See the block's docs for which of the
+  /// partner-proposed rules are fixed engine behaviour rather than
+  /// settings.
+  "payroll-settings.calculation",
+  /// GET returns + PATCH accepts the `bank` block (bulk-payment payor
+  /// account + BIC). Public Bank ECP is the only emittable format
+  /// today — see `payrollReportKinds`.
+  "payroll-settings.bank",
+
+  // ── /api/v1/projects ────────────────────────────────────────────────
+  /// PATCH accepts the `calendar` block (working hours, working days,
+  /// lunch break) so a multi-site org can run different working weeks
+  /// per location.
+  "projects.calendar",
+  /// `GET`/`PUT /api/v1/projects/[id]/holidays` — per-project holiday
+  /// calendar, same year-scoped replace semantics as the org one.
+  "projects.holidays",
+
+  // ── /api/v1/leave-types ─────────────────────────────────────────────
+  /// `GET /api/v1/leave-types` + `PATCH` of org-wide default day counts.
+  /// Default days ONLY — accrual method, carry-forward and per-policy
+  /// overrides stay with CS in the admin UI.
+  "leave-types.defaultDays",
+] as const
+
+export type ApiFeature = (typeof API_FEATURE_CATALOG)[number]

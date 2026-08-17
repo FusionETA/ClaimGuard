@@ -4,7 +4,14 @@ import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
+import {
+  invertWeekdayNames,
+  isoDaysToWeekdayNames,
+  weekdayNames,
+  weekdayNamesToCsv,
+} from "@/lib/weekdays"
 import type { OrganizationProjectOption } from "@/modules/organization/domain/models"
+import { parseWorkingDays } from "@/modules/attendance/domain/hours-summary"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -41,6 +48,11 @@ export const GET = handleApiRequest<RouteParams>(
   },
 )
 
+const hhmm = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must be HH:MM in 24-hour form.")
+
 const updateProjectSchema = z
   .object({
     /// Replace the project's manager set when provided (even as `[]`).
@@ -49,17 +61,48 @@ const updateProjectSchema = z
     location: z.string().trim().max(200).optional(),
     latitude: z.number().min(-90).max(90).nullable().optional(),
     longitude: z.number().min(-180).max(180).nullable().optional(),
+    /// Per-site working calendar. This is the override layer for orgs
+    /// whose locations don't share one schedule — a Mon–Sat branch
+    /// under a Mon–Fri company. `PATCH /api/v1/settings { workingDays }`
+    /// sets the company default; anything null here inherits it.
+    ///
+    /// Resolution order for working days is project → org → Mon–Fri.
+    /// (Shifts add a fourth, narrower layer under the project, managed
+    /// in the admin UI rather than over the API.)
+    ///
+    /// Keys you omit keep their current value — the block is merged, not
+    /// replaced, so sending only `workingDays` won't blank the hours.
+    calendar: z
+      .object({
+        workingHoursStart: hhmm.nullable().optional(),
+        workingHoursEnd: hhmm.nullable().optional(),
+        /// Day names; anything omitted is a non-working day at this
+        /// site. `null` clears the override so the site falls back to
+        /// the org default.
+        workingDays: z
+          .array(z.enum(weekdayNames))
+          .min(1)
+          .max(7)
+          .nullable()
+          .optional(),
+        /// Minutes deducted from (end − start) when computing expected
+        /// daily hours. Feeds the monthly→hourly rate conversion, so
+        /// it's a payroll input, not just a scheduling one.
+        lunchBreakMinutes: z.number().int().min(0).max(240).optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
 
 /**
  * PATCH /api/v1/projects/[id]
  *
- * Required scope: `projects:write`. Today this only updates managers +
- * location/coordinates — name + working hours + holidays live behind
- * separate dedicated flows in the admin UI and aren't part of the
- * standard "edit project" payload yet. They can be added as separate
- * sub-endpoints later if a partner asks.
+ * Required scope: `projects:write`. Updates managers, location /
+ * coordinates, and the working calendar. Project NAME and holidays are
+ * not here: renaming goes through the admin UI (Xero-synced rows take
+ * their name from the sync), and holidays are a list resource at
+ * `/api/v1/projects/[id]/holidays`.
  */
 export const PATCH = handleApiRequest<RouteParams>(
   ["projects:write"],
@@ -93,7 +136,8 @@ export const PATCH = handleApiRequest<RouteParams>(
     const all = await organizationRepository.getProjectsForOrganization(
       ctx.integration.organizationId,
     )
-    if (!all.some((p) => p.id === id)) {
+    const current = all.find((p) => p.id === id)
+    if (!current) {
       return jsonError(404, "Project not found.")
     }
 
@@ -110,6 +154,40 @@ export const PATCH = handleApiRequest<RouteParams>(
       const message =
         safeErrorMessage(error, "Could not update project.")
       return jsonError(409, message)
+    }
+
+    if (parsed.data.calendar) {
+      const cal = parsed.data.calendar
+      // `updateProjectCalendar` writes all three columns unconditionally,
+      // so omitted keys have to be back-filled from the current row —
+      // otherwise a PATCH that only sets working days would null the
+      // working hours.
+      try {
+        await organizationRepository.updateProjectCalendar(id, {
+          workingHoursStart:
+            cal.workingHoursStart !== undefined
+              ? cal.workingHoursStart
+              : (current.workingHoursStart ?? null),
+          workingHoursEnd:
+            cal.workingHoursEnd !== undefined
+              ? cal.workingHoursEnd
+              : (current.workingHoursEnd ?? null),
+          workingDays:
+            cal.workingDays !== undefined
+              ? cal.workingDays === null
+                ? null
+                : weekdayNamesToCsv(cal.workingDays)
+              : (current.workingDays ?? null),
+          ...(cal.lunchBreakMinutes !== undefined
+            ? { lunchBreakMinutes: cal.lunchBreakMinutes }
+            : {}),
+        })
+      } catch (error) {
+        return jsonError(
+          409,
+          safeErrorMessage(error, "Could not update the project calendar."),
+        )
+      }
     }
 
     await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
@@ -174,7 +252,12 @@ function jsonError(status: number, message: string): NextResponse {
   return NextResponse.json({ error: { status, message } }, { status })
 }
 
+/// Must stay identical to the copy in `../route.ts` — a partner that
+/// lists projects then re-reads one must not see a different shape.
 function toExternalProject(p: OrganizationProjectOption) {
+  const effectiveWorkingDays = isoDaysToWeekdayNames(
+    parseWorkingDays(p.workingDays ?? null),
+  )
   return {
     id: p.id,
     name: p.name,
@@ -183,9 +266,31 @@ function toExternalProject(p: OrganizationProjectOption) {
     location: p.location ?? null,
     latitude: p.latitude ?? null,
     longitude: p.longitude ?? null,
+    /// Raw CSV form, kept for backwards compatibility with callers that
+    /// already read it. `calendar` below is the shape to build against.
     workingHoursStart: p.workingHoursStart ?? null,
     workingHoursEnd: p.workingHoursEnd ?? null,
     workingDays: p.workingDays ?? null,
+    calendar: {
+      workingHoursStart: p.workingHoursStart ?? null,
+      workingHoursEnd: p.workingHoursEnd ?? null,
+      lunchBreakMinutes: p.lunchBreakMinutes ?? null,
+      /// The site's own override, or null when it inherits the org
+      /// default. Distinguishing this from `effectiveWorkingDays` lets a
+      /// partner UI show "inherited" rather than implying every project
+      /// was configured individually.
+      workingDays:
+        p.workingDays == null
+          ? null
+          : isoDaysToWeekdayNames(parseWorkingDays(p.workingDays)),
+      /// What actually applies at this site once the fallback chain has
+      /// run. NOTE: the fallback here is Mon–Fri, the engine default —
+      /// it does NOT read the org-level override, so read
+      /// `GET /api/v1/settings` alongside this if the project has no
+      /// override of its own.
+      effectiveWorkingDays,
+      nonWorkingDays: invertWeekdayNames(effectiveWorkingDays),
+    },
     projectManagers: p.projectManagers,
     holidays: p.holidays ?? [],
   }

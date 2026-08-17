@@ -4,7 +4,9 @@ import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
+import { invertWeekdayNames, isoDaysToWeekdayNames } from "@/lib/weekdays"
 import type { OrganizationProjectOption } from "@/modules/organization/domain/models"
+import { parseWorkingDays } from "@/modules/attendance/domain/hours-summary"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -126,6 +128,9 @@ function jsonError(status: number, message: string): NextResponse {
 }
 
 function toExternalProject(p: OrganizationProjectOption) {
+  const effectiveWorkingDays = isoDaysToWeekdayNames(
+    parseWorkingDays(p.workingDays ?? null),
+  )
   return {
     id: p.id,
     name: p.name,
@@ -134,9 +139,27 @@ function toExternalProject(p: OrganizationProjectOption) {
     location: p.location ?? null,
     latitude: p.latitude ?? null,
     longitude: p.longitude ?? null,
+    /// Raw CSV form, kept for callers that already read it. `calendar`
+    /// below is the shape to build against — and must stay identical to
+    /// the copy in `[id]/route.ts` so list and detail don't diverge.
     workingHoursStart: p.workingHoursStart ?? null,
     workingHoursEnd: p.workingHoursEnd ?? null,
     workingDays: p.workingDays ?? null,
+    calendar: {
+      workingHoursStart: p.workingHoursStart ?? null,
+      workingHoursEnd: p.workingHoursEnd ?? null,
+      lunchBreakMinutes: p.lunchBreakMinutes ?? null,
+      /// The site's own override, or null when it inherits the org
+      /// default (see `GET /api/v1/settings`).
+      workingDays:
+        p.workingDays == null
+          ? null
+          : isoDaysToWeekdayNames(parseWorkingDays(p.workingDays)),
+      /// What applies at this site after the engine's Mon–Fri fallback.
+      /// Does NOT fold in the org-level override.
+      effectiveWorkingDays,
+      nonWorkingDays: invertWeekdayNames(effectiveWorkingDays),
+    },
     projectManagers: p.projectManagers,
     holidays: p.holidays ?? [],
   }
