@@ -7,7 +7,10 @@ import { z } from "zod"
 
 import { getCurrentSession, updateCurrentSession } from "@/lib/auth/session"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
-import { updateOrgPlanForSupport } from "@/modules/organization/application/services/superadmin-support.service"
+import {
+  createOwnerWithOrganization,
+  updateOrgPlanForSupport,
+} from "@/modules/organization/application/services/superadmin-support.service"
 
 const switchSchema = z.object({
   organizationId: z.string().min(1, "Pick an organisation."),
@@ -134,4 +137,75 @@ export async function updateOrgPlanAction(input: {
 
   revalidatePath("/admin/support")
   return { ok: true, message: "Plan updated." }
+}
+
+const createCompanySchema = z.object({
+  orgName: z.string().trim().min(2, "Company name must be at least 2 characters.").max(120),
+  ownerName: z.string().trim().min(1, "Owner name is required.").max(120),
+  ownerEmail: z.string().trim().email("Enter a valid owner email.").toLowerCase(),
+  password: z.string().min(8, "Password must be at least 8 characters."),
+  plan: z.enum(["DIY", "EXPERT"]),
+  tier: z.enum(["FREE", "PAID"]),
+  claims: z.boolean(),
+  attendance: z.boolean(),
+})
+
+/**
+ * Superadmin-only: provision a brand-new company + its OWNER account
+ * (portal login). Called directly from the support page's "Provision new
+ * company" form (object arg). The account creation, plan seeding, and
+ * audit happen in the service; this gates + validates + revalidates.
+ */
+export async function createCompanyAction(input: {
+  orgName: string
+  ownerName: string
+  ownerEmail: string
+  password: string
+  plan: "DIY" | "EXPERT"
+  tier: "FREE" | "PAID"
+  claims: boolean
+  attendance: boolean
+}): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || !session.isSuperadmin) {
+    return { ok: false, message: "Not authorized." }
+  }
+
+  const parsed = createCompanySchema.safeParse(input)
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Invalid input.",
+    }
+  }
+  const { orgName, ownerName, ownerEmail, password, plan, tier, claims, attendance } =
+    parsed.data
+
+  const addons: string[] = []
+  if (claims) addons.push("expense_claim")
+  if (attendance) addons.push("clock")
+
+  try {
+    const result = await createOwnerWithOrganization({
+      orgName,
+      ownerName,
+      ownerEmail,
+      password,
+      plan,
+      tier: plan === "EXPERT" ? null : tier,
+      addons,
+    })
+    revalidatePath("/admin/support")
+    return {
+      ok: true,
+      message: result.ownerCreated
+        ? `Created "${result.orgName}" with owner ${result.ownerEmail}.`
+        : `Created "${result.orgName}" and linked existing owner ${result.ownerEmail}.`,
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Could not create company.",
+    }
+  }
 }

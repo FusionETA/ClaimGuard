@@ -1460,6 +1460,11 @@ export const organizationRepository = {
     /// paying for from day one. Omit (or pass null) to mean "full
     /// access" — the legacy behaviour kept for non-API call sites.
     modules?: readonly string[] | null
+    /// Optional initial login password for a NEWLY created owner (e.g. a
+    /// superadmin provisioning a portal-login owner). Ignored when the
+    /// email already exists — that user keeps their current password.
+    /// Omit to mean "no usable password" (SSO-only, the partner default).
+    password?: string
   }): Promise<{ id: string; email: string; name: string; created: boolean }> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -1500,14 +1505,18 @@ export const organizationRepository = {
       return { id: existing.id, email, name: existing.name, created: false }
     }
 
-    // No usable password — the owner only ever enters via the signed SSO
-    // hand-off from Altomate Accounting.
-    const randomPassword = randomBytes(24).toString("base64url")
+    // Use the caller-supplied password (superadmin portal-login owner)
+    // when given; otherwise a random unusable one — the owner then only
+    // enters via the signed SSO hand-off from Altomate Accounting.
+    const initialPassword =
+      input.password && input.password.length > 0
+        ? input.password
+        : randomBytes(24).toString("base64url")
     const created = await prisma.user.create({
       data: {
         email,
         name,
-        passwordHash: hashPassword(randomPassword),
+        passwordHash: hashPassword(initialPassword),
         role: "OWNER",
         organizationId: input.organizationId,
         adminOrganizations: {
@@ -1603,6 +1612,36 @@ export const organizationRepository = {
    * landing in a state where an org exists without a way to call its
    * APIs.
    */
+  /**
+   * Plain organisation create (no API integration) — backs the superadmin
+   * "provision new company" flow, which onboards a portal-login owner
+   * rather than an API partner. Writes the same Organization row shape as
+   * `createOrganizationWithApiIntegration`, minus the token.
+   */
+  async createOrganization(input: {
+    organizationName: string
+    plan?: {
+      plan: "DIY" | "EXPERT"
+      tier: "FREE" | "PAID" | null
+      addons: readonly string[]
+    }
+  }): Promise<{ id: string; name: string }> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    return prisma.organization.create({
+      data: {
+        name: input.organizationName,
+        plan: input.plan?.plan ?? "DIY",
+        tier: input.plan?.tier ?? null,
+        addons:
+          input.plan?.addons && input.plan.addons.length > 0
+            ? [...input.plan.addons]
+            : Prisma.JsonNull,
+      },
+      select: { id: true, name: true },
+    })
+  },
+
   async createOrganizationWithApiIntegration(input: {
     organizationName: string
     integration: {

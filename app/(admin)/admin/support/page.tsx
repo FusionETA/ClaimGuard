@@ -12,6 +12,7 @@ import { getCurrentSession, getHomePathForRole } from "@/lib/auth/session"
 import { getSupportPickerPageData } from "@/modules/organization/application/services/superadmin-support.service"
 
 import { SupportPicker } from "./support-picker"
+import { CreateCompanyCard } from "./create-company-card"
 
 export const metadata = {
   title: "Support mode · AltomateHR",
@@ -52,6 +53,8 @@ export default async function SupportPage() {
           <SupportPicker orgs={orgs} />
         </CardContent>
       </Card>
+
+      <CreateCompanyCard />
     </div>
   )
 }
