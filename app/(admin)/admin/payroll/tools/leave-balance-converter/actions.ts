@@ -7,6 +7,10 @@ import {
   parsePayrollPandaSheet,
 } from "@/modules/leave/domain/payroll-panda-balances"
 import { getLeaveMigrationRefData } from "@/modules/leave/application/services/leave-migration-ref.service"
+import {
+  buildLeaveHistoryTemplateBuffer,
+  type PrefilledBalanceRow,
+} from "@/modules/leave/application/services/report-renderers/leave-history-template"
 
 import type { ConvertResponse } from "./types"
 
@@ -40,6 +44,11 @@ export async function convertPayrollPandaBalancesAction(
   }
 
   const includeEmptyRows = formData.get("includeEmptyRows") === "on"
+  // Rows we couldn't resolve are still worth putting in the workbook —
+  // with the email cell blank and highlighted — so the admin can finish
+  // them in Excel instead of re-keying the whole row. Off by default so
+  // the file is importable as-is.
+  const includeUnresolved = formData.get("includeUnresolved") === "on"
 
   let workbook: import("xlsx").WorkBook
   try {
@@ -111,10 +120,43 @@ export async function convertPayrollPandaBalancesAction(
   })
 
   const ready = rows.filter((r) => r.status === "READY").length
+
+  // Fill the real AltomateHR template rather than emitting a bare CSV:
+  // the admin gets the same workbook the Leave → Import page hands out,
+  // with its header styling, leave-type dropdown and Read Me intact, so
+  // it can be edited in place before importing.
+  const templateRows: PrefilledBalanceRow[] = rows
+    .filter((r) => {
+      if (r.status === "READY") return true
+      // An unresolved row is only useful if we at least know the leave
+      // type — otherwise there is nothing for the admin to complete.
+      return (
+        includeUnresolved &&
+        r.leaveTypeName !== null &&
+        (r.status === "NO_EMAIL_MATCH" || r.status === "AMBIGUOUS_NAME")
+      )
+    })
+    .map((r) => ({
+      employeeEmail: r.email ?? "",
+      leaveType: r.leaveTypeName ?? "",
+      year: r.year,
+      entitled: r.entitled,
+      carriedForward: r.carriedForward,
+      taken: r.taken,
+    }))
+
+  const buffer = await buildLeaveHistoryTemplateBuffer({
+    leaveTypeNames: leaveTypes.map((t) => t.name),
+    balanceRows: templateRows,
+  })
+
   return {
     ok: true,
     message: `Converted ${ready} of ${rows.length} rows.`,
     data: {
+      templateBase64: buffer.toString("base64"),
+      templateFileName: `leave-balances-${year}.xlsx`,
+      templateRowCount: templateRows.length,
       companyName: chosen.parsed.companyName,
       asAtDate: chosen.parsed.asAtDate,
       unit: chosen.parsed.unit,

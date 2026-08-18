@@ -40,19 +40,6 @@
  *    Entitled Days instead — same resulting balance, valid input.
  */
 
-/// Header the AltomateHR leave-balance importer expects. A CSV whose
-/// header contains "entitled" is routed to the balances path (see
-/// `fileToSheets` in app/(admin)/admin/leave/actions.ts), so these
-/// labels must keep matching `LEAVE_BALANCE_COLUMNS`.
-export const HR_BALANCE_HEADER = [
-  "Employee Email",
-  "Leave Type",
-  "Year",
-  "Entitled Days",
-  "Carried Forward",
-  "Taken",
-] as const
-
 export type PandaSourceRow = {
   /// 1-based row number in the source sheet, for error messages that
   /// the admin can act on without counting rows themselves.
@@ -502,30 +489,4 @@ export function convertPandaRows(input: {
       status: "READY" as const,
     }
   })
-}
-
-/// Serialise the READY rows as the importer's CSV. A header containing
-/// "entitled" is what routes the upload to the balances path.
-export function toHrBalanceCsv(rows: ConvertedRow[]): string {
-  const esc = (v: string | number): string => {
-    const s = String(v)
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
-  }
-  const lines = [HR_BALANCE_HEADER.join(",")]
-  for (const r of rows) {
-    if (r.status !== "READY" || !r.email || !r.leaveTypeName) continue
-    lines.push(
-      [
-        r.email,
-        r.leaveTypeName,
-        r.year,
-        r.entitled,
-        r.carriedForward,
-        r.taken,
-      ]
-        .map(esc)
-        .join(","),
-    )
-  }
-  return lines.join("\r\n")
 }

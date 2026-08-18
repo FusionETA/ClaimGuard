@@ -4,7 +4,6 @@ import {
   convertPandaRows,
   normaliseName,
   parsePayrollPandaSheet,
-  toHrBalanceCsv,
   toIsoDate,
 } from "@/modules/leave/domain/payroll-panda-balances"
 
@@ -183,42 +182,6 @@ describe("convertPandaRows", () => {
     })
     expect(amended[0].entitled).toBe(10)
     expect(amended[0].notes.join(" ")).toContain("Amendments")
-  })
-})
-
-describe("toHrBalanceCsv", () => {
-  it("emits only READY rows, under the importer's header", () => {
-    const parsed = parsePayrollPandaSheet(SHEET)
-    const csv = toHrBalanceCsv(
-      convertPandaRows({
-        rows: parsed.rows,
-        employees: EMPLOYEES,
-        leaveTypes: LEAVE_TYPES,
-        year: 2026,
-      }),
-    )
-    const lines = csv.split("\r\n")
-    expect(lines[0]).toBe(
-      "Employee Email,Leave Type,Year,Entitled Days,Carried Forward,Taken",
-    )
-    // 3 READY rows: two for Chan, one for Hooi. The empty row and the
-    // unmatched Time Off In Lieu row are excluded.
-    expect(lines).toHaveLength(4)
-    expect(lines[1]).toBe("chan@acme.my,Annual Leave,2026,8,0,7")
-    // The header must keep containing "entitled" — that is what routes
-    // the upload to the balances importer rather than history.
-    expect(lines[0].toLowerCase()).toContain("entitled")
-  })
-
-  it("quotes a leave type containing a comma", () => {
-    const csv = toHrBalanceCsv([
-      {
-        sheetRow: 6, fullName: "A", memberCode: "", policy: "x",
-        email: "a@b.my", leaveTypeName: "Leave, special", year: 2026,
-        entitled: 1, carriedForward: 0, taken: 0, status: "READY", notes: [],
-      },
-    ])
-    expect(csv.split("\r\n")[1]).toContain('"Leave, special"')
   })
 })
 

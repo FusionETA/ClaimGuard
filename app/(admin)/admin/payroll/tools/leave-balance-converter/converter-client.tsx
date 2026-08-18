@@ -21,10 +21,9 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import {
-  toHrBalanceCsv,
-  type ConvertedRow,
-  type ConvertedStatus,
+import type {
+  ConvertedRow,
+  ConvertedStatus,
 } from "@/modules/leave/domain/payroll-panda-balances"
 
 import { convertPayrollPandaBalancesAction } from "./actions"
@@ -99,17 +98,20 @@ export function LeaveBalanceConverterClient() {
     })
   }
 
-  function downloadCsv() {
+  /// Turn the base64 workbook the action returned into a download.
+  /// Built server-side because ExcelJS is server-only.
+  function downloadTemplate() {
     if (!data) return
-    const csv = toHrBalanceCsv(rows)
-    // Prepend a BOM so Excel opens the UTF-8 names correctly.
-    const blob = new Blob(["﻿" + csv], {
-      type: "text/csv;charset=utf-8",
+    const bytes = Uint8Array.from(atob(data.templateBase64), (c) =>
+      c.charCodeAt(0),
+    )
+    const blob = new Blob([bytes], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `leave-balances-${data.year}.csv`
+    a.download = data.templateFileName
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -135,10 +137,17 @@ export function LeaveBalanceConverterClient() {
               onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
               className="block w-full max-w-xl text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
             />
-            <label className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
-              <input type="checkbox" name="includeEmptyRows" className="h-4 w-4" />
-              Include rows where every figure is zero
-            </label>
+            <div className="flex flex-col gap-2">
+              <label className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+                <input type="checkbox" name="includeEmptyRows" className="h-4 w-4" />
+                Include rows where every figure is zero
+              </label>
+              <label className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+                <input type="checkbox" name="includeUnresolved" className="h-4 w-4" />
+                Include unmatched employees, with the email left blank to
+                fill in
+              </label>
+            </div>
             <div className="flex items-center gap-3">
               <Button type="submit" disabled={pending}>
                 <FileUp className="mr-1.5 h-4 w-4" />
@@ -228,9 +237,10 @@ export function LeaveBalanceConverterClient() {
               {counts.READY < rows.length ? (
                 <p className="flex items-start gap-2 text-sm text-muted-foreground">
                   <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                  Only the “Ready” rows are written to the CSV. Fix the rest in
-                  AltomateHR and convert again, or edit the downloaded file by
-                  hand.
+                  Only the “Ready” rows go into the workbook. Fix the rest in
+                  AltomateHR and convert again — or tick “include unmatched
+                  employees” above and complete the highlighted email cells in
+                  Excel.
                 </p>
               ) : null}
             </CardContent>
@@ -241,13 +251,18 @@ export function LeaveBalanceConverterClient() {
               <div>
                 <CardTitle className="text-base">3. Download &amp; import</CardTitle>
                 <CardDescription>
-                  Upload the CSV at Leave → Import, with “balances as at” set to{" "}
+                  You get the standard leave-import workbook with the
+                  “Leave Balances” tab filled in. Upload it at Leave →
+                  Import with “balances as at” set to{" "}
                   {data.asAtDate ?? "the export date"}.
                 </CardDescription>
               </div>
-              <Button onClick={downloadCsv} disabled={counts.READY === 0}>
+              <Button
+                onClick={downloadTemplate}
+                disabled={data.templateRowCount === 0}
+              >
                 <Download className="mr-1.5 h-4 w-4" />
-                Download {counts.READY} rows
+                Download {data.templateRowCount} rows
               </Button>
             </CardHeader>
             <CardContent className="space-y-3">

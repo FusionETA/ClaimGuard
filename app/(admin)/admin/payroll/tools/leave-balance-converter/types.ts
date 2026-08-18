@@ -21,5 +21,12 @@ export type ConvertResponse = {
     otherSheets: string[]
     rows: ConvertedRow[]
     problems: string[]
+    /// The filled "Leave Balances" template, base64-encoded. Built
+    /// server-side (ExcelJS is server-only) and handed to the browser as
+    /// a blob, so the download needs no extra round-trip.
+    templateBase64: string
+    templateFileName: string
+    /// How many rows the workbook actually contains.
+    templateRowCount: number
   }
 }
