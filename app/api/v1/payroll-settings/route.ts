@@ -11,6 +11,11 @@ import {
   type PayrollCompanyInfoData,
   type PayrollSettingsData,
 } from "@/modules/payroll/domain/settings"
+import {
+  MALAYSIAN_BANKS,
+  findBankByName,
+  isPublicBankName,
+} from "@/modules/payroll/domain/malaysian-banks"
 
 /**
  * Payroll-settings API — everything configured once per organisation
@@ -133,6 +138,18 @@ const updateSchema = z
     /// PERKESO code, covers both SOCSO and EIS (single registration).
     socsoEisEmployerNo: nullableTrimmed(),
     hrdfEmployerNo: nullableTrimmed(),
+    /// Employer zakat registration number for the *potongan zakat
+    /// berjadual* scheme (LZS, PPZ-MAIWP, MAIDAM, …). Feeds the company
+    /// profile + payslip footer.
+    ///
+    /// ONE value per organisation. Zakat is state-administered, so a
+    /// multi-state employer holding several registrations can only
+    /// record one of them here — keep the full set on your side.
+    ///
+    /// Distinct from EMPLOYEE zakat, which is already handled per
+    /// employee (`deduct_zakat` line item + `prevZakat` YTD carry-in)
+    /// and is not set through this endpoint.
+    zakatNumber: nullableTrimmed(),
     /// LHDN reference-type code:
     ///   01 → SG (Individual non-business)
     ///   02 → OG (Individual business)
@@ -288,39 +305,58 @@ const updateSchema = z
       .optional(),
 
     // ── bank ─────────────────────────────────────────────────────────
-    /// The company's PAYOR account — the account salaries are paid
-    /// FROM, used as the debiting account in the bulk-payment file.
+    /// The company's PAYOR bank details — the account salaries are paid
+    /// FROM, and the debiting account on the bulk-payment file.
     ///
-    /// Two things worth being explicit about:
-    ///   1. This is not a general-purpose "company bank account" pair.
-    ///      `bankName` / `accountNo` / `accountHolderName` in
-    ///      AltomateHR belong to the EMPLOYEE (`PayrollProfile`) and
-    ///      are set per employee via `/api/v1/employees`.
-    ///   2. Public Bank ECP is the only bulk-payment format this
-    ///      deployment can emit, and its spec requires exactly 10
-    ///      digits — hence the validation below. No CIMB, Maybank2E or
-    ///      RHB emitter exists, so their corporate/organisation codes
-    ///      have nowhere to be stored or used yet.
+    /// NOT a general-purpose "company bank account" block: `bankName` /
+    /// `bankAccountNumber` / `bankAccountHolderName` in AltomateHR
+    /// belong to the EMPLOYEE (`PayrollProfile`) and are set per
+    /// employee via `/api/v1/employees`. Everything here is the
+    /// employer side.
+    ///
+    /// `bankName` decides which file the run download emits:
+    ///   Public Bank → PB ECP XLSX  ·  any other bank → general CSV.
+    /// Read `supportedFormats` / `activeFormat` on the GET rather than
+    /// assuming either.
     bank: z
       .object({
-        /// 10-digit debiting account. Non-digits are stripped before
-        /// the length check, so `"1234-567890"` is accepted. Null
-        /// clears it (and disables bank-file generation for the org).
+        /// Payor bank, matched against the `MALAYSIAN_BANKS` catalogue
+        /// — aliases like `"maybank"` or `"cimb"` resolve,
+        /// and the canonical name is what gets stored. An unmatched
+        /// name is a 400 rather than a silent free-text write, because
+        /// the stored value selects the output format. `GET` returns
+        /// the full catalogue under `bank.availableBanks` for a picker.
+        /// Null clears it (and the org falls back to the general CSV).
+        bankName: z
+          .string()
+          .trim()
+          .max(120)
+          .nullable()
+          .optional()
+          .transform((v) => (v == null || v === "" ? null : v)),
+        /// Debiting account. Non-digits are stripped, so
+        /// `"1234-567890"` is fine.
+        ///
+        /// Length is validated against the resolved bank, NOT globally:
+        /// the Public Bank ECP spec requires exactly 10 digits, but
+        /// every other bank's account is its own length, so a hard
+        /// 10-digit rule would reject valid Maybank/CIMB accounts. The
+        /// check runs in the handler where the effective bank is known
+        /// (this request's `bankName`, else the stored one).
         payorAccountNo: z
           .string()
           .trim()
+          .max(40)
           .nullable()
           .optional()
           .transform((v) => {
             if (v == null || v === "") return null
             return v.replace(/[^0-9]/g, "")
-          })
-          .refine((v) => v === null || v.length === 10, {
-            message:
-              "payorAccountNo must be exactly 10 digits (Public Bank ECP spec).",
           }),
-        /// SWIFT/BIC of the payor's bank. Defaults to `PBBEMYKL`
-        /// (Public Bank) when unset.
+        /// SWIFT/BIC of the payor's bank. Optional — when you send
+        /// `bankName` and omit this, we fill it from the catalogue, so
+        /// there's no need to put a BIC field on a setup form. Send it
+        /// explicitly only to override the catalogue value.
         payorBic: z
           .string()
           .trim()
@@ -331,6 +367,26 @@ const updateSchema = z
           .nullable()
           .optional()
           .transform((v) => (v == null || v === "" ? null : v.toUpperCase())),
+        /// Name on the payor account, as the bank has it. Printed in
+        /// the general CSV header.
+        accountHolderName: z
+          .string()
+          .trim()
+          .max(120)
+          .nullable()
+          .optional()
+          .transform((v) => (v == null || v === "" ? null : v)),
+        /// The corporate identifier a bank requires on a bulk-salary
+        /// file — CIMB calls it Organisation Code, Maybank2E and RHB
+        /// Corporate ID. One value per company. Written to the general
+        /// CSV header; the PB ECP file has no field for it.
+        organisationCode: z
+          .string()
+          .trim()
+          .max(60)
+          .nullable()
+          .optional()
+          .transform((v) => (v == null || v === "" ? null : v)),
       })
       .strict()
       .optional(),
@@ -377,6 +433,9 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
   }
   if (parsed.data.hrdfEmployerNo !== undefined) {
     patch.hrdfEmployerNo = parsed.data.hrdfEmployerNo
+  }
+  if (parsed.data.zakatNumber !== undefined) {
+    patch.zakatNumber = parsed.data.zakatNumber
   }
   if (parsed.data.taxFileReferenceType !== undefined) {
     // Caller sends the two-digit code (e.g. "03"); DB stores the
@@ -445,11 +504,78 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
     // silently inherit a stale percentage.
     settingsPatch.hrdfRate = hrdf.contribute ? (hrdf.rate ?? null) : null
   }
-  if (parsed.data.bank?.payorAccountNo !== undefined) {
-    settingsPatch.ecpPayorAccountNo = parsed.data.bank.payorAccountNo
-  }
-  if (parsed.data.bank?.payorBic !== undefined) {
-    settingsPatch.ecpPayorBic = parsed.data.bank.payorBic
+  const bank = parsed.data.bank
+  if (bank) {
+    // Resolve the bank this request leaves the org on: the one being
+    // set now, else whatever is already stored. Needed before the
+    // account-number check, because the length rule is bank-specific.
+    let effectiveBankName: string | null
+    if (bank.bankName !== undefined) {
+      if (bank.bankName === null) {
+        effectiveBankName = null
+      } else {
+        const matched = findBankByName(bank.bankName)
+        if (!matched) {
+          return jsonError(
+            400,
+            `Unrecognised bank name "${bank.bankName}". It must match a Malaysian bank in our catalogue — read \`bank.availableBanks\` from GET /api/v1/payroll-settings for the accepted list.`,
+          )
+        }
+        // Store the CANONICAL name. The stored value is what
+        // `isPublicBankName` reads to choose the output format, so a
+        // free-text variant must never reach the column.
+        effectiveBankName = matched.name
+      }
+      settingsPatch.payrollBankName = effectiveBankName
+    } else {
+      const existing = await payrollSettingsRepository.getByOrgId(
+        ctx.integration.organizationId,
+      )
+      effectiveBankName = existing?.payrollBankName ?? null
+    }
+
+    if (bank.payorAccountNo !== undefined) {
+      // Public Bank ECP mandates exactly 10 digits. Other banks each
+      // have their own length, so we only assert a sane range there
+      // rather than inventing a rule per bank.
+      const acc = bank.payorAccountNo
+      if (acc !== null) {
+        if (isPublicBankName(effectiveBankName)) {
+          if (acc.length !== 10) {
+            return jsonError(
+              400,
+              `payorAccountNo must be exactly 10 digits for Public Bank (ECP spec); got ${acc.length}.`,
+            )
+          }
+        } else if (acc.length < 5 || acc.length > 20) {
+          return jsonError(
+            400,
+            `payorAccountNo must be between 5 and 20 digits; got ${acc.length}.`,
+          )
+        }
+      }
+      settingsPatch.ecpPayorAccountNo = acc
+    }
+
+    if (bank.payorBic !== undefined) {
+      settingsPatch.ecpPayorBic = bank.payorBic
+    } else if (bank.bankName !== undefined) {
+      // Caller changed the bank but sent no BIC. Derive it from the
+      // catalogue so a setup form never has to ask for a SWIFT code —
+      // and, when the bank is cleared, clear the BIC with it rather
+      // than leaving one pointing at a bank no longer configured.
+      const matched = effectiveBankName
+        ? findBankByName(effectiveBankName)
+        : null
+      settingsPatch.ecpPayorBic = matched?.bic ?? null
+    }
+
+    if (bank.accountHolderName !== undefined) {
+      settingsPatch.payorAccountHolderName = bank.accountHolderName
+    }
+    if (bank.organisationCode !== undefined) {
+      settingsPatch.payorOrganisationCode = bank.organisationCode
+    }
   }
 
   if (Object.keys(patch).length === 0 && Object.keys(settingsPatch).length === 0) {
@@ -547,15 +673,33 @@ function toExternalSettings(settings: PayrollSettingsData | null) {
       },
     },
     bank: {
+      bankName: settings?.payrollBankName ?? null,
       payorAccountNo: settings?.ecpPayorAccountNo ?? null,
       /// Null means the PB ECP renderer falls back to PBBEMYKL.
       payorBic: settings?.ecpPayorBic ?? null,
-      /// Bulk-payment formats this deployment can emit. Public Bank ECP
-      /// is the only one — there is no CIMB / Maybank2E / RHB emitter,
-      /// so those banks' organisation / corporate codes have nothing to
-      /// feed and aren't accepted. Read this list rather than assuming
-      /// a format exists.
-      supportedFormats: ["PUBLIC_BANK_ECP_XLSX"],
+      accountHolderName: settings?.payorAccountHolderName ?? null,
+      organisationCode: settings?.payorOrganisationCode ?? null,
+      /// Bulk-payment formats this deployment can emit at all.
+      ///
+      /// `PUBLIC_BANK_ECP_XLSX` is Public Bank's native ECP upload.
+      /// `GENERAL_CSV` is a bank-agnostic salary CSV (payee, bank, BIC,
+      /// account no, amount) for every other bank — it is NOT CIMB's,
+      /// Maybank2E's or RHB's own bulk-upload format, so a client on
+      /// those banks imports the CSV rather than getting a native file.
+      supportedFormats: ["PUBLIC_BANK_ECP_XLSX", "GENERAL_CSV"],
+      /// Which of the above THIS org's run download will actually
+      /// produce, derived from `bankName`. Exactly one is offered per
+      /// run, so read this rather than inferring from the list.
+      activeFormat: isPublicBankName(settings?.payrollBankName)
+        ? "PUBLIC_BANK_ECP_XLSX"
+        : "GENERAL_CSV",
+      /// The accepted `bankName` values, for a picker. Sending a name
+      /// outside this catalogue is a 400 — aliases resolve, but the
+      /// canonical `name` is what gets stored.
+      availableBanks: MALAYSIAN_BANKS.map((b) => ({
+        name: b.name,
+        bic: b.bic,
+      })),
     },
   }
 }
@@ -571,6 +715,7 @@ function toExternal(
       epfEmployerNo: null,
       socsoEisEmployerNo: null,
       hrdfEmployerNo: null,
+      zakatNumber: null,
       taxFileReferenceType: null,
       taxFileNumber: null,
       taxFileFullNumber: null,
@@ -598,6 +743,9 @@ function toExternal(
     epfEmployerNo: info.epfEmployerNo,
     socsoEisEmployerNo: info.perkesoEmployerCode,
     hrdfEmployerNo: info.hrdfEmployerNo,
+    /// One value per org — see the PATCH field docs on multi-state
+    /// employers.
+    zakatNumber: info.zakatNumber,
     /// Two-digit LHDN code (`"03"` etc). DB actually stores the full
     /// display value (`"03 - C"`) — we parse it back to the code
     /// here so the external contract matches what PATCH accepts.

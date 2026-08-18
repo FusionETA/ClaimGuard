@@ -47,9 +47,16 @@ export const API_FEATURE_CATALOG = [
   /// settings.
   "payroll-settings.calculation",
   /// GET returns + PATCH accepts the `bank` block (bulk-payment payor
-  /// account + BIC). Public Bank ECP is the only emittable format
-  /// today — see `payrollReportKinds`.
+  /// account + BIC).
   "payroll-settings.bank",
+  /// The `bank` block additionally accepts `bankName`,
+  /// `accountHolderName` and `organisationCode`, and the GET reports
+  /// `supportedFormats` / `activeFormat` / `availableBanks`. Separate
+  /// flag from `bank` because those shipped later, alongside the
+  /// bank-agnostic disbursement CSV.
+  "payroll-settings.bankDetails",
+  /// PATCH accepts `zakatNumber` (employer registration, one per org).
+  "payroll-settings.zakatNumber",
 
   // ── /api/v1/projects ────────────────────────────────────────────────
   /// PATCH accepts the `calendar` block (working hours, working days,
