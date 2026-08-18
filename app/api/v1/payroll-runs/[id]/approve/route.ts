@@ -11,17 +11,25 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
  *
  * Required scope: `payroll:write`.
  *
- * Body:
- *   {
- *     "approvedByUserId": "ckxxxxxxxxxxxxxxxxxx"
- *   }
+ * Body — exactly one identifier is required:
+ *   { "approvedByUserId": "ckxxxxxxxxxxxxxxxxxx" }
+ *   { "approvedByEmail": "owner@acme.com" }
  *
- * Transitions the run PENDING_APPROVAL → SUBMITTED. The
- * `approvedByUserId` is the human user that authorised the approval —
- * the external system passes this back so the audit trail records a
- * real person rather than an opaque API token. We validate the user:
+ * Both are discoverable via GET /api/v1/admins. `approvedByEmail` exists
+ * because callers (and AI agents) know people by email, not by cuid; it
+ * is resolved to a user id and then put through the SAME authorisation
+ * gate, so there is exactly one place that decides who may approve.
+ *
+ * Transitions the run PENDING_APPROVAL → SUBMITTED. The approver is the
+ * human user that authorised the approval — the external system passes
+ * this back so the audit trail records a real person rather than an
+ * opaque API token. We validate the user:
  *   1. exists in the integration's organisation
  *   2. has role ADMIN or OWNER (the same gate the in-app UI uses)
+ *
+ * NOTE: this is an assertion, not authentication. We verify the named
+ * person is ELIGIBLE to approve, not that they actually did — the token
+ * holder is trusted to report the real approver.
  *
  * If the org has `syncPayrollToXeroOnSubmit` enabled, the journal post
  * happens best-effort after the status flip — the run still ends up
@@ -29,18 +37,27 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
  * in the response so callers can surface it to their own users.
  *
  * Error responses:
- *   400 — malformed body / missing approvedByUserId
+ *   400 — malformed body / neither identifier supplied
  *   404 — run not found in this org
- *   403 — approvedByUserId not in this org, or not an admin/owner
+ *   403 — approver not in this org, or not an admin/owner
  *   409 — run is not in PENDING_APPROVAL state
  *   500 — unexpected server error
  */
-const bodySchema = z.object({
-  approvedByUserId: z
-    .string()
-    .trim()
-    .min(1, "approvedByUserId is required."),
-})
+const bodySchema = z
+  .object({
+    approvedByUserId: z.string().trim().min(1).optional(),
+    approvedByEmail: z.string().trim().toLowerCase().email().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.approvedByUserId && !data.approvedByEmail) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["approvedByUserId"],
+        message:
+          "Provide approvedByUserId or approvedByEmail. Both are listed by GET /api/v1/admins.",
+      })
+    }
+  })
 
 export const POST = handleApiRequest<{ id: string }>(
   ["payroll:write"],
@@ -79,10 +96,25 @@ export const POST = handleApiRequest<{ id: string }>(
     // being approved) are recognised. Prior implementation called
     // `findOrgMemberById` which only matched the primary path, and
     // 403'd legitimate multi-org admins.
-    const approver = await organizationRepository.findAdminWithAccessToOrg({
-      userId: parsed.data.approvedByUserId,
-      organizationId: ctx.integration.organizationId,
-    })
+    // Resolve an email to a user id first. The email is used ONLY for
+    // lookup — the authorisation check below is unchanged, so both
+    // identifiers converge on a single gate.
+    let approverId = parsed.data.approvedByUserId ?? null
+    const approverEmail = parsed.data.approvedByEmail
+    if (!approverId && approverEmail) {
+      const admins = await organizationRepository.listAdminsForOrganization(
+        ctx.integration.organizationId,
+      )
+      approverId =
+        admins.find((a) => a.email.toLowerCase() === approverEmail)?.id ?? null
+    }
+
+    const approver = approverId
+      ? await organizationRepository.findAdminWithAccessToOrg({
+          userId: approverId,
+          organizationId: ctx.integration.organizationId,
+        })
+      : null
     if (!approver) {
       // Collapse "user not found", "not an admin", and "no access to
       // this org" into a single message — don't enumerate which
@@ -92,7 +124,7 @@ export const POST = handleApiRequest<{ id: string }>(
           error: {
             status: 403,
             message:
-              "approvedByUserId does not have admin access to this organisation. The user must have role ADMIN or OWNER and be linked to this org as their primary or via AdminOrganization.",
+              "The approver does not have admin access to this organisation. The user must have role ADMIN or OWNER and be linked to this org as their primary or via AdminOrganization. List valid approvers with GET /api/v1/admins.",
           },
         },
         { status: 403 },
