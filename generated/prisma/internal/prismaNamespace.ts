@@ -5154,6 +5154,8 @@ export const LeaveEntitlementScalarFieldEnum = {
   carriedExpired: 'carriedExpired',
   accruedDays: 'accruedDays',
   usedDays: 'usedDays',
+  openingUsedDays: 'openingUsedDays',
+  balanceAsAt: 'balanceAsAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   accrualMethod: 'accrualMethod',

@@ -2303,6 +2303,14 @@ model LeaveEntitlement {
   /// PRO_RATED: monthly accumulated. LUMP_SUM: equals entitledDays.
   accruedDays            Float               @default(0)
   usedDays               Float               @default(0)
+  /// Migrated OPENING used-days as at `balanceAsAt` (leave taken
+  /// BEFORE the balance-import cutoff). `usedDays` = this opening +
+  /// usage tracked since; the balance importer applies the opening as
+  /// a delta so post-cutoff leave is preserved and re-uploads never
+  /// double-count. Default 0 for entitlements never balance-imported.
+  openingUsedDays        Float               @default(0)
+  /// Effective date of the last balance import ("balances as at").
+  balanceAsAt            DateTime?
   createdAt              DateTime            @default(now())
   updatedAt              DateTime            @updatedAt
   /// Per-employee override of accrualMethod. Null = inherit from

@@ -64,8 +64,18 @@ function parseDays(raw: string, fallback: number | null): number | null {
 export async function bulkImportLeaveBalances(input: {
   orgId: string
   rows: string[][]
+  /// "Balances as at" effective date (ISO YYYY-MM-DD) — the cutoff the
+  /// imported figures are accurate to. Stamped on each entitlement; the
+  /// "Taken" figure is treated as the OPENING used up to this date.
+  asAtDate?: string | null
 }): Promise<LeaveBalanceImportResult> {
   const result: LeaveBalanceImportResult = { imported: 0, failed: 0, errors: [] }
+  const asAtRaw = input.asAtDate?.trim() || null
+  const asAt = asAtRaw ? new Date(asAtRaw) : null
+  if (asAtRaw && Number.isNaN(asAt!.getTime())) {
+    result.errors.push({ row: 0, message: "The 'balances as at' date is invalid." })
+    return result
+  }
   const rows = input.rows.filter((r) => r.some((c) => c.trim().length > 0))
   if (rows.length < 2) {
     result.errors.push({ row: 0, message: "The file has no data rows." })
@@ -150,8 +160,11 @@ export async function bulkImportLeaveBalances(input: {
       await leaveRepository.setEntitlementBalances(entitlement.id, {
         entitledDays: entitled,
         carriedDays: carried,
-        usedDays: taken,
         accruedDays: entitled,
+        // "Taken" is the OPENING used as at the cutoff — added on top of
+        // any usage tracked since (never overwrites post-cutoff leave).
+        openingUsedDays: taken,
+        balanceAsAt: asAt,
       })
 
       result.imported += 1
