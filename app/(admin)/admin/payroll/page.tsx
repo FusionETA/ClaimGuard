@@ -8,7 +8,6 @@ import {
   FileSpreadsheet,
   Settings2,
   Users,
-  Wrench,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -123,36 +122,6 @@ export default async function AdminPayrollPage() {
           <CardContent className="mt-auto">
             <Button asChild>
               <Link href="/admin/payroll/settings">Open settings</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/*
-          TEMPORARY — migration tooling for clients moving off another
-          payroll system. Remove this card together with
-          `app/(admin)/admin/payroll/tools/` once the migrations are done.
-        */}
-        <Card className="flex h-full flex-col border-dashed">
-          <CardHeader className="flex-1">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Wrench className="h-4 w-4" />
-              Migration tools
-            </CardTitle>
-            <CardDescription>
-              Convert a Payroll Panda “Time Off Balances” export into the
-              AltomateHR leave-balance import file. Temporary — for
-              onboarding clients only.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="mt-auto">
-            <Button asChild variant="outline">
-              <Link
-                href={
-                  "/admin/payroll/tools/leave-balance-converter" as Route
-                }
-              >
-                Open converter
-              </Link>
             </Button>
           </CardContent>
         </Card>

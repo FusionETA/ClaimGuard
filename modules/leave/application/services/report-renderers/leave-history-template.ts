@@ -147,62 +147,8 @@ function addExample(wb: ExcelJS.Workbook, leaveTypeNames: string[]): void {
   void leaveTypeNames
 }
 
-/**
- * One pre-filled row for the "Leave Balances" tab. Keys match
- * `LEAVE_BALANCE_COLUMNS`; `employeeEmail` may be blank so a migration
- * converter can hand back a row whose employee it couldn't resolve, for
- * the admin to complete in Excel before importing.
- */
-export type PrefilledBalanceRow = {
-  employeeEmail: string
-  leaveType: string
-  year: number
-  entitled: number
-  carriedForward: number
-  taken: number
-}
-
-/**
- * Write pre-filled rows under the header, in `LEAVE_BALANCE_COLUMNS`
- * order. A blank `employeeEmail` is highlighted rather than left
- * looking complete — the importer rejects a row it can't resolve to an
- * employee, so the gap has to be obvious on screen.
- */
-function fillBalances(
-  ws: ExcelJS.Worksheet,
-  rows: readonly PrefilledBalanceRow[],
-): void {
-  const order = LEAVE_BALANCE_COLUMNS.map((c) => c.key)
-  rows.forEach((row, i) => {
-    const r = i + 2 // row 1 is the styled header
-    order.forEach((key, c) => {
-      const cell = ws.getCell(r, c + 1)
-      cell.value = row[key as keyof PrefilledBalanceRow] ?? ""
-      if (key !== "employeeEmail" && key !== "leaveType") {
-        cell.alignment = { horizontal: "right" }
-      }
-    })
-    if (!row.employeeEmail) {
-      const cell = ws.getCell(r, order.indexOf("employeeEmail") + 1)
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFFDE68A" }, // amber — "fill this in"
-      }
-      cell.note =
-        "No matching employee was found for this row. Enter the employee's AltomateHR email, or delete the row."
-    }
-  })
-}
-
 export async function buildLeaveHistoryTemplateBuffer(opts: {
   leaveTypeNames: string[]
-  /// Rows written into the "Leave Balances" tab beneath the header.
-  /// Omit for the blank template; pass rows to hand back a filled-in
-  /// workbook (the Payroll Panda converter does this). The sheet keeps
-  /// its header styling, dropdowns and validation either way, so a
-  /// filled workbook is still editable in place before import.
-  balanceRows?: readonly PrefilledBalanceRow[]
 }): Promise<Buffer> {
   const wb = new ExcelJS.Workbook()
   wb.creator = "AltomateHR"
@@ -212,9 +158,6 @@ export async function buildLeaveHistoryTemplateBuffer(opts: {
 
   const balances = wb.addWorksheet("Leave Balances")
   styleSheet(balances, LEAVE_BALANCE_COLUMNS, opts.leaveTypeNames)
-  if (opts.balanceRows?.length) {
-    fillBalances(balances, opts.balanceRows)
-  }
 
   const history = wb.addWorksheet("Leave History")
   styleSheet(history, LEAVE_HISTORY_COLUMNS, opts.leaveTypeNames)
