@@ -412,13 +412,24 @@ function TeamEditor(props: EditorProps) {
   function handleLayerCountChange(next: number) {
     if (next < 1) next = 1
     if (next > 10) next = 10
+    const prev = layerCount
     setLayerCount(next)
     setLayerLabels((labels) => labels.slice(0, next))
     setModuleConfig((cfg) => {
       const out = { ...cfg }
       for (const m of teamModules) {
         const within = (out[m] ?? []).filter((l) => l <= next)
-        // When growing, keep what was there; admin can manually add new layer.
+        // Growing: a newly-added layer approves by default (matches the
+        // "every layer approves" default the initial config uses) — but
+        // only for modules that already have at least one approving
+        // layer. An intentionally emptied (skip-approvals) column stays
+        // empty so the admin's "skip" choice is respected.
+        if (next > prev && within.length > 0) {
+          for (let l = prev + 1; l <= next; l += 1) {
+            if (!within.includes(l)) within.push(l)
+          }
+          within.sort((a, b) => a - b)
+        }
         out[m] = within
       }
       return out

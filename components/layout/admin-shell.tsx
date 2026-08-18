@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 
 import { ChangePasswordButton } from "@/components/layout/change-password-button"
+import { LaunchAppraisifyButton } from "@/components/layout/launch-appraisify-button"
 import { LogoutButton } from "@/components/layout/logout-button"
 import { NotificationBell } from "@/components/layout/notification-bell"
 import { RealtimeListener } from "@/components/layout/realtime-listener"
@@ -657,6 +658,7 @@ export function AdminShell({
             </div>
             <div className="flex items-center gap-3">
               <RealtimeListener />
+              <LaunchAppraisifyButton />
               <NotificationBell />
               <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-3 py-2 shadow-ambient">
                 <Avatar className="h-10 w-10">

@@ -57,9 +57,17 @@ const settingsSchema = z.object({
     .optional()
     .transform((v) => (v == null || v === "" ? null : v.replace(/[^0-9]/g, "")))
     .refine(
-      (v) => v === null || v.length === 10,
-      "Public Bank account number must be exactly 10 digits.",
+      // Any bank now — length varies. Public Bank ECP re-checks the exact
+      // 10-digit rule at file-generation time.
+      (v) => v === null || (v.length >= 5 && v.length <= 20),
+      "Account number must be 5–20 digits.",
     ),
+  // Disbursement bank config. `payrollBankName` picks the company
+  // payroll bank; Public Bank offers the PB ECP file, others the
+  // general CSV. Holder name + org code appear where the bank needs them.
+  payrollBankName: nullableString(),
+  payorAccountHolderName: nullableString(),
+  payorOrganisationCode: nullableString(),
   // Two identity fields that live on PayrollCompanyInfo but are
   // rendered inside the EPF / HRDF cards on the General tab for
   // discoverability. The general save action also patches
@@ -82,6 +90,9 @@ export async function savePayrollSettingsAction(
     syncClaimsToXeroOnSubmit: formData.get("syncClaimsToXeroOnSubmit"),
     syncPayrollToXeroOnSubmit: formData.get("syncPayrollToXeroOnSubmit"),
     ecpPayorAccountNo: formData.get("ecpPayorAccountNo"),
+    payrollBankName: formData.get("payrollBankName"),
+    payorAccountHolderName: formData.get("payorAccountHolderName"),
+    payorOrganisationCode: formData.get("payorOrganisationCode"),
     epfEmployerNo: formData.get("epfEmployerNo"),
     hrdfEmployerNo: formData.get("hrdfEmployerNo"),
   })
@@ -171,6 +182,7 @@ const companyInfoSchema = z.object({
   declarantIdType: nullableEnum(idTypes),
   declarantIdNumber: nullableString(),
   declarantPosition: nullableString(),
+  zakatNumber: nullableString(),
 })
 
 export async function savePayrollCompanyInfoAction(
@@ -213,6 +225,7 @@ export async function savePayrollCompanyInfoAction(
         "declarantIdType",
         "declarantIdNumber",
         "declarantPosition",
+        "zakatNumber",
       ].map((k) => [k, formData.get(k)]),
     ),
   )

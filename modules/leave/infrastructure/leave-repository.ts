@@ -514,18 +514,36 @@ export const leaveRepository = {
     input: {
       entitledDays: number
       carriedDays: number
-      usedDays: number
       accruedDays: number
+      /// Migrated OPENING used-days (leave taken BEFORE the import
+      /// cutoff). Applied as a DELTA against the previously-imported
+      /// opening so usage tracked since the cutoff (real leave taken)
+      /// is preserved and a re-upload never double-counts.
+      openingUsedDays: number
+      /// Effective date of this import ("balances as at").
+      balanceAsAt: Date | null
     },
   ): Promise<void> {
     const prisma = requirePrisma()
+    const existing = await prisma.leaveEntitlement.findUnique({
+      where: { id: entitlementId },
+      select: { usedDays: true, openingUsedDays: true },
+    })
+    const prevUsed = existing?.usedDays ?? 0
+    const prevOpening = existing?.openingUsedDays ?? 0
+    // used = (usage tracked since the cutoff) + (this import's opening).
+    // prevUsed - prevOpening strips any previously-imported opening so a
+    // re-upload replaces just that portion, keeping post-cutoff leave.
+    const nextUsed = Math.max(0, prevUsed - prevOpening + input.openingUsedDays)
     await prisma.leaveEntitlement.update({
       where: { id: entitlementId },
       data: {
         entitledDays: input.entitledDays,
         carriedDays: input.carriedDays,
-        usedDays: input.usedDays,
         accruedDays: input.accruedDays,
+        usedDays: nextUsed,
+        openingUsedDays: input.openingUsedDays,
+        balanceAsAt: input.balanceAsAt,
       },
     })
   },

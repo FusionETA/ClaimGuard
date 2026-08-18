@@ -6,6 +6,7 @@ import { renderEpfCsv } from "@/modules/payroll/application/services/report-rend
 import { renderPaymentSchedulePdf } from "@/modules/payroll/application/services/report-renderers/payment-schedule-pdf"
 import { renderPayrollSummaryPdf } from "@/modules/payroll/application/services/report-renderers/payroll-summary-pdf"
 import { renderPbEcpXlsx } from "@/modules/payroll/application/services/report-renderers/pb-ecp-xlsx"
+import { renderBankGeneralCsv } from "@/modules/payroll/application/services/report-renderers/bank-general-csv"
 import { renderPcbLhdnFormPdf } from "@/modules/payroll/application/services/report-renderers/pcb-lhdn-form-pdf"
 import { renderPcbTxt } from "@/modules/payroll/application/services/report-renderers/pcb-txt"
 import { renderSocsoEisSkbbkTxt } from "@/modules/payroll/application/services/report-renderers/socso-eis-skbbk-txt"
@@ -56,5 +57,7 @@ export async function renderPayrollReport(input: {
         organizationId,
         paymentDate: input.paymentDate,
       })
+    case "BANK_GENERAL_CSV":
+      return renderBankGeneralCsv({ runId, organizationId })
   }
 }

@@ -100,6 +100,22 @@ export function ImportLeaveHistoryButton() {
           </div>
 
           <div className="space-y-1.5">
+            <Label htmlFor="leave-balances-as-at">Balances as at (optional)</Label>
+            <input
+              id="leave-balances-as-at"
+              type="date"
+              name="balancesAsAt"
+              className="block w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              The cutoff date the <strong>Leave Balances</strong> figures are
+              accurate to. The &ldquo;Taken&rdquo; column is treated as the used
+              days up to this date — any leave taken after it stays counted, and
+              re-uploading the same cutoff won&apos;t double-count.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
             <Label htmlFor="leave-import-file">File (.xlsx or .csv)</Label>
             <input
               id="leave-import-file"

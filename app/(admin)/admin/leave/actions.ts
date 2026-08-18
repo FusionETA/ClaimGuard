@@ -130,6 +130,7 @@ export async function importLeaveHistoryAction(
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return { ok: false, message: "No active organisation." }
 
+  const asAtDate = (formData.get("balancesAsAt") as string | null)?.trim() || null
   const file = formData.get("file")
   if (!(file instanceof File) || file.size === 0) {
     return { ok: false, message: "No file uploaded." }
@@ -159,7 +160,7 @@ export async function importLeaveHistoryAction(
   }
 
   const balances = hasBalances
-    ? await bulkImportLeaveBalances({ orgId, rows: sheets.balances })
+    ? await bulkImportLeaveBalances({ orgId, rows: sheets.balances, asAtDate })
     : null
   const history = hasHistory
     ? await bulkImportLeaveHistory({

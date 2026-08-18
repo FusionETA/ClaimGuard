@@ -3,6 +3,8 @@ import "server-only"
 import { getCurrentSession } from "@/lib/auth/session"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { deriveOrgEnabledModules } from "@/modules/organization/domain/plan"
+import { ensureDefaultLeaveTypesForOrg } from "@/modules/leave/application/services/leave-defaults.service"
 
 /**
  * Superadmin support-mode services. Used exclusively by the
@@ -64,6 +66,100 @@ export async function updateOrgPlanForSupport(input: {
       targetType: "organization",
       targetId: input.organizationId,
     })
+  }
+}
+
+/**
+ * Superadmin-only: provision a brand-new company (Organization) with a
+ * fresh OWNER account that logs in via the portal (password set here),
+ * on the chosen plan. Seeds default leave types and grants the owner the
+ * plan's modules. If the owner email already belongs to a user, that
+ * account is linked as owner of the new company instead of creating a
+ * duplicate (and its existing password is left untouched).
+ *
+ * Re-checks `isSuperadmin` itself (not only the page guard) since this
+ * creates real accounts. Audits the provisioning.
+ */
+export async function createOwnerWithOrganization(input: {
+  orgName: string
+  ownerName: string
+  ownerEmail: string
+  password: string
+  plan: "DIY" | "EXPERT"
+  tier: "FREE" | "PAID" | null
+  addons: string[]
+}): Promise<{
+  orgId: string
+  orgName: string
+  ownerEmail: string
+  ownerCreated: boolean
+}> {
+  const session = await getCurrentSession()
+  if (!session || !session.isSuperadmin) {
+    throw new Error("Not authorized.")
+  }
+
+  const orgName = input.orgName.trim()
+  if (orgName.length < 2) {
+    throw new Error("Company name must be at least 2 characters.")
+  }
+  const ownerName = input.ownerName.trim()
+  if (!ownerName) throw new Error("Owner name is required.")
+  const ownerEmail = input.ownerEmail.trim().toLowerCase()
+  if (!ownerEmail) throw new Error("Owner email is required.")
+  if (input.password.length < 8) {
+    throw new Error("Password must be at least 8 characters.")
+  }
+
+  const existingOrg = await organizationRepository.findOrganizationByName(orgName)
+  if (existingOrg) {
+    throw new Error(`A company named "${orgName}" already exists.`)
+  }
+
+  const planTriple = {
+    plan: input.plan,
+    // EXPERT has no tier split — store null.
+    tier: input.plan === "EXPERT" ? null : input.tier,
+    addons: input.addons,
+  }
+
+  const org = await organizationRepository.createOrganization({
+    organizationName: orgName,
+    plan: planTriple,
+  })
+
+  await ensureDefaultLeaveTypesForOrg(org.id)
+
+  const owner = await organizationRepository.createOwnerForOrganization({
+    organizationId: org.id,
+    email: ownerEmail,
+    name: ownerName,
+    modules: deriveOrgEnabledModules(planTriple),
+    password: input.password,
+  })
+
+  void writeAudit({
+    organizationId: org.id,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "org.provision",
+    status: "SUCCESS",
+    summary: `Provisioned company "${orgName}" with owner ${ownerName} (${ownerEmail})${
+      owner.created ? "" : " — linked an existing account"
+    }.`,
+    targetType: "organization",
+    targetId: org.id,
+  })
+
+  return {
+    orgId: org.id,
+    orgName: org.name,
+    ownerEmail,
+    ownerCreated: owner.created,
   }
 }
 

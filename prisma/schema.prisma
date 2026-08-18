@@ -1642,6 +1642,14 @@ model PayrollSettings {
   /// customers — admins can override if they're using a different
   /// bank's bulk-payroll service.
   ecpPayorBic               String?
+  /// Payroll disbursement bank config (generalised beyond Public Bank).
+  /// `payrollBankName` matches a `MALAYSIAN_BANKS` entry; when it's
+  /// Public Bank the run-download offers the PB ECP XLSX, otherwise a
+  /// general disbursement CSV. Account holder + org code appear on the
+  /// file / header where the chosen bank needs them.
+  payrollBankName           String?
+  payorAccountHolderName    String?
+  payorOrganisationCode     String?
   organization              Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
@@ -1698,6 +1706,10 @@ model PayrollCompanyInfo {
   /// threshold or newly-registered may leave it blank until they get
   /// their number from HRD Corp.
   hrdfEmployerNo           String?
+  /// Zakat (via PCB monthly-deduction) employer/registration number,
+  /// e.g. from LZS / PPZ / state zakat authority. Free-text; feeds the
+  /// company profile + payslip footer. Optional.
+  zakatNumber              String?
   organization             Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
@@ -2291,6 +2303,14 @@ model LeaveEntitlement {
   /// PRO_RATED: monthly accumulated. LUMP_SUM: equals entitledDays.
   accruedDays            Float               @default(0)
   usedDays               Float               @default(0)
+  /// Migrated OPENING used-days as at `balanceAsAt` (leave taken
+  /// BEFORE the balance-import cutoff). `usedDays` = this opening +
+  /// usage tracked since; the balance importer applies the opening as
+  /// a delta so post-cutoff leave is preserved and re-uploads never
+  /// double-count. Default 0 for entitlements never balance-imported.
+  openingUsedDays        Float               @default(0)
+  /// Effective date of the last balance import ("balances as at").
+  balanceAsAt            DateTime?
   createdAt              DateTime            @default(now())
   updatedAt              DateTime            @updatedAt
   /// Per-employee override of accrualMethod. Null = inherit from
