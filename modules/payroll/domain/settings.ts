@@ -74,6 +74,12 @@ export type PayrollSettingsData = {
   // null (Public Bank).
   ecpPayorAccountNo: string | null
   ecpPayorBic: string | null
+  // Disbursement bank config (bank-agnostic). `payrollBankName`
+  // matches a MALAYSIAN_BANKS entry; Public Bank → PB ECP file,
+  // any other bank → the general disbursement CSV.
+  payrollBankName: string | null
+  payorAccountHolderName: string | null
+  payorOrganisationCode: string | null
 
   createdAt: string
   updatedAt: string
@@ -305,6 +311,7 @@ export type PayrollCompanyInfoData = {
   // HRD Corp levy employer registration number. Only relevant when
   // the org is HRDF-registered (Part I or Part II under PSMB Act 2001).
   hrdfEmployerNo: string | null
+  zakatNumber: string | null
 
   // Correspondence
   addressLine1: string | null

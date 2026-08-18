@@ -72,6 +72,9 @@ function mapPayrollSettings(row: any): PayrollSettingsData {
     xeroMapping: parseXeroMapping(row.xeroMapping),
     ecpPayorAccountNo: row.ecpPayorAccountNo ?? null,
     ecpPayorBic: row.ecpPayorBic ?? null,
+    payrollBankName: row.payrollBankName ?? null,
+    payorAccountHolderName: row.payorAccountHolderName ?? null,
+    payorOrganisationCode: row.payorOrganisationCode ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   }
@@ -177,6 +180,9 @@ function toUpsertData(
   copy("syncPayrollToXeroOnSubmit")
   copy("ecpPayorAccountNo")
   copy("ecpPayorBic")
+  copy("payrollBankName")
+  copy("payorAccountHolderName")
+  copy("payorOrganisationCode")
   // The Json column round-trips through Prisma as `InputJsonValue`.
   // The domain shape is a plain object so it's safe to pass through.
   if (patch.xeroMapping !== undefined) {

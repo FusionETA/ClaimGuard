@@ -54,6 +54,9 @@ export type PayrollSettingsMinAggregateOutputType = {
   syncPayrollToXeroOnSubmit: boolean | null
   ecpPayorAccountNo: string | null
   ecpPayorBic: string | null
+  payrollBankName: string | null
+  payorAccountHolderName: string | null
+  payorOrganisationCode: string | null
 }
 
 export type PayrollSettingsMaxAggregateOutputType = {
@@ -71,6 +74,9 @@ export type PayrollSettingsMaxAggregateOutputType = {
   syncPayrollToXeroOnSubmit: boolean | null
   ecpPayorAccountNo: string | null
   ecpPayorBic: string | null
+  payrollBankName: string | null
+  payorAccountHolderName: string | null
+  payorOrganisationCode: string | null
 }
 
 export type PayrollSettingsCountAggregateOutputType = {
@@ -89,6 +95,9 @@ export type PayrollSettingsCountAggregateOutputType = {
   xeroMapping: number
   ecpPayorAccountNo: number
   ecpPayorBic: number
+  payrollBankName: number
+  payorAccountHolderName: number
+  payorOrganisationCode: number
   _all: number
 }
 
@@ -120,6 +129,9 @@ export type PayrollSettingsMinAggregateInputType = {
   syncPayrollToXeroOnSubmit?: true
   ecpPayorAccountNo?: true
   ecpPayorBic?: true
+  payrollBankName?: true
+  payorAccountHolderName?: true
+  payorOrganisationCode?: true
 }
 
 export type PayrollSettingsMaxAggregateInputType = {
@@ -137,6 +149,9 @@ export type PayrollSettingsMaxAggregateInputType = {
   syncPayrollToXeroOnSubmit?: true
   ecpPayorAccountNo?: true
   ecpPayorBic?: true
+  payrollBankName?: true
+  payorAccountHolderName?: true
+  payorOrganisationCode?: true
 }
 
 export type PayrollSettingsCountAggregateInputType = {
@@ -155,6 +170,9 @@ export type PayrollSettingsCountAggregateInputType = {
   xeroMapping?: true
   ecpPayorAccountNo?: true
   ecpPayorBic?: true
+  payrollBankName?: true
+  payorAccountHolderName?: true
+  payorOrganisationCode?: true
   _all?: true
 }
 
@@ -260,6 +278,9 @@ export type PayrollSettingsGroupByOutputType = {
   xeroMapping: runtime.JsonValue | null
   ecpPayorAccountNo: string | null
   ecpPayorBic: string | null
+  payrollBankName: string | null
+  payorAccountHolderName: string | null
+  payorOrganisationCode: string | null
   _count: PayrollSettingsCountAggregateOutputType | null
   _avg: PayrollSettingsAvgAggregateOutputType | null
   _sum: PayrollSettingsSumAggregateOutputType | null
@@ -301,6 +322,9 @@ export type PayrollSettingsWhereInput = {
   xeroMapping?: Prisma.JsonNullableFilter<"PayrollSettings">
   ecpPayorAccountNo?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   ecpPayorBic?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
+  payrollBankName?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
+  payorAccountHolderName?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
+  payorOrganisationCode?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
@@ -320,6 +344,9 @@ export type PayrollSettingsOrderByWithRelationInput = {
   xeroMapping?: Prisma.SortOrderInput | Prisma.SortOrder
   ecpPayorAccountNo?: Prisma.SortOrderInput | Prisma.SortOrder
   ecpPayorBic?: Prisma.SortOrderInput | Prisma.SortOrder
+  payrollBankName?: Prisma.SortOrderInput | Prisma.SortOrder
+  payorAccountHolderName?: Prisma.SortOrderInput | Prisma.SortOrder
+  payorOrganisationCode?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   _relevance?: Prisma.PayrollSettingsOrderByRelevanceInput
 }
@@ -343,6 +370,9 @@ export type PayrollSettingsWhereUniqueInput = Prisma.AtLeast<{
   xeroMapping?: Prisma.JsonNullableFilter<"PayrollSettings">
   ecpPayorAccountNo?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   ecpPayorBic?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
+  payrollBankName?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
+  payorAccountHolderName?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
+  payorOrganisationCode?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id" | "organizationId">
 
@@ -362,6 +392,9 @@ export type PayrollSettingsOrderByWithAggregationInput = {
   xeroMapping?: Prisma.SortOrderInput | Prisma.SortOrder
   ecpPayorAccountNo?: Prisma.SortOrderInput | Prisma.SortOrder
   ecpPayorBic?: Prisma.SortOrderInput | Prisma.SortOrder
+  payrollBankName?: Prisma.SortOrderInput | Prisma.SortOrder
+  payorAccountHolderName?: Prisma.SortOrderInput | Prisma.SortOrder
+  payorOrganisationCode?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PayrollSettingsCountOrderByAggregateInput
   _avg?: Prisma.PayrollSettingsAvgOrderByAggregateInput
   _max?: Prisma.PayrollSettingsMaxOrderByAggregateInput
@@ -388,6 +421,9 @@ export type PayrollSettingsScalarWhereWithAggregatesInput = {
   xeroMapping?: Prisma.JsonNullableWithAggregatesFilter<"PayrollSettings">
   ecpPayorAccountNo?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
   ecpPayorBic?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
+  payrollBankName?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
+  payorAccountHolderName?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
+  payorOrganisationCode?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
 }
 
 export type PayrollSettingsCreateInput = {
@@ -405,6 +441,9 @@ export type PayrollSettingsCreateInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: string | null
   ecpPayorBic?: string | null
+  payrollBankName?: string | null
+  payorAccountHolderName?: string | null
+  payorOrganisationCode?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollSettingsInput
 }
 
@@ -424,6 +463,9 @@ export type PayrollSettingsUncheckedCreateInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: string | null
   ecpPayorBic?: string | null
+  payrollBankName?: string | null
+  payorAccountHolderName?: string | null
+  payorOrganisationCode?: string | null
 }
 
 export type PayrollSettingsUpdateInput = {
@@ -441,6 +483,9 @@ export type PayrollSettingsUpdateInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollBankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorOrganisationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollSettingsNestedInput
 }
 
@@ -460,6 +505,9 @@ export type PayrollSettingsUncheckedUpdateInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollBankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorOrganisationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollSettingsCreateManyInput = {
@@ -478,6 +526,9 @@ export type PayrollSettingsCreateManyInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: string | null
   ecpPayorBic?: string | null
+  payrollBankName?: string | null
+  payorAccountHolderName?: string | null
+  payorOrganisationCode?: string | null
 }
 
 export type PayrollSettingsUpdateManyMutationInput = {
@@ -495,6 +546,9 @@ export type PayrollSettingsUpdateManyMutationInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollBankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorOrganisationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollSettingsUncheckedUpdateManyInput = {
@@ -513,6 +567,9 @@ export type PayrollSettingsUncheckedUpdateManyInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollBankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorOrganisationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollSettingsNullableScalarRelationFilter = {
@@ -542,6 +599,9 @@ export type PayrollSettingsCountOrderByAggregateInput = {
   xeroMapping?: Prisma.SortOrder
   ecpPayorAccountNo?: Prisma.SortOrder
   ecpPayorBic?: Prisma.SortOrder
+  payrollBankName?: Prisma.SortOrder
+  payorAccountHolderName?: Prisma.SortOrder
+  payorOrganisationCode?: Prisma.SortOrder
 }
 
 export type PayrollSettingsAvgOrderByAggregateInput = {
@@ -565,6 +625,9 @@ export type PayrollSettingsMaxOrderByAggregateInput = {
   syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   ecpPayorAccountNo?: Prisma.SortOrder
   ecpPayorBic?: Prisma.SortOrder
+  payrollBankName?: Prisma.SortOrder
+  payorAccountHolderName?: Prisma.SortOrder
+  payorOrganisationCode?: Prisma.SortOrder
 }
 
 export type PayrollSettingsMinOrderByAggregateInput = {
@@ -582,6 +645,9 @@ export type PayrollSettingsMinOrderByAggregateInput = {
   syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   ecpPayorAccountNo?: Prisma.SortOrder
   ecpPayorBic?: Prisma.SortOrder
+  payrollBankName?: Prisma.SortOrder
+  payorAccountHolderName?: Prisma.SortOrder
+  payorOrganisationCode?: Prisma.SortOrder
 }
 
 export type PayrollSettingsSumOrderByAggregateInput = {
@@ -641,6 +707,9 @@ export type PayrollSettingsCreateWithoutOrganizationInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: string | null
   ecpPayorBic?: string | null
+  payrollBankName?: string | null
+  payorAccountHolderName?: string | null
+  payorOrganisationCode?: string | null
 }
 
 export type PayrollSettingsUncheckedCreateWithoutOrganizationInput = {
@@ -658,6 +727,9 @@ export type PayrollSettingsUncheckedCreateWithoutOrganizationInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: string | null
   ecpPayorBic?: string | null
+  payrollBankName?: string | null
+  payorAccountHolderName?: string | null
+  payorOrganisationCode?: string | null
 }
 
 export type PayrollSettingsCreateOrConnectWithoutOrganizationInput = {
@@ -691,6 +763,9 @@ export type PayrollSettingsUpdateWithoutOrganizationInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollBankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorOrganisationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollSettingsUncheckedUpdateWithoutOrganizationInput = {
@@ -708,6 +783,9 @@ export type PayrollSettingsUncheckedUpdateWithoutOrganizationInput = {
   xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollBankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payorOrganisationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -728,6 +806,9 @@ export type PayrollSettingsSelect<ExtArgs extends runtime.Types.Extensions.Inter
   xeroMapping?: boolean
   ecpPayorAccountNo?: boolean
   ecpPayorBic?: boolean
+  payrollBankName?: boolean
+  payorAccountHolderName?: boolean
+  payorOrganisationCode?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payrollSettings"]>
 
@@ -749,9 +830,12 @@ export type PayrollSettingsSelectScalar = {
   xeroMapping?: boolean
   ecpPayorAccountNo?: boolean
   ecpPayorBic?: boolean
+  payrollBankName?: boolean
+  payorAccountHolderName?: boolean
+  payorOrganisationCode?: boolean
 }
 
-export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "createdAt" | "updatedAt" | "autoApplySocsoEisRelief" | "syncClaimsToXeroOnSubmit" | "syncPayrollToXeroOnSubmit" | "xeroMapping" | "ecpPayorAccountNo" | "ecpPayorBic", ExtArgs["result"]["payrollSettings"]>
+export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "createdAt" | "updatedAt" | "autoApplySocsoEisRelief" | "syncClaimsToXeroOnSubmit" | "syncPayrollToXeroOnSubmit" | "xeroMapping" | "ecpPayorAccountNo" | "ecpPayorBic" | "payrollBankName" | "payorAccountHolderName" | "payorOrganisationCode", ExtArgs["result"]["payrollSettings"]>
 export type PayrollSettingsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -815,6 +899,16 @@ export type $PayrollSettingsPayload<ExtArgs extends runtime.Types.Extensions.Int
      * bank's bulk-payroll service.
      */
     ecpPayorBic: string | null
+    /**
+     * Payroll disbursement bank config (generalised beyond Public Bank).
+     * `payrollBankName` matches a `MALAYSIAN_BANKS` entry; when it's
+     * Public Bank the run-download offers the PB ECP XLSX, otherwise a
+     * general disbursement CSV. Account holder + org code appear on the
+     * file / header where the chosen bank needs them.
+     */
+    payrollBankName: string | null
+    payorAccountHolderName: string | null
+    payorOrganisationCode: string | null
   }, ExtArgs["result"]["payrollSettings"]>
   composites: {}
 }
@@ -1200,6 +1294,9 @@ export interface PayrollSettingsFieldRefs {
   readonly xeroMapping: Prisma.FieldRef<"PayrollSettings", 'Json'>
   readonly ecpPayorAccountNo: Prisma.FieldRef<"PayrollSettings", 'String'>
   readonly ecpPayorBic: Prisma.FieldRef<"PayrollSettings", 'String'>
+  readonly payrollBankName: Prisma.FieldRef<"PayrollSettings", 'String'>
+  readonly payorAccountHolderName: Prisma.FieldRef<"PayrollSettings", 'String'>
+  readonly payorOrganisationCode: Prisma.FieldRef<"PayrollSettings", 'String'>
 }
     
 

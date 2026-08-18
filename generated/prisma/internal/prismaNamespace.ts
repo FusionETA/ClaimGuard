@@ -4847,7 +4847,10 @@ export const PayrollSettingsScalarFieldEnum = {
   syncPayrollToXeroOnSubmit: 'syncPayrollToXeroOnSubmit',
   xeroMapping: 'xeroMapping',
   ecpPayorAccountNo: 'ecpPayorAccountNo',
-  ecpPayorBic: 'ecpPayorBic'
+  ecpPayorBic: 'ecpPayorBic',
+  payrollBankName: 'payrollBankName',
+  payorAccountHolderName: 'payorAccountHolderName',
+  payorOrganisationCode: 'payorOrganisationCode'
 } as const
 
 export type PayrollSettingsScalarFieldEnum = (typeof PayrollSettingsScalarFieldEnum)[keyof typeof PayrollSettingsScalarFieldEnum]
@@ -4892,7 +4895,8 @@ export const PayrollCompanyInfoScalarFieldEnum = {
   taxAgentFirmState: 'taxAgentFirmState',
   perkesoEmployerCode: 'perkesoEmployerCode',
   epfEmployerNo: 'epfEmployerNo',
-  hrdfEmployerNo: 'hrdfEmployerNo'
+  hrdfEmployerNo: 'hrdfEmployerNo',
+  zakatNumber: 'zakatNumber'
 } as const
 
 export type PayrollCompanyInfoScalarFieldEnum = (typeof PayrollCompanyInfoScalarFieldEnum)[keyof typeof PayrollCompanyInfoScalarFieldEnum]
@@ -5771,7 +5775,10 @@ export const PayrollSettingsOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   ecpPayorAccountNo: 'ecpPayorAccountNo',
-  ecpPayorBic: 'ecpPayorBic'
+  ecpPayorBic: 'ecpPayorBic',
+  payrollBankName: 'payrollBankName',
+  payorAccountHolderName: 'payorAccountHolderName',
+  payorOrganisationCode: 'payorOrganisationCode'
 } as const
 
 export type PayrollSettingsOrderByRelevanceFieldEnum = (typeof PayrollSettingsOrderByRelevanceFieldEnum)[keyof typeof PayrollSettingsOrderByRelevanceFieldEnum]
@@ -5813,7 +5820,8 @@ export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
   taxAgentFirmState: 'taxAgentFirmState',
   perkesoEmployerCode: 'perkesoEmployerCode',
   epfEmployerNo: 'epfEmployerNo',
-  hrdfEmployerNo: 'hrdfEmployerNo'
+  hrdfEmployerNo: 'hrdfEmployerNo',
+  zakatNumber: 'zakatNumber'
 } as const
 
 export type PayrollCompanyInfoOrderByRelevanceFieldEnum = (typeof PayrollCompanyInfoOrderByRelevanceFieldEnum)[keyof typeof PayrollCompanyInfoOrderByRelevanceFieldEnum]

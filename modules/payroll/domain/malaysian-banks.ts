@@ -335,3 +335,13 @@ export function findBankByName(input: string | null | undefined): MalaysianBank 
 
   return best?.bank ?? null
 }
+
+
+/**
+ * True when the given (free-text) bank name resolves to Public Bank.
+ * Drives whether a payroll run offers the PB ECP XLSX (Public Bank) or
+ * the general disbursement CSV (any other bank).
+ */
+export function isPublicBankName(name: string | null | undefined): boolean {
+  return findBankByName(name)?.bic === "PBBEMYKL"
+}

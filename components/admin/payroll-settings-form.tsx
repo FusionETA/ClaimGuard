@@ -27,6 +27,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { MALAYSIAN_BANKS } from "@/modules/payroll/domain/malaysian-banks"
 import { Label } from "@/components/ui/label"
 import { useToast, useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
@@ -449,23 +450,49 @@ function GeneralTab(props: {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Bank disbursement (Public Bank ECP)
+            Payroll disbursement bank
           </CardTitle>
           <CardDescription>
-            Required for the &ldquo;Public Bank ECP (Bulk Payroll)&rdquo;
-            file under Payroll runs → Download files. Leave blank if
-            you don&apos;t use Public Bank&apos;s bulk-payroll service.
+            The company&apos;s bank used to pay salaries. When it&apos;s
+            Public Bank, the run download offers the Public Bank ECP file;
+            any other bank gets a general disbursement CSV.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          <Field label="Public Bank payor account number (10 digits)">
+          <Field label="Bank">
+            <NativeSelect
+              name="payrollBankName"
+              defaultValue={s?.payrollBankName ?? ""}
+            >
+              <option value="">— Select bank —</option>
+              {MALAYSIAN_BANKS.map((b) => (
+                <option key={b.bic} value={b.name}>
+                  {b.name}
+                </option>
+              ))}
+            </NativeSelect>
+          </Field>
+          <Field label="Account number">
             <Input
               name="ecpPayorAccountNo"
               defaultValue={s?.ecpPayorAccountNo ?? ""}
-              placeholder="3111111111"
-              maxLength={10}
+              placeholder="Company payroll account no."
+              maxLength={20}
               inputMode="numeric"
-              pattern="[0-9]{10}"
+            />
+          </Field>
+          <Field label="Account holder name">
+            <Input
+              name="payorAccountHolderName"
+              defaultValue={s?.payorAccountHolderName ?? ""}
+              placeholder="As registered with the bank"
+            />
+          </Field>
+          <Field label="Organisation code (optional)">
+            <Input
+              name="payorOrganisationCode"
+              defaultValue={s?.payorOrganisationCode ?? ""}
+              placeholder="Some banks require this"
             />
           </Field>
         </CardContent>
@@ -621,6 +648,13 @@ function FormETab(props: {
                 Required for the SOCSO+EIS upload.
               </p>
             ) : null}
+          </Field>
+          <Field label="Zakat No. (optional)">
+            <Input
+              name="zakatNumber"
+              defaultValue={c?.zakatNumber ?? ""}
+              placeholder="Zakat employer / registration number"
+            />
           </Field>
           <Field label="Employer category">
             <NativeSelect

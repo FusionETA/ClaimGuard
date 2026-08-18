@@ -56,6 +56,7 @@ function mapPayrollCompanyInfo(row: any): PayrollCompanyInfoData {
     perkesoEmployerCode: row.perkesoEmployerCode ?? null,
     epfEmployerNo: row.epfEmployerNo ?? null,
     hrdfEmployerNo: row.hrdfEmployerNo ?? null,
+    zakatNumber: row.zakatNumber ?? null,
     addressLine1: row.addressLine1 ?? null,
     addressLine2: row.addressLine2 ?? null,
     postcode: row.postcode ?? null,
@@ -103,6 +104,7 @@ function toUpsertData(
   copy("perkesoEmployerCode")
   copy("epfEmployerNo")
   copy("hrdfEmployerNo")
+  copy("zakatNumber")
   copy("addressLine1")
   copy("addressLine2")
   copy("postcode")

@@ -315,6 +315,7 @@ export async function loadAnnualPayrollPayload(input: {
         perkesoEmployerCode: companyInfo.perkesoEmployerCode ?? null,
         epfEmployerNo: companyInfo.epfEmployerNo ?? null,
         hrdfEmployerNo: companyInfo.hrdfEmployerNo ?? null,
+        zakatNumber: companyInfo.zakatNumber ?? null,
         addressLine1: companyInfo.addressLine1 ?? null,
         addressLine2: companyInfo.addressLine2 ?? null,
         postcode: companyInfo.postcode ?? null,

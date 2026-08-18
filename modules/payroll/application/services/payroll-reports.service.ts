@@ -15,6 +15,8 @@ import {
 } from "@/modules/payroll/domain/reports"
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { renderPayrollReport } from "@/modules/payroll/application/services/report-renderers"
+import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
+import { isPublicBankName } from "@/modules/payroll/domain/malaysian-banks"
 
 /**
  * Page-data + on-demand streaming service for the "Download files" modal
@@ -89,12 +91,23 @@ async function loadReportsModalData(
 
   if (!run) return null
 
+  // Show only the disbursement file matching the company's payroll
+  // bank: Public Bank → PB ECP XLSX; any other bank → general CSV.
+  const settings = await payrollSettingsRepository.getByOrgId(orgId)
+  const isPB = isPublicBankName(settings?.payrollBankName)
+
   // Every download is rendered on demand, so there's no per-run
   // "generated" state to merge — every row is just the static meta.
-  const rows: PayrollReportRow[] = payrollReportKinds.map((kind) => ({
-    ...PAYROLL_REPORT_META[kind],
-    generated: null,
-  }))
+  const rows: PayrollReportRow[] = payrollReportKinds
+    .filter((kind) => {
+      if (kind === "BANK_PB_ECP_XLSX") return isPB
+      if (kind === "BANK_GENERAL_CSV") return !isPB
+      return true
+    })
+    .map((kind) => ({
+      ...PAYROLL_REPORT_META[kind],
+      generated: null,
+    }))
 
   return {
     runId: run.id,

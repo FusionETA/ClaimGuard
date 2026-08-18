@@ -32,6 +32,7 @@ export const payrollReportKinds = [
   "SOCSO_EIS_SKBBK_TXT",
   "PCB_TXT",
   "BANK_PB_ECP_XLSX",
+  "BANK_GENERAL_CSV",
 ] as const
 
 export type PayrollReportKind = (typeof payrollReportKinds)[number]
@@ -156,6 +157,16 @@ export const PAYROLL_REPORT_META: Record<PayrollReportKind, PayrollReportMeta> =
     mimeType:
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   },
+  BANK_GENERAL_CSV: {
+    kind: "BANK_GENERAL_CSV",
+    group: "BANK",
+    title: "Salary disbursement (General CSV)",
+    description:
+      "Bank-agnostic bulk salary CSV (payee name, bank, BIC, account no, amount) for banks other than Public Bank.",
+    portal: null,
+    extension: "csv",
+    mimeType: "text/csv",
+  },
 }
 
 export const PAYROLL_REPORT_GROUP_LABELS: Record<PayrollReportGroup, string> = {
@@ -228,6 +239,8 @@ export function buildReportFileName(input: {
       return `SOCSO_EIS_SKBBK_${mmyyyy}.${meta.extension}`
     case "PCB_TXT":
       return `PCB_${mmyyyy}.${meta.extension}`
+    case "BANK_GENERAL_CSV":
+      return `Salary_Disbursement_${mmyyyy}.${meta.extension}`
     case "BANK_PB_ECP_XLSX":
       // PB ECP filename format: `<10-digit account>PR<DDMMYY><NN>.xlsx`.
       // The account number isn't available in this pure-domain
