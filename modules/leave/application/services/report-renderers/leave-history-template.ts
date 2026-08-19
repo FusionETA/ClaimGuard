@@ -101,6 +101,7 @@ function addReadMe(wb: ExcelJS.Workbook): void {
   put("")
   put("② Leave History  (optional — full detail)", { bold: true, size: 12 })
   put("One row per past leave application. Use this only if you want every application on record.")
+  put("• Employee Name is matched to your staff the same way as above — email only if two staff share a name.")
   put("• Dates use YYYY-MM-DD. Days is the number taken (0.5 for a half day).")
   put("• Status: APPROVED counts against the balance; PENDING reserves it; REJECTED / CANCELLED don’t.")
   put("• Re-uploading is safe — rows already imported (same employee + type + dates) are skipped.")
