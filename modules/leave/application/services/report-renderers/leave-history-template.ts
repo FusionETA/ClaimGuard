@@ -93,6 +93,7 @@ function addReadMe(wb: ExcelJS.Workbook): void {
   put("")
   put("① Leave Balances  (the simple path)", { bold: true, size: 12 })
   put("Just the closing figures — one row per employee + leave type.")
+  put("• Employee Name is matched to your staff automatically — case and spacing don’t matter. Email is optional: only add it if two staff share the same name.")
   put("• Entitled Days: the year's quota. Carried Forward: brought-in from last year. Taken: days already used.")
   put("• Remaining is worked out for you: Entitled + Carried Forward − Taken.")
   put("• Year is optional — defaults to the current year if blank.")

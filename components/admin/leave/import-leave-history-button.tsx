@@ -86,8 +86,8 @@ export function ImportLeaveHistoryButton() {
             <div className="space-y-0.5">
               <p className="font-medium text-foreground">Use our Excel template</p>
               <p className="text-xs text-muted-foreground">
-                Two tabs — <strong>Leave Balances</strong> (entitled · carry
-                forward · taken) and <strong>Leave History</strong>. Your
+                Two tabs — <strong>Leave Balances</strong> (name · entitled ·
+                carry forward · taken) and <strong>Leave History</strong>. Your
                 leave types are pre-filled as dropdowns.
               </p>
             </div>

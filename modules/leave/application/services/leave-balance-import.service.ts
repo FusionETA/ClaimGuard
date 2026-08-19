@@ -19,7 +19,8 @@ import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository
  */
 
 export const LEAVE_BALANCE_COLUMNS = [
-  { key: "employeeEmail", label: "Employee Email", required: true, example: "ahmad@company.com" },
+  { key: "employeeName", label: "Employee Name", required: true, example: "Ahmad Ali" },
+  { key: "employeeEmail", label: "Employee Email", required: false, example: "ahmad@company.com" },
   { key: "leaveType", label: "Leave Type", required: true, example: "Annual Leave" },
   { key: "year", label: "Year", required: false, example: "2026" },
   { key: "entitled", label: "Entitled Days", required: true, example: "14" },
@@ -37,6 +38,20 @@ function normalise(h: string): string {
   return h.trim().replace(/^\*/, "").toLowerCase().replace(/[^a-z0-9]/g, "")
 }
 
+/**
+ * Normalise a person's name for tolerant matching: strip accents, lower-
+ * case, and reduce every run of non-alphanumerics to a single space. So a
+ * Jibble "AHMAD  BIN ALI" lines up with an AltomateHR "Ahmad bin Ali".
+ */
+function normaliseName(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+}
+
 // normalise(key OR label) → canonical key.
 const HEADER_ALIAS: Map<string, string> = (() => {
   const map = new Map<string, string>()
@@ -49,6 +64,11 @@ const HEADER_ALIAS: Map<string, string> = (() => {
   map.set(normalise("carried"), "carriedForward")
   map.set(normalise("entitled"), "entitled")
   map.set(normalise("balance taken"), "taken")
+  // Name is the primary identity column (Jibble exports names, not emails).
+  map.set(normalise("name"), "employeeName")
+  map.set(normalise("full name"), "employeeName")
+  map.set(normalise("employee"), "employeeName")
+  map.set(normalise("member"), "employeeName")
   return map
 })()
 
@@ -88,8 +108,17 @@ export async function bulkImportLeaveBalances(input: {
     const key = HEADER_ALIAS.get(normalise(cell))
     if (key) colIndex.set(key, i)
   })
+  // Identity is interchangeable: Employee Name (primary) OR Employee Email
+  // (optional tie-breaker) — at least one of the two columns must exist.
+  if (!colIndex.has("employeeName") && !colIndex.has("employeeEmail")) {
+    result.errors.push({
+      row: 0,
+      message: "Add an 'Employee Name' column (Email is optional).",
+    })
+    return result
+  }
   const missing = LEAVE_BALANCE_COLUMNS.filter(
-    (c) => c.required && !colIndex.has(c.key),
+    (c) => c.required && c.key !== "employeeName" && !colIndex.has(c.key),
   ).map((c) => c.label)
   if (missing.length > 0) {
     result.errors.push({
@@ -103,6 +132,16 @@ export async function bulkImportLeaveBalances(input: {
   const empByEmail = new Map(
     employees.map((e) => [e.email.trim().toLowerCase(), e.id]),
   )
+  // Name → ids (plural: names aren't unique, so we detect collisions and
+  // make the admin disambiguate with an email rather than guessing).
+  const empIdsByName = new Map<string, string[]>()
+  for (const e of employees) {
+    const key = normaliseName(e.name)
+    if (!key) continue
+    const bucket = empIdsByName.get(key)
+    if (bucket) bucket.push(e.id)
+    else empIdsByName.set(key, [e.id])
+  }
   const types = await leaveRepository.listTypes(input.orgId, {
     includeArchived: true,
   })
@@ -121,10 +160,31 @@ export async function bulkImportLeaveBalances(input: {
     const rowNumber = i // 1-based data row (header is row 0)
     const row = rows[i]
     try {
+      // Resolve the employee: email wins when given (exact + unambiguous),
+      // otherwise match by name. A name that hits nobody — or more than one
+      // person — fails the row rather than risk assigning to the wrong
+      // staff and silently corrupting their balance.
+      const nameRaw = cell(row, "employeeName")
       const emailRaw = cell(row, "employeeEmail")
-      const employeeId = empByEmail.get(emailRaw.toLowerCase())
-      if (!employeeId) {
-        throw new Error(`No employee with email "${emailRaw}" in this org.`)
+      let employeeId: string | undefined
+      if (emailRaw) {
+        employeeId = empByEmail.get(emailRaw.toLowerCase())
+        if (!employeeId) {
+          throw new Error(`No employee with email "${emailRaw}" in this org.`)
+        }
+      } else if (nameRaw) {
+        const ids = empIdsByName.get(normaliseName(nameRaw)) ?? []
+        if (ids.length === 0) {
+          throw new Error(`No employee named "${nameRaw}" in this org.`)
+        }
+        if (ids.length > 1) {
+          throw new Error(
+            `Multiple employees named "${nameRaw}" — add their email in the Employee Email column to pick one.`,
+          )
+        }
+        employeeId = ids[0]
+      } else {
+        throw new Error("Row is missing both employee name and email.")
       }
 
       const typeRaw = cell(row, "leaveType")
