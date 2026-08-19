@@ -3,6 +3,7 @@ import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { hhmm } from "../../_shared/blocks"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import {
   invertWeekdayNames,
@@ -47,11 +48,6 @@ export const GET = handleApiRequest<RouteParams>(
     return NextResponse.json({ data: toExternalProject(project) })
   },
 )
-
-const hhmm = z
-  .string()
-  .trim()
-  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must be HH:MM in 24-hour form.")
 
 const updateProjectSchema = z
   .object({

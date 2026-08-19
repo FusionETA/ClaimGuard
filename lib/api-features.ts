@@ -67,6 +67,17 @@ export const API_FEATURE_CATALOG = [
   /// calendar, same year-scoped replace semantics as the org one.
   "projects.holidays",
 
+  // ── /api/v1/onboarding ──────────────────────────────────────────────
+  /// `PUT /api/v1/onboarding` — the payroll-POLICY answers from a
+  /// partner setup form in one call (working week, proration + HRDF,
+  /// OT rates, project working hours, org-wide leave defaults +
+  /// carry-forward). Resolves the layering caller-side ids would
+  /// otherwise be needed for, and fans OT out to every non-archived
+  /// policy. Company identity and banking stay on
+  /// `PATCH /api/v1/payroll-settings`; per-policy and per-employee
+  /// leave entitlements stay with CS.
+  "onboarding.bulk",
+
   // ── /api/v1/leave-types ─────────────────────────────────────────────
   /// `GET /api/v1/leave-types` + `PATCH` of org-wide default day counts.
   /// Default days ONLY — accrual method, carry-forward and per-policy

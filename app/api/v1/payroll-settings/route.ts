@@ -11,6 +11,7 @@ import {
   type PayrollCompanyInfoData,
   type PayrollSettingsData,
 } from "@/modules/payroll/domain/settings"
+import { calculationBlock } from "../_shared/blocks"
 import {
   MALAYSIAN_BANKS,
   findBankByName,
@@ -258,51 +259,12 @@ const updateSchema = z
       .optional(),
 
     // ── calculation ──────────────────────────────────────────────────
-    /// The two calculation rules that ARE configurable per org.
-    ///
-    /// Explicitly fixed engine behaviour — do not offer these as
-    /// choices, we cannot honour them:
-    ///   - unpaid-leave basis: always the same basis as
-    ///     `prorationBasis` (the deduction is
-    ///     `monthlySalary ÷ workingDaysForPeriod(basis)`), never
-    ///     independently selectable.
-    ///   - recording unpaid leave in payroll: always on. Approved
-    ///     unpaid leave always produces a `deduct_unpaid_leave` line.
-    ///   - adjusting salary by join date: always on. Proration by
-    ///     join/leave date is unconditional.
-    calculation: z
-      .object({
-        /// Maps to `PayrollSettings.workingDaysRule`.
-        ///   - `TWENTY_SIX` — the Malaysian /26 convention (default).
-        ///   - `CALENDAR`   — calendar days in the month.
-        ///
-        /// There is no `ACTUAL_WORKING_DAYS` equivalent. Note also that
-        /// `TWENTY_SIX` is a hybrid for partial months: it counts the
-        /// configured working weekdays in the partial range, then caps
-        /// the result at 26. So the working week set via
-        /// `PATCH /api/v1/settings { workingDays }` feeds proration too.
-        prorationBasis: z.enum(["TWENTY_SIX", "CALENDAR"]).optional(),
-        /// HRD Corp levy. Applied to Malaysian citizens only (PSMB Act
-        /// § 2), on the prorated pay plus HRDF-subject allowances.
-        hrdf: z
-          .object({
-            contribute: z.boolean(),
-            /// Percent, e.g. `1.0` for a registered employer under
-            /// Part I or `0.5` under Part II. Required whenever
-            /// `contribute` is true: the engine treats a null rate as
-            /// 0%, which would silently levy nothing rather than fail.
-            rate: z.number().min(0).max(100).nullable().optional(),
-          })
-          .strict()
-          .refine((v) => !v.contribute || (v.rate != null && v.rate > 0), {
-            message:
-              "hrdf.rate must be greater than 0 when hrdf.contribute is true — a null or zero rate silently levies nothing.",
-            path: ["rate"],
-          })
-          .optional(),
-      })
-      .strict()
-      .optional(),
+    /// The two calculation rules that ARE configurable per org. Shared
+    /// verbatim with `PUT /api/v1/onboarding`, so the block itself —
+    /// including the list of rules that are fixed engine behaviour
+    /// rather than settings — lives in
+    /// `app/api/v1/_shared/blocks.ts`. Don't re-declare it here.
+    calculation: calculationBlock.optional(),
 
     // ── bank ─────────────────────────────────────────────────────────
     /// The company's PAYOR bank details — the account salaries are paid
