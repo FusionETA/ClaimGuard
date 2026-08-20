@@ -967,7 +967,7 @@ async function findImportConflicts(input: {
     const dbHits = await prisma.employeeProfile.findMany({
       where: {
         employeeId: { in: importEmployeeIds },
-        user: { organizationId },
+        organizationId,
       },
       select: {
         employeeId: true,

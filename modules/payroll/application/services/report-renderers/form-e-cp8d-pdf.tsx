@@ -45,7 +45,7 @@ export async function renderFormECp8dPdf(input: {
     const newHires = await prisma.payrollProfile.count({
       where: {
         employeeProfile: {
-          user: { organizationId: orgId },
+          organizationId: orgId,
         },
         joinDate: { gte: yearStart, lte: yearEnd },
         isArchived: false,
@@ -55,7 +55,7 @@ export async function renderFormECp8dPdf(input: {
     const active = await prisma.payrollProfile.count({
       where: {
         employeeProfile: {
-          user: { organizationId: orgId },
+          organizationId: orgId,
         },
         isArchived: false,
       },

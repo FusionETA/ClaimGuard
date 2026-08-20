@@ -2356,7 +2356,7 @@ export async function getPayrollAdjustmentPageData(input: {
   const profileRow = await prisma.employeeProfile.findFirst({
     where: {
       id: input.employeeProfileId,
-      user: { organizationId: orgId },
+      organizationId: orgId,
     },
     select: {
       id: true,
@@ -2801,7 +2801,7 @@ export async function listPendingLeaveCashoutsForRun(input: {
     where: {
       carriedExpired: true,
       carriedExpiredDays: { gt: 0 },
-      employee: { user: { organizationId: orgId } },
+      employee: { organizationId: orgId },
       OR: [
         { carriedCashedOutRunId: null },
         { carriedCashedOutRunId: input.runId },
@@ -2900,7 +2900,7 @@ export async function attachLeaveCashoutToRun(input: {
   const entitlement = await prisma.leaveEntitlement.findFirst({
     where: {
       id: input.entitlementId,
-      employee: { user: { organizationId: orgId } },
+      employee: { organizationId: orgId },
       carriedExpired: true,
       carriedExpiredDays: { gt: 0 },
       carriedCashedOutRunId: null,
@@ -2985,7 +2985,7 @@ export async function detachLeaveCashoutFromRun(input: {
   const entitlement = await prisma.leaveEntitlement.findFirst({
     where: {
       id: input.entitlementId,
-      employee: { user: { organizationId: orgId } },
+      employee: { organizationId: orgId },
       carriedCashedOutRunId: { not: null },
     },
     select: { id: true, employeeId: true, carriedCashedOutRunId: true },

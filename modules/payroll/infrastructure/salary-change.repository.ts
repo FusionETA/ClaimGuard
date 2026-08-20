@@ -100,7 +100,7 @@ export const salaryChangeRepository = {
       where: {
         effectiveDate: { gte: from, lte: to },
         employeeProfile: {
-          user: { organizationId: input.organizationId },
+          organizationId: input.organizationId,
         },
       },
       include: {
