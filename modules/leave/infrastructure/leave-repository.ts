@@ -556,16 +556,30 @@ export const leaveRepository = {
     year: number,
   ): Promise<LeaveEntitlementView[]> {
     const prisma = requirePrisma()
-    const [rows, employee] = await Promise.all([
-      prisma.leaveEntitlement.findMany({
-        where: { employeeId, year },
-        include: { leaveType: true },
-      }),
-      prisma.employeeProfile.findFirst({
-        where: { id: employeeId },
-        select: { policyId: true },
-      }),
-    ])
+    const employee = await prisma.employeeProfile.findFirst({
+      where: { id: employeeId },
+      select: {
+        policyId: true,
+        organizationId: true,
+        user: { select: { organizationId: true } },
+      },
+    })
+    // Only surface entitlements for leave types in THIS profile's own org.
+    // Guards against legacy entitlement rows seeded against ANOTHER org's
+    // leave types during the multi-company scoping bug — without this a
+    // shared employee shows each default type twice (once per org they're
+    // linked to). Falls back to the user's home org for legacy null-org
+    // profiles; no filter at all only if neither is known.
+    const scopeOrgId =
+      employee?.organizationId ?? employee?.user?.organizationId ?? null
+    const rows = await prisma.leaveEntitlement.findMany({
+      where: {
+        employeeId,
+        year,
+        ...(scopeOrgId ? { leaveType: { organizationId: scopeOrgId } } : {}),
+      },
+      include: { leaveType: true },
+    })
     // Load this employee's policy-layer method overrides in one shot
     // so we resolve the effective accrual method per row without N+1
     // queries. `employee.policyId` may be null for unassigned employees.
