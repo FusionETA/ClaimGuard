@@ -16,7 +16,7 @@ import {
   verifyAndConsumePasswordResetCode,
 } from "@/lib/password-reset"
 import { rateLimit } from "@/lib/rate-limit"
-import { normalisePhone, sendWhatsApp } from "@/lib/whatsapp"
+import { sendEmail } from "@/lib/email"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -90,8 +90,8 @@ export async function requestPasswordResetAction(
 
   // Send-or-skip is intentionally silent on the response — both branches
   // return the SAME success below to defeat enumeration. We just don't
-  // actually WhatsApp anyone unless the address belongs to an employee
-  // with a phone we can deliver to.
+  // actually email anyone unless the address belongs to an eligible
+  // employee / supervisor.
   void (async () => {
     try {
       const user = await organizationRepository.findUserWithPhoneByEmail(email)
@@ -100,28 +100,18 @@ export async function requestPasswordResetAction(
       // recovery path (SSO from Altomate; partner-side reprovisioning).
       if (user.role !== "EMPLOYEE" && user.role !== "SUPERVISOR") return
 
-      // No phone on file → no delivery path. Silently no-op so the
-      // generic success response above still hides whether the
-      // account exists. Admin will need to add a phone via the
-      // employee detail page.
-      const to = normalisePhone(user.phone)
-      if (!to) {
-        console.warn(
-          `[password-reset] employee ${user.email} has no usable phone; skipping send`,
-        )
-        return
-      }
-
       const code = await issuePasswordResetCode(email)
       if (!code) return // Redis not configured — caller already sees generic success.
 
-      const result = await sendWhatsApp({
-        to,
-        text: `Hi ${user.name}, your AltomateHR password reset code is: ${code}\n\nIt expires in 10 minutes. If you didn't request this, ignore this message.`,
+      const result = await sendEmail({
+        to: user.email,
+        subject: "Your AltomateHR password reset code",
+        html: buildResetCodeEmail({ name: user.name, code }),
+        text: `Hi ${user.name}, your AltomateHR password reset code is: ${code}. It expires in 10 minutes. If you didn't request this, ignore this email.`,
       })
       if (!result.delivered) {
         console.warn(
-          `[password-reset] WhatsApp send to ${to} failed: ${result.reason}`,
+          `[password-reset] email send to ${user.email} failed: ${result.reason}`,
         )
       }
     } catch (err) {
@@ -252,3 +242,35 @@ export async function resetPasswordAction(
   return initialResetPasswordFormState
 }
 
+
+/**
+ * Branded HTML for the password-reset code email. Non-exported (a
+ * "use server" file can only export async functions) — a plain helper is
+ * fine. Solid background only, no gradients. The name is HTML-escaped
+ * since it originates from admin-entered data.
+ */
+function buildResetCodeEmail(input: { name: string; code: string }): string {
+  const name = input.name
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f4f5; padding: 32px 16px;">
+      <div style="max-width: 480px; margin: 0 auto; background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 32px;">
+        <h1 style="margin: 0 0 8px; font-size: 20px; color: #18181b;">Password reset</h1>
+        <p style="margin: 0 0 20px; color: #52525b; font-size: 14px; line-height: 1.5;">
+          Hi ${name}, use the code below to reset your AltomateHR password.
+        </p>
+        <div style="background: #f4f4f5; border-radius: 8px; padding: 16px; text-align: center; margin-bottom: 20px;">
+          <span style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #18181b;">${input.code}</span>
+        </div>
+        <p style="margin: 0 0 4px; color: #71717a; font-size: 13px;">
+          This code expires in 10 minutes.
+        </p>
+        <p style="margin: 0; color: #a1a1aa; font-size: 13px;">
+          If you didn't request this, you can safely ignore this email.
+        </p>
+      </div>
+    </div>
+  `
+}
