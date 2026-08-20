@@ -939,6 +939,39 @@ export const payslipRepository = {
     const lineItems = row.lineItems.map((li) => mapPayslipLineItem(li))
     return mapPayslip(row, lineItems)
   },
+
+  /**
+   * Resolve the delivery + PDF-lock details for a payslip's employee:
+   * their login email (recipient), plus the IC number and date of birth
+   * used to derive the emailed PDF's open-password. Returns null when the
+   * profile no longer exists. Not org-scoped here — callers reach this
+   * only after resolving the payslip via an org-scoped getter.
+   */
+  async getEmailRecipientForProfile(input: {
+    employeeProfileId: string
+  }): Promise<{
+    name: string
+    email: string
+    idNumber: string | null
+    dateOfBirth: Date | null
+  } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.employeeProfile.findUnique({
+      where: { id: input.employeeProfileId },
+      select: {
+        user: { select: { name: true, email: true } },
+        payrollProfile: { select: { idNumber: true, dateOfBirth: true } },
+      },
+    })
+    if (!row) return null
+    return {
+      name: row.user.name,
+      email: row.user.email,
+      idNumber: row.payrollProfile?.idNumber ?? null,
+      dateOfBirth: row.payrollProfile?.dateOfBirth ?? null,
+    }
+  },
 }
 
 // ─── Projection helpers ──────────────────────────────────────────────────

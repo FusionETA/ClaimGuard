@@ -14,6 +14,12 @@ import {
   type AdjustmentImportSummary,
 } from "@/modules/payroll/application/services/payroll-run-adjustment-import.service"
 import type { PayslipData } from "@/modules/payroll/domain/runs"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { isAdminRole } from "@/lib/auth/types"
+import {
+  emailPayslip,
+  emailPayslipsForRun,
+} from "@/modules/payroll/application/services/payslip-email.service"
 
 /**
  * Lazy-load the full payslip data — including line items, EPF rates
@@ -132,5 +138,55 @@ export async function importPayrollRunAdjustmentsAction(
       status: "error",
       message: safeErrorMessage(err, "Could not import the file."),
     }
+  }
+}
+
+/**
+ * Email one employee their payslip as a password-protected PDF. Admin
+ * only; the payslip must belong to a SUBMITTED run in the active org
+ * (enforced in the service). Returns a plain `{ ok, message }` for an
+ * inline toast.
+ */
+export async function emailPayslipAction(input: {
+  payslipId: string
+}): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return { ok: false, message: "No active organisation." }
+
+  const result = await emailPayslip({ organizationId: orgId, payslipId: input.payslipId })
+  if (!result.ok) {
+    return { ok: false, message: result.reason ?? "Could not send the payslip." }
+  }
+  return { ok: true, message: `Payslip emailed to ${result.email}.` }
+}
+
+/**
+ * Email every payslip on a SUBMITTED run to its employee. Returns a
+ * summary message plus a list of human-readable failure lines the dialog
+ * can show (name + reason) so the admin knows exactly who to follow up.
+ */
+export async function emailRunPayslipsAction(input: {
+  runId: string
+}): Promise<{ ok: boolean; message: string; failures: string[] }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again.", failures: [] }
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return { ok: false, message: "No active organisation.", failures: [] }
+
+  const summary = await emailPayslipsForRun({ organizationId: orgId, runId: input.runId })
+  const failures = summary.results
+    .filter((r) => !r.ok)
+    .map((r) => `${r.name}${r.reason ? ` — ${r.reason}` : ""}`)
+  const failedNote = summary.failed > 0 ? `, ${summary.failed} failed` : ""
+  return {
+    ok: summary.sent > 0 || summary.failed === 0,
+    message: `Emailed ${summary.sent} payslip${summary.sent === 1 ? "" : "s"}${failedNote}.`,
+    failures,
   }
 }

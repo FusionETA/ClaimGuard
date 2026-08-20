@@ -200,6 +200,7 @@ export default async function AdminPayrollRunDetailPage({
         payslips={data.payslips}
         showAdjustLink
         runIsDraft={isDraft}
+        canEmail={data.run.status === "SUBMITTED"}
       />
     ) : null
 

@@ -4,6 +4,10 @@ import { useMemo, useState } from "react"
 import { FileText, Search } from "lucide-react"
 
 import { EditAdjustmentDialog } from "@/components/admin/edit-adjustment-dialog"
+import {
+  EmailAllPayslipsButton,
+  EmailPayslipButton,
+} from "@/components/admin/email-payslip-buttons"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -136,6 +140,7 @@ export function PayslipsListPanel({
   payslips,
   showAdjustLink,
   runIsDraft,
+  canEmail,
 }: {
   runId: string
   payslips: PayslipRow[]
@@ -145,6 +150,9 @@ export function PayslipsListPanel({
   /// True when the run is still DRAFT. Drives the dialog's read-only
   /// flag.
   runIsDraft: boolean
+  /// True when the run is SUBMITTED — payslips are final, so the
+  /// per-row + bulk "Email payslip" actions are shown.
+  canEmail: boolean
 }) {
   const [query, setQuery] = useState("")
   const [page, setPage] = useState(1)
@@ -234,10 +242,15 @@ export function PayslipsListPanel({
   return (
     <Card data-payroll-summary-card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <FileText className="h-4 w-4" />
-          Payslips
-        </CardTitle>
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4" />
+            Payslips
+          </CardTitle>
+          {canEmail && payslips.length > 0 ? (
+            <EmailAllPayslipsButton runId={runId} count={payslips.length} />
+          ) : null}
+        </div>
         <CardDescription>
           {payslips.length} payslip{payslips.length === 1 ? "" : "s"} on
           file. Column totals shown in the header reflect the current
@@ -370,6 +383,7 @@ export function PayslipsListPanel({
                       payslip={p}
                       showAdjustLink={showAdjustLink}
                       runIsDraft={runIsDraft}
+                      canEmail={canEmail}
                     />
                   ))}
                 </TableBody>
@@ -529,11 +543,13 @@ function PayslipRow({
   payslip,
   showAdjustLink,
   runIsDraft,
+  canEmail,
 }: {
   runId: string
   payslip: PayslipRow
   showAdjustLink: boolean
   runIsDraft: boolean
+  canEmail: boolean
 }) {
   // Hourly staff only get the HRS column; DAYS + OT are monthly-only.
   const isHourly = payslip.snapshotSalaryType === "HOURLY"
@@ -646,6 +662,11 @@ function PayslipRow({
                 employeeCode={payslip.snapshotEmployeeId}
                 readOnly={!runIsDraft}
               />
+            </div>
+          ) : null}
+          {canEmail ? (
+            <div className="shrink-0">
+              <EmailPayslipButton payslipId={payslip.id} />
             </div>
           ) : null}
         </div>
