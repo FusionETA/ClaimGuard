@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
             <div className="text-center">
               <CardTitle>Reset your password</CardTitle>
               <CardDescription className="mt-2">
-                Enter your work email and we&apos;ll send a 6-digit code to your WhatsApp.
+                Enter your work email and we&apos;ll send you a 6-digit reset code.
               </CardDescription>
             </div>
           </CardHeader>

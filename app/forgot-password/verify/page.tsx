@@ -52,7 +52,7 @@ export default async function VerifyPage({
             <div className="text-center">
               <CardTitle>Enter your reset code</CardTitle>
               <CardDescription className="mt-2">
-                We sent a 6-digit code to your WhatsApp. It expires in 10 minutes.
+                We sent a 6-digit code to your email. It expires in 10 minutes.
               </CardDescription>
             </div>
           </CardHeader>

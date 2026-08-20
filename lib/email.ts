@@ -107,6 +107,8 @@ function totalAttachmentBytes(attachments: EmailAttachment[]): number {
 type EngineMailerResponse = {
   Result?: {
     StatusCode?: string | number
+    Status?: string
+    ErrorMessage?: string
     StatusReason?: string
     Detail?: string
     MessageID?: string
@@ -201,7 +203,9 @@ export async function sendEmail(
     // The embedded status is the real verdict.
     if (!code.startsWith("2")) {
       const reason =
+        body?.Result?.ErrorMessage ||
         body?.Result?.StatusReason ||
+        body?.Result?.Status ||
         body?.Result?.Detail ||
         (code ? `EngineMailer status ${code}` : "unknown-provider-error")
       return { delivered: false, reason }
