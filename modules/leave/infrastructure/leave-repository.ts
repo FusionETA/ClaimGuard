@@ -136,7 +136,9 @@ export const leaveRepository = {
     if (Array.isArray(policyIdScope) && policyIdScope.length === 0) return []
     const rows = await prisma.employeeProfile.findMany({
       where: {
-        user: { organizationId: orgId },
+        // Scope by the profile's org, not the user's home org (a
+        // multi-company user has one profile per org).
+        organizationId: orgId,
         ...(policyIdScope && policyIdScope.length > 0
           ? { policyId: { in: policyIdScope } }
           : {}),
@@ -216,7 +218,8 @@ export const leaveRepository = {
       where: {
         year,
         employee: {
-          user: { organizationId: orgId },
+          // Profile's org, not the user's home org (multi-company safe).
+          organizationId: orgId,
           ...(policyIdScope && policyIdScope.length > 0
             ? { policyId: { in: policyIdScope } }
             : {}),
@@ -763,7 +766,8 @@ export const leaveRepository = {
       where: {
         status: "PENDING",
         employee: {
-          user: { organizationId },
+          // Profile's org, not the user's home org (multi-company safe).
+          organizationId,
           ...(policyIdScope && policyIdScope.length > 0
             ? { policyId: { in: policyIdScope } }
             : {}),

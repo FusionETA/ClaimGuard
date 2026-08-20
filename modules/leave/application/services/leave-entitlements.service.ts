@@ -830,7 +830,13 @@ async function loadAllEmployeeBalancesForOrg(
 ): Promise<EmployeeLeaveBalances[]> {
   const employees = await prisma.employeeProfile.findMany({
     where: {
-      user: { organizationId, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
+      // Scope by the PROFILE's org, not the user's home org. A user
+      // linked to several companies has one EmployeeProfile per org, so
+      // `user: { organizationId }` returned ALL of them and showed the
+      // person once per company. Match strictly on the profile's org
+      // (backfill guarantees it's set — see getEmployeeProfileForOrg).
+      organizationId,
+      user: { role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
       ...(policyIdScope && policyIdScope.length > 0
         ? { policyId: { in: policyIdScope } }
         : {}),
