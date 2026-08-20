@@ -17,6 +17,9 @@ import "server-only"
  *   - Failures come back INSIDE a 200 response as `Result.StatusCode`
  *     (e.g. "500"). So a real success is HTTP 2xx AND an embedded 2xx —
  *     never trust the HTTP status alone.
+ *   - The body is DOUBLE-encoded: a JSON string containing JSON. One
+ *     `response.json()` gives you a string, not an object. See
+ *     `parseEngineMailerBody`.
  *
  * Required env vars:
  *   ENGINE_MAILER_KEY      - the API key from the EngineMailer account
@@ -116,6 +119,29 @@ type EngineMailerResponse = {
   }
 }
 
+/// EngineMailer double-encodes its response: the HTTP body is a JSON
+/// *string* whose contents are themselves JSON, e.g.
+///   "{\r\n  \"Result\": { \"StatusCode\": \"200\" }\r\n}"
+/// A single JSON.parse yields a string, not an object — which silently
+/// made every send look like "unknown-provider-error" even though the
+/// mail went out. Unwrap up to two levels, tolerating either shape in
+/// case they ever fix it.
+function parseEngineMailerBody(raw: string): EngineMailerResponse | null {
+  if (!raw) return null
+  let value: unknown = raw
+  for (let i = 0; i < 2; i++) {
+    if (typeof value !== "string") break
+    try {
+      value = JSON.parse(value)
+    } catch {
+      return null
+    }
+  }
+  return value && typeof value === "object"
+    ? (value as EngineMailerResponse)
+    : null
+}
+
 export async function sendEmail(
   input: SendEmailInput,
 ): Promise<{ delivered: boolean; messageId?: string; reason?: string }> {
@@ -196,9 +222,7 @@ export async function sendEmail(
       }
     }
 
-    const body = (await response
-      .json()
-      .catch(() => null)) as EngineMailerResponse | null
+    const body = parseEngineMailerBody(await response.text().catch(() => ""))
     const code = String(body?.Result?.StatusCode ?? "")
     // The embedded status is the real verdict.
     if (!code.startsWith("2")) {

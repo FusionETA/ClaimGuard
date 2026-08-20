@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { getCurrentSession } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
-import { sendEmail, verifyEmailConnection } from "@/lib/email"
+import { sendEmail, verifyEmailConnection } from "@/modules/notifications/infrastructure/email"
 
 /**
  * GET  /api/admin/email-test

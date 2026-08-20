@@ -1,6 +1,6 @@
 import "server-only"
 
-import { sendEmail } from "@/lib/email"
+import { sendEmail } from "@/modules/notifications/infrastructure/email"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import {
   buildPayslipFileName,
