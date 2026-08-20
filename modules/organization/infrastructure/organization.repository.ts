@@ -2217,14 +2217,28 @@ export const organizationRepository = {
 
     const targetUser = await prisma.user.findUnique({
       where: { id: data.userId },
-      select: { organizationId: true, role: true },
+      select: {
+        organizationId: true,
+        role: true,
+        employeeProfiles: {
+          where: { organizationId: data.organizationId },
+          select: { id: true },
+          take: 1,
+        },
+      },
     })
 
-    if (
-      !targetUser ||
-      isAdminRole(targetUser.role) ||
-      targetUser.organizationId !== data.organizationId
-    ) {
+    // Multi-company: an employee can be linked to several orgs via
+    // EmployeeProfile. Authorize on "has a profile in THIS org", not on
+    // their home org — a linked/transferred employee's User.organizationId
+    // still points at their original company, which would wrongly block
+    // edits here. Legacy fallback: profiles written before the multi-org
+    // rollout may have organizationId = null; those belong to the home org.
+    const belongsToOrg =
+      (targetUser?.employeeProfiles.length ?? 0) > 0 ||
+      targetUser?.organizationId === data.organizationId
+
+    if (!targetUser || isAdminRole(targetUser.role) || !belongsToOrg) {
       throw new Error("You can only manage members inside your own organization.")
     }
 
