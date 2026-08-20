@@ -96,7 +96,7 @@ function addReadMe(wb: ExcelJS.Workbook): void {
   put("• Employee Name is matched to your staff automatically — case and spacing don’t matter. Email is optional: only add it if two staff share the same name.")
   put("• Entitled Days: the year's quota. Carried Forward: brought-in from last year. Taken: days already used.")
   put("• Remaining is worked out for you: Entitled + Carried Forward − Taken.")
-  put("• Year is optional — defaults to the current year if blank.")
+  put("• No Year column — the year is taken from the “Balances as at” date you pick on import (or the current year if you leave it blank).")
   put("• Re-uploading is safe: it re-sets the same figures (it overwrites, never doubles).")
   put("")
   put("② Leave History  (optional — full detail)", { bold: true, size: 12 })

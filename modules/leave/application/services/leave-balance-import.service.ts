@@ -22,7 +22,6 @@ export const LEAVE_BALANCE_COLUMNS = [
   { key: "employeeName", label: "Employee Name", required: true, example: "Ahmad Ali" },
   { key: "employeeEmail", label: "Employee Email", required: false, example: "ahmad@company.com" },
   { key: "leaveType", label: "Leave Type", required: true, example: "Annual Leave" },
-  { key: "year", label: "Year", required: false, example: "2026" },
   { key: "entitled", label: "Entitled Days", required: true, example: "14" },
   { key: "carriedForward", label: "Carried Forward", required: false, example: "2" },
   { key: "taken", label: "Taken", required: false, example: "5" },
@@ -154,7 +153,11 @@ export async function bulkImportLeaveBalances(input: {
   const cell = (row: string[], key: string): string =>
     (row[colIndex.get(key) ?? -1] ?? "").trim()
 
-  const currentYear = new Date().getUTCFullYear()
+  // The entitlement year comes from the "balances as at" date (its
+  // calendar year), or the current year when no as-at date is given.
+  // There's no separate Year column — the cutoff date is the single
+  // source of truth for which year these balances belong to.
+  const year = asAt ? asAt.getUTCFullYear() : new Date().getUTCFullYear()
 
   for (let i = 1; i < rows.length; i++) {
     const rowNumber = i // 1-based data row (header is row 0)
@@ -191,12 +194,6 @@ export async function bulkImportLeaveBalances(input: {
       const leaveTypeId = typeByName.get(typeRaw.toLowerCase())
       if (!leaveTypeId) {
         throw new Error(`Unknown leave type "${typeRaw}".`)
-      }
-
-      const yearRaw = cell(row, "year")
-      const year = yearRaw ? Number(yearRaw) : currentYear
-      if (!Number.isInteger(year) || year < 2000 || year > 2100) {
-        throw new Error("Year must be a 4-digit year (e.g. 2026).")
       }
 
       const entitled = parseDays(cell(row, "entitled"), null)
