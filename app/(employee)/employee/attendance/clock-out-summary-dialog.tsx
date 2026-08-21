@@ -66,12 +66,12 @@ function fmtDuration(min: number | null): string {
 }
 
 /** Local "HH:MM" for a Date (for the <input type="time"> default). */
-function toHHMM(d: Date): string {
+export function toHHMM(d: Date): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
 }
 
 /** Combine an "HH:MM" (today, local) into a UTC ISO string. */
-function hhmmToUtcIso(hhmm: string): string | null {
+export function hhmmToUtcIso(hhmm: string): string | null {
   const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm.trim())
   if (!m) return null
   const hh = Number(m[1])

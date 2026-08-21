@@ -40,6 +40,8 @@ import {
 import {
   ClockOutSummaryDialog,
   type ClockOutConfirmation,
+  toHHMM,
+  hhmmToUtcIso,
 } from "./clock-out-summary-dialog"
 import { ElapsedTimer } from "./elapsed-timer"
 
@@ -392,9 +394,11 @@ export function ClockCard({
     setClockOutCommitError(null)
   }
 
-  function commitClockOut(confirmation: ClockOutConfirmation) {
-    if (!clockOutDraft) return
-    const fd = clockOutDraft.formData
+  /// Shared clock-out commit. Runs the clock-out, then optionally the
+  /// OT/shift remark and the time-correction request. Used by BOTH the
+  /// on-site summary dialog (via `commitClockOut`) and the off-site panel
+  /// (which bypasses the dialog and commits in one step from `confirmRemark`).
+  function runClockOut(fd: FormData, confirmation: ClockOutConfirmation) {
     startClockOutTransition(async () => {
       const result = await clockOutAction(fd)
       if (result.error) {
@@ -414,9 +418,9 @@ export function ClockCard({
           return
         }
       }
-      // Time-correction request from the Adjustment tab. The clock-out
-      // already committed at the ACTUAL time above; this files a pending
-      // request for the supervisor to approve (apply) or reject (keep).
+      // Time-correction request from the Adjustment tab / off-site panel.
+      // The clock-out already committed at the ACTUAL time above; this files
+      // a pending request for the supervisor to approve (apply) or reject.
       if (confirmation.adjustment && recordId) {
         const adjForm = new FormData()
         adjForm.set("recordId", recordId)
@@ -435,6 +439,11 @@ export function ClockCard({
       setClockOutCommitError(null)
     })
   }
+
+  function commitClockOut(confirmation: ClockOutConfirmation) {
+    if (!clockOutDraft) return
+    runClockOut(clockOutDraft.formData, confirmation)
+  }
   const [isBreakPending, startBreakTransition] = useTransition()
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [remark, setRemark] = useState("")
@@ -443,6 +452,12 @@ export function ClockCard({
   /// clock-in / clock-out require it; the server rejects the event without
   /// one. Off-network (IP) clock-ins still only need the remark.
   const [offSiteSelfie, setOffSiteSelfie] = useState<string | null>(null)
+  /// Optional time-correction captured INSIDE the off-site clock-out panel.
+  /// On-site clock-outs collect this in the summary dialog instead; off-site
+  /// bypasses that dialog, so the fields live here and commit in one step.
+  const [offSiteAdjustOpen, setOffSiteAdjustOpen] = useState(false)
+  const [offSiteAdjustTime, setOffSiteAdjustTime] = useState("")
+  const [offSiteAdjustReason, setOffSiteAdjustReason] = useState("")
   const [orphanedReason, setOrphanedReason] = useState("")
   const [orphanedReasonError, setOrphanedReasonError] = useState<string | null>(null)
   /// Snapshot of the most recent clock-in submission (formData + display
@@ -820,6 +835,9 @@ export function ClockCard({
       }
       setRemark("")
       setRemarkError(null)
+      setOffSiteAdjustOpen(false)
+      setOffSiteAdjustTime(toHHMM(new Date()))
+      setOffSiteAdjustReason("")
       setPendingAction({
         formData,
         fence,
@@ -904,8 +922,44 @@ export function ClockCard({
       )
       return
     }
+
+    // Off-site clock-out can also carry an OPTIONAL time-correction request
+    // (the same feature the on-site summary dialog offers). Validate it only
+    // when the employee expanded the section.
+    let adjustment: ClockOutConfirmation["adjustment"] = null
+    if (pendingAction.kind === "CLOCK_OUT" && offSiteAdjustOpen) {
+      const iso = hhmmToUtcIso(offSiteAdjustTime)
+      if (!iso) {
+        setRemarkError("Enter a valid corrected clock-out time (HH:MM).")
+        return
+      }
+      if (!offSiteAdjustReason.trim()) {
+        setRemarkError("Add a reason for the time correction.")
+        return
+      }
+      adjustment = { requestedTimeOutUtc: iso, reason: offSiteAdjustReason.trim() }
+    }
+
     pendingAction.formData.set("notes", trimmed)
     if (offSiteSelfie) pendingAction.formData.set("selfie", offSiteSelfie)
+
+    // Clock-out: commit directly here. The remark panel already collected
+    // the off-site reason, photo and (optionally) the correction — so we
+    // skip the on-site summary dialog entirely and clock out in one step.
+    if (pendingAction.kind === "CLOCK_OUT") {
+      const fd = pendingAction.formData
+      setPendingAction(null)
+      setRemark("")
+      setRemarkError(null)
+      setOffSiteSelfie(null)
+      setOffSiteAdjustOpen(false)
+      setOffSiteAdjustTime("")
+      setOffSiteAdjustReason("")
+      runClockOut(fd, { remark: null, adjustment })
+      return
+    }
+
+    // Clock-in / break: unchanged — dispatch the held action.
     dispatch(pendingAction)
     setRemark("")
     setRemarkError(null)
@@ -918,6 +972,9 @@ export function ClockCard({
     setRemark("")
     setRemarkError(null)
     setOffSiteSelfie(null)
+    setOffSiteAdjustOpen(false)
+    setOffSiteAdjustTime("")
+    setOffSiteAdjustReason("")
   }
 
   // Live "Right now" clock. Seed from the server `now` (formatted in the org
@@ -1185,7 +1242,11 @@ export function ClockCard({
               ) : null}
             </div>
           ) : null}
-          {orphanedSession && clockOutCommitError ? (
+          {/* Commit error surfaces here for orphaned sessions AND off-site
+              clock-outs (both bypass the summary dialog, which otherwise owns
+              the error). When the summary dialog is open (clockOutDraft set)
+              it shows the error itself, so skip the duplicate. */}
+          {clockOutCommitError && !clockOutDraft ? (
             <p className="rounded-lg bg-destructive/10 px-3 py-2 text-[12px] font-semibold text-destructive">
               {clockOutCommitError}
             </p>
@@ -1220,6 +1281,13 @@ export function ClockCard({
           onConfirm={confirmRemark}
           onCancel={cancelRemark}
           error={remarkError}
+          showAdjustment={pendingAction.kind === "CLOCK_OUT"}
+          adjustOpen={offSiteAdjustOpen}
+          onAdjustOpenChange={setOffSiteAdjustOpen}
+          adjustTime={offSiteAdjustTime}
+          onAdjustTimeChange={setOffSiteAdjustTime}
+          adjustReason={offSiteAdjustReason}
+          onAdjustReasonChange={setOffSiteAdjustReason}
         />
       ) : null}
 
@@ -1486,6 +1554,13 @@ function RemarkPanel({
   onConfirm,
   onCancel,
   error,
+  showAdjustment,
+  adjustOpen,
+  onAdjustOpenChange,
+  adjustTime,
+  onAdjustTimeChange,
+  adjustReason,
+  onAdjustReasonChange,
 }: {
   fence: GeofenceCheck
   projectName: string | null
@@ -1498,6 +1573,15 @@ function RemarkPanel({
   onConfirm: () => void
   onCancel: () => void
   error: string | null
+  /// Clock-out only: offer an optional time-correction request inline, so
+  /// off-site employees don't have to reach the (skipped) summary dialog.
+  showAdjustment: boolean
+  adjustOpen: boolean
+  onAdjustOpenChange: (open: boolean) => void
+  adjustTime: string
+  onAdjustTimeChange: (value: string) => void
+  adjustReason: string
+  onAdjustReasonChange: (value: string) => void
 }) {
   async function handlePhotoFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -1583,6 +1667,67 @@ function RemarkPanel({
           )}
         </div>
       ) : null}
+
+      {/* Optional time-correction request (clock-out only). Collapsed by
+          default so the common case stays a one-tap "Confirm with remark".
+          Expanding it clocks you out NOW at the real time and files a pending
+          request the supervisor approves (applies your time) or rejects. */}
+      {showAdjustment ? (
+        <div className="mt-3 border-t border-amber-300/70 pt-3">
+          {!adjustOpen ? (
+            <button
+              type="button"
+              onClick={() => onAdjustOpenChange(true)}
+              className="text-xs font-bold text-amber-900 underline underline-offset-2 hover:text-amber-950"
+            >
+              Wrong clock-out time? Request a correction
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-amber-900">
+                  Request a time correction
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onAdjustOpenChange(false)}
+                  className="text-[11px] font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-950"
+                >
+                  Remove
+                </button>
+              </div>
+              <p className="text-[11px] text-amber-800">
+                You&apos;ll still be clocked out now at the actual time — your
+                supervisor approves the corrected time or keeps the original.
+              </p>
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-900">
+                  Corrected clock-out time
+                </label>
+                <input
+                  type="time"
+                  value={adjustTime}
+                  onChange={(e) => onAdjustTimeChange(e.target.value)}
+                  className="mt-1 block w-full rounded-[14px] border border-amber-300 bg-white px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-900">
+                  Reason (required)
+                </label>
+                <textarea
+                  value={adjustReason}
+                  onChange={(e) => onAdjustReasonChange(e.target.value)}
+                  placeholder="e.g. forgot to clock out — actually finished at 7:15pm"
+                  rows={2}
+                  className="mt-1 block w-full rounded-[14px] border border-amber-300 bg-white px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:text-sm"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      ) : null}
+
       <div className="mt-3 flex gap-2">
         <button
           type="button"
@@ -1596,7 +1741,9 @@ function RemarkPanel({
           onClick={onConfirm}
           className="flex-1 rounded-[14px] bg-amber-500 py-2 text-xs font-bold text-white hover:bg-amber-600"
         >
-          Confirm with remark
+          {showAdjustment && adjustOpen
+            ? "Submit & clock out"
+            : "Confirm with remark"}
         </button>
       </div>
     </div>
