@@ -555,7 +555,13 @@ async function computeApprovedOtMinutes(
   // Defaults to the legacy 8h fallback when no policy is assigned.
   let otThresholdMin = 8 * 60
   const profile = await prisma.employeeProfile.findFirst({
-    where: { userId: employeeId },
+    where: {
+      userId: employeeId,
+      // Scope to the profile in the org that owns this record's project.
+      ...(record?.projectId
+        ? { organization: { projects: { some: { id: record.projectId } } } }
+        : {}),
+    },
     select: { policy: { select: { otDailyThresholdMinutes: true } } },
   })
   if (profile?.policy) {

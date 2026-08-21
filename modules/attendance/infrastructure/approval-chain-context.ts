@@ -128,7 +128,13 @@ async function isAttendanceApprovalRequired(args: {
   const prisma = getPrismaClient()
   if (!prisma) return true
   const profile = await prisma.employeeProfile.findFirst({
-    where: { userId: args.employeeId },
+    where: {
+      userId: args.employeeId,
+      // Scope to the profile in the org that owns the project.
+      ...(args.projectId
+        ? { organization: { projects: { some: { id: args.projectId } } } }
+        : {}),
+    },
     select: {
       teamMemberships: {
         select: {

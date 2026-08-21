@@ -53,11 +53,21 @@ async function resolveGeofenceRadius(orgId: string | null): Promise<number> {
 /// check at clock-in. Defaults to `true` (the legacy behavior) when no
 /// policy is assigned. Used to short-circuit server-side validation for
 /// employees on a "no geofence" policy.
-async function policyEnforcesGeofence(employeeId: string): Promise<boolean> {
+async function policyEnforcesGeofence(
+  employeeId: string,
+  projectId: string | null,
+): Promise<boolean> {
   const prisma = getAttendancePrismaClientSafe()
   if (!prisma) return true
   const row = await prisma.employeeProfile.findFirst({
-    where: { userId: employeeId },
+    where: {
+      userId: employeeId,
+      // A multi-company employee has one profile (and policy) per org —
+      // use the one in the org that owns the project being clocked into.
+      ...(projectId
+        ? { organization: { projects: { some: { id: projectId } } } }
+        : {}),
+    },
     select: { policy: { select: { requireGeofence: true } } },
   })
   if (!row?.policy) return true
@@ -70,11 +80,17 @@ async function policyEnforcesGeofence(employeeId: string): Promise<boolean> {
 /// silently opt legacy employees in without an admin action.
 async function policyEnforcesIpWhitelist(
   employeeId: string,
+  projectId: string | null,
 ): Promise<boolean> {
   const prisma = getAttendancePrismaClientSafe()
   if (!prisma) return false
   const row = await prisma.employeeProfile.findFirst({
-    where: { userId: employeeId },
+    where: {
+      userId: employeeId,
+      ...(projectId
+        ? { organization: { projects: { some: { id: projectId } } } }
+        : {}),
+    },
     select: { policy: { select: { requireIpWhitelist: true } } },
   })
   if (!row?.policy) return false
@@ -138,7 +154,7 @@ async function enforceGeofenceForActiveRecord(
   const [project, orgId, enforce] = await Promise.all([
     attendanceRepository.getProjectGeoById(projectId),
     attendanceRepository.getOrganizationIdForUser(employeeId),
-    policyEnforcesGeofence(employeeId),
+    policyEnforcesGeofence(employeeId, projectId),
   ])
   if (!project) return { distanceMeters: null, offSite: false }
 
@@ -530,7 +546,7 @@ export const employeeAttendanceService = {
 
     const radius = await resolveGeofenceRadius(orgId)
     const fence = resolveFenceVerdict(coords ?? null, project, radius)
-    const enforceFence = await policyEnforcesGeofence(employeeId)
+    const enforceFence = await policyEnforcesGeofence(employeeId, projectId)
     const offSite = enforceFence && !fence.withinRadius
     if (offSite && !notes) {
       throw new Error(OFF_SITE_REMARK_REQUIRED)
@@ -546,7 +562,7 @@ export const employeeAttendanceService = {
     // remark-override contract as geofence: an off-network employee
     // can still clock in by providing a reason (site visit / WFH).
     const [enforceIp, projectAllowedIps] = await Promise.all([
-      policyEnforcesIpWhitelist(employeeId),
+      policyEnforcesIpWhitelist(employeeId, projectId),
       attendanceRepository.getProjectAllowedIps(projectId),
     ])
     // `ipAllowed` tri-state: true (matched), false (mismatch), null
