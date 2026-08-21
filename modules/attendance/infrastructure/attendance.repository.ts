@@ -2670,8 +2670,24 @@ export const attendanceRepository = {
       durationMin = raw === null ? null : Math.max(0, raw - breakMin)
     }
 
-    const [, logRow] = await prisma.$transaction([
-      prisma.attendanceRecord.update({
+    // Keep the underlying AttendanceSession rows in step with the record's
+    // corrected boundaries. The admin daily board (and other session-based
+    // views) render the LATEST session's start/end — NOT the record's
+    // timeIn/timeOut — so an approved time correction or admin edit that
+    // only moved the record would keep showing the original physical clock
+    // times. Sync the first session's start (on a timeIn change) and the
+    // last session's end (on a timeOut change); drop the sessions entirely
+    // when the clock-in is cleared (e.g. an approval rejection wipes the day).
+    const syncSessions = await prisma.attendanceSession.findMany({
+      where: { attendanceRecordId: existing.id },
+      orderBy: { startedAt: "asc" },
+      select: { id: true, startedAt: true, endedAt: true },
+    })
+    const firstSession = syncSessions[0] ?? null
+    const lastSession = syncSessions[syncSessions.length - 1] ?? null
+
+    const logRow = await prisma.$transaction(async (tx) => {
+      await tx.attendanceRecord.update({
         where: { id: existing.id },
         data: {
           timeIn: nextTimeIn,
@@ -2680,8 +2696,8 @@ export const attendanceRepository = {
           durationMin,
           status: nextStatus,
         },
-      }),
-      prisma.attendanceEditLog.create({
+      })
+      const created = await tx.attendanceEditLog.create({
         data: {
           attendanceRecordId: existing.id,
           editedById: args.editorId,
@@ -2697,8 +2713,44 @@ export const attendanceRepository = {
           nextNotes: existing.notes,
           source: args.source,
         },
-      }),
-    ])
+      })
+      if (args.timeIn === null) {
+        // Clock-in cleared — the sessions no longer have a valid start;
+        // remove them alongside the now-wiped record.
+        if (syncSessions.length > 0) {
+          await tx.attendanceSession.deleteMany({
+            where: { attendanceRecordId: existing.id },
+          })
+        }
+      } else {
+        if (
+          args.timeIn !== undefined &&
+          nextTimeIn &&
+          firstSession &&
+          firstSession.startedAt.getTime() !== nextTimeIn.getTime()
+        ) {
+          await tx.attendanceSession.update({
+            where: { id: firstSession.id },
+            data: { startedAt: nextTimeIn },
+          })
+        }
+        // A timeOut change moves the last session's end. A null nextTimeOut
+        // (clock-out rejected) re-opens that session, matching the record
+        // returning to "still clocked in".
+        if (
+          args.timeOut !== undefined &&
+          lastSession &&
+          (lastSession.endedAt?.getTime() ?? null) !==
+            (nextTimeOut?.getTime() ?? null)
+        ) {
+          await tx.attendanceSession.update({
+            where: { id: lastSession.id },
+            data: { endedAt: nextTimeOut },
+          })
+        }
+      }
+      return created
+    })
     void logRow
 
     return {
