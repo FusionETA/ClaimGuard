@@ -34,9 +34,13 @@ import {
   endBreakAction,
   startBreakAction,
   type ClockInState,
+  submitTimeAdjustmentAction,
   updateTodayRemarkAction,
 } from "./actions"
-import { ClockOutSummaryDialog } from "./clock-out-summary-dialog"
+import {
+  ClockOutSummaryDialog,
+  type ClockOutConfirmation,
+} from "./clock-out-summary-dialog"
 import { ElapsedTimer } from "./elapsed-timer"
 
 /**
@@ -388,7 +392,7 @@ export function ClockCard({
     setClockOutCommitError(null)
   }
 
-  function commitClockOut(adjustmentRequest: string | null) {
+  function commitClockOut(confirmation: ClockOutConfirmation) {
     if (!clockOutDraft) return
     const fd = clockOutDraft.formData
     startClockOutTransition(async () => {
@@ -397,14 +401,33 @@ export function ClockCard({
         setClockOutCommitError(result.error)
         return
       }
-      if (adjustmentRequest && result.summary?.recordId) {
+      const recordId = result.summary?.recordId
+      // OT / shift remark from the Summary tab.
+      if (confirmation.remark && recordId) {
         const remarkForm = new FormData()
-        remarkForm.set("recordId", result.summary.recordId)
-        remarkForm.set("remark", adjustmentRequest)
+        remarkForm.set("recordId", recordId)
+        remarkForm.set("remark", confirmation.remark)
         const remarkResult = await updateTodayRemarkAction({}, remarkForm)
         if (remarkResult.error) {
           // Clock-out already committed; just surface the remark error.
           setClockOutCommitError(remarkResult.error)
+          return
+        }
+      }
+      // Time-correction request from the Adjustment tab. The clock-out
+      // already committed at the ACTUAL time above; this files a pending
+      // request for the supervisor to approve (apply) or reject (keep).
+      if (confirmation.adjustment && recordId) {
+        const adjForm = new FormData()
+        adjForm.set("recordId", recordId)
+        adjForm.set(
+          "requestedTimeOutUtc",
+          confirmation.adjustment.requestedTimeOutUtc,
+        )
+        adjForm.set("reason", confirmation.adjustment.reason)
+        const adjResult = await submitTimeAdjustmentAction({}, adjForm)
+        if (adjResult.error) {
+          setClockOutCommitError(adjResult.error)
           return
         }
       }

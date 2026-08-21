@@ -12,7 +12,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
 import type { AttendanceRecordView } from "@/modules/attendance/domain/models"
+
+/** What the employee confirmed in the dialog. */
+export type ClockOutConfirmation = {
+  /** OT / shift remark from the Summary tab (null when none). */
+  remark: string | null
+  /**
+   * Time-adjustment request from the Adjustment tab. When present the
+   * employee is still clocked out at the ACTUAL time now; this files a
+   * pending request for the supervisor to approve (apply) or reject
+   * (keep original). `requestedTimeOutUtc` is a UTC ISO string.
+   */
+  adjustment: { requestedTimeOutUtc: string; reason: string } | null
+}
 
 type Props = {
   /**
@@ -24,12 +38,8 @@ type Props = {
   pending: boolean
   /** Server-returned error from the most recent commit attempt, if any. */
   error: string | null
-  /**
-   * Called when the user explicitly confirms. Pass `null` for "Looks
-   * good" (no adjustment request) or the remark string for "Submit
-   * request".
-   */
-  onConfirm: (adjustmentRequest: string | null) => void
+  /** Called when the user explicitly confirms the clock-out. */
+  onConfirm: (confirmation: ClockOutConfirmation) => void
   /**
    * Called when the user dismisses without confirming — closing the
    * dialog must NOT commit the clock-out.
@@ -55,18 +65,35 @@ function fmtDuration(min: number | null): string {
   return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
+/** Local "HH:MM" for a Date (for the <input type="time"> default). */
+function toHHMM(d: Date): string {
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+}
+
+/** Combine an "HH:MM" (today, local) into a UTC ISO string. */
+function hhmmToUtcIso(hhmm: string): string | null {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm.trim())
+  if (!m) return null
+  const hh = Number(m[1])
+  const mm = Number(m[2])
+  if (hh > 23 || mm > 59) return null
+  const d = new Date()
+  d.setHours(hh, mm, 0, 0)
+  return d.toISOString()
+}
+
 /**
- * Pre-clock-out confirmation popup. Shows the projected hours for the
- * day along with the existing off-site context and any prior adjustment
- * request. The clock-out only commits when the employee explicitly
- * picks "Looks good" or "Submit request"; closing the dialog cancels
- * the clock-out entirely.
+ * Pre-clock-out confirmation popup with two tabs:
+ *   • Summary — projected hours + off-site context; the employee confirms
+ *     the clock-out at the actual time (an OT shift requires a remark).
+ *   • Request adjustment — the employee keys in the CORRECTED clock-out
+ *     time + a reason. Submitting still clocks them out NOW (at the real
+ *     time); it files a pending request the supervisor approves (applies
+ *     the corrected time) or rejects (keeps the original).
  *
- * Figures reflect the CURRENT open session (from `todayRecord.sessions`),
- * not the whole day — so a re-clock-in shows this shift's window and worked
- * time, and the OT check uses the projected day total rather than the span
- * from the first clock-in. The server recomputes authoritative values on
- * commit.
+ * Closing the dialog cancels the clock-out entirely. Figures reflect the
+ * CURRENT open session, not the whole day; the server recomputes
+ * authoritative values on commit.
  */
 export function ClockOutSummaryDialog({
   todayRecord,
@@ -76,12 +103,18 @@ export function ClockOutSummaryDialog({
   onClose,
   otThresholdMin,
 }: Props) {
+  const [tab, setTab] = useState<"summary" | "adjust">("summary")
   const [remark, setRemark] = useState("")
+  const [adjustTime, setAdjustTime] = useState("")
+  const [adjustReason, setAdjustReason] = useState("")
 
-  // Reset the remark editor whenever the dialog opens fresh.
+  // Reset the editors whenever the dialog opens fresh.
   useEffect(() => {
     if (todayRecord) {
+      setTab("summary")
       setRemark(todayRecord.remark ?? "")
+      setAdjustTime(toHHMM(new Date()))
+      setAdjustReason("")
     }
   }, [todayRecord])
 
@@ -98,9 +131,6 @@ export function ClockOutSummaryDialog({
     todayRecord.sessions.find((s) => s.startedAt && !s.endedAt) ?? null
   const sessionStart = openSession?.startedAt ?? todayRecord.timeIn
   const isReclockIn = todayRecord.sessions.filter((s) => s.endedAt).length > 0
-  // Which shift this is today — the open session is the latest, so its
-  // position is the session count. Gives the employee context that these
-  // times are for their current shift, not the whole day.
   const shiftNumber = Math.max(1, todayRecord.sessions.length)
 
   // This session's worked minutes so far (minus any break currently open).
@@ -120,12 +150,41 @@ export function ClockOutSummaryDialog({
     sessionWorkedMin = worked
   }
 
-  // OT is a DAILY threshold — check the projected day total (already-clocked
-  // completed sessions + this session so far), not the span from the first
-  // clock-in. Prevents a 1-minute second shift from reading as overtime.
+  // OT is a DAILY threshold — check the projected day total.
   const projectedDayWorkedMin =
     (todayRecord.durationMin ?? 0) + (sessionWorkedMin ?? 0)
   const isOt = otThresholdMin != null && projectedDayWorkedMin >= otThresholdMin
+
+  const requestedIso = hhmmToUtcIso(adjustTime)
+  const adjustValid = requestedIso != null && adjustReason.trim().length > 0
+
+  function confirmSummary() {
+    onConfirm({ remark: remark.trim() || null, adjustment: null })
+  }
+  function confirmAdjustment() {
+    if (!requestedIso || !adjustReason.trim()) return
+    onConfirm({
+      remark: null,
+      adjustment: { requestedTimeOutUtc: requestedIso, reason: adjustReason.trim() },
+    })
+  }
+
+  const tabBtn = (id: "summary" | "adjust", label: string) => (
+    <button
+      type="button"
+      onClick={() => setTab(id)}
+      disabled={pending}
+      className={cn(
+        "flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+        tab === id
+          ? "bg-background text-foreground shadow-sm"
+          : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {label}
+    </button>
+  )
+
   return (
     <Dialog
       open={open}
@@ -137,128 +196,179 @@ export function ClockOutSummaryDialog({
         <DialogHeader>
           <DialogTitle>Ready to clock out?</DialogTitle>
           <DialogDescription>
-            Review today&apos;s working hours. If something looks off, add an
-            adjustment request below for your supervisor to review. Closing
-            this dialog cancels the clock-out.
+            Review today&apos;s working hours, or request a time correction.
+            Closing this dialog cancels the clock-out.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
-          <div className="rounded-2xl border border-border/60 bg-surface-low p-4">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Working hours
+        <div className="flex gap-1 rounded-lg border border-border/60 bg-surface-low p-1">
+          {tabBtn("summary", "Summary")}
+          {tabBtn("adjust", "Request adjustment")}
+        </div>
+
+        {tab === "summary" ? (
+          <div className="space-y-3">
+            <div className="rounded-2xl border border-border/60 bg-surface-low p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Working hours
+                </p>
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                  Shift {shiftNumber} today
+                </span>
+              </div>
+              <p className="mt-1 font-headline text-xl font-extrabold text-foreground">
+                {fmtTime(sessionStart)} – {fmtTime(now)}
               </p>
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                Shift {shiftNumber} today
-              </span>
-            </div>
-            <p className="mt-1 font-headline text-xl font-extrabold text-foreground">
-              {fmtTime(sessionStart)} – {fmtTime(now)}
-            </p>
-            <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Worked
-                </p>
-                <p className="mt-0.5 text-sm font-bold text-foreground">
-                  {fmtDuration(sessionWorkedMin)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  On break
-                </p>
-                <p className="mt-0.5 text-sm font-bold text-foreground">
-                  {fmtDuration(todayRecord.breakMin > 0 ? todayRecord.breakMin : 0)}
-                </p>
-              </div>
-              {todayRecord.project ? (
-                <div className="col-span-2">
+              <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
+                <div>
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Project
+                    Worked
                   </p>
                   <p className="mt-0.5 text-sm font-bold text-foreground">
-                    🛠 {todayRecord.project}
+                    {fmtDuration(sessionWorkedMin)}
                   </p>
                 </div>
-              ) : null}
-              {!isReclockIn && todayRecord.lateByMin && todayRecord.lateByMin > 0 ? (
-                <div className="col-span-2">
-                  <p className="text-[10px] uppercase tracking-wider text-tertiary">
-                    Started late
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    On break
                   </p>
-                  <p className="mt-0.5 text-sm font-bold text-tertiary">
-                    +{todayRecord.lateByMin}m past shift start
+                  <p className="mt-0.5 text-sm font-bold text-foreground">
+                    {fmtDuration(todayRecord.breakMin > 0 ? todayRecord.breakMin : 0)}
                   </p>
                 </div>
-              ) : null}
+                {todayRecord.project ? (
+                  <div className="col-span-2">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Project
+                    </p>
+                    <p className="mt-0.5 text-sm font-bold text-foreground">
+                      🛠 {todayRecord.project}
+                    </p>
+                  </div>
+                ) : null}
+                {!isReclockIn && todayRecord.lateByMin && todayRecord.lateByMin > 0 ? (
+                  <div className="col-span-2">
+                    <p className="text-[10px] uppercase tracking-wider text-tertiary">
+                      Started late
+                    </p>
+                    <p className="mt-0.5 text-sm font-bold text-tertiary">
+                      +{todayRecord.lateByMin}m past shift start
+                    </p>
+                  </div>
+                ) : null}
+              </div>
             </div>
+
+            {todayRecord.notes ? (
+              <div className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+                <p className="font-bold">⚠ Off-site context</p>
+                <pre className="mt-1 whitespace-pre-wrap font-sans">
+                  {todayRecord.notes}
+                </pre>
+                <p className="mt-1 text-[10px] text-amber-800/80">
+                  Captured automatically when you clocked in/out outside the
+                  geofence. Not editable here.
+                </p>
+              </div>
+            ) : null}
+
+            {isOt ? (
+              <div className="rounded-md border border-orange-300 bg-orange-50 p-3 text-xs text-orange-900">
+                <p className="font-bold">⏱ Overtime detected</p>
+                <p className="mt-0.5">
+                  Your shift has exceeded the OT threshold. A shift remark is
+                  required before clocking out.
+                </p>
+              </div>
+            ) : null}
+
+            {isOt ? (
+              <label className="block space-y-1">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Shift remark (required)
+                </span>
+                <Textarea
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  placeholder="Describe what you worked on during overtime…"
+                  rows={3}
+                  disabled={pending}
+                  className="w-full resize-y"
+                />
+              </label>
+            ) : null}
+
+            {error ? (
+              <p className="text-xs font-semibold text-destructive">{error}</p>
+            ) : null}
+
+            <DialogFooter className="gap-2 border-t border-border/60 pt-3">
+              <Button
+                type="button"
+                size="lg"
+                disabled={pending || (isOt && !remark.trim())}
+                onClick={confirmSummary}
+                className="w-full shadow-sm"
+              >
+                {pending ? "Clocking out…" : "Confirm clock out"}
+              </Button>
+            </DialogFooter>
           </div>
-
-          {todayRecord.notes ? (
-            <div className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
-              <p className="font-bold">⚠ Off-site context</p>
-              <pre className="mt-1 whitespace-pre-wrap font-sans">
-                {todayRecord.notes}
-              </pre>
-              <p className="mt-1 text-[10px] text-amber-800/80">
-                Captured automatically when you clocked in/out outside the
-                geofence. Not editable here.
-              </p>
+        ) : (
+          <div className="space-y-3">
+            <div className="rounded-md border border-border/60 bg-surface-low p-3 text-xs text-muted-foreground">
+              You&apos;ll be clocked out now at the actual time
+              (<strong className="text-foreground">{fmtTime(now)}</strong>). This
+              sends your supervisor a request to change the clock-out time —
+              they approve (uses your time) or reject (keeps the actual time).
             </div>
-          ) : null}
 
-          {isOt ? (
-            <div className="rounded-md border border-orange-300 bg-orange-50 p-3 text-xs text-orange-900">
-              <p className="font-bold">⏱ Overtime detected</p>
-              <p className="mt-0.5">
-                Your shift has exceeded the OT threshold. A shift remark is
-                required before clocking out.
-              </p>
-            </div>
-          ) : null}
+            <label className="block space-y-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Corrected clock-out time
+              </span>
+              <input
+                type="time"
+                value={adjustTime}
+                onChange={(e) => setAdjustTime(e.target.value)}
+                disabled={pending}
+                className="block w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
+              />
+            </label>
 
-          <label className="block space-y-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              {isOt ? "Shift remark (required)" : "Adjustment request (optional)"}
-            </span>
-            <Textarea
-              value={remark}
-              onChange={(e) => setRemark(e.target.value)}
-              placeholder={
-                isOt
-                  ? "Describe what you worked on during overtime…"
-                  : "e.g. forgot to clock out at 6pm — actually finished at 7:15"
-              }
-              rows={4}
-              disabled={pending}
-              className="w-full resize-y"
-            />
-            {isOt ? null : (
-              <p className="text-[10px] text-muted-foreground">
-                Describe what should be adjusted. Your supervisor will see this
-                alongside today&apos;s record.
-              </p>
-            )}
-          </label>
+            <label className="block space-y-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Reason (required)
+              </span>
+              <Textarea
+                value={adjustReason}
+                onChange={(e) => setAdjustReason(e.target.value)}
+                placeholder="e.g. forgot to clock out — actually finished at 7:15pm"
+                rows={3}
+                disabled={pending}
+                className="w-full resize-y"
+              />
+            </label>
 
-          {error ? (
-            <p className="text-xs font-semibold text-destructive">{error}</p>
-          ) : null}
+            {error ? (
+              <p className="text-xs font-semibold text-destructive">{error}</p>
+            ) : null}
 
-          <DialogFooter className="gap-2 border-t border-border/60 pt-3">
-            <Button
-              type="button"
-              size="lg"
-              disabled={pending || (isOt && !remark.trim())}
-              onClick={() => onConfirm(remark.trim() || null)}
-              className="w-full shadow-sm"
-            >
-              {pending ? "Clocking out…" : "Confirm clock out"}
-            </Button>
-          </DialogFooter>
-        </div>
+            <DialogFooter className="gap-2 border-t border-border/60 pt-3">
+              <Button
+                type="button"
+                size="lg"
+                variant="outline"
+                disabled={pending || !adjustValid}
+                onClick={confirmAdjustment}
+                className="w-full"
+              >
+                {pending ? "Submitting…" : "Submit request & clock out"}
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

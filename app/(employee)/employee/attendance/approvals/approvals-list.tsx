@@ -1,12 +1,11 @@
 "use client"
 
 import { useMemo, useState, useTransition, type ReactNode } from "react"
-import { Check, ChevronDown, ChevronUp, FileText, Minus, Pencil, Search } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, FileText, Minus, Search } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Button } from "@/components/attendance/ui/button"
 import { Card } from "@/components/attendance/ui/card"
-import { DateTimeField } from "@/components/attendance/datetime-field"
 import { Input } from "@/components/attendance/ui/input"
 import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
 import { CoordsLink } from "@/components/attendance/coords-link"
@@ -25,17 +24,6 @@ const CLOCK_LABEL: Record<string, string> = {
 }
 
 const OFF_SITE_PREFIX = "⚠ OFF-SITE — "
-
-function toLocalDatetimeInput(iso: string | null): string {
-  if (!iso) return ""
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ""
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return (
-    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T` +
-    `${pad(d.getHours())}:${pad(d.getMinutes())}`
-  )
-}
 
 function parseEarlyMinutes(title: string): number | null {
   const match = /(\d+)m early/i.exec(title)
@@ -215,7 +203,6 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [bulkPendingFor, setBulkPendingFor] = useState<string | null>(null)
   const [, startTransition] = useTransition()
-  const [overrides, setOverrides] = useState<Record<string, string>>({})
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   function visibleIdsFor(group: EmployeeGroup): string[] {
@@ -263,21 +250,6 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
     })
   }
 
-  function toggleOverride(id: string, initial: string | null) {
-    setOverrides((prev) => {
-      if (prev[id] !== undefined) {
-        const next = { ...prev }
-        delete next[id]
-        return next
-      }
-      return { ...prev, [id]: toLocalDatetimeInput(initial) }
-    })
-  }
-
-  function setOverrideValue(id: string, value: string) {
-    setOverrides((prev) => ({ ...prev, [id]: value }))
-  }
-
   function bulkAction(
     group: EmployeeGroup,
     status: "APPROVED" | "REJECTED",
@@ -301,31 +273,15 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
       let ok = false
       let message = ""
 
-      if (status === "APPROVED" && ids.some((id) => overrides[id])) {
-        let failed = 0
-        for (const id of ids) {
-          const fd = new FormData()
-          fd.set("approvalId", id)
-          fd.set("status", "APPROVED")
-          if (overrides[id]) fd.set("overrideEventAt", overrides[id])
-          const result = await reviewApprovalAction({}, fd)
-          if (result.error) failed++
-        }
-        ok = failed === 0
-        message = ok
-          ? "All events approved."
-          : `${failed} event(s) could not be approved.`
-      } else {
-        const fd = new FormData()
-        fd.set("approvalIds", JSON.stringify(ids))
-        fd.set("status", status)
-        const result = await bulkReviewApprovalsAction(
-          { ok: false, message: "", succeeded: 0, failed: 0 },
-          fd,
-        )
-        ok = result.ok
-        message = result.message
-      }
+      const fd = new FormData()
+      fd.set("approvalIds", JSON.stringify(ids))
+      fd.set("status", status)
+      const result = await bulkReviewApprovalsAction(
+        { ok: false, message: "", succeeded: 0, failed: 0 },
+        fd,
+      )
+      ok = result.ok
+      message = result.message
 
       if (!ok) {
         setOptimisticallyHidden((prev) => {
@@ -513,9 +469,6 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
                       <div className="divide-y divide-border/40 border-t border-border/60">
                       {group.events.map((r) => {
                         const parsed = parseApprovalDetail(r.detail)
-                        const canAdjust =
-                          r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT"
-                        const isAdjusting = overrides[r.id] !== undefined
                         const isLate =
                           r.kind === "CLOCK_IN" && (r.lateMinutes ?? 0) > 0
                         const earlyMin =
@@ -549,22 +502,6 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
                                   </span>
                                 ) : null}
                               </span>
-                              {canAdjust ? (
-                                <button
-                                  type="button"
-                                  onClick={() => toggleOverride(r.id, r.eventAt)}
-                                  disabled={isBusy}
-                                  title={isAdjusting ? "Cancel time adjustment" : "Adjust time"}
-                                  className={cn(
-                                    "ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors disabled:opacity-40",
-                                    isAdjusting
-                                      ? "bg-primary/10 text-primary"
-                                      : "text-muted-foreground hover:bg-surface-low hover:text-foreground",
-                                  )}
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </button>
-                              ) : null}
                             </div>
 
                             <div className="mt-1.5 flex flex-row-reverse items-start gap-3">
@@ -669,22 +606,6 @@ function AttendanceList({ items }: { items: ApprovalRequestView[] }) {
                               </div>
                             </div>
 
-                            {isAdjusting ? (
-                              <div className="mt-2 space-y-1.5 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5">
-                                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary/80">
-                                  Adjusted{" "}
-                                  {r.kind === "CLOCK_IN" ? "clock-in" : "clock-out"} time
-                                </p>
-                                <DateTimeField
-                                  value={overrides[r.id] ?? ""}
-                                  onChange={(v) => setOverrideValue(r.id, v)}
-                                  compact
-                                />
-                                <p className="text-[10px] text-muted-foreground">
-                                  This override is applied when you click &ldquo;Approve all&rdquo; below.
-                                </p>
-                              </div>
-                            ) : null}
                             </div>
                           </div>
                         )
