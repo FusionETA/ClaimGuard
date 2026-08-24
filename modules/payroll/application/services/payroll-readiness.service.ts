@@ -87,10 +87,30 @@ export async function getPayrollRunReadiness(input: {
   if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
-
-  const payload = await loadStatutoryRunPayload({
+  return computePayrollRunReadiness({
     runId: input.runId,
     organizationId: orgId,
+  })
+}
+
+/**
+ * The readiness computation itself, with the organisation supplied
+ * rather than resolved from an admin session.
+ *
+ * Split out so `GET /api/v1/payroll-runs/[id]/readiness` can reuse it.
+ * An API token has no iron-session, so the entry point above returns
+ * null for one — and its contract says null means "no data", which a
+ * caller would read as "nothing to report" rather than "not checked".
+ * A second copy of a statutory checklist is the last thing that should
+ * be allowed to drift, hence one implementation with two doors.
+ */
+export async function computePayrollRunReadiness(input: {
+  runId: string
+  organizationId: string
+}): Promise<RunReadiness | null> {
+  const payload = await loadStatutoryRunPayload({
+    runId: input.runId,
+    organizationId: input.organizationId,
   })
   if (!payload) return null
 

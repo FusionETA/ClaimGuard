@@ -748,6 +748,43 @@ export const leaveRepository = {
   },
 
   /**
+   * Org-wide leave applications, newest first. Same projection as
+   * `listApplicationsForEmployee`, scoped via employee → user →
+   * organization like `countPendingForOrganization` below.
+   *
+   * Every filter is optional and ANDed. `from`/`to` match applications
+   * that OVERLAP the window (start <= to AND end >= from) rather than
+   * ones contained by it — "who is off next week" must return the leave
+   * that began last Friday and runs through Tuesday.
+   */
+  async listApplicationsForOrganization(
+    organizationId: string,
+    filter: {
+      status?: LeaveStatus
+      employeeId?: string
+      from?: Date
+      to?: Date
+      limit?: number
+    } = {},
+  ): Promise<LeaveApplicationView[]> {
+    const prisma = requirePrisma()
+    const limit = Math.min(Math.max(filter.limit ?? 100, 1), 500)
+    const rows = await prisma.leaveApplication.findMany({
+      where: {
+        employee: { user: { organizationId } },
+        ...(filter.status ? { status: filter.status } : {}),
+        ...(filter.employeeId ? { employeeId: filter.employeeId } : {}),
+        ...(filter.to ? { startDate: { lte: filter.to } } : {}),
+        ...(filter.from ? { endDate: { gte: filter.from } } : {}),
+      },
+      include: { leaveType: true, employee: { include: { user: true } } },
+      orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
+      take: limit,
+    })
+    return rows.map(toApplicationView)
+  },
+
+  /**
    * Count leave applications in the org still awaiting a decision
    * (status PENDING). Drives the admin overview "Leave" quick-action
    * badge. Scoped via employee → user → organization.
