@@ -67,6 +67,45 @@ export const API_FEATURE_CATALOG = [
   /// calendar, same year-scoped replace semantics as the org one.
   "projects.holidays",
 
+  // ── /api/v1/pending ─────────────────────────────────────────────────
+  /// `GET /api/v1/pending` — org-wide counts of everything waiting on a
+  /// human (claims, leave, attendance/OT, payroll runs in
+  /// PENDING_APPROVAL). Sections the token lacks scope for are omitted
+  /// and named, not 403'd.
+  "pending.inbox",
+
+  // ── reference + reporting reads ─────────────────────────────────────
+  /// `GET /api/v1/payroll/adjustment-categories` — the payroll item
+  /// dictionary with EPF/SOCSO/EIS/PCB/HRDF treatment per category.
+  /// Read this before writing any adjustment: the category, not the
+  /// amount, is what a caller gets wrong.
+  "payroll.adjustmentCategories",
+  /// `GET /api/v1/audit` — org activity log with actor, action and
+  /// `partnerInitiated`. Uses the `settings:read` scope.
+  "audit.read",
+  /// `GET /api/v1/loans` — staff loans + repayment schedules.
+  "loans.read",
+  /// `GET /api/v1/employees/{id}/salary-history` — salary changes for
+  /// one employee, keyed by User id like the rest of the resource.
+  "employees.salaryHistory",
+
+  // ── /api/v1/leave ───────────────────────────────────────────────────
+  /// `GET /api/v1/leave/applications` — org-wide leave applications
+  /// with status / employee / date-overlap filters.
+  "leave.applications",
+  /// `GET /api/v1/employees/{id}/leave-balances` — per-type
+  /// entitlement, accrued, used, carried and carry-expiry for a year.
+  "leave.balances",
+
+  // ── attendance + payroll reporting ──────────────────────────────────
+  /// `GET /api/v1/attendance/summary` — per-employee worked-hours
+  /// buckets + expected minutes for a date range. Aggregate, not a
+  /// punch-record feed.
+  "attendance.summary",
+  /// `GET /api/v1/payroll-runs/{id}/readiness` — the same pre-submit
+  /// statutory checklist the in-app submit guard runs.
+  "payroll.readiness",
+
   // ── /api/v1/onboarding ──────────────────────────────────────────────
   /// `PUT /api/v1/onboarding` — the payroll-POLICY answers from a
   /// partner setup form in one call (working week, proration + HRDF,
