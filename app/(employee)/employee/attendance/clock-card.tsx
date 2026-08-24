@@ -3,9 +3,17 @@
 import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
-import { AlertTriangle, Camera, Coffee, Fingerprint, Loader2, LogOut, MapPin, RotateCcw, X } from "lucide-react"
+import { AlertTriangle, Camera, Coffee, Fingerprint, Loader2, LogOut, MapPin, PencilLine, RotateCcw, X } from "lucide-react"
 
 import { Card } from "@/components/attendance/ui/card"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -13,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import type {
   AttendanceProjectView,
   AttendanceRecordView,
@@ -1268,29 +1277,6 @@ export function ClockCard({
         </div>
       )}
 
-      {pendingAction ? (
-        <RemarkPanel
-          fence={pendingAction.fence}
-          projectName={pendingAction.projectName}
-          offNetwork={pendingAction.offNetwork === true}
-          requirePhoto={pendingAction.offNetwork !== true}
-          selfie={offSiteSelfie}
-          onSelfieChange={setOffSiteSelfie}
-          remark={remark}
-          onChange={setRemark}
-          onConfirm={confirmRemark}
-          onCancel={cancelRemark}
-          error={remarkError}
-          showAdjustment={pendingAction.kind === "CLOCK_OUT"}
-          adjustOpen={offSiteAdjustOpen}
-          onAdjustOpenChange={setOffSiteAdjustOpen}
-          adjustTime={offSiteAdjustTime}
-          onAdjustTimeChange={setOffSiteAdjustTime}
-          adjustReason={offSiteAdjustReason}
-          onAdjustReasonChange={setOffSiteAdjustReason}
-        />
-      ) : null}
-
     </Card>
     {/* These overlays must live OUTSIDE <Card>: the card has `backdrop-blur-sm`
         (backdrop-filter), which makes it the containing block for position:fixed
@@ -1324,6 +1310,23 @@ export function ClockCard({
     ) : null}
 
     {detectingLocation ? <DetectingLocationModal /> : null}
+    <RemarkDialog
+      pendingAction={pendingAction}
+      selfie={offSiteSelfie}
+      onSelfieChange={setOffSiteSelfie}
+      remark={remark}
+      onChange={setRemark}
+      onConfirm={confirmRemark}
+      onCancel={cancelRemark}
+      error={remarkError}
+      showAdjustment={pendingAction?.kind === "CLOCK_OUT"}
+      adjustOpen={offSiteAdjustOpen}
+      onAdjustOpenChange={setOffSiteAdjustOpen}
+      adjustTime={offSiteAdjustTime}
+      onAdjustTimeChange={setOffSiteAdjustTime}
+      adjustReason={offSiteAdjustReason}
+      onAdjustReasonChange={setOffSiteAdjustReason}
+    />
     <ClockOutSummaryDialog
       todayRecord={clockOutDraft ? todayRecord : null}
       pending={isClockOutPending}
@@ -1542,11 +1545,20 @@ async function downscaleImageToDataUrl(
   return canvas.toDataURL("image/jpeg", 0.8)
 }
 
-function RemarkPanel({
-  fence,
-  projectName,
-  offNetwork,
-  requirePhoto,
+/**
+ * Off-site (geofence) / off-network (IP whitelist) confirmation. Opens
+ * whenever `pendingAction` is set — i.e. the client-side (or server-side,
+ * for IP) check rejected a clock-in / clock-out / break event and the
+ * employee needs to explain why before it's allowed through.
+ *
+ * A full-screen modal (matching `ClockOutSummaryDialog` and the selfie
+ * capture flow) rather than an inline card: this confirmation carries real
+ * consequences (it's what actually commits the event), so it gets the same
+ * focused, backdrop-dimmed treatment as the rest of the clock-out flow
+ * instead of competing with whatever page content sits behind it.
+ */
+function RemarkDialog({
+  pendingAction,
   selfie,
   onSelfieChange,
   remark,
@@ -1562,10 +1574,7 @@ function RemarkPanel({
   adjustReason,
   onAdjustReasonChange,
 }: {
-  fence: GeofenceCheck
-  projectName: string | null
-  offNetwork: boolean
-  requirePhoto: boolean
+  pendingAction: PendingAction | null
   selfie: string | null
   onSelfieChange: (dataUrl: string | null) => void
   remark: string
@@ -1595,6 +1604,12 @@ function RemarkPanel({
       // the confirm gate keeps blocking; the user can retry.
     }
   }
+
+  const open = pendingAction !== null
+  if (!pendingAction) return null
+
+  const { fence, projectName, offNetwork } = pendingAction
+  const requirePhoto = offNetwork !== true
   const heading = offNetwork
     ? "You're not on the office network"
     : fence.reason === "no_gps"
@@ -1610,143 +1625,159 @@ function RemarkPanel({
     : "e.g. Stuck in traffic, on-site at client office"
 
   return (
-    <div className="mt-4 rounded-[20px] border border-amber-300 bg-amber-50 p-4">
-      <p className="text-sm font-bold text-amber-900">{heading}</p>
-      <p className="mt-1 text-xs text-amber-800">{body}</p>
-      <textarea
-        value={remark}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        rows={3}
-        // 16px (`text-base`) on mobile prevents iOS Safari from
-        // auto-zooming the viewport when the textarea is focused —
-        // and Safari never zooms back out on blur, so a 14px input
-        // leaves the whole page stuck at the zoomed level after the
-        // user clicks Confirm/Cancel. Tighten back to 14px on sm+
-        // where the iOS rule doesn't apply.
-        className="mt-2 block w-full rounded-[14px] border border-amber-300 bg-white px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:text-sm"
-      />
-      {error ? <p className="mt-1 text-xs font-semibold text-destructive">{error}</p> : null}
-      {requirePhoto ? (
-        <div className="mt-3">
-          <p className="text-xs font-bold text-amber-900">Photo (required)</p>
-          <p className="text-[11px] text-amber-800">
-            Take a photo now or attach one — proof of where you are.
-          </p>
-          {selfie ? (
-            <div className="mt-2 flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={selfie}
-                alt="Attached"
-                className="h-16 w-16 rounded-lg border border-amber-300 object-cover"
-              />
-              <label className="cursor-pointer text-xs font-bold text-amber-900 underline">
-                Change photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="user"
-                  onChange={handlePhotoFile}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          ) : (
-            <label className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-[14px] border border-amber-300 bg-white px-3 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100">
-              <Camera className="h-4 w-4" />
-              Take or attach a photo
-              <input
-                type="file"
-                accept="image/*"
-                capture="user"
-                onChange={handlePhotoFile}
-                className="hidden"
-              />
-            </label>
-          )}
-        </div>
-      ) : null}
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onCancel()
+      }}
+    >
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{heading}</DialogTitle>
+          <DialogDescription>{body}</DialogDescription>
+        </DialogHeader>
 
-      {/* Optional time-correction request (clock-out only). Collapsed by
-          default so the common case stays a one-tap "Confirm with remark".
-          Expanding it clocks you out NOW at the real time and files a pending
-          request the supervisor approves (applies your time) or rejects. */}
-      {showAdjustment ? (
-        <div className="mt-3 border-t border-amber-300/70 pt-3">
-          {!adjustOpen ? (
-            <button
-              type="button"
-              onClick={() => onAdjustOpenChange(true)}
-              className="text-xs font-bold text-amber-900 underline underline-offset-2 hover:text-amber-950"
-            >
-              Wrong clock-out time? Request a correction
-            </button>
-          ) : (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-amber-900">
-                  Request a time correction
-                </p>
+        <div className="space-y-4">
+          <Textarea
+            value={remark}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            rows={3}
+            className="w-full resize-y border-amber-200 bg-white shadow-sm focus-visible:ring-amber-400"
+          />
+          {error ? (
+            <p className="text-xs font-semibold text-destructive">{error}</p>
+          ) : null}
+
+          {requirePhoto ? (
+            <div className="rounded-2xl border border-amber-200 bg-white p-3">
+              <p className="text-xs font-bold text-amber-900">
+                Photo (required)
+              </p>
+              <p className="mt-0.5 text-[11px] text-amber-700">
+                Take a photo now or attach one — proof of where you are.
+              </p>
+              {selfie ? (
+                <div className="mt-2.5 flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selfie}
+                    alt="Attached"
+                    className="h-16 w-16 rounded-xl border border-amber-200 object-cover"
+                  />
+                  <label className="cursor-pointer text-xs font-bold text-amber-900 underline underline-offset-2">
+                    Change photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      onChange={handlePhotoFile}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              ) : (
+                <label className="mt-2.5 inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100">
+                  <Camera className="h-4 w-4" />
+                  Take or attach a photo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="user"
+                    onChange={handlePhotoFile}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          ) : null}
+
+          {/* Optional time-correction request (clock-out only). Collapsed
+              by default so the common case stays a one-tap "Confirm with
+              remark". Expanding it clocks you out NOW at the real time and
+              files a pending request the supervisor approves (applies your
+              time) or rejects. */}
+          {showAdjustment ? (
+            <div className="rounded-2xl border border-amber-200 bg-white p-3">
+              {!adjustOpen ? (
                 <button
                   type="button"
-                  onClick={() => onAdjustOpenChange(false)}
-                  className="text-[11px] font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-950"
+                  onClick={() => onAdjustOpenChange(true)}
+                  className="flex items-center gap-1.5 text-xs font-bold text-amber-900 underline underline-offset-2 hover:text-amber-950"
                 >
-                  Remove
+                  <PencilLine className="h-3.5 w-3.5" />
+                  Wrong clock-out time? Request a correction
                 </button>
-              </div>
-              <p className="text-[11px] text-amber-800">
-                You&apos;ll still be clocked out now at the actual time — your
-                supervisor approves the corrected time or keeps the original.
-              </p>
-              <div>
-                <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-900">
-                  Corrected clock-out time
-                </label>
-                <input
-                  type="time"
-                  value={adjustTime}
-                  onChange={(e) => onAdjustTimeChange(e.target.value)}
-                  className="mt-1 block w-full rounded-[14px] border border-amber-300 bg-white px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-900">
-                  Reason (required)
-                </label>
-                <textarea
-                  value={adjustReason}
-                  onChange={(e) => onAdjustReasonChange(e.target.value)}
-                  placeholder="e.g. forgot to clock out — actually finished at 7:15pm"
-                  rows={2}
-                  className="mt-1 block w-full rounded-[14px] border border-amber-300 bg-white px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:text-sm"
-                />
-              </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                      <PencilLine className="h-3.5 w-3.5" />
+                      Request a time correction
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => onAdjustOpenChange(false)}
+                      className="text-[11px] font-semibold text-amber-700 underline underline-offset-2 hover:text-amber-950"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-amber-700">
+                    You&apos;ll still be clocked out now at the actual time —
+                    your supervisor approves the corrected time or keeps the
+                    original.
+                  </p>
+                  <label className="block space-y-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900">
+                      Corrected clock-out time
+                    </span>
+                    <input
+                      type="time"
+                      value={adjustTime}
+                      onChange={(e) => onAdjustTimeChange(e.target.value)}
+                      className="block w-full rounded-xl border border-amber-200 bg-white px-3 py-2.5 text-base font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:text-sm"
+                    />
+                  </label>
+                  <label className="block space-y-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900">
+                      Reason (required)
+                    </span>
+                    <Textarea
+                      value={adjustReason}
+                      onChange={(e) => onAdjustReasonChange(e.target.value)}
+                      placeholder="e.g. forgot to clock out — actually finished at 7:15pm"
+                      rows={2}
+                      className="w-full resize-y border-amber-200 bg-white shadow-sm focus-visible:ring-amber-400"
+                    />
+                  </label>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      ) : null}
+          ) : null}
 
-      <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="flex-1 rounded-[14px] border border-amber-300 bg-white py-2 text-xs font-bold text-amber-900 hover:bg-amber-100"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          className="flex-1 rounded-[14px] bg-amber-500 py-2 text-xs font-bold text-white hover:bg-amber-600"
-        >
-          {showAdjustment && adjustOpen
-            ? "Submit & clock out"
-            : "Confirm with remark"}
-        </button>
-      </div>
-    </div>
+          <div className="flex gap-2 border-t border-border/60 pt-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={onConfirm}
+              className="flex-1 bg-amber-500 text-white shadow-sm hover:bg-amber-600"
+            >
+              {showAdjustment && adjustOpen
+                ? "Submit & clock out"
+                : "Confirm with remark"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

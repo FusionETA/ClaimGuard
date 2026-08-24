@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Clock, PencilLine } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -169,18 +170,23 @@ export function ClockOutSummaryDialog({
     })
   }
 
-  const tabBtn = (id: "summary" | "adjust", label: string) => (
+  const tabBtn = (
+    id: "summary" | "adjust",
+    label: string,
+    Icon: typeof Clock,
+  ) => (
     <button
       type="button"
       onClick={() => setTab(id)}
       disabled={pending}
       className={cn(
-        "flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+        "flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
         tab === id
-          ? "bg-background text-foreground shadow-sm"
+          ? "bg-card text-foreground shadow-sm"
           : "text-muted-foreground hover:text-foreground",
       )}
     >
+      <Icon className="h-3.5 w-3.5" />
       {label}
     </button>
   )
@@ -201,9 +207,9 @@ export function ClockOutSummaryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-1 rounded-lg border border-border/60 bg-surface-low p-1">
-          {tabBtn("summary", "Summary")}
-          {tabBtn("adjust", "Request adjustment")}
+        <div className="flex gap-1 rounded-2xl border border-border/60 bg-surface-low p-1">
+          {tabBtn("summary", "Summary", Clock)}
+          {tabBtn("adjust", "Request adjustment", PencilLine)}
         </div>
 
         {tab === "summary" ? (
@@ -316,16 +322,22 @@ export function ClockOutSummaryDialog({
             </DialogFooter>
           </div>
         ) : (
-          <div className="space-y-3">
-            <div className="rounded-md border border-border/60 bg-surface-low p-3 text-xs text-muted-foreground">
-              You&apos;ll be clocked out now at the actual time
-              (<strong className="text-foreground">{fmtTime(now)}</strong>). This
-              sends your supervisor a request to change the clock-out time —
-              they approve (uses your time) or reject (keeps the actual time).
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-700">
+                <Clock className="h-4 w-4" />
+              </div>
+              <p className="text-xs leading-relaxed text-amber-900">
+                You&apos;ll be clocked out now at the actual time (
+                <strong className="font-bold">{fmtTime(now)}</strong>). This
+                sends your supervisor a request to change the clock-out time —
+                they approve (uses your time) or reject (keeps the actual
+                time).
+              </p>
             </div>
 
-            <label className="block space-y-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <label className="block space-y-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900">
                 Corrected clock-out time
               </span>
               <input
@@ -333,12 +345,12 @@ export function ClockOutSummaryDialog({
                 value={adjustTime}
                 onChange={(e) => setAdjustTime(e.target.value)}
                 disabled={pending}
-                className="block w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
+                className="block w-full rounded-2xl border border-amber-200 bg-white px-4 py-3 text-base font-semibold text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
               />
             </label>
 
-            <label className="block space-y-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <label className="block space-y-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900">
                 Reason (required)
               </span>
               <Textarea
@@ -347,7 +359,7 @@ export function ClockOutSummaryDialog({
                 placeholder="e.g. forgot to clock out — actually finished at 7:15pm"
                 rows={3}
                 disabled={pending}
-                className="w-full resize-y"
+                className="w-full resize-y border-amber-200 bg-white shadow-sm focus-visible:ring-amber-400"
               />
             </label>
 
@@ -359,10 +371,9 @@ export function ClockOutSummaryDialog({
               <Button
                 type="button"
                 size="lg"
-                variant="outline"
                 disabled={pending || !adjustValid}
                 onClick={confirmAdjustment}
-                className="w-full"
+                className="w-full bg-amber-500 text-white shadow-sm hover:bg-amber-600"
               >
                 {pending ? "Submitting…" : "Submit request & clock out"}
               </Button>
