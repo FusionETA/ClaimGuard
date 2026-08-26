@@ -3,7 +3,12 @@ import JSZip from "jszip"
 
 import { handleApiRequest } from "@/lib/api-auth"
 import { renderPayrollReportFileForOrg } from "@/modules/payroll/application/services/payroll-reports.service"
-import type { PayrollReportKind } from "@/modules/payroll/domain/reports"
+import {
+  PAYROLL_FILE_FORMAT_TO_KIND,
+  type PayrollReportKind,
+} from "@/modules/payroll/domain/reports"
+import { resolvePayrollFileFormat } from "@/modules/payroll/domain/malaysian-banks"
+import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 
 /**
@@ -34,13 +39,14 @@ import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-r
  * file's content + filename; it defaults to the last day of the period.
  */
 
-// The disbursement bundle: bank payment file, payslips, a run summary,
-// and the three statutory upload files. A kind that can't be rendered for
-// this run (e.g. bank settings missing) is skipped rather than failing
-// the whole bundle — see the try/catch in the loop.
+// The disbursement bundle: payslips, a run summary, and the three
+// statutory upload files. The bank payment file is resolved per-org at
+// request time (each bank has its own format) and prepended below. A
+// kind that can't be rendered for this run (e.g. bank settings missing)
+// is skipped rather than failing the whole bundle — see the try/catch
+// in the loop.
 const BUNDLE_KINDS: PayrollReportKind[] = [
   "PAYROLL_SUMMARY_PDF",
-  "BANK_PB_ECP_XLSX",
   "BULK_PAYSLIPS_PDF",
   "EPF_CSV",
   "SOCSO_EIS_TXT",
@@ -76,10 +82,19 @@ export const GET = handleApiRequest<{ id: string }>(
     const paymentDate =
       new URL(request.url).searchParams.get("paymentDate") ?? undefined
 
+    // Prepend the bank file matching THIS org's payroll bank. Omitted
+    // when no disbursement bank is configured — the rest of the bundle
+    // still renders.
+    const settings = await payrollSettingsRepository.getByOrgId(organizationId)
+    const bankFormat = resolvePayrollFileFormat(settings?.payrollBankName)
+    const kinds: PayrollReportKind[] = bankFormat
+      ? [PAYROLL_FILE_FORMAT_TO_KIND[bankFormat], ...BUNDLE_KINDS]
+      : BUNDLE_KINDS
+
     const zip = new JSZip()
     const included: string[] = []
     const skipped: Array<{ kind: PayrollReportKind; reason: string }> = []
-    for (const kind of BUNDLE_KINDS) {
+    for (const kind of kinds) {
       try {
         const file = await renderPayrollReportFileForOrg({
           runId: id,

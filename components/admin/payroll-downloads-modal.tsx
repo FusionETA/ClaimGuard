@@ -20,6 +20,7 @@ import { useToast } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import {
   PAYROLL_REPORT_GROUP_LABELS,
+  PAYROLL_REPORT_META,
   type PayrollReportGroup,
   type PayrollReportKind,
   type PayrollReportRow,
@@ -31,8 +32,8 @@ import {
  * Replaces the old "Download payroll summary PDF" + "Download bank
  * CSV" buttons with a single entry point. The modal lists every
  * downloadable file grouped into Reports / Statutory uploads /
- * Payslips, plus the bank disbursement CSV at the bottom (which has
- * its own `/disbursement` endpoint).
+ * Payslips, plus the bank disbursement file matching the company's
+ * configured payroll bank.
  *
  * Every file is rendered ON DEMAND and streamed — nothing is stored on
  * disk. Each row's Download button fetches
@@ -56,9 +57,6 @@ export function PayrollDownloadsModal(props: {
   /// Static per-kind meta rows to render (their `generated` is always
   /// null now — files are produced on demand, nothing is pre-generated).
   rows: PayrollReportRow[]
-  /// Whether to show the bank disbursement CSV row (always available
-  /// when SUBMITTED, served from the existing `/disbursement` route).
-  showBankCsv: boolean
 }) {
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
@@ -75,20 +73,17 @@ export function PayrollDownloadsModal(props: {
   const [pbEcpPaymentDate, setPbEcpPaymentDate] = useState<string>(() =>
     defaultPaymentDateIso(props.periodLabel),
   )
-  // Bulk-download selection. We use kind strings as keys + the magic
-  // string "BANK_CSV" for the generic disbursement CSV (which doesn't
-  // have a PayrollReportKind because it goes through a separate route).
-  const BANK_CSV_KEY = "__BANK_CSV__" as const
-  type SelectionKey = PayrollReportKind | typeof BANK_CSV_KEY
+  // Bulk-download selection, keyed by report kind.
+  type SelectionKey = PayrollReportKind
   const [selected, setSelected] = useState<Set<SelectionKey>>(() => new Set())
   const [bulkPending, setBulkPending] = useState(false)
 
-  /// Streaming download URL for one report kind. PB ECP carries the
-  /// admin-picked payment date in the query string (it flows into both
-  /// the file content and the bank-spec filename).
+  /// Streaming download URL for one report kind. Every bank file
+  /// carries the admin-picked payment date in the query string — it
+  /// flows into the file content (and, for PB ECP, the filename).
   function reportUrl(kind: PayrollReportKind): string {
     const base = `/admin/payroll/runs/${props.runId}/reports/${kind}`
-    return kind === "BANK_PB_ECP_XLSX"
+    return PAYROLL_REPORT_META[kind].group === "BANK"
       ? `${base}?paymentDate=${encodeURIComponent(pbEcpPaymentDate)}`
       : base
   }
@@ -126,13 +121,12 @@ export function PayrollDownloadsModal(props: {
     BANK: rows.filter((r) => r.group === "BANK"),
   }
 
-  // All selectable keys across the modal (every report row + the bank
-  // CSV row, when shown). Used by the "Select all" header checkbox.
-  const allSelectable: SelectionKey[] = useMemo(() => {
-    const keys: SelectionKey[] = rows.map((r) => r.kind)
-    if (props.showBankCsv) keys.push(BANK_CSV_KEY)
-    return keys
-  }, [rows, props.showBankCsv])
+  // All selectable keys across the modal. Used by the "Select all"
+  // header checkbox.
+  const allSelectable: SelectionKey[] = useMemo(
+    () => rows.map((r) => r.kind),
+    [rows],
+  )
 
   const allChecked =
     allSelectable.length > 0 &&
@@ -167,7 +161,6 @@ export function PayrollDownloadsModal(props: {
       //    rendered bytes to the ZIP. Run sequentially so the server-side
       //    render queue isn't hammered by a big multi-select.
       for (const key of selected) {
-        if (key === BANK_CSV_KEY) continue
         try {
           const res = await fetch(reportUrl(key))
           if (!res.ok) {
@@ -180,29 +173,6 @@ export function PayrollDownloadsModal(props: {
           added++
         } catch (e) {
           errors.push(`${key}: ${e instanceof Error ? e.message : "unknown error"}`)
-        }
-      }
-
-      // 2) Bank CSV — served by the disbursement route.
-      if (selected.has(BANK_CSV_KEY)) {
-        try {
-          const href = `/admin/payroll/runs/${props.runId}/disbursement`
-          const res = await fetch(href)
-          if (!res.ok) {
-            errors.push(`bank-csv: HTTP ${res.status}`)
-          } else {
-            const blob = await res.blob()
-            // Try to read the filename out of Content-Disposition; fall
-            // back to a sensible default if the server didn't set it.
-            const fileName = fileNameFromResponse(
-              res,
-              `bank-disbursement-${props.runId}.csv`,
-            )
-            zip.file(fileName, blob)
-            added++
-          }
-        } catch (e) {
-          errors.push(`bank-csv: ${e instanceof Error ? e.message : "unknown error"}`)
         }
       }
 
@@ -289,18 +259,16 @@ export function PayrollDownloadsModal(props: {
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {PAYROLL_REPORT_GROUP_LABELS[group]}
                 </h3>
-                {/* PB ECP needs a payment-date picker since the date is
-                    embedded in both the file content (Row 1) and the
-                    filename (DDMMYY). Render it once at the top of the
-                    BANK group when there's a PB ECP row in the list. */}
-                {group === "BANK" &&
-                groupRows.some((r) => r.kind === "BANK_PB_ECP_XLSX") ? (
+                {/* Every bank format embeds a payment/value date in the
+                    file (and PB ECP also puts it in the filename), so the
+                    picker renders once at the top of the BANK group. */}
+                {group === "BANK" ? (
                   <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-xs">
                     <label
                       htmlFor="pb-ecp-payment-date"
                       className="font-medium text-foreground"
                     >
-                      PB ECP payment date
+                      Payment date
                     </label>
                     <input
                       id="pb-ecp-payment-date"
@@ -334,49 +302,23 @@ export function PayrollDownloadsModal(props: {
             )
           })}
 
-          {/* Generic bank disbursement CSV — fallback for non-PB banks
-              or admins who prefer to paste rows into their bank's own
-              bulk-transfer template. Served fresh from the existing
-              `/disbursement` route (no caching). Renders under the
-              Bank disbursement group only when no PB ECP row is
-              available for this org. */}
-          {props.showBankCsv && grouped.BANK.length === 0 && (
+          {/* No bank file means the company hasn't nominated a payroll
+              disbursement bank (or still has a legacy one we don't
+              generate a file for). Say so rather than silently omitting
+              the section — the admin has no other way to tell. */}
+          {grouped.BANK.length === 0 && (
             <section className="space-y-2">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Bank disbursement
+                {PAYROLL_REPORT_GROUP_LABELS.BANK}
               </h3>
-              <ul className="space-y-1.5">
-                <li>
-                  <BankCsvRow
-                    runId={props.runId}
-                    disabled={!props.canGenerate}
-                    bulkPending={bulkPending}
-                    checked={selected.has(BANK_CSV_KEY)}
-                    onToggleSelect={() => toggleSelect(BANK_CSV_KEY)}
-                  />
-                </li>
-              </ul>
-            </section>
-          )}
-          {/* When the BANK group has rows (e.g. PB ECP), we still
-              render the generic CSV alongside as a fallback option
-              inside the same section. */}
-          {props.showBankCsv && grouped.BANK.length > 0 && (
-            <section className="space-y-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Generic CSV (fallback)
-              </h3>
-              <ul className="space-y-1.5">
-                <li>
-                  <BankCsvRow
-                    runId={props.runId}
-                    disabled={!props.canGenerate}
-                    bulkPending={bulkPending}
-                    checked={selected.has(BANK_CSV_KEY)}
-                    onToggleSelect={() => toggleSelect(BANK_CSV_KEY)}
-                  />
-                </li>
-              </ul>
+              <p className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground">
+                No payroll disbursement bank is set, so there&apos;s no bank
+                file for this run. Choose your company&apos;s bank under{" "}
+                <span className="font-medium text-foreground">
+                  Payroll settings → Payroll disbursement bank
+                </span>
+                .
+              </p>
             </section>
           )}
         </div>
@@ -479,59 +421,6 @@ function ReportRow(props: {
   )
 }
 
-function BankCsvRow(props: {
-  runId: string
-  disabled: boolean
-  bulkPending: boolean
-  checked: boolean
-  onToggleSelect: () => void
-}) {
-  const href = `/admin/payroll/runs/${props.runId}/disbursement`
-  return (
-    <div
-      className={cn(
-        "flex items-start justify-between gap-3 rounded-xl border border-border/60 bg-card/40 px-3 py-2.5",
-        props.disabled && "opacity-60",
-      )}
-    >
-      <div className="flex min-w-0 items-start gap-3">
-        <input
-          type="checkbox"
-          className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-border/70 accent-primary"
-          checked={props.checked}
-          onChange={props.onToggleSelect}
-          disabled={props.disabled || props.bulkPending}
-          aria-label="Select Bank disbursement CSV"
-        />
-        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-foreground">
-            Bank disbursement CSV
-            <span className="ml-2 text-xs font-normal text-muted-foreground">
-              → Your bank&apos;s bulk transfer upload
-            </span>
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            One row per payslip with employee bank details + net pay
-            amount.
-          </p>
-        </div>
-      </div>
-      <Button
-        asChild
-        variant="outline"
-        size="sm"
-        className="shrink-0 gap-1.5"
-        disabled={props.disabled || props.bulkPending}
-      >
-        <a href={href} download>
-          <Download className="h-3.5 w-3.5" />
-          Download
-        </a>
-      </Button>
-    </div>
-  )
-}
 
 /**
  * Tri-state header checkbox. Sets the underlying input's `indeterminate`

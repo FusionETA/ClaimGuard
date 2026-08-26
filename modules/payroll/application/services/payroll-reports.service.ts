@@ -8,6 +8,7 @@ import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll
 import { key } from "@/lib/redis"
 import {
   buildReportFileName,
+  PAYROLL_FILE_FORMAT_TO_KIND,
   PAYROLL_REPORT_META,
   payrollReportKinds,
   type PayrollReportKind,
@@ -16,10 +17,7 @@ import {
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { renderPayrollReport } from "@/modules/payroll/application/services/report-renderers"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
-import {
-  isMaybankName,
-  isPublicBankName,
-} from "@/modules/payroll/domain/malaysian-banks"
+import { resolvePayrollFileFormat } from "@/modules/payroll/domain/malaysian-banks"
 
 /**
  * Page-data + on-demand streaming service for the "Download files" modal
@@ -39,6 +37,15 @@ import {
  * - `readPayrollReportFile` renders one file on demand and returns its
  *   bytes for a route handler to stream.
  */
+
+/**
+ * The bank report kind for a company's payroll bank, or null when the
+ * bank is unset / has no native format.
+ */
+function bankKindFor(bankName: string | null | undefined): PayrollReportKind | null {
+  const format = resolvePayrollFileFormat(bankName)
+  return format ? PAYROLL_FILE_FORMAT_TO_KIND[format] : null
+}
 
 export async function getPayrollReportsModalData(input: {
   runId: string
@@ -94,20 +101,18 @@ async function loadReportsModalData(
 
   if (!run) return null
 
-  // Show only the disbursement file matching the company's payroll
-  // bank: Public Bank → PB ECP XLSX; Maybank → M2E TXT; anything else
-  // (or unset) → the bank-agnostic general CSV.
+  // Exactly one bank file is offered: the one matching the company's
+  // configured payroll bank. When no bank is set (or it's a legacy value
+  // we have no format for) the BANK group is empty and the modal points
+  // the admin at payroll settings.
   const settings = await payrollSettingsRepository.getByOrgId(orgId)
-  const isPB = isPublicBankName(settings?.payrollBankName)
-  const isMbb = isMaybankName(settings?.payrollBankName)
+  const bankKind = bankKindFor(settings?.payrollBankName)
 
   // Every download is rendered on demand, so there's no per-run
   // "generated" state to merge — every row is just the static meta.
   const rows: PayrollReportRow[] = payrollReportKinds
     .filter((kind) => {
-      if (kind === "BANK_PB_ECP_XLSX") return isPB
-      if (kind === "BANK_MBB_M2E_TXT") return isMbb
-      if (kind === "BANK_GENERAL_CSV") return !isPB && !isMbb
+      if (PAYROLL_REPORT_META[kind].group === "BANK") return kind === bankKind
       return true
     })
     .map((kind) => ({

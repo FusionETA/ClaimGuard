@@ -2,9 +2,16 @@
  * Domain types + metadata for the downloadable per-run payroll reports
  * surfaced by the "Download files" modal on the run detail page.
  *
+ * Bank disbursement: exactly ONE bank file is offered per run — the one
+ * matching the company's configured payroll bank (see
+ * `PAYROLL_FILE_FORMAT_TO_KIND`). There is no generic fallback; a bank
+ * we have no format for simply isn't selectable in payroll settings.
+ *
  * Pure domain layer — no Prisma, no `server-only`. Both the modal
  * (client) and the generator service (server) consume these.
  */
+
+import type { PayrollFileFormat } from "@/modules/payroll/domain/malaysian-banks"
 
 /**
  * One of the 7 cached report kinds. Mirrors `PayrollReportKind` in the
@@ -33,10 +40,25 @@ export const payrollReportKinds = [
   "PCB_TXT",
   "BANK_PB_ECP_XLSX",
   "BANK_MBB_M2E_TXT",
-  "BANK_GENERAL_CSV",
+  "BANK_CIMB_BIZCHANNEL_TXT",
 ] as const
 
 export type PayrollReportKind = (typeof payrollReportKinds)[number]
+
+/**
+ * Which report kind implements each bank's bulk-payroll format. The
+ * company's disbursement bank resolves to a `PayrollFileFormat`, and
+ * this maps that to the downloadable report — so adding a bank means
+ * adding a renderer + one row here, nothing else.
+ */
+export const PAYROLL_FILE_FORMAT_TO_KIND: Record<
+  PayrollFileFormat,
+  PayrollReportKind
+> = {
+  PB_ECP_XLSX: "BANK_PB_ECP_XLSX",
+  MBB_M2E_TXT: "BANK_MBB_M2E_TXT",
+  CIMB_BIZCHANNEL_TXT: "BANK_CIMB_BIZCHANNEL_TXT",
+}
 
 /**
  * Grouping shown as a section header in the modal:
@@ -168,15 +190,15 @@ export const PAYROLL_REPORT_META: Record<PayrollReportKind, PayrollReportMeta> =
     extension: "txt",
     mimeType: "text/plain",
   },
-  BANK_GENERAL_CSV: {
-    kind: "BANK_GENERAL_CSV",
+  BANK_CIMB_BIZCHANNEL_TXT: {
+    kind: "BANK_CIMB_BIZCHANNEL_TXT",
     group: "BANK",
-    title: "Salary disbursement (General CSV)",
+    title: "CIMB BizChannel (Bulk Payroll)",
     description:
-      "Bank-agnostic bulk salary CSV (payee name, bank, BIC, account no, amount) for banks other than Public Bank or Maybank.",
-    portal: null,
-    extension: "csv",
-    mimeType: "text/csv",
+      "Fixed-width bulk salary file for upload to BizChannel@CIMB \u2192 Bulk Payments \u2192 Payroll (TXT, Non Encrypted). Fills each employee's BNM bank code automatically.",
+    portal: "BizChannel@CIMB",
+    extension: "txt",
+    mimeType: "text/plain",
   },
 }
 
@@ -250,8 +272,6 @@ export function buildReportFileName(input: {
       return `SOCSO_EIS_SKBBK_${mmyyyy}.${meta.extension}`
     case "PCB_TXT":
       return `PCB_${mmyyyy}.${meta.extension}`
-    case "BANK_GENERAL_CSV":
-      return `Salary_Disbursement_${mmyyyy}.${meta.extension}`
     case "BANK_PB_ECP_XLSX":
       // PB ECP filename format: `<10-digit account>PR<DDMMYY><NN>.xlsx`.
       // The account number isn't available in this pure-domain
@@ -261,6 +281,8 @@ export function buildReportFileName(input: {
       return `PB_ECP_Payroll_${mmyyyy}.${meta.extension}`
     case "BANK_MBB_M2E_TXT":
       return `MBB_M2E_Payroll_${mmyyyy}.${meta.extension}`
+    case "BANK_CIMB_BIZCHANNEL_TXT":
+      return `CIMB_Payroll_${mmyyyy}.${meta.extension}`
   }
 }
 

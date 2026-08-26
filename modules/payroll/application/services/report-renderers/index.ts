@@ -5,9 +5,9 @@ import { renderBulkPayslipsPdf } from "@/modules/payroll/application/services/re
 import { renderEpfCsv } from "@/modules/payroll/application/services/report-renderers/epf-csv"
 import { renderPaymentSchedulePdf } from "@/modules/payroll/application/services/report-renderers/payment-schedule-pdf"
 import { renderPayrollSummaryPdf } from "@/modules/payroll/application/services/report-renderers/payroll-summary-pdf"
+import { renderCimbBizChannelTxt } from "@/modules/payroll/application/services/report-renderers/cimb-bizchannel-txt"
 import { renderMbbM2eTxt } from "@/modules/payroll/application/services/report-renderers/mbb-m2e-txt"
 import { renderPbEcpXlsx } from "@/modules/payroll/application/services/report-renderers/pb-ecp-xlsx"
-import { renderBankGeneralCsv } from "@/modules/payroll/application/services/report-renderers/bank-general-csv"
 import { renderPcbLhdnFormPdf } from "@/modules/payroll/application/services/report-renderers/pcb-lhdn-form-pdf"
 import { renderPcbTxt } from "@/modules/payroll/application/services/report-renderers/pcb-txt"
 import { renderSocsoEisSkbbkTxt } from "@/modules/payroll/application/services/report-renderers/socso-eis-skbbk-txt"
@@ -64,7 +64,11 @@ export async function renderPayrollReport(input: {
         organizationId,
         paymentDate: input.paymentDate,
       })
-    case "BANK_GENERAL_CSV":
-      return renderBankGeneralCsv({ runId, organizationId })
+    case "BANK_CIMB_BIZCHANNEL_TXT":
+      return renderCimbBizChannelTxt({
+        runId,
+        organizationId,
+        paymentDate: input.paymentDate,
+      })
   }
 }

@@ -13,10 +13,10 @@ import {
 } from "@/modules/payroll/domain/settings"
 import { calculationBlock } from "../_shared/blocks"
 import {
-  MALAYSIAN_BANKS,
+  PAYROLL_DISBURSEMENT_BANKS,
   findBankByName,
-  isMaybankName,
   isPublicBankName,
+  resolvePayrollFileFormat,
 } from "@/modules/payroll/domain/malaysian-banks"
 
 /**
@@ -484,9 +484,18 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
             `Unrecognised bank name "${bank.bankName}". It must match a Malaysian bank in our catalogue — read \`bank.availableBanks\` from GET /api/v1/payroll-settings for the accepted list.`,
           )
         }
+        // Only banks with a native bulk-payroll format can be the
+        // disbursement bank — otherwise the run would have no bank file
+        // to download at all.
+        if (matched.payrollFormat == null) {
+          return jsonError(
+            400,
+            `"${matched.name}" is not supported as a payroll disbursement bank. Supported banks: ${PAYROLL_DISBURSEMENT_BANKS.map((b) => b.name).join(", ")}.`,
+          )
+        }
         // Store the CANONICAL name. The stored value is what
-        // `isPublicBankName` reads to choose the output format, so a
-        // free-text variant must never reach the column.
+        // `resolvePayrollFileFormat` reads to choose the output format,
+        // so a free-text variant must never reach the column.
         effectiveBankName = matched.name
       }
       settingsPatch.payrollBankName = effectiveBankName
@@ -650,24 +659,28 @@ function toExternalSettings(settings: PayrollSettingsData | null) {
       /// Maybank2E's or RHB's own bulk-upload format, so a client on
       /// those banks imports the CSV rather than getting a native file.
       supportedFormats: [
-        "PUBLIC_BANK_ECP_XLSX",
-        "MAYBANK_M2E_TXT",
-        "GENERAL_CSV",
+        "PB_ECP_XLSX",
+        "MBB_M2E_TXT",
+        "CIMB_BIZCHANNEL_TXT",
       ],
       /// Which of the above THIS org's run download will actually
       /// produce, derived from `bankName`. Exactly one is offered per
       /// run, so read this rather than inferring from the list.
-      activeFormat: isPublicBankName(settings?.payrollBankName)
-        ? "PUBLIC_BANK_ECP_XLSX"
-        : isMaybankName(settings?.payrollBankName)
-          ? "MAYBANK_M2E_TXT"
-          : "GENERAL_CSV",
+      /// Null when no disbursement bank is configured (or the stored
+      /// value predates the supported list) — the run then offers no
+      /// bank file until one is set.
+      activeFormat: resolvePayrollFileFormat(settings?.payrollBankName),
       /// The accepted `bankName` values, for a picker. Sending a name
       /// outside this catalogue is a 400 — aliases resolve, but the
       /// canonical `name` is what gets stored.
-      availableBanks: MALAYSIAN_BANKS.map((b) => ({
+      /// Banks accepted as the payroll disbursement bank — only those
+      /// we can generate a native bulk-payroll file for. This does NOT
+      /// limit where employees bank; every format pays out to any
+      /// Malaysian bank.
+      availableBanks: PAYROLL_DISBURSEMENT_BANKS.map((b) => ({
         name: b.name,
         bic: b.bic,
+        format: b.payrollFormat,
       })),
     },
   }

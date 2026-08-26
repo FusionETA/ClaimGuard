@@ -730,7 +730,6 @@ export default async function AdminPayrollRunDetailPage({
                     )}
                     canGenerate={reportsModalData.canGenerate}
                     rows={reportsModalData.rows}
-                    showBankCsv
                   />
                 ) : null}
                 <RevertPayrollRunButton

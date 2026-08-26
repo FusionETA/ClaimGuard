@@ -27,7 +27,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { MALAYSIAN_BANKS } from "@/modules/payroll/domain/malaysian-banks"
+import { PAYROLL_DISBURSEMENT_BANKS } from "@/modules/payroll/domain/malaysian-banks"
 import { Label } from "@/components/ui/label"
 import { useToast, useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
@@ -453,9 +453,11 @@ function GeneralTab(props: {
             Payroll disbursement bank
           </CardTitle>
           <CardDescription>
-            The company&apos;s bank used to pay salaries. When it&apos;s
-            Public Bank, the run download offers the Public Bank ECP file;
-            any other bank gets a general disbursement CSV.
+            The company&apos;s bank used to pay salaries. This picks which
+            bulk-payroll upload file a submitted run produces, so only banks
+            we generate a file for are listed. It doesn&apos;t restrict where
+            your employees bank &mdash; every format pays out to any Malaysian
+            bank.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
@@ -465,7 +467,7 @@ function GeneralTab(props: {
               defaultValue={s?.payrollBankName ?? ""}
             >
               <option value="">— Select bank —</option>
-              {MALAYSIAN_BANKS.map((b) => (
+              {PAYROLL_DISBURSEMENT_BANKS.map((b) => (
                 <option key={b.bic} value={b.name}>
                   {b.name}
                 </option>
