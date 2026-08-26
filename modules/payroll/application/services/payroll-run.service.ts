@@ -12,6 +12,7 @@ import {
   attendancePercentOf,
   autoHoursFromMinutes,
   calcPayslip,
+  calendarDaysInMonth,
   workingDaysForPeriod,
 } from "@/modules/payroll/domain/calc"
 import { PAYROLL_RUN_STATUS_LABELS, periodLabel } from "@/modules/payroll/domain/runs"
@@ -90,13 +91,27 @@ function resolveEffectiveHrdf(input: {
 /**
  * Auto "Unpaid Leave" deduction for MONTHLY staff: the base salary is left
  * intact and unpaid leave is docked as a separate `deduct_unpaid_leave`
- * line (daily rate × unpaid days, daily rate = monthlySalary ÷ working-days
- * basis). Returns 0 when not applicable (HOURLY, no unpaid leave, no salary).
+ * line (daily rate × unpaid days). Returns 0 when not applicable (HOURLY,
+ * no unpaid leave, no salary).
+ *
+ * The daily rate here is `monthlySalary ÷ calendar days in the month`, NOT
+ * the s.60I ÷26 ordinary rate. EA s.18A(c) names "leave of absence without
+ * pay for one or more days of the month" as an incomplete month and, being
+ * expressed "Notwithstanding section 60I", overrides the ÷26 basis:
+ *
+ *        monthly wages            number of days
+ *   ─────────────────────────  ×  eligible in the
+ *   days of the wage period       wage period
+ *
+ * Using ÷26 over-deducts — e.g. 2 unpaid days on RM 3,100 in January docks
+ * 238.46 instead of 200.00. The ÷26 basis stays correct for overtime and
+ * leave cash-outs, which ARE ordinary-rate-of-pay items.
  */
 function unpaidLeaveDeductionAmount(input: {
   salaryType: "MONTHLY" | "HOURLY"
   monthlySalary: number | null
   unpaidDays: number
+  /// Calendar days in the wage period (s.18A divisor).
   workingDaysBasis: number
 }): number {
   if (input.salaryType !== "MONTHLY") return 0
@@ -1130,11 +1145,8 @@ export async function previewEmployeeNetForRun(input: {
     salaryType: e.profile.salaryType,
     monthlySalary: e.profile.monthlySalary,
     unpaidDays: await unpaidLeaveDays(e.employeeProfileId, previewFrom, previewTo),
-    workingDaysBasis: workingDaysForPeriod({
-      year: run.periodYear,
-      month: run.periodMonth,
-      rule: settings?.workingDaysRule ?? "TWENTY_SIX",
-    }),
+    // s.18A(c): calendar days, not the ÷26 ordinary-rate basis.
+    workingDaysBasis: calendarDaysInMonth(run.periodYear, run.periodMonth),
   })
   if (previewUnpaidDeduct > 0) {
     oneOffLines.push({
@@ -1591,11 +1603,8 @@ export async function generatePayrollPayslips(input: {
       salaryType: e.profile.salaryType,
       monthlySalary: e.profile.monthlySalary,
       unpaidDays: unpaidLeaveByEmp.get(e.employeeProfileId) ?? 0,
-      workingDaysBasis: workingDaysForPeriod({
-        year: run.periodYear,
-        month: run.periodMonth,
-        rule: settings?.workingDaysRule ?? "TWENTY_SIX",
-      }),
+      // s.18A(c): calendar days, not the ÷26 ordinary-rate basis.
+      workingDaysBasis: calendarDaysInMonth(run.periodYear, run.periodMonth),
     })
     if (unpaidLeaveDeduct > 0) {
       oneOffLines.push({

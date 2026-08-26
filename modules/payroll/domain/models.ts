@@ -475,6 +475,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_bonus_non_annual: {
     code: "wages_bonus_non_annual",
@@ -487,6 +491,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_commission: {
     code: "wages_commission",
@@ -499,6 +507,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_incentive: {
     code: "wages_incentive",
@@ -511,6 +523,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_arrears: {
     code: "wages_arrears",
@@ -523,6 +539,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: true,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_overtime: {
     code: "wages_overtime",
@@ -540,6 +560,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // can tick "Treat as recurring" on a specific OT line if they
     // want a particular month routed through the regular bucket.
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_service_charge: {
     code: "wages_service_charge",
@@ -556,6 +580,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // through the AR formula (PCB(C)). `treatAsRecurring` per line
     // overrides if a particular month should fold into PCB(B).
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_leave_pay: {
     code: "wages_leave_pay",
@@ -568,6 +596,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: true,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_gratuity: {
     code: "wages_gratuity",
@@ -580,6 +612,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_compensation_loss_employment: {
     // Compensation for Loss of Employment (CLOE). LHDN Schedule 6
@@ -599,6 +635,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_ex_gratia: {
     // Ex-gratia payment — voluntary payment by the employer beyond
@@ -616,6 +656,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_tax_borne_by_employer: {
     // Tax borne by employer perquisite. When the employer agrees to
@@ -638,6 +682,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_director_fee: {
     code: "wages_director_fee",
@@ -650,6 +698,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   wages_expense_claim: {
     code: "wages_expense_claim",
@@ -667,6 +719,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: false,
     subjectToHrdf: false,
+    // Measured or one-off amount, not a monthly entitlement — the
+    // employee earned exactly this in the days they worked, so the
+    // join/leave factor must not shrink it again.
+    skipProration: true,
   },
   bik_car: {
     code: "bik_car",
@@ -842,6 +898,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // cash-only category like "Miscellaneous / Other Deduction" instead,
     // so statutory stays on the full salary.
     reducesGross: true,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_miscellaneous: {
     // Generic post-tax deduction — fines, uniform deposits, canteen
@@ -871,6 +930,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: false,
     subjectToHrdf: false,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_loan_repayment: {
     // Repayment of a personal loan the employer made to the employee
@@ -895,6 +957,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: false,
     subjectToHrdf: false,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_cp38: {
     // LHDN CP38 arrears order — court-issued instruction to withhold
@@ -914,6 +979,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: false,
     subjectToHrdf: false,
     addsToCp38Field: true,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_additional_pcb: {
     // Additional PCB (Employment Income) — a manual amount the admin
@@ -933,6 +1001,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: false,
     subjectToHrdf: false,
     addsToStandardPcb: true,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_zakat: {
     code: "deduct_zakat",
@@ -945,6 +1016,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: false,
     subjectToHrdf: false,
     offsetsPcb: true,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_zakat_tp1: {
     code: "deduct_zakat_tp1",
@@ -961,6 +1035,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // take-home pay (cashNeutral) — the money already left their pocket.
     offsetsPcb: true,
     cashNeutral: true,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_tp1: {
     // LEGACY generic TP1 category. Kept for backwards compat with any
@@ -980,6 +1057,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToHrdf: false,
     feedsLp1Relief: true,
     cashNeutral: true,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   // ─── TP1 sub-categories with LHDN 2026 caps ───────────────────────
   // Employee-declared allowable deductions per Borang TP1. Each reduces
@@ -1004,6 +1084,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // total RM 7,000 insurance-bucket is EPF/approved-scheme-only —
     // enforced separately by the EPF K cap in pcb.ts.)
     taxExemptLimit: 3000,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_tp1_medical_insurance: {
     code: "deduct_tp1_medical_insurance",
@@ -1020,6 +1103,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // Combined education + medical insurance premiums for self,
     // spouse, or child. 2026 cap raised to RM 4,000 (from RM 3,000).
     taxExemptLimit: 4000,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_tp1_prs: {
     code: "deduct_tp1_prs",
@@ -1035,6 +1121,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     cashNeutral: true,
     // Private Retirement Scheme + Deferred Annuity relief.
     taxExemptLimit: 3000,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_tp1_serious_disease_medical: {
     code: "deduct_tp1_serious_disease_medical",
@@ -1052,6 +1141,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // vaccinations, and mental health checkups for self, spouse, or
     // child. 2026 cap raised to RM 10,000 (from RM 8,000).
     taxExemptLimit: 10000,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_tp1_lifestyle: {
     code: "deduct_tp1_lifestyle",
@@ -1068,6 +1160,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // Reading materials, computers/smartphones/tablets, and internet
     // subscription bills.
     taxExemptLimit: 2500,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_tp1_sports_equipment: {
     code: "deduct_tp1_sports_equipment",
@@ -1084,6 +1179,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // Sports equipment, gym memberships, facility rental fees, and
     // event registration. 2026 cap raised to RM 1,000 (from RM 500).
     taxExemptLimit: 1000,
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
   deduct_tp1_other: {
     code: "deduct_tp1_other",
@@ -1105,6 +1203,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // code-enforced cap here; admin must respect the individual
     // LHDN item cap. Payslip narration should note the specific TP1
     // item claimed for audit purposes.
+    // A stated ringgit amount, not a monthly entitlement — prorating
+    // it would under-deduct for a mid-month joiner or leaver.
+    skipProration: true,
   },
 }
 

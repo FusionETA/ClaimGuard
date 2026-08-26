@@ -870,37 +870,20 @@ describe("autoHoursFromMinutes", () => {
   })
 })
 
-describe("effectiveWorkedDays — join/leave proration by rule", () => {
-  it("full month returns the working-days basis", () => {
+describe("effectiveWorkedDays — incomplete month per EA s.18A", () => {
+  it("full month returns the full wage period", () => {
     expect(
       effectiveWorkedDays({
         periodYear: 2026,
         periodMonth: 1,
         joinDate: "2024-01-01",
         leaveDate: null,
-        workingDays: 26,
-        rule: "TWENTY_SIX",
-        workingDaySet: new Set([1, 2, 3, 4, 5]),
+        workingDays: 31,
       }),
-    ).toBe(26)
+    ).toBe(31)
   })
 
-  it("TWENTY_SIX counts only configured working days for a late joiner", () => {
-    // Jan 2026: 1 Jan is a Thursday → Mon–Fri days from 15–31 Jan = 12.
-    expect(
-      effectiveWorkedDays({
-        periodYear: 2026,
-        periodMonth: 1,
-        joinDate: "2026-01-15",
-        leaveDate: null,
-        workingDays: 26,
-        rule: "TWENTY_SIX",
-        workingDaySet: new Set([1, 2, 3, 4, 5]),
-      }),
-    ).toBe(12)
-  })
-
-  it("CALENDAR counts calendar days for a late joiner", () => {
+  it("counts calendar days for a late joiner", () => {
     // 15–31 Jan inclusive = 17 calendar days.
     expect(
       effectiveWorkedDays({
@@ -909,36 +892,41 @@ describe("effectiveWorkedDays — join/leave proration by rule", () => {
         joinDate: "2026-01-15",
         leaveDate: null,
         workingDays: 31,
-        rule: "CALENDAR",
       }),
     ).toBe(17)
   })
 
-  it("a 6-day-week set (incl. Saturday) counts more days than Mon–Fri", () => {
-    const monFri = effectiveWorkedDays({
-      periodYear: 2026,
-      periodMonth: 1,
-      joinDate: "2026-01-15",
-      leaveDate: null,
-      workingDays: 26,
-      rule: "TWENTY_SIX",
-      workingDaySet: new Set([1, 2, 3, 4, 5]),
-    })!
-    const monSat = effectiveWorkedDays({
-      periodYear: 2026,
-      periodMonth: 1,
-      joinDate: "2026-01-15",
-      leaveDate: null,
-      workingDays: 26,
-      rule: "TWENTY_SIX",
-      workingDaySet: new Set([1, 2, 3, 4, 5, 6]),
-    })!
-    expect(monSat).toBeGreaterThan(monFri)
+  it("counts calendar days for a leaver", () => {
+    // 1–10 Jan inclusive = 10 calendar days.
+    expect(
+      effectiveWorkedDays({
+        periodYear: 2026,
+        periodMonth: 1,
+        joinDate: "2024-09-02",
+        leaveDate: "2026-01-10",
+        workingDays: 31,
+      }),
+    ).toBe(10)
+  })
+
+  it("joining on the 2nd earns 30/31, not a weekday-roster fraction", () => {
+    // Regression: counting a Mon–Fri roster (21 days) against a 26 divisor
+    // paid this employee 0.8077 of salary for missing one public holiday.
+    // s.18A is calendar days over calendar days: 30/31.
+    expect(
+      effectiveWorkedDays({
+        periodYear: 2026,
+        periodMonth: 1,
+        joinDate: "2026-01-02",
+        leaveDate: null,
+        workingDays: 31,
+      }),
+    ).toBe(30)
   })
 })
 
 describe("calcPayslip — exact proration (no intermediate rounding)", () => {
-  it("late joiner 19 Feb on RM4999.99 → 1346.15, not 1346.00", () => {
+  it("late joiner 19 Feb on RM4999.99 → 1785.71, not 1785.50", () => {
     const result = calcPayslip({
       profile: makeProfile({ monthlySalary: 4999.99, joinDate: "2026-02-19" }),
       settings: baseSettings, // TWENTY_SIX
@@ -946,12 +934,13 @@ describe("calcPayslip — exact proration (no intermediate rounding)", () => {
       periodMonth: 2,
       workingDaySet: new Set([1, 2, 3, 4, 5]),
     })
-    expect(result.proratedDays).toBe(7) // Mon–Fri, 19–28 Feb 2026
-    // 4999.99 × (7/26) = 1346.15, NOT 4999.99 × round4(7/26)=1346.00.
-    expect(result.proratedPay).toBe(1346.15)
-    expect(result.grossPay).toBe(1346.15)
+    expect(result.proratedDays).toBe(10) // 19–28 Feb 2026, calendar days
+    expect(result.totalWorkingDays).toBe(28) // s.18A divisor = days in Feb
+    // 4999.99 × (10/28) = 1785.71, NOT 4999.99 × round4(10/28) = 1785.50.
+    expect(result.proratedPay).toBe(1785.71)
+    expect(result.grossPay).toBe(1785.71)
     // Snapshot factor is still rounded to 4dp for the Decimal(5,4) column.
-    expect(result.proratedFactor).toBe(0.2692)
+    expect(result.proratedFactor).toBe(0.3571)
   })
 })
 

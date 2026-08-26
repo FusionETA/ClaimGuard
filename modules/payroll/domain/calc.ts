@@ -481,15 +481,9 @@ export function effectiveWorkedDays(input: {
   periodMonth: number
   joinDate: string | null
   leaveDate: string | null
+  /// Days in the wage period — ALWAYS the calendar days of the month.
+  /// See the s.18A note below for why this is never 26.
   workingDays: number
-  /// Proration rule. CALENDAR counts calendar days for a partial period;
-  /// TWENTY_SIX counts only configured working days (weekday set).
-  /// Defaults to TWENTY_SIX.
-  rule?: WorkingDaysRule
-  /// ISO weekdays (1=Mon … 7=Sun) treated as working days. Used to count
-  /// eligible days for a partial period under the TWENTY_SIX rule.
-  /// Defaults to Mon–Fri.
-  workingDaySet?: Set<number>
 }): number | null {
   const periodStart = Date.UTC(input.periodYear, input.periodMonth - 1, 1)
   const periodEnd = Date.UTC(
@@ -512,38 +506,24 @@ export function effectiveWorkedDays(input: {
   const startMs = join != null && join > periodStart ? join : periodStart
   const endMs = leave != null && leave < periodEnd ? leave : periodEnd
 
-  const rule = input.rule ?? "TWENTY_SIX"
-  let days: number
-  if (rule === "CALENDAR") {
-    // Calendar days from join/leave to the period boundary, inclusive.
-    days = Math.round((endMs - startMs) / 86_400_000) + 1
-  } else {
-    // 26-day rule: count only configured working days (weekday set) in
-    // the inclusive [start, end] range — e.g. 15→31 Jan = 13 Mon–Fri.
-    const set = input.workingDaySet ?? new Set([1, 2, 3, 4, 5])
-    days = 0
-    const cursor = new Date(
-      Date.UTC(
-        new Date(startMs).getUTCFullYear(),
-        new Date(startMs).getUTCMonth(),
-        new Date(startMs).getUTCDate(),
-      ),
-    )
-    const end = new Date(
-      Date.UTC(
-        new Date(endMs).getUTCFullYear(),
-        new Date(endMs).getUTCMonth(),
-        new Date(endMs).getUTCDate(),
-      ),
-    )
-    while (cursor <= end) {
-      // ISO weekday: Mon=1 … Sun=7 (JS getUTCDay is Sun=0 … Sat=6).
-      const iso = ((cursor.getUTCDay() + 6) % 7) + 1
-      if (set.has(iso)) days += 1
-      cursor.setUTCDate(cursor.getUTCDate() + 1)
-    }
-  }
-  // Cap the worked-days at the working-days basis (e.g. 26).
+  // Employment Act s.18A (inserted by the 2022 Amendment) prescribes the
+  // formula for an incomplete month, and opens "Notwithstanding section
+  // 60I" — i.e. it deliberately overrides the ÷26 ordinary-rate-of-pay
+  // basis:
+  //
+  //          monthly wages                number of days
+  //   ───────────────────────────────  ×  eligible in the
+  //   number of days of the wage period   wage period
+  //
+  // It covers all four cases we handle here: joined after the 1st, left
+  // before month end, unpaid leave, and national service. So the count is
+  // CALENDAR days and the divisor is the calendar days of the month —
+  // never 26, and never a weekday roster, whatever `workingDaysRule` says.
+  //
+  // `workingDaysRule` still governs the ÷26 divisor for the HOURLY rate
+  // (s.60I ordinary rate of pay, used for overtime). Two divisors for two
+  // statutory purposes; do not collapse them back into one.
+  const days = Math.round((endMs - startMs) / 86_400_000) + 1
   return Math.max(0, Math.min(days, input.workingDays))
 }
 
@@ -760,7 +740,11 @@ export type CalcPayslipResult = {
   // Hours / proration
   workedHours: number | null
   proratedFactor: number
+  /// Calendar days of the wage period the employee was eligible for.
   proratedDays: number
+  /// Calendar days in the wage period — the s.18A divisor, and the
+  /// denominator of `proratedDays`. NOT the s.60I ÷26 basis used for the
+  /// hourly/overtime rate; the two are different statutory divisors.
   totalWorkingDays: number
   // Money
   basicPay: number
@@ -904,23 +888,28 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   })
 
   // 2. Basic + proration.
+  //
+  // Incomplete-month proration is governed by EA s.18A, which is calendar
+  // days over calendar days in the month — independent of
+  // `workingDaysRule`. `totalWorkingDays` above stays on the s.60I basis
+  // because it divides the HOURLY rate for overtime; using it here too
+  // would mix the two statutes.
+  const prorationDivisor = calendarDaysInMonth(periodYear, periodMonth)
   const workedDays =
     effectiveWorkedDays({
       periodYear,
       periodMonth,
       joinDate: profile.joinDate,
       leaveDate: profile.leaveDate,
-      workingDays: totalWorkingDays,
-      rule: settings.workingDaysRule,
-      workingDaySet: input.workingDaySet,
+      workingDays: prorationDivisor,
     }) ?? 0
 
   // Use the EXACT ratio for money math; only round to 4dp for the
   // stored snapshot (proratedFactor). Rounding the factor before
-  // multiplying loses cents — e.g. 4999.99 × round4(7/26) = 1346.00,
-  // but 4999.99 × (7/26) = 1346.15.
+  // multiplying loses cents — e.g. 4999.99 × round4(18/31) = 2903.49,
+  // but 4999.99 × (18/31) = 2903.22.
   const prorationRatio =
-    totalWorkingDays > 0 ? workedDays / totalWorkingDays : 0
+    prorationDivisor > 0 ? workedDays / prorationDivisor : 0
   const proratedFactor = round4(prorationRatio)
 
   let basicPay = 0
@@ -1575,7 +1564,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     workedHours: input.workedHours ?? null,
     proratedFactor,
     proratedDays: workedDays,
-    totalWorkingDays,
+    totalWorkingDays: prorationDivisor,
     basicPay: round2(basicPay),
     proratedPay,
     otPay,
