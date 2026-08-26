@@ -345,3 +345,18 @@ export function findBankByName(input: string | null | undefined): MalaysianBank 
 export function isPublicBankName(name: string | null | undefined): boolean {
   return findBankByName(name)?.bic === "PBBEMYKL"
 }
+
+/// BICs that count as "the company banks with Maybank" for the M2E
+/// bulk-payroll file. Maybank Islamic shares the same Maybank2E
+/// channel, so both resolve to the same upload format.
+const MAYBANK_BICS = new Set(["MBBEMYKL", "MBISMYKL"])
+
+/**
+ * True when the given (free-text) bank name resolves to Maybank (or
+ * Maybank Islamic). Drives whether a payroll run offers the Maybank
+ * M2E payment TXT instead of the general disbursement CSV.
+ */
+export function isMaybankName(name: string | null | undefined): boolean {
+  const bic = findBankByName(name)?.bic
+  return bic != null && MAYBANK_BICS.has(bic)
+}

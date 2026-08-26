@@ -5,6 +5,7 @@ import { renderBulkPayslipsPdf } from "@/modules/payroll/application/services/re
 import { renderEpfCsv } from "@/modules/payroll/application/services/report-renderers/epf-csv"
 import { renderPaymentSchedulePdf } from "@/modules/payroll/application/services/report-renderers/payment-schedule-pdf"
 import { renderPayrollSummaryPdf } from "@/modules/payroll/application/services/report-renderers/payroll-summary-pdf"
+import { renderMbbM2eTxt } from "@/modules/payroll/application/services/report-renderers/mbb-m2e-txt"
 import { renderPbEcpXlsx } from "@/modules/payroll/application/services/report-renderers/pb-ecp-xlsx"
 import { renderBankGeneralCsv } from "@/modules/payroll/application/services/report-renderers/bank-general-csv"
 import { renderPcbLhdnFormPdf } from "@/modules/payroll/application/services/report-renderers/pcb-lhdn-form-pdf"
@@ -53,6 +54,12 @@ export async function renderPayrollReport(input: {
       return renderPcbTxt({ runId, organizationId })
     case "BANK_PB_ECP_XLSX":
       return renderPbEcpXlsx({
+        runId,
+        organizationId,
+        paymentDate: input.paymentDate,
+      })
+    case "BANK_MBB_M2E_TXT":
+      return renderMbbM2eTxt({
         runId,
         organizationId,
         paymentDate: input.paymentDate,

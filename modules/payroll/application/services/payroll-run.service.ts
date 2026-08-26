@@ -2183,6 +2183,10 @@ export type DisbursementRow = {
   /// columns. Null when the employee hasn't filled them in.
   idType: IdType | null
   idNumber: string | null
+  /// Tax-residency flag from the payroll profile. Drives the Maybank
+  /// M2E "Resident Indicator (Beneficiary)" field (Y/N), which is
+  /// mandatory for Malaysian-provider payments.
+  isResident: boolean
   currency: string
   netAmount: number
   reference: string
@@ -2243,6 +2247,7 @@ export async function getPayrollDisbursementRowsForOrg(input: {
           bankAccountNumber: true,
           idType: true,
           idNumber: true,
+          isResident: true,
         },
       },
     },
@@ -2267,6 +2272,9 @@ export async function getPayrollDisbursementRowsForOrg(input: {
       accountNumber: p.payrollProfile?.bankAccountNumber ?? "",
       idType: p.payrollProfile?.idType ?? null,
       idNumber: p.payrollProfile?.idNumber ?? null,
+      // Defaults to resident when the profile has no explicit flag —
+      // matches the column default and the common case.
+      isResident: p.payrollProfile?.isResident ?? true,
       currency: "MYR",
       netAmount: Number(p.netPay) || 0,
       reference: `Payroll ${periodTag} ${p.snapshotEmployeeId}`,

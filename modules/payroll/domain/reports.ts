@@ -32,6 +32,7 @@ export const payrollReportKinds = [
   "SOCSO_EIS_SKBBK_TXT",
   "PCB_TXT",
   "BANK_PB_ECP_XLSX",
+  "BANK_MBB_M2E_TXT",
   "BANK_GENERAL_CSV",
 ] as const
 
@@ -157,12 +158,22 @@ export const PAYROLL_REPORT_META: Record<PayrollReportKind, PayrollReportMeta> =
     mimeType:
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   },
+  BANK_MBB_M2E_TXT: {
+    kind: "BANK_MBB_M2E_TXT",
+    group: "BANK",
+    title: "Maybank M2E (Bulk Payroll)",
+    description:
+      "Pipe-delimited bulk salary file for upload to Maybank2E → Bulk Payment. Picks book transfer (IT) for Maybank accounts and IBG (IG) for other banks automatically.",
+    portal: "Maybank2E",
+    extension: "txt",
+    mimeType: "text/plain",
+  },
   BANK_GENERAL_CSV: {
     kind: "BANK_GENERAL_CSV",
     group: "BANK",
     title: "Salary disbursement (General CSV)",
     description:
-      "Bank-agnostic bulk salary CSV (payee name, bank, BIC, account no, amount) for banks other than Public Bank.",
+      "Bank-agnostic bulk salary CSV (payee name, bank, BIC, account no, amount) for banks other than Public Bank or Maybank.",
     portal: null,
     extension: "csv",
     mimeType: "text/csv",
@@ -248,6 +259,8 @@ export function buildReportFileName(input: {
       // the filename with the real PB filename at generation time
       // (see `pb-ecp-xlsx.ts → buildPbEcpFileName`).
       return `PB_ECP_Payroll_${mmyyyy}.${meta.extension}`
+    case "BANK_MBB_M2E_TXT":
+      return `MBB_M2E_Payroll_${mmyyyy}.${meta.extension}`
   }
 }
 

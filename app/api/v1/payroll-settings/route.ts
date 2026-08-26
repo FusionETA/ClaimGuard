@@ -15,6 +15,7 @@ import { calculationBlock } from "../_shared/blocks"
 import {
   MALAYSIAN_BANKS,
   findBankByName,
+  isMaybankName,
   isPublicBankName,
 } from "@/modules/payroll/domain/malaysian-banks"
 
@@ -648,13 +649,19 @@ function toExternalSettings(settings: PayrollSettingsData | null) {
       /// account no, amount) for every other bank — it is NOT CIMB's,
       /// Maybank2E's or RHB's own bulk-upload format, so a client on
       /// those banks imports the CSV rather than getting a native file.
-      supportedFormats: ["PUBLIC_BANK_ECP_XLSX", "GENERAL_CSV"],
+      supportedFormats: [
+        "PUBLIC_BANK_ECP_XLSX",
+        "MAYBANK_M2E_TXT",
+        "GENERAL_CSV",
+      ],
       /// Which of the above THIS org's run download will actually
       /// produce, derived from `bankName`. Exactly one is offered per
       /// run, so read this rather than inferring from the list.
       activeFormat: isPublicBankName(settings?.payrollBankName)
         ? "PUBLIC_BANK_ECP_XLSX"
-        : "GENERAL_CSV",
+        : isMaybankName(settings?.payrollBankName)
+          ? "MAYBANK_M2E_TXT"
+          : "GENERAL_CSV",
       /// The accepted `bankName` values, for a picker. Sending a name
       /// outside this catalogue is a 400 — aliases resolve, but the
       /// canonical `name` is what gets stored.
