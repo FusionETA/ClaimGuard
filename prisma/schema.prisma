@@ -2052,14 +2052,14 @@ model Payslip {
   /// historical payslips remain interpretable if PERKESO ever
   /// decouples the two wage definitions.
   skbbkWage             Decimal           @default(0.00) @db.Decimal(12, 2)
-  /// Snapshot of the employee's SKBBK opt-in decision at time of run.
-  /// When admin re-opens a submitted run to fix something unrelated
-  /// (bonus adjustment, claim correction), the recompute reads this
-  /// snapshot instead of the live `EmployeeProfile.contributeToSkbbk`
-  /// — so an already-remitted SKBBK contribution never silently
-  /// disappears from history. Delete-then-recreate a run drops line
-  /// items along with this snapshot, so fresh calcs read the live
-  /// profile toggle (live behavior falls out for free).
+  /// Historical record of the employee's SKBBK opt-in decision for
+  /// THIS payslip. Written from the live
+  /// `EmployeeProfile.contributeToSkbbk` on every compute, so a draft
+  /// recompute always reflects the current toggle (same as EPF rate,
+  /// SOCSO category and PCB — no statutory field is frozen against
+  /// the profile while a run is still a draft). Submitted runs keep
+  /// their remitted value because they can't be recomputed at all:
+  /// `generatePayrollPayslips` rejects any run that isn't DRAFT.
   contributeToSkbbk     Boolean           @default(false)
   employeeProfile       EmployeeProfile   @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
   payrollProfile        PayrollProfile?   @relation(fields: [payrollProfileId], references: [id])

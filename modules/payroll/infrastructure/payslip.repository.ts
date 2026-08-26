@@ -387,27 +387,6 @@ export const payslipRepository = {
   },
 
   /**
-   * Read the SKBBK opt-in snapshot for every existing payslip on a
-   * run, keyed by employeeProfileId. Called by the run service before
-   * a recompute so we can preserve the toggle decision that was made
-   * when the run was first written — see the freeze semantics in
-   * `Payslip.contributeToSkbbk`. Returns an empty map for fresh runs
-   * (no prior payslips) → recompute falls back to the live profile
-   * toggle, which is the intended "fresh calc" behaviour.
-   */
-  async getSkbbkSnapshotsForRun(
-    payrollRunId: string,
-  ): Promise<Map<string, boolean>> {
-    const prisma = getPrismaClient()
-    if (!prisma) return new Map()
-    const rows = await prisma.payslip.findMany({
-      where: { payrollRunId },
-      select: { employeeProfileId: true, contributeToSkbbk: true },
-    })
-    return new Map(rows.map((r) => [r.employeeProfileId, r.contributeToSkbbk]))
-  },
-
-  /**
    * Total employee SKBBK contribution per run, for a set of run ids.
    * SKBBK has no stored total column on `PayrollRun` (unlike PCB / EPF /
    * SOCSO / …), so the run-level figure is derived by summing the frozen

@@ -177,6 +177,19 @@ export const UPCOMING_FEATURES: UpcomingFeature[] = []
  */
 export const RECENTLY_SHIPPED: ShippedFeature[] = [
   {
+    id: "ship-v1-api-read-endpoints-2026-08-24",
+    date: "2026-08-24",
+    title: "Connected apps can now read leave, payroll and org activity",
+    body:
+      "Integrations built on the AltomateHR API can pull a lot more without " +
+      "anyone exporting a spreadsheet: one combined count of everything " +
+      "waiting on approval, leave applications and per-employee balances, " +
+      "salary history, worked-hours summaries, a payroll run's pre-submit " +
+      "readiness checks, the payroll item dictionary, your audit log, and " +
+      "staff loans with their repayment schedules.",
+    audience: "ADMIN",
+  },
+  {
     id: "ship-employee-password-reset-2026-07-20",
     date: "2026-07-20",
     title: "Reset an employee's password back to the default",

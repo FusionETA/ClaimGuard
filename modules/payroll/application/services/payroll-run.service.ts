@@ -1496,17 +1496,6 @@ export async function generatePayrollPayslips(input: {
     ),
   )
 
-  // SKBBK opt-in snapshots from any pre-existing payslips on this run.
-  // Empty map on a first-time compute; populated when the admin
-  // re-opens an already-computed run to adjust something. The freeze
-  // rule (see `Payslip.contributeToSkbbk` in the schema): recompute
-  // reads the snapshot when present so a previously-remitted SKBBK
-  // contribution never silently disappears from a submitted payslip
-  // just because the employee toggled off since. Delete + recreate a
-  // run drops the payslips (and their snapshots), so a genuine
-  // "start over" naturally falls back to the live profile toggle.
-  const skbbkSnapshots = await payslipRepository.getSkbbkSnapshotsForRun(run.id)
-
   // Per-employee worked minutes bucketed by day type (regardless of OT
   // approval status). Drives the HRS column on the run table: HRS now
   // shows `normalMin / 60` instead of the raw `durationMin` total, so
@@ -1713,13 +1702,16 @@ export async function generatePayrollPayslips(input: {
       }
     }
 
-    // Resolve the effective SKBBK opt-in for this employee-on-this-run:
-    // snapshot from a prior compute wins (freeze semantics), else the
-    // live profile toggle. Captured once here and used both for the
-    // calc branch below AND written back to Payslip.contributeToSkbbk
-    // so subsequent recomputes keep the same value.
-    const effectiveContributeToSkbbk =
-      skbbkSnapshots.get(e.employeeProfileId) ?? e.profile.contributeToSkbbk
+    // SKBBK opt-in for this employee-on-this-run, read LIVE from the
+    // profile — same as every other statutory setting (EPF rate, SOCSO
+    // category, PCB). A recompute is only reachable on a DRAFT run (see
+    // the status guard at the top of this function), and nothing on a
+    // draft has been remitted, so the current toggle is what should
+    // apply. Written back to `Payslip.contributeToSkbbk` as the
+    // historical record of what was decided for this payslip; already-
+    // submitted payslips keep their frozen value because submitted runs
+    // can't be recomputed at all.
+    const effectiveContributeToSkbbk = e.profile.contributeToSkbbk
 
     const profileWithAdjAllowances = {
       ...e.profile,

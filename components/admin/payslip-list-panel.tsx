@@ -122,7 +122,10 @@ const PAGE_SIZE = 20
  *     allowances (green), deductions (red), and any OT pay line.
  *   - Hours group: Hrs (worked, for hourly), OT N/R/PH.
  *   - GROSS: prominent total for the employee this run.
- *   - Employee contributions group (cyan tint): PCB, EPF, SOCSO, EIS.
+ *   - Employee contributions group (cyan tint): PCB, EPF, SOCSO, EIS,
+ *     SKBBK. The group header's `colSpan` must stay in step with the
+ *     number of `tint="emp"` columns below it, or every band after it
+ *     silently shifts left by one.
  *   - NET: take-home pay.
  *   - Employer contributions group (orange tint): EPF, SOCSO, EIS, HRDF.
  *   - COST: total cost to employer.
@@ -323,7 +326,7 @@ export function PayslipsListPanel({
                     </TableHead>
                     <TableHead className="bg-background"></TableHead>
                     <TableHead
-                      colSpan={4}
+                      colSpan={5}
                       className="border-b-2 border-cyan-300 bg-cyan-50 dark:bg-cyan-900 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:bg-cyan-950/20"
                     >
                       Employee contributions
