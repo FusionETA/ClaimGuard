@@ -50,6 +50,13 @@ export type MalaysianBank = {
   /// `PAYROLL_DISBURSEMENT_BANKS`). Employees may still bank anywhere —
   /// this is about the payor account only.
   payrollFormat?: PayrollFileFormat
+  /// Label for the payroll-settings bank picker. Present ONLY on the
+  /// entry a company selects for that format — the conventional entity.
+  /// The Islamic sibling keeps `payrollFormat` (so a value stored before
+  /// the picker collapsed still resolves) but carries no label, because
+  /// picking it produced a byte-identical file: nothing downstream reads
+  /// the bank name except the format lookup.
+  payrollBankLabel?: string
   /// Lower-case aliases used to match against free-text `bankName`
   /// on PayrollProfile. Should include the canonical name itself.
   aliases: readonly string[]
@@ -60,6 +67,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Malayan Banking Berhad",
     bic: "MBBEMYKL",
+    payrollBankLabel: "Maybank (incl. Maybank Islamic)",
     payrollFormat: "MBB_M2E_TXT",
     bnmCode: "27",
     ecpMode: "IBG",
@@ -76,6 +84,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "CIMB Bank Berhad",
     bic: "CIBBMYKL",
+    payrollBankLabel: "CIMB (incl. CIMB Islamic)",
     payrollFormat: "CIMB_BIZCHANNEL_TXT",
     bnmCode: "35",
     ecpMode: "IBG",
@@ -92,6 +101,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Public Bank Berhad",
     bic: "PBBEMYKL",
+    payrollBankLabel: "Public Bank (incl. Public Islamic)",
     payrollFormat: "PB_ECP_XLSX",
     bnmCode: "33",
     ecpMode: "PBB", // intra-Public-Bank
@@ -447,6 +457,26 @@ export function isMaybankName(name: string | null | undefined): boolean {
  */
 export const PAYROLL_DISBURSEMENT_BANKS: readonly MalaysianBank[] =
   MALAYSIAN_BANKS.filter((b) => b.payrollFormat != null)
+
+/**
+ * What the payroll-settings bank picker offers — one option per
+ * supported format, not per legal entity. `value` is the canonical bank
+ * name stored on `PayrollSettings.payrollBankName`.
+ *
+ * Writes still ACCEPT any bank in `PAYROLL_DISBURSEMENT_BANKS` (six
+ * entities), so an org that stored an Islamic entity earlier keeps
+ * working; we simply stop asking anyone to choose between two options
+ * that produce the same file.
+ */
+export const PAYROLL_DISBURSEMENT_BANK_OPTIONS: readonly {
+  value: string
+  label: string
+  format: PayrollFileFormat
+}[] = MALAYSIAN_BANKS.flatMap((b) =>
+  b.payrollBankLabel && b.payrollFormat
+    ? [{ value: b.name, label: b.payrollBankLabel, format: b.payrollFormat }]
+    : [],
+)
 
 /**
  * Resolve a company's (free-text) payroll bank name to the bulk-payroll

@@ -27,7 +27,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { PAYROLL_DISBURSEMENT_BANKS } from "@/modules/payroll/domain/malaysian-banks"
+import { PAYROLL_DISBURSEMENT_BANK_OPTIONS } from "@/modules/payroll/domain/malaysian-banks"
 import { Label } from "@/components/ui/label"
 import { useToast, useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
@@ -467,9 +467,9 @@ function GeneralTab(props: {
               defaultValue={s?.payrollBankName ?? ""}
             >
               <option value="">— Select bank —</option>
-              {PAYROLL_DISBURSEMENT_BANKS.map((b) => (
-                <option key={b.bic} value={b.name}>
-                  {b.name}
+              {PAYROLL_DISBURSEMENT_BANK_OPTIONS.map((b) => (
+                <option key={b.format} value={b.value}>
+                  {b.label}
                 </option>
               ))}
             </NativeSelect>

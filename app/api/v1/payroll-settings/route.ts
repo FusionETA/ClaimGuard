@@ -13,7 +13,7 @@ import {
 } from "@/modules/payroll/domain/settings"
 import { calculationBlock } from "../_shared/blocks"
 import {
-  PAYROLL_DISBURSEMENT_BANKS,
+  PAYROLL_DISBURSEMENT_BANK_OPTIONS,
   findBankByName,
   isPublicBankName,
   resolvePayrollFileFormat,
@@ -490,7 +490,7 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
         if (matched.payrollFormat == null) {
           return jsonError(
             400,
-            `"${matched.name}" is not supported as a payroll disbursement bank. Supported banks: ${PAYROLL_DISBURSEMENT_BANKS.map((b) => b.name).join(", ")}.`,
+            `"${matched.name}" is not supported as a payroll disbursement bank. Supported banks: ${PAYROLL_DISBURSEMENT_BANK_OPTIONS.map((b) => b.value).join(", ")}.`,
           )
         }
         // Store the CANONICAL name. The stored value is what
@@ -670,17 +670,17 @@ function toExternalSettings(settings: PayrollSettingsData | null) {
       /// value predates the supported list) — the run then offers no
       /// bank file until one is set.
       activeFormat: resolvePayrollFileFormat(settings?.payrollBankName),
-      /// The accepted `bankName` values, for a picker. Sending a name
-      /// outside this catalogue is a 400 — aliases resolve, but the
-      /// canonical `name` is what gets stored.
-      /// Banks accepted as the payroll disbursement bank — only those
-      /// we can generate a native bulk-payroll file for. This does NOT
-      /// limit where employees bank; every format pays out to any
-      /// Malaysian bank.
-      availableBanks: PAYROLL_DISBURSEMENT_BANKS.map((b) => ({
-        name: b.name,
-        bic: b.bic,
-        format: b.payrollFormat,
+      /// Banks selectable as the payroll disbursement bank — one per
+      /// supported file format. Islamic entities aren't listed
+      /// separately because they upload through the same channel and
+      /// produce an identical file; sending one is still accepted for
+      /// back-compat. This does NOT limit where employees bank — every
+      /// format pays out to any Malaysian bank. Aliases resolve on
+      /// write, but the canonical `name` is what gets stored.
+      availableBanks: PAYROLL_DISBURSEMENT_BANK_OPTIONS.map((b) => ({
+        name: b.value,
+        label: b.label,
+        format: b.format,
       })),
     },
   }
