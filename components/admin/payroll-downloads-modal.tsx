@@ -19,6 +19,7 @@ import {
 import { useToast } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import {
+  KINDS_REQUIRING_RECIPIENT_REFERENCE,
   PAYROLL_REPORT_GROUP_LABELS,
   PAYROLL_REPORT_META,
   type PayrollReportGroup,
@@ -73,6 +74,16 @@ export function PayrollDownloadsModal(props: {
   const [pbEcpPaymentDate, setPbEcpPaymentDate] = useState<string>(() =>
     defaultPaymentDateIso(props.periodLabel),
   )
+  // Beneficiary reference for bank formats that mandate one (Hong
+  // Leong). Typed per payment run — it isn't derivable from payroll
+  // data, so it can't live in settings.
+  const [recipientReference, setRecipientReference] = useState("")
+  const needsRecipientRef = rows.some((r) =>
+    KINDS_REQUIRING_RECIPIENT_REFERENCE.includes(r.kind),
+  )
+  const recipientRefMissing =
+    needsRecipientRef && recipientReference.trim().length === 0
+
   // Bulk-download selection, keyed by report kind.
   type SelectionKey = PayrollReportKind
   const [selected, setSelected] = useState<Set<SelectionKey>>(() => new Set())
@@ -83,12 +94,27 @@ export function PayrollDownloadsModal(props: {
   /// flows into the file content (and, for PB ECP, the filename).
   function reportUrl(kind: PayrollReportKind): string {
     const base = `/admin/payroll/runs/${props.runId}/reports/${kind}`
-    return PAYROLL_REPORT_META[kind].group === "BANK"
-      ? `${base}?paymentDate=${encodeURIComponent(pbEcpPaymentDate)}`
-      : base
+    if (PAYROLL_REPORT_META[kind].group !== "BANK") return base
+    const params = new URLSearchParams({ paymentDate: pbEcpPaymentDate })
+    if (KINDS_REQUIRING_RECIPIENT_REFERENCE.includes(kind)) {
+      params.set("recipientReference", recipientReference.trim())
+    }
+    return `${base}?${params.toString()}`
   }
 
   async function handleDownload(kind: PayrollReportKind) {
+    // The bank rejects a file with an empty mandatory reference, so stop
+    // here rather than handing the admin a file that fails on upload.
+    if (
+      KINDS_REQUIRING_RECIPIENT_REFERENCE.includes(kind) &&
+      recipientReference.trim().length === 0
+    ) {
+      toast({
+        title: "Enter a recipient reference before downloading.",
+        variant: "error",
+      })
+      return
+    }
     setPendingKind(kind)
     try {
       const res = await fetch(reportUrl(kind))
@@ -150,6 +176,16 @@ export function PayrollDownloadsModal(props: {
   }
 
   async function handleBulkDownload() {
+    const needsRef = [...selected].some((k) =>
+      KINDS_REQUIRING_RECIPIENT_REFERENCE.includes(k),
+    )
+    if (needsRef && recipientReference.trim().length === 0) {
+      toast({
+        title: "Enter a recipient reference before downloading.",
+        variant: "error",
+      })
+      return
+    }
     if (selected.size === 0) return
     setBulkPending(true)
     const zip = new JSZip()
@@ -281,6 +317,40 @@ export function PayrollDownloadsModal(props: {
                     />
                     <span className="text-muted-foreground">
                       (Up to 60 days future-dated)
+                    </span>
+                  </div>
+                ) : null}
+                {/* Some bank specs make the beneficiary reference
+                    mandatory and it isn't derivable from payroll data,
+                    so the admin types it per payment run. */}
+                {group === "BANK" && needsRecipientRef ? (
+                  <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-xs">
+                    <label
+                      htmlFor="recipient-reference"
+                      className="font-medium text-foreground"
+                    >
+                      Recipient reference{" "}
+                      <span className="text-destructive">*</span>
+                    </label>
+                    <input
+                      id="recipient-reference"
+                      type="text"
+                      value={recipientReference}
+                      onChange={(e) => setRecipientReference(e.target.value)}
+                      maxLength={20}
+                      placeholder="e.g. SALARY 08/2026"
+                      aria-invalid={recipientRefMissing}
+                      className={cn(
+                        "rounded-md border bg-background px-2 py-1 text-xs",
+                        recipientRefMissing
+                          ? "border-destructive"
+                          : "border-border/60",
+                      )}
+                    />
+                    <span className="text-muted-foreground">
+                      {recipientRefMissing
+                        ? "Required — appears on your employees' bank statements."
+                        : "Appears on your employees' bank statements."}
                     </span>
                   </div>
                 ) : null}

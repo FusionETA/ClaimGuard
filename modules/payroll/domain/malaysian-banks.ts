@@ -27,6 +27,7 @@ export type PayrollFileFormat =
   | "PB_ECP_XLSX"
   | "MBB_M2E_TXT"
   | "CIMB_BIZCHANNEL_TXT"
+  | "HLB_CONNECT"
 
 export type MalaysianBank = {
   /// Canonical bank name (LHDN / BNM register).
@@ -41,6 +42,14 @@ export type MalaysianBank = {
   /// Islamic subsidiaries share their parent bank's code, which is how
   /// the IBG scheme (and CIMB's own code list) treats them.
   bnmCode: string
+  /// Hong Leong's 4-character IBG bank code, from the CBIZ Bulk Payroll
+  /// template's "Bank Code (IBG)" sheet. A DIFFERENT scheme from
+  /// `bnmCode` — and easy to misread: `PABB` is AFFIN (from its old name
+  /// Perwira Affin Bank), while Public Bank is `PBBB`. Never infer these.
+  ///
+  /// `HLBB` (Hong Leong itself) isn't on the IBG list because an
+  /// intra-bank credit goes out as FT, not IBG.
+  hlbCode: string
   /// Payment mode for Public Bank ECP. PBB = intra-Public-Bank
   /// (free, instant), IBG = inter-bank GIRO (fee, T+0/T+1).
   ecpMode: EcpPaymentMode
@@ -67,6 +76,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Malayan Banking Berhad",
     bic: "MBBEMYKL",
+    hlbCode: "MBBB",
     payrollBankLabel: "Maybank (incl. Maybank Islamic)",
     payrollFormat: "MBB_M2E_TXT",
     bnmCode: "27",
@@ -76,6 +86,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Maybank Islamic Berhad",
     bic: "MBISMYKL",
+    hlbCode: "MBBB",
     payrollFormat: "MBB_M2E_TXT",
     bnmCode: "27",
     ecpMode: "IBG",
@@ -84,6 +95,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "CIMB Bank Berhad",
     bic: "CIBBMYKL",
+    hlbCode: "CIMB",
     payrollBankLabel: "CIMB (incl. CIMB Islamic)",
     payrollFormat: "CIMB_BIZCHANNEL_TXT",
     bnmCode: "35",
@@ -93,6 +105,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "CIMB Islamic Bank Berhad",
     bic: "CTBBMYKL",
+    hlbCode: "CIMB",
     payrollFormat: "CIMB_BIZCHANNEL_TXT",
     bnmCode: "35",
     ecpMode: "IBG",
@@ -101,6 +114,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Public Bank Berhad",
     bic: "PBBEMYKL",
+    hlbCode: "PBBB",
     payrollBankLabel: "Public Bank (incl. Public Islamic)",
     payrollFormat: "PB_ECP_XLSX",
     bnmCode: "33",
@@ -110,6 +124,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Public Islamic Bank Berhad",
     bic: "PIBEMYKL",
+    hlbCode: "PBBB",
     payrollFormat: "PB_ECP_XLSX",
     bnmCode: "33",
     ecpMode: "PBB", // intra-Public-Bank (subsidiary)
@@ -118,6 +133,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "RHB Bank Berhad",
     bic: "RHBBMYKL",
+    hlbCode: "RHBB",
     bnmCode: "18",
     ecpMode: "IBG",
     aliases: ["rhb", "rhb bank"],
@@ -125,6 +141,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "RHB Islamic Bank Berhad",
     bic: "RHBAMYKL",
+    hlbCode: "RHBB",
     bnmCode: "18",
     ecpMode: "IBG",
     aliases: ["rhb islamic"],
@@ -132,6 +149,9 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Hong Leong Bank Berhad",
     bic: "HLBBMYKL",
+    payrollBankLabel: "Hong Leong Bank (incl. Hong Leong Islamic)",
+    payrollFormat: "HLB_CONNECT",
+    hlbCode: "HLBB",
     bnmCode: "24",
     ecpMode: "IBG",
     aliases: ["hong leong", "hlb"],
@@ -139,6 +159,8 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Hong Leong Islamic Bank Berhad",
     bic: "HLIBMYKL",
+    payrollFormat: "HLB_CONNECT",
+    hlbCode: "HLBB",
     bnmCode: "24",
     ecpMode: "IBG",
     aliases: ["hong leong islamic"],
@@ -146,6 +168,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "AmBank (M) Berhad",
     bic: "ARBKMYKL",
+    hlbCode: "AMBB",
     bnmCode: "08",
     ecpMode: "IBG",
     aliases: ["ambank", "am bank"],
@@ -153,6 +176,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "AmIslamic Bank (M) Berhad",
     bic: "AISLMYKL",
+    hlbCode: "AMBB",
     bnmCode: "08",
     ecpMode: "IBG",
     aliases: ["ambank islamic", "amislamic"],
@@ -160,6 +184,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Affin Bank Berhad",
     bic: "PHBMMYKL",
+    hlbCode: "PABB",
     bnmCode: "32",
     ecpMode: "IBG",
     aliases: ["affin", "affin bank"],
@@ -167,6 +192,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Affin Islamic Bank Berhad",
     bic: "AIBBMYKL",
+    hlbCode: "PABB",
     bnmCode: "32",
     ecpMode: "IBG",
     aliases: ["affin islamic"],
@@ -174,6 +200,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Alliance Bank Malaysia Berhad",
     bic: "MFBBMYKL",
+    hlbCode: "ALBB",
     bnmCode: "12",
     ecpMode: "IBG",
     aliases: ["alliance bank", "alliance"],
@@ -181,6 +208,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Alliance Islamic Bank Malaysia Berhad",
     bic: "ALSRMYK1",
+    hlbCode: "ALBB",
     bnmCode: "12",
     ecpMode: "IBG",
     aliases: ["alliance islamic"],
@@ -188,6 +216,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Bank Islam Malaysia Berhad",
     bic: "BIMBMYKL",
+    hlbCode: "BIMB",
     bnmCode: "45",
     ecpMode: "IBG",
     aliases: ["bank islam"],
@@ -195,6 +224,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Bank Muamalat (Malaysia) Berhad",
     bic: "BMMBMYKL",
+    hlbCode: "BMMB",
     bnmCode: "41",
     ecpMode: "IBG",
     aliases: ["bank muamalat", "muamalat"],
@@ -202,6 +232,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Bank Rakyat (Bank Kerjasama Rakyat Malaysia Berhad)",
     bic: "BKRMMYKL",
+    hlbCode: "BKRM",
     bnmCode: "02",
     ecpMode: "IBG",
     aliases: ["bank rakyat", "rakyat", "kerjasama rakyat"],
@@ -209,6 +240,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Bank Simpanan Nasional Berhad",
     bic: "BSNAMYK1",
+    hlbCode: "BSNB",
     bnmCode: "10",
     ecpMode: "IBG",
     aliases: ["bsn", "bank simpanan", "simpanan nasional"],
@@ -216,6 +248,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Agrobank Berhad",
     bic: "AGOBMYK1",
+    hlbCode: "AGRO",
     bnmCode: "49",
     ecpMode: "IBG",
     aliases: ["agrobank", "agro bank"],
@@ -223,6 +256,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Al-Rajhi Bank (Malaysia) Berhad",
     bic: "RJHIMYKL",
+    hlbCode: "ARB",
     bnmCode: "53",
     ecpMode: "IBG",
     aliases: ["al-rajhi", "al rajhi", "rajhi"],
@@ -230,6 +264,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "OCBC Bank (Malaysia) Berhad",
     bic: "OCBCMYKL",
+    hlbCode: "OCBC",
     bnmCode: "29",
     ecpMode: "IBG",
     aliases: ["ocbc"],
@@ -237,6 +272,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "OCBC Al-Amin Bank Berhad",
     bic: "OABBMYKL",
+    hlbCode: "OCBC",
     bnmCode: "29",
     ecpMode: "IBG",
     aliases: ["ocbc al-amin", "al-amin"],
@@ -244,6 +280,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "HSBC Bank Malaysia Berhad",
     bic: "HBMBMYKL",
+    hlbCode: "HSBC",
     bnmCode: "22",
     ecpMode: "IBG",
     aliases: ["hsbc"],
@@ -251,6 +288,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "HSBC Amanah Malaysia Berhad",
     bic: "HMABMYKL",
+    hlbCode: "HSBC",
     bnmCode: "22",
     ecpMode: "IBG",
     aliases: ["hsbc amanah"],
@@ -258,6 +296,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Standard Chartered Bank (Malaysia) Berhad",
     bic: "SCBLMYKX",
+    hlbCode: "SCBB",
     bnmCode: "14",
     ecpMode: "IBG",
     aliases: ["standard chartered", "scb"],
@@ -265,6 +304,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Standard Chartered Saadiq (Malaysia) Berhad",
     bic: "SCSRMYK1",
+    hlbCode: "SCBB",
     bnmCode: "14",
     ecpMode: "IBG",
     aliases: ["scb saadiq", "standard chartered saadiq"],
@@ -272,6 +312,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Citibank Berhad",
     bic: "CITIMYKL",
+    hlbCode: "CITI",
     bnmCode: "17",
     ecpMode: "IBG",
     aliases: ["citi", "citibank"],
@@ -279,6 +320,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "United Overseas Bank (Malaysia) Berhad",
     bic: "UOVBMYKL",
+    hlbCode: "UOBB",
     bnmCode: "26",
     ecpMode: "IBG",
     aliases: ["uob", "united overseas"],
@@ -286,6 +328,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "MBSB Bank Berhad",
     bic: "AFBQMYKL",
+    hlbCode: "AFB",
     bnmCode: "75",
     ecpMode: "IBG",
     aliases: ["mbsb"],
@@ -293,6 +336,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Kuwait Finance House (Malaysia) Berhad",
     bic: "KFHOMYKL",
+    hlbCode: "KFHB",
     bnmCode: "47",
     ecpMode: "IBG",
     aliases: ["kuwait finance", "kfh"],
@@ -300,6 +344,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Bank of China (Malaysia) Berhad",
     bic: "BKCHMYKL",
+    hlbCode: "BOCM",
     bnmCode: "42",
     ecpMode: "IBG",
     aliases: ["bank of china", "boc"],
@@ -307,6 +352,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Bank of America (Malaysia) Berhad",
     bic: "BOFAMY2X",
+    hlbCode: "BOFA",
     bnmCode: "07",
     ecpMode: "IBG",
     aliases: ["bank of america", "bofa"],
@@ -314,6 +360,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Bangkok Bank Berhad",
     bic: "BKKBMYKL",
+    hlbCode: "BKKB",
     bnmCode: "04",
     ecpMode: "IBG",
     aliases: ["bangkok bank"],
@@ -321,6 +368,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "BNP Paribas Malaysia Berhad",
     bic: "BNPAMYKL",
+    hlbCode: "BNPM",
     bnmCode: "60",
     ecpMode: "IBG",
     aliases: ["bnp paribas"],
@@ -328,6 +376,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "China Construction Bank (Malaysia) Berhad",
     bic: "PCBCMYKL",
+    hlbCode: "CCBM",
     bnmCode: "65",
     ecpMode: "IBG",
     aliases: ["china construction", "ccb"],
@@ -335,6 +384,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Deutsche Bank (Malaysia) Berhad",
     bic: "DEUTMYKL",
+    hlbCode: "DEUM",
     bnmCode: "19",
     ecpMode: "IBG",
     aliases: ["deutsche", "deutsche bank"],
@@ -342,6 +392,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Industrial and Commercial Bank of China (Malaysia) Berhad",
     bic: "ICBKMYKL",
+    hlbCode: "ICBC",
     bnmCode: "59",
     ecpMode: "IBG",
     aliases: ["icbc", "industrial and commercial"],
@@ -349,6 +400,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "JP Morgan Chase Bank Berhad",
     bic: "CHASMYKX",
+    hlbCode: "JPMC",
     bnmCode: "48",
     ecpMode: "IBG",
     aliases: ["jp morgan", "chase"],
@@ -356,6 +408,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Mizuho Bank (Malaysia) Berhad",
     bic: "MHCBMYKA",
+    hlbCode: "MHCB",
     bnmCode: "73",
     ecpMode: "IBG",
     aliases: ["mizuho"],
@@ -363,6 +416,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "MUFG Bank (Malaysia) Berhad",
     bic: "BOTKMYKX",
+    hlbCode: "BTMU",
     bnmCode: "52",
     ecpMode: "IBG",
     aliases: ["mufg", "bank of tokyo", "btmu"],
@@ -370,6 +424,7 @@ export const MALAYSIAN_BANKS: readonly MalaysianBank[] = [
   {
     name: "Sumitomo Mitsui Banking Corporation Malaysia Berhad",
     bic: "SMBCMYKL",
+    hlbCode: "SMBC",
     bnmCode: "51",
     ecpMode: "IBG",
     aliases: ["sumitomo", "smbc"],

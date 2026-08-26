@@ -6,6 +6,10 @@ import { renderEpfCsv } from "@/modules/payroll/application/services/report-rend
 import { renderPaymentSchedulePdf } from "@/modules/payroll/application/services/report-renderers/payment-schedule-pdf"
 import { renderPayrollSummaryPdf } from "@/modules/payroll/application/services/report-renderers/payroll-summary-pdf"
 import { renderCimbBizChannelTxt } from "@/modules/payroll/application/services/report-renderers/cimb-bizchannel-txt"
+import {
+  renderHlbConnectBizXlsx,
+  renderHlbConnectFirstTxt,
+} from "@/modules/payroll/application/services/report-renderers/hlb-connect"
 import { renderMbbM2eTxt } from "@/modules/payroll/application/services/report-renderers/mbb-m2e-txt"
 import { renderPbEcpXlsx } from "@/modules/payroll/application/services/report-renderers/pb-ecp-xlsx"
 import { renderPcbLhdnFormPdf } from "@/modules/payroll/application/services/report-renderers/pcb-lhdn-form-pdf"
@@ -30,8 +34,11 @@ export async function renderPayrollReport(input: {
   /// restricted admin keeps seeing only their employees. Ignored by the
   /// statutory + bank files, which are always whole-run.
   policyIdScope?: string[] | null
-  /// Admin-supplied payment date — only consumed by PB ECP today.
+  /// Admin-supplied payment/value date — consumed by every bank file.
   paymentDate?: Date
+  /// Beneficiary reference typed per payment run. Mandatory on the Hong
+  /// Leong formats; ignored by the others.
+  recipientReference?: string
 }): Promise<Buffer> {
   const { runId, organizationId } = input
   const policyIdScope = input.policyIdScope ?? null
@@ -63,6 +70,18 @@ export async function renderPayrollReport(input: {
         runId,
         organizationId,
         paymentDate: input.paymentDate,
+      })
+    case "BANK_HLB_CONNECT_FIRST_TXT":
+      return renderHlbConnectFirstTxt({
+        runId,
+        organizationId,
+        recipientReference: input.recipientReference,
+      })
+    case "BANK_HLB_CONNECT_BIZ_XLSX":
+      return renderHlbConnectBizXlsx({
+        runId,
+        organizationId,
+        recipientReference: input.recipientReference,
       })
     case "BANK_CIMB_BIZCHANNEL_TXT":
       return renderCimbBizChannelTxt({

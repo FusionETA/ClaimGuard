@@ -8,7 +8,7 @@ import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll
 import { key } from "@/lib/redis"
 import {
   buildReportFileName,
-  PAYROLL_FILE_FORMAT_TO_KIND,
+  PAYROLL_FILE_FORMAT_TO_KINDS,
   PAYROLL_REPORT_META,
   payrollReportKinds,
   type PayrollReportKind,
@@ -39,12 +39,13 @@ import { resolvePayrollFileFormat } from "@/modules/payroll/domain/malaysian-ban
  */
 
 /**
- * The bank report kind for a company's payroll bank, or null when the
- * bank is unset / has no native format.
+ * The bank report kinds offered for a company's payroll bank. Empty when
+ * the bank is unset or has no native format; more than one when the bank
+ * publishes several upload channels (Hong Leong).
  */
-function bankKindFor(bankName: string | null | undefined): PayrollReportKind | null {
+function bankKindsFor(bankName: string | null | undefined): readonly PayrollReportKind[] {
   const format = resolvePayrollFileFormat(bankName)
-  return format ? PAYROLL_FILE_FORMAT_TO_KIND[format] : null
+  return format ? PAYROLL_FILE_FORMAT_TO_KINDS[format] : []
 }
 
 export async function getPayrollReportsModalData(input: {
@@ -106,13 +107,14 @@ async function loadReportsModalData(
   // we have no format for) the BANK group is empty and the modal points
   // the admin at payroll settings.
   const settings = await payrollSettingsRepository.getByOrgId(orgId)
-  const bankKind = bankKindFor(settings?.payrollBankName)
+  const bankKinds = bankKindsFor(settings?.payrollBankName)
 
   // Every download is rendered on demand, so there's no per-run
   // "generated" state to merge — every row is just the static meta.
   const rows: PayrollReportRow[] = payrollReportKinds
     .filter((kind) => {
-      if (PAYROLL_REPORT_META[kind].group === "BANK") return kind === bankKind
+      if (PAYROLL_REPORT_META[kind].group === "BANK")
+        return bankKinds.includes(kind)
       return true
     })
     .map((kind) => ({
@@ -142,8 +144,11 @@ async function loadReportsModalData(
 export async function readPayrollReportFile(input: {
   runId: string
   kind: PayrollReportKind
-  /// Optional admin-supplied payment date (PB ECP only). ISO YYYY-MM-DD.
+  /// Optional admin-supplied payment date (bank files). ISO YYYY-MM-DD.
   paymentDate?: string
+  /// Mandatory beneficiary reference on the Hong Leong formats, typed
+  /// by the admin per payment run.
+  recipientReference?: string
 }): Promise<{
   bytes: Buffer
   fileName: string
@@ -183,6 +188,7 @@ export async function renderPayrollReportFileForOrg(input: {
   /// seeing only their employees.
   policyIdScope?: string[] | null
   paymentDate?: string
+  recipientReference?: string
 }): Promise<{
   bytes: Buffer
   fileName: string
@@ -206,13 +212,20 @@ export async function renderPayrollReportFileForOrg(input: {
     generatedAt: new Date(),
   })
 
-  // PB ECP is the one kind where the admin-supplied payment date is part
-  // of the file CONTENT (Row 1) + filename (DDMMYY). Payment date
-  // defaults to the last day of the period month when the admin doesn't
-  // override it. The bank-spec filename (`<account>PR<DDMMYY><NN>.xlsx`)
-  // overrides the generic name so the download is upload-ready into PB
-  // enterprise.
-  let resolvedPaymentDate: Date | undefined
+  // Every bank file embeds a payment/value date, defaulting to the last
+  // day of the period month when the admin doesn't override it. Resolve
+  // it for the whole BANK group — not just PB ECP — otherwise the date
+  // the admin picks in the modal is silently dropped for the others.
+  const isBankFile = PAYROLL_REPORT_META[input.kind].group === "BANK"
+  const resolvedPaymentDate: Date | undefined = isBankFile
+    ? input.paymentDate
+      ? parseIsoDate(input.paymentDate)
+      : new Date(run.periodYear, run.periodMonth, 0)
+    : undefined
+
+  // PB ECP additionally puts the date in its FILENAME
+  // (`<account>PR<DDMMYY><NN>.xlsx`), which overrides the generic name so
+  // the download is upload-ready into PB enterprise.
   if (input.kind === "BANK_PB_ECP_XLSX") {
     const { payrollSettingsRepository } = await import(
       "@/modules/payroll/infrastructure/payroll-settings.repository"
@@ -222,18 +235,16 @@ export async function renderPayrollReportFileForOrg(input: {
     )
     const settings = await payrollSettingsRepository.getByOrgId(orgId)
     const acc = settings?.ecpPayorAccountNo ?? "0000000000"
-    resolvedPaymentDate = input.paymentDate
-      ? parseIsoDate(input.paymentDate)
-      : new Date(run.periodYear, run.periodMonth, 0)
     fileName = buildPbEcpFileName({
       payorAccountNo: acc,
-      paymentDate: resolvedPaymentDate,
+      paymentDate: resolvedPaymentDate ?? new Date(run.periodYear, run.periodMonth, 0),
     })
   }
 
   const bytes = await renderPayrollReport({
     runId: run.id,
     kind: input.kind,
+    recipientReference: input.recipientReference,
     organizationId: orgId,
     policyIdScope: input.policyIdScope ?? null,
     paymentDate: resolvedPaymentDate,

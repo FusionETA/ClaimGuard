@@ -2,9 +2,9 @@
  * Domain types + metadata for the downloadable per-run payroll reports
  * surfaced by the "Download files" modal on the run detail page.
  *
- * Bank disbursement: exactly ONE bank file is offered per run — the one
- * matching the company's configured payroll bank (see
- * `PAYROLL_FILE_FORMAT_TO_KIND`). There is no generic fallback; a bank
+ * Bank disbursement: only the bank file(s) for the company's own
+ * payroll bank are offered — matching the company's configured payroll bank (see
+ * `PAYROLL_FILE_FORMAT_TO_KINDS`). There is no generic fallback; a bank
  * we have no format for simply isn't selectable in payroll settings.
  *
  * Pure domain layer — no Prisma, no `server-only`. Both the modal
@@ -41,24 +41,40 @@ export const payrollReportKinds = [
   "BANK_PB_ECP_XLSX",
   "BANK_MBB_M2E_TXT",
   "BANK_CIMB_BIZCHANNEL_TXT",
+  "BANK_HLB_CONNECT_FIRST_TXT",
+  "BANK_HLB_CONNECT_BIZ_XLSX",
 ] as const
 
 export type PayrollReportKind = (typeof payrollReportKinds)[number]
 
 /**
- * Which report kind implements each bank's bulk-payroll format. The
+ * Which report kind(s) implement each bank's bulk-payroll format. The
  * company's disbursement bank resolves to a `PayrollFileFormat`, and
- * this maps that to the downloadable report — so adding a bank means
+ * this maps that to the downloadable report(s) — so adding a bank means
  * adding a renderer + one row here, nothing else.
+ *
+ * A list because Hong Leong publishes TWO upload channels (Connect First
+ * and Connect Biz) taking different files; the admin picks at download
+ * time rather than nominating a portal in settings.
  */
-export const PAYROLL_FILE_FORMAT_TO_KIND: Record<
+export const PAYROLL_FILE_FORMAT_TO_KINDS: Record<
   PayrollFileFormat,
-  PayrollReportKind
+  readonly PayrollReportKind[]
 > = {
-  PB_ECP_XLSX: "BANK_PB_ECP_XLSX",
-  MBB_M2E_TXT: "BANK_MBB_M2E_TXT",
-  CIMB_BIZCHANNEL_TXT: "BANK_CIMB_BIZCHANNEL_TXT",
+  PB_ECP_XLSX: ["BANK_PB_ECP_XLSX"],
+  MBB_M2E_TXT: ["BANK_MBB_M2E_TXT"],
+  CIMB_BIZCHANNEL_TXT: ["BANK_CIMB_BIZCHANNEL_TXT"],
+  HLB_CONNECT: ["BANK_HLB_CONNECT_FIRST_TXT", "BANK_HLB_CONNECT_BIZ_XLSX"],
 }
+
+/**
+ * Bank files whose spec makes the beneficiary "Recipient Reference" a
+ * MANDATORY field the admin types per payment run (it isn't derivable
+ * from payroll data). The downloads modal shows an input for these and
+ * blocks the download until it's filled.
+ */
+export const KINDS_REQUIRING_RECIPIENT_REFERENCE: readonly PayrollReportKind[] =
+  ["BANK_HLB_CONNECT_FIRST_TXT", "BANK_HLB_CONNECT_BIZ_XLSX"]
 
 /**
  * Grouping shown as a section header in the modal:
@@ -200,6 +216,27 @@ export const PAYROLL_REPORT_META: Record<PayrollReportKind, PayrollReportMeta> =
     extension: "txt",
     mimeType: "text/plain",
   },
+  BANK_HLB_CONNECT_FIRST_TXT: {
+    kind: "BANK_HLB_CONNECT_FIRST_TXT",
+    group: "BANK",
+    title: "Hong Leong Connect First (Bulk Payroll)",
+    description:
+      "Fixed-width bulk salary file for upload to HLB Connect First. Uses FT for Hong Leong accounts and IBG for other banks automatically.",
+    portal: "HLB Connect First",
+    extension: "txt",
+    mimeType: "text/plain",
+  },
+  BANK_HLB_CONNECT_BIZ_XLSX: {
+    kind: "BANK_HLB_CONNECT_BIZ_XLSX",
+    group: "BANK",
+    title: "Hong Leong Connect Biz (Bulk Payroll)",
+    description:
+      "Bulk salary spreadsheet matching the CBIZ Bulk Payroll template for upload to HLB ConnectBiz. Same FT/IBG routing as the Connect First file.",
+    portal: "HLB ConnectBiz",
+    extension: "xlsx",
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  },
 }
 
 export const PAYROLL_REPORT_GROUP_LABELS: Record<PayrollReportGroup, string> = {
@@ -283,6 +320,10 @@ export function buildReportFileName(input: {
       return `MBB_M2E_Payroll_${mmyyyy}.${meta.extension}`
     case "BANK_CIMB_BIZCHANNEL_TXT":
       return `CIMB_Payroll_${mmyyyy}.${meta.extension}`
+    case "BANK_HLB_CONNECT_FIRST_TXT":
+      return `HLB_ConnectFirst_Payroll_${mmyyyy}.${meta.extension}`
+    case "BANK_HLB_CONNECT_BIZ_XLSX":
+      return `HLB_ConnectBiz_Payroll_${mmyyyy}.${meta.extension}`
   }
 }
 

@@ -8,7 +8,8 @@ import {
 } from "@/modules/payroll/domain/reports"
 
 /**
- * GET /admin/payroll/runs/[id]/reports/[kind]?paymentDate=YYYY-MM-DD
+ * GET /admin/payroll/runs/[id]/reports/[kind]
+ *     ?paymentDate=YYYY-MM-DD&recipientReference=...
  *
  * Renders one payroll report file (EPF CSV, SOCSO+EIS TXT, PCB TXT, the
  * PDFs, the PB ECP xlsx, …) ON DEMAND and streams it back to the browser
@@ -16,9 +17,11 @@ import {
  * the bytes are produced fresh from the (Redis-cached) payroll data on
  * every request, so the statutory files always match the live run.
  *
- * `paymentDate` is only consumed by `BANK_PB_ECP_XLSX` (it flows into
- * both the file content and the bank-spec filename); it's ignored for
- * every other kind.
+ * `paymentDate` is consumed by the bank files (for PB ECP it also
+ * shapes the filename). `recipientReference` is the mandatory
+ * beneficiary reference on the Hong Leong formats — the admin types it
+ * per payment, so it arrives per request rather than from settings.
+ * Both are ignored by kinds that don't use them.
  *
  * Auth: admin only, scoped to the active org inside the service. Also
  * behind the `/admin/:path*` middleware role gate.
@@ -33,8 +36,9 @@ export async function GET(
     return NextResponse.json({ error: "Unknown report kind." }, { status: 400 })
   }
 
-  const paymentDate =
-    new URL(_req.url).searchParams.get("paymentDate") ?? undefined
+  const search = new URL(_req.url).searchParams
+  const paymentDate = search.get("paymentDate") ?? undefined
+  const recipientReference = search.get("recipientReference") ?? undefined
 
   let file: Awaited<ReturnType<typeof readPayrollReportFile>>
   try {
@@ -42,6 +46,7 @@ export async function GET(
       runId: id,
       kind: kind as PayrollReportKind,
       paymentDate,
+      recipientReference,
     })
   } catch (err) {
     // A renderer can throw (e.g. payroll not run). Return a clean JSON

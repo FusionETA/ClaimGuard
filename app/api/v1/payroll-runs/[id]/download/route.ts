@@ -4,7 +4,7 @@ import JSZip from "jszip"
 import { handleApiRequest } from "@/lib/api-auth"
 import { renderPayrollReportFileForOrg } from "@/modules/payroll/application/services/payroll-reports.service"
 import {
-  PAYROLL_FILE_FORMAT_TO_KIND,
+  PAYROLL_FILE_FORMAT_TO_KINDS,
   type PayrollReportKind,
 } from "@/modules/payroll/domain/reports"
 import { resolvePayrollFileFormat } from "@/modules/payroll/domain/malaysian-banks"
@@ -88,7 +88,7 @@ export const GET = handleApiRequest<{ id: string }>(
     const settings = await payrollSettingsRepository.getByOrgId(organizationId)
     const bankFormat = resolvePayrollFileFormat(settings?.payrollBankName)
     const kinds: PayrollReportKind[] = bankFormat
-      ? [PAYROLL_FILE_FORMAT_TO_KIND[bankFormat], ...BUNDLE_KINDS]
+      ? [...PAYROLL_FILE_FORMAT_TO_KINDS[bankFormat], ...BUNDLE_KINDS]
       : BUNDLE_KINDS
 
     const zip = new JSZip()
