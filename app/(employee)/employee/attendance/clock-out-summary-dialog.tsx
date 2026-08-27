@@ -345,7 +345,7 @@ export function ClockOutSummaryDialog({
                 value={adjustTime}
                 onChange={(e) => setAdjustTime(e.target.value)}
                 disabled={pending}
-                className="block w-full rounded-2xl border border-amber-200 bg-white px-4 py-3 text-base font-semibold text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+                className="block w-full rounded-2xl border border-amber-200 bg-white px-4 py-3 text-base font-semibold text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm appearance-none text-left [&::-webkit-date-and-time-value]:text-left [&::-webkit-date-and-time-value]:m-0"
               />
             </label>
 

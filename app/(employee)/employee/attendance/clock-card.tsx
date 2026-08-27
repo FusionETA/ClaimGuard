@@ -1736,7 +1736,7 @@ function RemarkDialog({
                       type="time"
                       value={adjustTime}
                       onChange={(e) => onAdjustTimeChange(e.target.value)}
-                      className="block w-full rounded-xl border border-amber-200 bg-white px-3 py-2.5 text-base font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:text-sm"
+                      className="block w-full rounded-xl border border-amber-200 bg-white px-3 py-2.5 text-base font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:text-sm appearance-none text-left [&::-webkit-date-and-time-value]:text-left [&::-webkit-date-and-time-value]:m-0"
                     />
                   </label>
                   <label className="block space-y-1.5">
