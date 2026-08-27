@@ -454,8 +454,10 @@ function GeneralTab(props: {
           </CardTitle>
           <CardDescription>
             The company&apos;s bank used to pay salaries. This picks which
-            bulk-payroll upload file a submitted run produces, so only banks
-            we generate a file for are listed. It doesn&apos;t restrict where
+            bulk-payroll upload file a submitted run produces. Pick
+            &ldquo;Other bank&rdquo; if yours isn&apos;t listed &mdash; the run
+            then offers no upload file and you key the payments in from the
+            Payment Schedule report instead. It doesn&apos;t restrict where
             your employees bank &mdash; every format pays out to any Malaysian
             bank.
           </CardDescription>
@@ -468,7 +470,7 @@ function GeneralTab(props: {
             >
               <option value="">— Select bank —</option>
               {PAYROLL_DISBURSEMENT_BANK_OPTIONS.map((b) => (
-                <option key={b.format} value={b.value}>
+                <option key={b.value} value={b.value}>
                   {b.label}
                 </option>
               ))}

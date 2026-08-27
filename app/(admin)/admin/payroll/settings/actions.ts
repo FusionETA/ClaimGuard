@@ -63,8 +63,10 @@ const settingsSchema = z.object({
       "Account number must be 5–20 digits.",
     ),
   // Disbursement bank config. `payrollBankName` picks the company
-  // payroll bank; Public Bank offers the PB ECP file, others the
-  // general CSV. Holder name + org code appear where the bank needs them.
+  // payroll bank, which decides WHICH bulk-payroll upload file a
+  // submitted run offers (or none, for the "Other" sentinel). Values
+  // come from `PAYROLL_DISBURSEMENT_BANK_OPTIONS`. Holder name + org
+  // code appear where the chosen bank needs them.
   payrollBankName: nullableString(),
   payorAccountHolderName: nullableString(),
   payorOrganisationCode: nullableString(),

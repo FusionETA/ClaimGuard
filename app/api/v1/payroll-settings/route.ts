@@ -14,6 +14,7 @@ import {
 import { calculationBlock } from "../_shared/blocks"
 import {
   PAYROLL_DISBURSEMENT_BANK_OPTIONS,
+  PAYROLL_OTHER_BANK,
   findBankByName,
   isPublicBankName,
   resolvePayrollFileFormat,
@@ -476,6 +477,12 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
     if (bank.bankName !== undefined) {
       if (bank.bankName === null) {
         effectiveBankName = null
+      } else if (
+        bank.bankName.trim().toLowerCase() === PAYROLL_OTHER_BANK.toLowerCase()
+      ) {
+        // Explicit "we bank elsewhere" — recorded, but no upload file is
+        // generated for the run.
+        effectiveBankName = PAYROLL_OTHER_BANK
       } else {
         const matched = findBankByName(bank.bankName)
         if (!matched) {

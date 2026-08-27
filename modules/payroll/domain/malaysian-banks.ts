@@ -514,24 +514,48 @@ export const PAYROLL_DISBURSEMENT_BANKS: readonly MalaysianBank[] =
   MALAYSIAN_BANKS.filter((b) => b.payrollFormat != null)
 
 /**
- * What the payroll-settings bank picker offers — one option per
- * supported format, not per legal entity. `value` is the canonical bank
- * name stored on `PayrollSettings.payrollBankName`.
+ * Sentinel stored in `PayrollSettings.payrollBankName` when the company
+ * banks somewhere we don't generate an upload file for.
  *
- * Writes still ACCEPT any bank in `PAYROLL_DISBURSEMENT_BANKS` (six
- * entities), so an org that stored an Islamic entity earlier keeps
+ * Deliberately distinct from `null`: null means "nobody has configured
+ * this yet", while `"Other"` records that an admin looked at the list
+ * and none of them applied. Both produce no bank file — but only the
+ * first is worth nagging about.
+ *
+ * It is not a bank name, so `findBankByName` never matches it and
+ * `resolvePayrollFileFormat` correctly returns null.
+ */
+export const PAYROLL_OTHER_BANK = "Other"
+
+/**
+ * What the payroll-settings bank picker offers — one option per
+ * supported format, not per legal entity, plus an explicit "Other" for
+ * banks we have no format for. `value` is what gets stored on
+ * `PayrollSettings.payrollBankName`.
+ *
+ * Writes still ACCEPT any bank in `PAYROLL_DISBURSEMENT_BANKS` (the
+ * Islamic entities included), so an org that stored one earlier keeps
  * working; we simply stop asking anyone to choose between two options
  * that produce the same file.
  */
 export const PAYROLL_DISBURSEMENT_BANK_OPTIONS: readonly {
   value: string
   label: string
-  format: PayrollFileFormat
-}[] = MALAYSIAN_BANKS.flatMap((b) =>
-  b.payrollBankLabel && b.payrollFormat
-    ? [{ value: b.name, label: b.payrollBankLabel, format: b.payrollFormat }]
-    : [],
-)
+  /// null for "Other" — the company records its bank choice but no
+  /// upload file is produced.
+  format: PayrollFileFormat | null
+}[] = [
+  ...MALAYSIAN_BANKS.flatMap((b) =>
+    b.payrollBankLabel && b.payrollFormat
+      ? [{ value: b.name, label: b.payrollBankLabel, format: b.payrollFormat }]
+      : [],
+  ),
+  {
+    value: PAYROLL_OTHER_BANK,
+    label: "Other bank (no upload file)",
+    format: null,
+  },
+]
 
 /**
  * Resolve a company's (free-text) payroll bank name to the bulk-payroll

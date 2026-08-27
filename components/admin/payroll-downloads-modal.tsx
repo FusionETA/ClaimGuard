@@ -382,12 +382,17 @@ export function PayrollDownloadsModal(props: {
                 {PAYROLL_REPORT_GROUP_LABELS.BANK}
               </h3>
               <p className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground">
-                No payroll disbursement bank is set, so there&apos;s no bank
-                file for this run. Choose your company&apos;s bank under{" "}
+                No upload file is available for this run. AltomateHR
+                generates bulk-payroll files for Public Bank, Maybank, CIMB
+                and Hong Leong — set yours under{" "}
                 <span className="font-medium text-foreground">
                   Payroll settings → Payroll disbursement bank
                 </span>
-                .
+                . For any other bank, use the{" "}
+                <span className="font-medium text-foreground">
+                  Payment Schedule
+                </span>{" "}
+                report above to key the payments in.
               </p>
             </section>
           )}
