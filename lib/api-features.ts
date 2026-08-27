@@ -106,6 +106,27 @@ export const API_FEATURE_CATALOG = [
   /// statutory checklist the in-app submit guard runs.
   "payroll.readiness",
 
+  /// `POST /api/v1/payroll-runs/{id}/adjustments` — add one one-off
+  /// line item to an employee on a DRAFT run. `category` is required
+  /// (no default) and `dryRun: true` returns the before/after/delta
+  /// across gross, net, EPF, SOCSO, EIS and PCB without writing.
+  "payroll.adjustments",
+
+  /// `POST /api/v1/payroll-runs/{id}/submit` — DRAFT to
+  /// PENDING_APPROVAL, naming an eligible submitter. Runs the same
+  /// staleness / empty-run / prior-month / statutory-readiness guards
+  /// as the in-app submit.
+  "payroll.submit",
+  /// `POST /api/v1/payroll-runs/{id}/reject` — PENDING_APPROVAL back to
+  /// DRAFT with an optional reason. NOT the SUBMITTED-to-DRAFT revert,
+  /// which cascades to later months and stays UI-only.
+  "payroll.reject",
+
+  /// `POST /api/v1/payroll-runs/{id}/revert` — SUBMITTED back to DRAFT,
+  /// allowed ONLY when no later submitted month of the same year exists.
+  /// Refuses with the blocking months rather than cascading them.
+  "payroll.revert",
+
   // ── /api/v1/onboarding ──────────────────────────────────────────────
   /// `PUT /api/v1/onboarding` — the payroll-POLICY answers from a
   /// partner setup form in one call (working week, proration + HRDF,
