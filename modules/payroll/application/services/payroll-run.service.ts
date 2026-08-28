@@ -567,6 +567,31 @@ export async function submitPayrollRunForApproval(input: {
   }
   const orgId = resolveActiveOrgId(session)
   if (!orgId) throw new Error("No active organisation.")
+  return submitPayrollRunForApprovalInOrg({
+    runId: input.runId,
+    organizationId: orgId,
+    submittedById: session.userId,
+  })
+}
+
+/**
+ * Same submit with the organisation and submitter supplied rather than
+ * resolved from an admin session, so `POST /api/v1/payroll-runs/[id]/submit`
+ * can reuse it.
+ *
+ * Every guard below stays shared on purpose — the staleness check, the
+ * empty-run check, the prior-month continuity check and the statutory
+ * readiness check are the whole value of this transition. A second
+ * submit path that skipped any of them would freeze a month's PCB / EPF
+ * / SOCSO against wrong figures, and payslip snapshots cannot be edited
+ * after submission.
+ */
+export async function submitPayrollRunForApprovalInOrg(input: {
+  runId: string
+  organizationId: string
+  submittedById: string
+}): Promise<void> {
+  const orgId = input.organizationId
 
   const run = await payrollRunRepository.getByIdForOrg({
     id: input.runId,
@@ -674,10 +699,17 @@ export async function submitPayrollRunForApproval(input: {
   // document generators (PCB TXT, SOCSO+EIS, EPF CSV, CP8D, EA). Better
   // to fail loudly here, with an actionable list, than to wait for
   // post-submit document generation to throw a cryptic error.
-  const { getPayrollRunReadiness } = await import(
+  // Org-scoped reader, NOT the session-based one: that variant returns
+  // null when there's no iron-session, and `readiness && !readiness.ok`
+  // would then silently skip the guard for every API caller — letting a
+  // run submit with missing statutory fields.
+  const { computePayrollRunReadiness } = await import(
     "@/modules/payroll/application/services/payroll-readiness.service"
   )
-  const readiness = await getPayrollRunReadiness({ runId: input.runId })
+  const readiness = await computePayrollRunReadiness({
+    runId: input.runId,
+    organizationId: orgId,
+  })
   if (readiness && !readiness.ok) {
     const parts: string[] = []
     if (readiness.orgIssues.length > 0) {
@@ -708,7 +740,7 @@ export async function submitPayrollRunForApproval(input: {
   await payrollRunRepository.submitForApproval({
     id: run.id,
     organizationId: orgId,
-    submittedById: session.userId,
+    submittedById: input.submittedById,
   })
   await bustPayrollCaches({ organizationId: orgId })
 }
@@ -858,6 +890,24 @@ export async function rejectPayrollRunApproval(input: {
   }
   const orgId = resolveActiveOrgId(session)
   if (!orgId) throw new Error("No active organisation.")
+  return rejectPayrollRunApprovalInOrg({ ...input, organizationId: orgId })
+}
+
+/**
+ * Send a PENDING_APPROVAL run back to DRAFT, organisation supplied.
+ *
+ * Fully reversible: payslips and claim attachments stay attached and the
+ * submitter can edit and resubmit. The repository enforces the state
+ * check (only PENDING_APPROVAL can be bounced) — this is NOT the
+ * SUBMITTED → DRAFT path, which cascades to later months and is a
+ * different, much larger operation.
+ */
+export async function rejectPayrollRunApprovalInOrg(input: {
+  runId: string
+  reason: string | null
+  organizationId: string
+}): Promise<void> {
+  const orgId = input.organizationId
 
   await payrollRunRepository.rejectApproval({
     id: input.runId,
@@ -909,6 +959,80 @@ export async function revertPayrollRunToDraft(input: {
   }
 
   await bustPayrollCaches({ organizationId: orgId })
+}
+
+/**
+ * Result of an API-initiated revert of a SUBMITTED run back to DRAFT.
+ * A discriminated union rather than thrown errors, because the caller
+ * needs to tell "not allowed" from "not found" from "would cascade" —
+ * and the last one carries data the user needs to act on.
+ */
+export type RevertSubmittedResult =
+  | { ok: true }
+  | { ok: false; reason: "NOT_FOUND" }
+  | { ok: false; reason: "NOT_SUBMITTED"; status: string }
+  | {
+      ok: false
+      reason: "LATER_RUNS_EXIST"
+      laterRuns: Array<{ periodYear: number; periodMonth: number }>
+    }
+
+/**
+ * Revert a SUBMITTED run to DRAFT — but ONLY when it is the last
+ * submitted month of its year.
+ *
+ * `revertPayrollRunToDraft` (the in-app path) cascades: later SUBMITTED
+ * months carry YTD-cumulative PCB and SOCSO/EIS relief that depend on
+ * this month, so reverting this one silently drags them back to draft
+ * too. In the admin UI that is safe because the confirm dialog names
+ * every month it will affect and a human accepts it. Over the API there
+ * is no such moment, and a caller asking to reopen March would not
+ * expect April through August to reopen with it.
+ *
+ * So this variant refuses instead of cascading, and returns the months
+ * that blocked it so the caller can name them and send the person to
+ * AltomateHR — where the cascade is visible before it happens.
+ *
+ * Scope of the check is the same calendar year, which is also the scope
+ * of the cascade: YTD resets in January, so a run in the following year
+ * carries no dependency on this one and is correctly ignored.
+ */
+export async function revertSubmittedRunToDraftInOrg(input: {
+  runId: string
+  organizationId: string
+}): Promise<RevertSubmittedResult> {
+  const orgId = input.organizationId
+
+  const run = await payrollRunRepository.getByIdForOrg({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  if (!run) return { ok: false, reason: "NOT_FOUND" }
+  if (run.status !== "SUBMITTED") {
+    // DRAFT and PENDING_APPROVAL have their own transitions; saying so
+    // is more useful than a generic refusal.
+    return { ok: false, reason: "NOT_SUBMITTED", status: run.status }
+  }
+
+  const laterRuns = await payrollRunRepository.listSubmittedLaterInYear({
+    organizationId: orgId,
+    periodYear: run.periodYear,
+    afterMonth: run.periodMonth,
+  })
+  if (laterRuns.length > 0) {
+    return {
+      ok: false,
+      reason: "LATER_RUNS_EXIST",
+      laterRuns: laterRuns.map((r) => ({
+        periodYear: r.periodYear,
+        periodMonth: r.periodMonth,
+      })),
+    }
+  }
+
+  await payrollRunRepository.revertToDraft({ id: run.id, organizationId: orgId })
+  await bustPayrollCaches({ organizationId: orgId })
+  return { ok: true }
 }
 
 /**
@@ -1032,11 +1156,49 @@ export async function previewEmployeeNetForRun(input: {
       { amount: number | null; skip: boolean }
     >
   }
-}): Promise<{ netPay: number; grossPay: number } | null> {
+}): Promise<PayslipPreviewTotals | null> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
+  return previewEmployeeNetForRunInOrg({ ...input, organizationId: orgId })
+}
+
+/**
+ * Statutory totals a preview returns. Superset of the `{ netPay,
+ * grossPay }` the adjustment modal originally consumed — the extra
+ * lines let `POST /api/v1/payroll-runs/[id]/adjustments` show a caller
+ * what a line item does to EPF / SOCSO / EIS / PCB, not just to net.
+ * Adding a bonus under the wrong category changes contributions, so a
+ * confirmation that showed only net would hide exactly the mistake the
+ * category question exists to prevent.
+ */
+export type PayslipPreviewTotals = {
+  grossPay: number
+  netPay: number
+  epfEmployee: number
+  epfEmployer: number
+  socsoEmployee: number
+  socsoEmployer: number
+  eisEmployee: number
+  eisEmployer: number
+  pcb: number
+}
+
+/**
+ * Same preview with the organisation supplied rather than resolved from
+ * an admin session, so the token-authed API can reuse it. See
+ * `computePayrollRunReadiness` for the same split and the same reason:
+ * an API token has no iron-session, and a null return here means "could
+ * not compute", which must not be confused with "no change".
+ */
+export async function previewEmployeeNetForRunInOrg(input: {
+  runId: string
+  employeeProfileId: string
+  organizationId: string
+  patch: Parameters<typeof previewEmployeeNetForRun>[0]["patch"]
+}): Promise<PayslipPreviewTotals | null> {
+  const orgId = input.organizationId
 
   const run = await payrollRunRepository.getByIdForOrg({
     id: input.runId,
@@ -1248,7 +1410,17 @@ export async function previewEmployeeNetForRun(input: {
     ytdAllowanceByCategory: ytd.ytdAllowanceByCategory,
   })
 
-  return { netPay: result.netPay, grossPay: result.grossPay }
+  return {
+    grossPay: result.grossPay,
+    netPay: result.netPay,
+    epfEmployee: result.epfEmployee,
+    epfEmployer: result.epfEmployer,
+    socsoEmployee: result.socsoEmployee,
+    socsoEmployer: result.socsoEmployer,
+    eisEmployee: result.eisEmployee,
+    eisEmployer: result.eisEmployer,
+    pcb: result.pcb,
+  }
 }
 
 export async function generatePayrollPayslips(input: {
@@ -2559,6 +2731,23 @@ export async function savePayrollAdjustment(input: {
   }
   const orgId = resolveActiveOrgId(session)
   if (!orgId) throw new Error("No active organisation.")
+  return savePayrollAdjustmentInOrg({ ...input, organizationId: orgId })
+}
+
+/**
+ * Same save with the organisation supplied rather than resolved from an
+ * admin session, so the token-authed API can reuse it — including the
+ * DRAFT guard, which is the rule that keeps a submitted run immutable.
+ * Duplicating that guard in a second code path is how a submitted run
+ * eventually gets edited.
+ */
+export async function savePayrollAdjustmentInOrg(input: {
+  runId: string
+  employeeProfileId: string
+  organizationId: string
+  patch: Parameters<typeof payrollRunAdjustmentRepository.upsert>[0]["patch"]
+}): Promise<PayrollRunAdjustmentData> {
+  const orgId = input.organizationId
 
   const run = await payrollRunRepository.getByIdForOrg({
     id: input.runId,
