@@ -47,6 +47,30 @@ export function availableDaysFor(input: {
   return Math.max(0, base + carry - input.usedDays)
 }
 
+/// Days an employee can still BOOK, as opposed to what their balance
+/// card displays. Requests sitting at PENDING haven't moved `usedDays`
+/// yet — that only happens on approval — so they're invisible to
+/// `availableDaysFor` and N requests would each pass their own check
+/// while the total overruns the entitlement.
+///
+/// Deliberately two different numbers:
+///   displayed  = entitled + carried − approved          (availableDaysFor)
+///   bookable   = displayed − days held by pending        (this)
+///
+/// The displayed figure stays approved-only because a pending request
+/// may yet be rejected, and days shouldn't visibly vanish for something
+/// that may not happen. So an employee can correctly see "14 available"
+/// and still be refused — callers should say why.
+///
+/// `pendingDays` must exclude the request being edited, or resizing one
+/// is measured against itself.
+export function bookableDaysFor(input: {
+  availableDays: number
+  pendingDays: number
+}): number {
+  return Math.max(0, input.availableDays - input.pendingDays)
+}
+
 /// One month of accrual for PRO_RATED entitlements. Caps at entitledDays.
 export function nextAccruedDays(entitledDays: number, accruedDays: number): number {
   return Math.min(entitledDays, accruedDays + entitledDays / 12)

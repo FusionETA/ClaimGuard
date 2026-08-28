@@ -4,6 +4,7 @@ import { bustLeaveCaches } from "@/lib/cache-invalidation"
 import { publishUserEvents } from "@/lib/realtime"
 import { parseWorkingDays } from "@/modules/attendance/domain/hours-summary"
 import {
+  bookableDaysFor,
   computeTotalDays,
   forecastAccruedOnDate,
 } from "@/modules/leave/domain/accrual"
@@ -38,22 +39,64 @@ import {
  * the existing `balance.availableDays` is returned unchanged. Carried
  * (non-expired) days and used days are kept from the live row.
  *
- * Returns `{ available, forecasted, asOf }`: `forecasted` true means
- * the forecast path was taken (used by the caller to phrase the
- * error message differently).
+ * Days already held by the employee's other PENDING requests are
+ * subtracted too. Submitting doesn't move `usedDays` (only approval
+ * does), so without this each request is checked in isolation and four
+ * requests of 5+5+4+1 all pass against a 14-day entitlement. The
+ * *displayed* balance deliberately still counts approved days only —
+ * see `availableDaysFor` in domain/accrual.ts — because a pending
+ * request may yet be rejected and shouldn't make days visibly vanish.
+ * So "available to book" is legitimately lower than "available".
+ *
+ * Returns `{ available, forecasted, asOf, pendingDays }`: `forecasted`
+ * true means the forecast path was taken and `pendingDays` is what
+ * other pending requests are holding — both used by the caller to
+ * phrase the error message.
  */
 async function effectiveAvailableDaysFor(args: {
   employeeProfileId: string
   balance: LeaveEntitlementView
   startDate: Date
-}): Promise<{ available: number; forecasted: boolean; asOf: Date }> {
+  /// The request being edited. Excluded from the pending total so it
+  /// doesn't reserve days against itself — otherwise every edit fails
+  /// once the balance is full.
+  excludeApplicationId?: string
+}): Promise<{
+  available: number
+  forecasted: boolean
+  asOf: Date
+  pendingDays: number
+}> {
   const { balance, startDate } = args
+  // Resolve pending BEFORE the accrual-method guard below: LUMP_SUM
+  // types (most paid leave, annual included) return early, and if the
+  // reservation were computed after that guard they'd never get one.
+  //
+  // `balance.year` rather than startDate's year: the caller resolved
+  // `balance` from listEmployeeBalances(profileId, year) so they're
+  // equal by construction, and using the row's own year guarantees the
+  // pending window matches the entitlement being gated.
+  const pending = await leaveRepository.sumPendingDays({
+    employeeId: args.employeeProfileId,
+    leaveTypeId: balance.leaveTypeId,
+    year: balance.year,
+    excludeApplicationId: args.excludeApplicationId,
+  })
+  const plain = {
+    available: bookableDaysFor({
+      availableDays: balance.availableDays,
+      pendingDays: pending,
+    }),
+    forecasted: false as const,
+    asOf: startDate,
+    pendingDays: pending,
+  }
   if (balance.accrualMethod !== "PRO_RATED") {
-    return { available: balance.availableDays, forecasted: false, asOf: startDate }
+    return plain
   }
   const prisma = getLeavePrismaClientSafe()
   if (!prisma) {
-    return { available: balance.availableDays, forecasted: false, asOf: startDate }
+    return plain
   }
   const profile = await prisma.employeeProfile.findFirst({
     where: { id: args.employeeProfileId },
@@ -68,7 +111,7 @@ async function effectiveAvailableDaysFor(args: {
   const allowForecast =
     profile?.user.organization?.allowForecastedLeaveApply === true
   if (!allowForecast) {
-    return { available: balance.availableDays, forecasted: false, asOf: startDate }
+    return plain
   }
   const joinDate = await leaveRepository.getEmployeeJoinDate(
     args.employeeProfileId,
@@ -81,8 +124,11 @@ async function effectiveAvailableDaysFor(args: {
   // Mirror availableDaysFor's PRO_RATED math, swapping accrued for
   // the forecasted value. Expired-carried days still don't count.
   const carry = balance.carriedExpired ? 0 : balance.carriedDays
-  const available = Math.max(0, forecastedAccrued + carry - balance.usedDays)
-  return { available, forecasted: true, asOf: startDate }
+  const available = bookableDaysFor({
+    availableDays: forecastedAccrued + carry - balance.usedDays,
+    pendingDays: pending,
+  })
+  return { available, forecasted: true, asOf: startDate, pendingDays: pending }
 }
 
 export type SubmitLeaveInput = {
@@ -224,11 +270,17 @@ export async function submitLeaveApplication(
     })
     if (totalDays > eff.available + 0.0001) {
       const rounded = Math.round(eff.available * 100) / 100
+      // Their balance card still shows approved-only days, so without
+      // this the refusal reads as a bug ("it says I have 14 left").
+      const held =
+        eff.pendingDays > 0
+          ? ` (${eff.pendingDays} day(s) held by your pending requests)`
+          : ""
       return {
         ok: false,
         error: eff.forecasted
-          ? `Insufficient balance: requesting ${totalDays} day(s); even by your leave start date (${formatIsoDate(eff.asOf)}) you'll only have ${rounded} day(s) available.`
-          : `Insufficient balance: requesting ${totalDays} but only ${rounded} available`,
+          ? `Insufficient balance: requesting ${totalDays} day(s); even by your leave start date (${formatIsoDate(eff.asOf)}) you'll only have ${rounded} day(s) available.${held}`
+          : `Insufficient balance: requesting ${totalDays} but only ${rounded} available${held}`,
       }
     }
   }
@@ -374,11 +426,15 @@ export async function applyLeaveOnBehalfOfEmployee(input: {
     })
     if (totalDays > eff.available + 0.0001) {
       const rounded = Math.round(eff.available * 100) / 100
+      const held =
+        eff.pendingDays > 0
+          ? ` (${eff.pendingDays} day(s) held by the employee's pending requests)`
+          : ""
       return {
         ok: false,
         error: eff.forecasted
-          ? `Insufficient balance: requesting ${totalDays} day(s); even by the leave start date (${formatIsoDate(eff.asOf)}) the employee will only have ${rounded} day(s) available.`
-          : `Insufficient balance: requesting ${totalDays} but only ${rounded} available`,
+          ? `Insufficient balance: requesting ${totalDays} day(s); even by the leave start date (${formatIsoDate(eff.asOf)}) the employee will only have ${rounded} day(s) available.${held}`
+          : `Insufficient balance: requesting ${totalDays} but only ${rounded} available${held}`,
       }
     }
   }
@@ -494,8 +550,10 @@ export async function editLeaveApplication(
   if (!newType) return { ok: false, error: "Leave type not found" }
   if (newType.archivedAt) return { ok: false, error: "Leave type is archived" }
 
-  // Balance check uses the *new* leave type. The old application hasn't
-  // touched any balance yet (it's still PENDING — no usedDays increment).
+  // Balance check uses the *new* leave type. The application hasn't
+  // touched usedDays (it's still PENDING), but it IS reserving days via
+  // the pending total — so exclude it, or resizing a request would be
+  // measured against itself and every edit would fail on a full balance.
   if (newType.paid) {
     const balances = await listEmployeeBalances(app.employeeId, year)
     const balance = balances.find((b) => b.leaveTypeId === input.leaveTypeId)
@@ -504,14 +562,19 @@ export async function editLeaveApplication(
       employeeProfileId: app.employeeId,
       balance,
       startDate: input.startDate,
+      excludeApplicationId: input.applicationId,
     })
     if (totalDays > eff.available + 0.0001) {
       const rounded = Math.round(eff.available * 100) / 100
+      const held =
+        eff.pendingDays > 0
+          ? ` (${eff.pendingDays} day(s) held by your other pending requests)`
+          : ""
       return {
         ok: false,
         error: eff.forecasted
-          ? `Insufficient balance: requesting ${totalDays} day(s); even by your leave start date (${formatIsoDate(eff.asOf)}) you'll only have ${rounded} day(s) available.`
-          : `Insufficient balance: requesting ${totalDays} but only ${rounded} available`,
+          ? `Insufficient balance: requesting ${totalDays} day(s); even by your leave start date (${formatIsoDate(eff.asOf)}) you'll only have ${rounded} day(s) available.${held}`
+          : `Insufficient balance: requesting ${totalDays} but only ${rounded} available${held}`,
       }
     }
   }
@@ -637,6 +700,18 @@ export async function decideLeaveApplication(args: {
   return { ok: true, status: newStatus }
 }
 
+/// Withdraw one's own leave request. PENDING only — see below.
+///
+/// Cancelling a PENDING request moves no balance: submitting never
+/// incremented `usedDays` (only approval does), so there is nothing to
+/// give back. It does free the days the request was holding against the
+/// pending reservation, because `sumPendingDays` filters on status and a
+/// CANCELLED row simply drops out of it.
+///
+/// APPROVED leave deliberately can't be self-cancelled. That returns
+/// days somebody already granted — and, with no date guard here, days
+/// the employee may already have taken. It belongs behind an approval
+/// flow (request → supervisor reviews → days return), not a button.
 export async function cancelLeaveApplication(
   applicationId: string,
   actorUserId: string,
@@ -646,19 +721,26 @@ export async function cancelLeaveApplication(
   if (app.employee.user.id !== actorUserId) {
     return { ok: false, error: "Only the applicant can cancel" }
   }
+  // Idempotent: a double-click must not error.
   if (app.status === "CANCELLED") return { ok: true }
-  if (app.status === "APPROVED") {
-    // Restore balance.
-    const ent = await ensureEntitlement(
-      app.employeeId,
-      app.leaveTypeId,
-      app.startDate.getUTCFullYear(),
-    )
-    await leaveRepository.addUsedDays(ent.id, -app.totalDays)
+  if (app.status !== "PENDING") {
+    return { ok: false, error: "Only pending leave can be cancelled" }
   }
   const approvals: LeaveApprovalEntry[] = Array.isArray(app.approvals)
     ? (app.approvals as unknown as LeaveApprovalEntry[])
     : []
+
+  // Resolve who currently has this in their queue BEFORE cancelling —
+  // afterwards the chain no longer resolves to a pending step, and their
+  // badge would keep the stale count until a manual reload.
+  const employeeUserId = app.employee.user.id
+  const lastReviewerId =
+    approvals.length > 0 ? approvals[approvals.length - 1].approverId : null
+  const approverUserIds = await currentStepApproverUserIds({
+    employeeUserId,
+    lastReviewerId,
+  })
+
   await leaveRepository.updateApplicationStatus(
     applicationId,
     "CANCELLED",
@@ -667,6 +749,8 @@ export async function cancelLeaveApplication(
     new Date(),
   )
   await bustLeaveForProfile(app.employeeId)
+  // Employee's own list, plus the approvers who no longer need to act.
+  await publishLeaveRefresh([employeeUserId, ...approverUserIds])
   return { ok: true }
 }
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   availableDaysFor,
+  bookableDaysFor,
   initialProRatedAccrual,
 } from "../accrual"
 
@@ -131,5 +132,48 @@ describe("availableDaysFor", () => {
         usedDays: 0,
       }),
     ).toBe(14)
+  })
+
+  it("ignores pending requests — the displayed balance is approved-only", () => {
+    // Counterpart to bookableDaysFor below. A pending request may be
+    // rejected, so it must not make days vanish from the balance card.
+    expect(
+      availableDaysFor({
+        accrualMethod: "LUMP_SUM",
+        entitledDays: 14,
+        accruedDays: 14,
+        carriedDays: 0,
+        carriedExpired: false,
+        usedDays: 0,
+      }),
+    ).toBe(14)
+  })
+})
+
+describe("bookableDaysFor", () => {
+  it("reserves days held by pending requests", () => {
+    // The reported bug: 14 days entitled, nothing approved, but 5+5+4
+    // already pending. A further request must see 0, not 14.
+    expect(bookableDaysFor({ availableDays: 14, pendingDays: 14 })).toBe(0)
+  })
+
+  it("leaves the remainder bookable when partly reserved", () => {
+    expect(bookableDaysFor({ availableDays: 14, pendingDays: 10 })).toBe(4)
+  })
+
+  it("is a no-op when nothing is pending", () => {
+    expect(bookableDaysFor({ availableDays: 14, pendingDays: 0 })).toBe(14)
+  })
+
+  it("clamps to zero rather than returning a negative", () => {
+    // Over-committed rows exist from before the reservation was added,
+    // and an admin can lower an entitlement under what's already held.
+    // Callers compare against this with a tolerance, so a negative here
+    // would read as "more than nothing available".
+    expect(bookableDaysFor({ availableDays: 2, pendingDays: 9 })).toBe(0)
+  })
+
+  it("handles half-days", () => {
+    expect(bookableDaysFor({ availableDays: 14, pendingDays: 0.5 })).toBe(13.5)
   })
 })

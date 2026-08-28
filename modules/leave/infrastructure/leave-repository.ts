@@ -828,6 +828,47 @@ export const leaveRepository = {
   },
 
   /**
+   * Days locked up by the employee's still-PENDING applications for one
+   * (leaveType, year). Submitting doesn't touch `usedDays` — that only
+   * moves on approval — so without this every pending request is
+   * invisible to the balance check and N requests can each pass on their
+   * own while the total blows past the entitlement.
+   *
+   * Year is attributed by `startDate`, matching how `ensureEntitlement`
+   * picks the row that `addUsedDays` will later decrement. Keep the two
+   * rules identical: a request spanning New Year counts wholly against
+   * its start year on both sides.
+   *
+   * `excludeApplicationId` omits one request from the sum — the one
+   * being edited, which must not reserve days against itself.
+   */
+  async sumPendingDays(args: {
+    employeeId: string
+    leaveTypeId: string
+    year: number
+    excludeApplicationId?: string
+  }): Promise<number> {
+    const prisma = requirePrisma()
+    const res = await prisma.leaveApplication.aggregate({
+      _sum: { totalDays: true },
+      where: {
+        employeeId: args.employeeId,
+        leaveTypeId: args.leaveTypeId,
+        status: "PENDING",
+        startDate: {
+          gte: new Date(Date.UTC(args.year, 0, 1)),
+          lt: new Date(Date.UTC(args.year + 1, 0, 1)),
+        },
+        ...(args.excludeApplicationId
+          ? { id: { not: args.excludeApplicationId } }
+          : {}),
+      },
+    })
+    // `_sum` is null when nothing matches, not 0.
+    return res._sum.totalDays ?? 0
+  },
+
+  /**
    * Leave overlapping a date range for many employees at once, keyed by
    * the *user* id rather than the EmployeeProfile id so attendance code
    * can join it directly.

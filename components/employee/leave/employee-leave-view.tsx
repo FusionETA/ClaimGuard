@@ -6,10 +6,15 @@ import { Plus } from "lucide-react"
 import { formatDays } from "@/lib/utils"
 import { forecastAccruedOnDate } from "@/modules/leave/domain/accrual"
 
-import { editLeaveAction, submitLeaveAction } from "@/app/(employee)/employee/leave/actions"
+import {
+  cancelLeaveAction,
+  editLeaveAction,
+  submitLeaveAction,
+} from "@/app/(employee)/employee/leave/actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog"
 import {
   Dialog,
   DialogContent,
@@ -455,6 +460,8 @@ function ApplicationsCard({
               <div className="space-y-3 p-4 md:hidden">
                 {applications.map((a) => {
                   const canEdit = a.status === "PENDING" && a.approvalsCount === 0
+                  // Broader than canEdit on purpose — see CancelLeaveButton.
+                  const canCancel = a.status === "PENDING"
                   return (
                     <div key={a.id} className="rounded-2xl border border-border/60 bg-card/40 p-3 space-y-2 backdrop-blur-sm">
                       <div className="flex items-start justify-between gap-2">
@@ -486,15 +493,18 @@ function ApplicationsCard({
                           📎 {a.attachmentName ?? "View attachment"}
                         </a>
                       )}
-                      {canEdit && (
-                        <div className="flex justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditing(a)}
-                          >
-                            Edit
-                          </Button>
+                      {(canEdit || canCancel) && (
+                        <div className="flex items-start justify-end gap-2">
+                          {canEdit && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditing(a)}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          {canCancel && <CancelLeaveButton applicationId={a.id} />}
                         </div>
                       )}
                     </div>
@@ -519,6 +529,8 @@ function ApplicationsCard({
                   <TableBody>
                     {applications.map((a) => {
                       const canEdit = a.status === "PENDING" && a.approvalsCount === 0
+                      // Broader than canEdit on purpose — see CancelLeaveButton.
+                      const canCancel = a.status === "PENDING"
                       return (
                         <TableRow key={a.id}>
                           <TableCell className="font-medium">{a.leaveTypeName}</TableCell>
@@ -551,15 +563,20 @@ function ApplicationsCard({
                           </TableCell>
                           <TableCell>{fmtDate(a.createdAt)}</TableCell>
                           <TableCell className="text-right">
-                            {canEdit && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setEditing(a)}
-                              >
-                                Edit
-                              </Button>
-                            )}
+                            <div className="flex items-start justify-end gap-2">
+                              {canEdit && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setEditing(a)}
+                                >
+                                  Edit
+                                </Button>
+                              )}
+                              {canCancel && (
+                                <CancelLeaveButton applicationId={a.id} />
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       )
@@ -580,6 +597,40 @@ function ApplicationsCard({
         />
       )}
     </>
+  )
+}
+
+/// Withdraw a still-pending request. Shown for any PENDING row —
+/// unlike Edit, which additionally requires that nobody has reviewed
+/// yet: once an approver has acted you can no longer change the dates,
+/// but you can still take the request off their queue.
+function CancelLeaveButton({ applicationId }: { applicationId: string }) {
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  return (
+    <div className="flex flex-col items-end">
+      <ConfirmActionDialog
+        title="Cancel this leave request?"
+        description="It will be withdrawn from your approver's queue. This can't be undone — you'd need to submit a new request."
+        confirmLabel="Yes, cancel it"
+        cancelLabel="Keep request"
+        triggerLabel="Cancel"
+        triggerVariant="outline"
+        triggerSize="sm"
+        confirmVariant="destructive"
+        pending={pending}
+        pendingLabel="Cancelling…"
+        onConfirm={() => {
+          setError(null)
+          startTransition(async () => {
+            const res = await cancelLeaveAction(applicationId)
+            if (!res.ok) setError(res.error)
+          })
+        }}
+      />
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+    </div>
   )
 }
 

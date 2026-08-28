@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import {
+  cancelLeaveApplication,
   decideLeaveApplication,
   editLeaveApplication,
   submitLeaveApplication,
@@ -137,6 +138,19 @@ export async function editLeaveAction(applicationId: string, formData: FormData)
   if (!res.ok) return res
   revalidatePath("/employee/leave")
   return { ok: true as const, totalDays: res.totalDays }
+}
+
+/// Withdraw one's own PENDING request. Ownership and the status guard
+/// are enforced in the service — this only resolves the session.
+export async function cancelLeaveAction(applicationId: string) {
+  const ctx = await profileIdForCurrentUser()
+  if (!ctx) return { ok: false as const, error: "Not signed in" }
+
+  const res = await cancelLeaveApplication(applicationId, ctx.userId)
+  if (!res.ok) return res
+
+  revalidatePath("/employee/leave")
+  return { ok: true as const }
 }
 
 export async function decideLeaveAction(
