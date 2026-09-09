@@ -1,8 +1,10 @@
 // Bumped to v2 to evict the v1 cache, which could hold a rendered "/" page
 // snapshot (see handleNavigationRequest). The `activate` handler below deletes
 // every cache whose key !== CACHE_NAME, so the poisoned entry is dropped on the
-// next launch on every device.
-const CACHE_NAME = "altomatehr-shell-v2"
+// next launch on every device. Bumped again to v3 with the /api/* navigation
+// preload fix below — the bump is what forces already-installed clients to
+// pick up the new worker instead of keeping the duplicate-request one.
+const CACHE_NAME = "altomatehr-shell-v3"
 const OFFLINE_FALLBACK = "/offline.html"
 const BRAND_ICON_URL = "/brand-icon-white.png?v=4"
 // Static, session-independent assets only. "/" is deliberately NOT precached —
@@ -45,10 +47,24 @@ self.addEventListener("fetch", (event) => {
     // as `mode: "navigate"` when clicked via <a href>. Forcing them
     // through the app-shell navigation handler causes a 4s race vs a
     // multi-MB XLSX, often losing — the user ends up on the cached
-    // "/" splash instead of getting the download. Let the network
-    // handle these directly; the response's Content-Disposition
-    // header makes the browser download without changing the page.
+    // "/" splash instead of getting the download. So they skip the
+    // handler and go straight to the network.
+    //
+    // They must still be ANSWERED here, though. `activate` turns on
+    // navigation preload, which means the browser has ALREADY sent the
+    // request by the time this handler runs. Falling through with a
+    // bare `return` makes it throw that preload away and issue a
+    // SECOND request — every /api/* navigation hit the server twice.
+    // Harmless for a download; fatal for a one-time OAuth code: both
+    // copies of /api/xero/callback raced to redeem the same code and
+    // Xero rejected the loser with `invalid_grant / "Authorization
+    // code not found"`, so a connect that actually worked rendered as
+    // an error. Hand back the preload (or fetch once ourselves) and
+    // the request stays single.
     if (url.pathname.startsWith("/api/")) {
+      event.respondWith(
+        (async () => (await event.preloadResponse) || fetch(event.request))()
+      )
       return
     }
     event.respondWith(handleNavigationRequest(event))

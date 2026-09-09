@@ -12,6 +12,73 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
 const XERO_STATE_COOKIE = "claimguard_xero_oauth_state"
 export const XERO_PENDING_COOKIE = "claimguard_xero_pending"
 
+/**
+ * The result of one callback run: where to send the browser, plus the
+ * `XERO_PENDING_COOKIE` payload when the admin still has to pick which
+ * Xero organisation to attach.
+ */
+type XeroCallbackOutcome = {
+  destination: string
+  pendingPayload?: string
+}
+
+/**
+ * In-flight (and recently finished) callback runs, keyed by the one-time
+ * authorization code.
+ *
+ * Xero's authorization code is single-use: the FIRST token exchange
+ * consumes it, and every later exchange of the same code comes back
+ * `invalid_grant / "Authorization code not found"`. Browsers hand us the
+ * same code twice more often than you'd expect — a PWA navigation
+ * preload that falls through to the network (see public/sw.js), a
+ * prefetch, a double click, a refresh. Unguarded, the two requests race:
+ * one redeems the code and does the work, the other gets the error, and
+ * the admin sees whichever response the browser happens to render —
+ * usually the loser's error page, even though the connect succeeded.
+ *
+ * Memoising the WHOLE callback rather than just the token call means the
+ * duplicate awaits the original run and replays its exact redirect and
+ * cookies, so the side effects — token exchange, upsert, audit entry,
+ * cache bust — happen exactly once.
+ */
+const inFlightXeroCallbacks = new Map<string, Promise<XeroCallbackOutcome>>()
+
+/**
+ * How long a finished run stays replayable. Long enough to cover a
+ * duplicate that arrives after the first one completed, short enough
+ * that the map can't grow without bound.
+ */
+const XERO_CALLBACK_MEMO_TTL_MS = 60_000
+
+function runXeroCallbackOnce(
+  code: string,
+  run: () => Promise<XeroCallbackOutcome>
+): Promise<XeroCallbackOutcome> {
+  const existing = inFlightXeroCallbacks.get(code)
+  if (existing) {
+    console.warn(
+      "[xero-callback] duplicate callback for an authorization code already being processed — replaying the first run"
+    )
+    return existing
+  }
+
+  const pending = run()
+  inFlightXeroCallbacks.set(code, pending)
+  // The awaiting request handlers do the real error reporting; this just
+  // stops a rejected memo from surfacing as an unhandled rejection when
+  // only the duplicate is left holding it.
+  void pending.catch(() => undefined)
+
+  const timer = setTimeout(
+    () => inFlightXeroCallbacks.delete(code),
+    XERO_CALLBACK_MEMO_TTL_MS
+  )
+  // Don't hold the event loop open in tests / short-lived runtimes.
+  ;(timer as unknown as { unref?: () => void }).unref?.()
+
+  return pending
+}
+
 export async function GET(request: NextRequest) {
   const origin = getRequestOrigin(request)
   const session = await getCurrentSession()
@@ -27,7 +94,10 @@ export async function GET(request: NextRequest) {
   const errorDescription = searchParams.get("error_description")
   const cookieState = request.cookies.get(XERO_STATE_COOKIE)?.value
 
-  const finish = (destination: string) => {
+  const finish = (outcome: XeroCallbackOutcome | string) => {
+    const { destination, pendingPayload } =
+      typeof outcome === "string" ? { destination: outcome, pendingPayload: undefined } : outcome
+
     // Bust the Next.js Router Cache so the settings page re-renders against
     // fresh DB state (new `reauthorizedAt`, cleared `requiresReauth`, etc.).
     // Without this the user lands on a cached snapshot taken BEFORE the
@@ -43,6 +113,15 @@ export async function GET(request: NextRequest) {
       path: "/",
       maxAge: 0,
     })
+    if (pendingPayload) {
+      response.cookies.set(XERO_PENDING_COOKIE, pendingPayload, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 5,
+      })
+    }
     return response
   }
 
@@ -82,6 +161,20 @@ export async function GET(request: NextRequest) {
   // "invalid-state". A cookie that is PRESENT but mismatched is still handled
   // strictly (that's the genuine tamper signature).
   if (!cookieState) {
+    // A concurrent duplicate of a callback still in flight gets here too —
+    // its twin's response already cleared the cookie. Replay the original
+    // run's outcome instead of guessing from the DB.
+    const inFlight = inFlightXeroCallbacks.get(code)
+    if (inFlight) {
+      console.warn(
+        "[xero-callback] duplicate callback arrived after its twin cleared the state cookie — replaying the first run"
+      )
+      try {
+        return finish(await inFlight)
+      } catch {
+        // Fall through to the connected/invalid-state handling below.
+      }
+    }
     if (await orgAlreadyHasXeroConnection()) {
       console.warn(
         "[xero-callback] replayed callback with no state cookie; org already connected — treating as success"
@@ -94,7 +187,7 @@ export async function GET(request: NextRequest) {
     return finish("/admin/settings?xero=invalid-state")
   }
 
-  try {
+  const connectWithCode = async (): Promise<XeroCallbackOutcome> => {
     const tokenSet = await exchangeXeroCodeForTokens({
       code,
       requestOrigin: origin,
@@ -102,7 +195,7 @@ export async function GET(request: NextRequest) {
     const tenants = await getXeroTenants(tokenSet.accessToken)
 
     if (!tenants.length) {
-      return finish("/admin/settings?xero=no-tenant")
+      return { destination: "/admin/settings?xero=no-tenant" }
     }
 
     // Decide which tenant(s) the OAuth result is allowed to attach to.
@@ -148,13 +241,13 @@ export async function GET(request: NextRequest) {
         (t) => !takenTenantIds.has(t.tenantId)
       )
       if (selectableTenants.length === 0) {
-        return finish(
-          `/admin/settings?xero=error&reason=${encodeURIComponent(
+        return {
+          destination: `/admin/settings?xero=error&reason=${encodeURIComponent(
             isReauth
               ? "Every Xero organisation you signed in with is currently connected to another company in AltomateHR. Sign in with a Xero account that has access to an unconnected organisation."
               : "Every Xero organisation you authorised is already connected to another company in AltomateHR. Disconnect from the other company first, or sign in with a Xero account that has access to an unconnected organisation."
-          )}`
-        )
+          )}`,
+        }
       }
     }
 
@@ -171,26 +264,10 @@ export async function GET(request: NextRequest) {
         tenants: selectableTenants,
       })
 
-      revalidatePath("/admin/settings")
-      revalidatePath("/admin", "layout")
-      const response = NextResponse.redirect(
-        new URL("/admin/settings?xero=select-tenant", origin)
-      )
-      response.cookies.set(XERO_STATE_COOKIE, "", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 0,
-      })
-      response.cookies.set(XERO_PENDING_COOKIE, pendingPayload, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 60 * 5,
-      })
-      return response
+      return {
+        destination: "/admin/settings?xero=select-tenant",
+        pendingPayload,
+      }
     }
 
     // Exactly one connectable org (only one authorised, or all but one already
@@ -220,11 +297,11 @@ export async function GET(request: NextRequest) {
       organizationId
     )
     if (inUse.length > 0) {
-      return finish(
-        `/admin/settings?xero=error&reason=${encodeURIComponent(
+      return {
+        destination: `/admin/settings?xero=error&reason=${encodeURIComponent(
           `"${tenant.tenantName}" is already connected to a different company in AltomateHR. To move it here, ask the other company's admin to disconnect it first, or sign in with a Xero account that has access to an unconnected organisation.`
-        )}`
-      )
+        )}`,
+      }
     }
 
     const isFirstXeroConnect = !isReauth
@@ -270,7 +347,11 @@ export async function GET(request: NextRequest) {
 
     await bustOrgConfigCaches({ organizationId })
 
-    return finish("/admin/settings?xero=connected")
+    return { destination: "/admin/settings?xero=connected" }
+  }
+
+  try {
+    return finish(await runXeroCallbackOnce(code, connectWithCode))
   } catch (callbackError) {
     const reason =
       callbackError instanceof Error ? callbackError.message : "Unable to connect to Xero."
@@ -278,7 +359,10 @@ export async function GET(request: NextRequest) {
     // Xero returns `invalid_grant` / "Authorization code not found" when the
     // one-time authorization code has already been consumed — a duplicate or
     // concurrent callback hit (browser prefetch, double-click, refresh) — or
-    // when the code expired. In the duplicate case the FIRST exchange already
+    // when the code expired. `runXeroCallbackOnce` above now collapses the
+    // duplicates we serve ourselves, so reaching here means the code was
+    // consumed somewhere we can't see (an earlier process, a retried tab) or
+    // it simply expired. In the duplicate case the first exchange already
     // saved the connection, so surfacing the raw error is misleading: the
     // admin DID connect. If the active company already has a Xero connection,
     // show the success state instead of the error.
