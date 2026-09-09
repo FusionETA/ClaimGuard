@@ -28,7 +28,7 @@ export default async function AdminOverviewPage() {
         counts={quickActionCounts}
         accessModules={accessModules}
       />
-      <ExecutiveOverview data={overview} />
+      <ExecutiveOverview data={overview} accessModules={accessModules} />
       {/* `null` means the org has no leave types yet — module isn't in
           use, so we hide the card entirely. */}
       {onLeaveToday !== null && <OnLeaveTodayCard entries={onLeaveToday} />}

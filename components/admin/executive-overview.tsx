@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 import {
   Building2,
   CalendarClock,
@@ -19,26 +21,82 @@ import type {
   UpcomingClaimRun,
 } from "@/modules/claims/application/services/admin-executive-overview.service"
 
-export function ExecutiveOverview({ data }: { data: AdminExecutiveOverview }) {
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ProjectClaimsCard projects={data.projectSpend} />
-        <AttendanceHealthCard projects={data.attendanceHealth} />
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <SlowOtApproversCard approvers={data.slowOtApprovers} />
-        <StalePendingClaimsCard claims={data.stalePendingClaims} />
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <UpcomingClaimRunCard run={data.upcomingClaimRun} />
-        <OverturnedSupervisorsCard
-          total={data.overturnedSupervisors.total}
-          samples={data.overturnedSupervisors.samples}
-        />
-      </div>
-    </div>
-  )
+/// Claims cards are fed by the `expense_claim` addon's modules, the
+/// attendance + OT cards by `clock` → `attendance`. See
+/// `ADDON_TO_MODULES` in `modules/organization/domain/plan.ts`.
+const CLAIMS_MODULES = ["claims_personal", "claims_company"] as const
+const ATTENDANCE_MODULES = ["attendance"] as const
+
+export function ExecutiveOverview({
+  data,
+  accessModules,
+}: {
+  data: AdminExecutiveOverview
+  /// Effective admin module set (per-admin grant ∩ org plan) — the same
+  /// set the sidebar and Quick actions filter by. `null` = full access.
+  accessModules: readonly string[] | null
+}) {
+  // Every card here is fed by an addon-gated module, so an org without
+  // the addon has nothing to put in them. Leaving them up showed an
+  // empty state ("No attendance recorded in the last 30 days") that
+  // reads as "the feature is on, just idle" — the opposite of true for
+  // an org that didn't buy it. Same filter the sidebar nav uses:
+  // null = full access, otherwise keep a card the admin holds a module
+  // for.
+  const granted = accessModules === null ? null : new Set(accessModules)
+  const canSee = (modules: readonly string[]) =>
+    granted === null || modules.some((m) => granted.has(m))
+
+  // Built as a flat list so hiding a card reflows the grid instead of
+  // leaving a hole where its row-mate used to sit. One `gap-6` grid
+  // renders identically to the previous three `space-y-6` rows.
+  const cards: ReactNode[] = []
+  if (canSee(CLAIMS_MODULES)) {
+    cards.push(
+      <ProjectClaimsCard key="project-claims" projects={data.projectSpend} />,
+    )
+  }
+  if (canSee(ATTENDANCE_MODULES)) {
+    cards.push(
+      <AttendanceHealthCard
+        key="attendance-health"
+        projects={data.attendanceHealth}
+      />,
+    )
+    cards.push(
+      <SlowOtApproversCard
+        key="slow-ot-approvers"
+        approvers={data.slowOtApprovers}
+      />,
+    )
+  }
+  if (canSee(CLAIMS_MODULES)) {
+    cards.push(
+      <StalePendingClaimsCard
+        key="stale-pending-claims"
+        claims={data.stalePendingClaims}
+      />,
+    )
+    cards.push(
+      <UpcomingClaimRunCard
+        key="upcoming-claim-run"
+        run={data.upcomingClaimRun}
+      />,
+    )
+    cards.push(
+      <OverturnedSupervisorsCard
+        key="overturned-supervisors"
+        total={data.overturnedSupervisors.total}
+        samples={data.overturnedSupervisors.samples}
+      />,
+    )
+  }
+
+  // Neither addon → nothing to show. Return null rather than an empty
+  // grid so the page doesn't carry a stray gap above "On leave today".
+  if (cards.length === 0) return null
+
+  return <div className="grid gap-6 lg:grid-cols-2">{cards}</div>
 }
 
 // ─── Card 1: Project claims breakdown ────────────────────────────────────────
