@@ -1209,6 +1209,92 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
   },
 }
 
+/**
+ * True when a line item / adjustment category is a non-cash BIK or
+ * perquisite. These rows are disclosed for tax purposes but never add
+ * into gross pay, so every earnings renderer (admin table, Payroll
+ * Summary PDF, payslip PDF, employee payslip page) has to split them
+ * out of the cash allowances. Lives here so all four share one rule —
+ * a line item with no known category defaults to cash (legacy /
+ * free-form rows).
+ */
+export function isNonCashLineItem(
+  category: string | null | undefined,
+): boolean {
+  if (!category) return false
+  const meta =
+    PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
+  return Boolean(meta?.nonCash)
+}
+
+/**
+ * True when a DEDUCTION line is lost earnings rather than a deduction
+ * from take-home — unpaid leave, a salary adjustment, an advance
+ * recovery. The calc engine subtracts these from `grossPay` (see
+ * `totalGrossReducingDeductions` in calc.ts) and keeps them OUT of
+ * `totalDeductions`, so a renderer has to show them alongside the
+ * earnings as negatives, not in the deductions column — putting them
+ * in both would deduct the same ringgit twice.
+ */
+export function isGrossReducingLineItem(
+  category: string | null | undefined,
+): boolean {
+  if (!category) return false
+  const meta =
+    PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
+  return Boolean(meta?.reducesGross)
+}
+
+/**
+ * True when a DEDUCTION line lowers PCB but never leaves take-home —
+ * TP1 reliefs and zakat the employee paid directly to the collection
+ * centre. Excluded from `totalDeductions` for the same reason: the
+ * money was never withheld through payroll.
+ */
+export function isCashNeutralLineItem(
+  category: string | null | undefined,
+): boolean {
+  if (!category) return false
+  const meta =
+    PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
+  return Boolean(meta?.cashNeutral)
+}
+
+/**
+ * True when a DEDUCTION line is zakat (`offsetsPcb`). Covers both
+ * flavours — withheld through payroll (`deduct_zakat`) and paid by the
+ * employee directly to the collection centre and declared on TP1
+ * (`deduct_zakat_tp1`, which is also cash-neutral). Both offset PCB;
+ * only the first leaves take-home, so a payslip has to tell them
+ * apart before printing a "Zakat" deduction row.
+ */
+export function isZakatLineItem(
+  category: string | null | undefined,
+): boolean {
+  if (!category) return false
+  const meta =
+    PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
+  return Boolean(meta?.offsetsPcb)
+}
+
+/**
+ * True when a DEDUCTION line is already surfaced as its own statutory
+ * row on a payslip — zakat (`offsetsPcb`), CP38 arrears
+ * (`addsToCp38Field`) and Additional PCB (`addsToStandardPcb`, folded
+ * into the PCB / MTD figure). Renderers that itemise the remaining
+ * deductions skip these so the same amount isn't listed twice.
+ */
+export function isStatutoryRowLineItem(
+  category: string | null | undefined,
+): boolean {
+  if (!category) return false
+  const meta =
+    PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
+  return Boolean(
+    meta?.offsetsPcb || meta?.addsToCp38Field || meta?.addsToStandardPcb,
+  )
+}
+
 export const payrollAdjustmentCategoryGroups = [
   "Allowances / Recurring Monthly",
   "Remuneration",

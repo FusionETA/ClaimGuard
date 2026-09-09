@@ -13,26 +13,14 @@ import type {
   PayslipLineItemData,
 } from "@/modules/payroll/domain/runs"
 import {
-  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  isNonCashLineItem,
   SALARY_TYPE_LABELS,
-  type PayrollAdjustmentCategory,
   type SalaryType,
 } from "@/modules/payroll/domain/models"
 
 export type PayslipDetailData = {
   payslip: PayslipData
   run: Pick<PayrollRunData, "id" | "periodYear" | "periodMonth" | "status">
-}
-
-/**
- * Split allowance line items into cash vs non-cash (BIK). The category
- * meta tells us which is which — see `nonCash` flag in domain/models.ts.
- * Line items without a known category default to cash (legacy / free-form).
- */
-function isNonCashAllowance(category: string | null | undefined): boolean {
-  if (!category) return false
-  const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
-  return Boolean(meta?.nonCash)
 }
 
 /**
@@ -46,10 +34,10 @@ export function PayslipDetailBody({ payslip, run }: PayslipDetailData) {
   // separately under "Benefits in Kind" since they're disclosed for
   // tax purposes but the employee doesn't receive them in cash.
   const allowances = payslip.lineItems.filter(
-    (li) => li.kind === "ALLOWANCE" && !isNonCashAllowance(li.category),
+    (li) => li.kind === "ALLOWANCE" && !isNonCashLineItem(li.category),
   )
   const benefitsInKind = payslip.lineItems.filter(
-    (li) => li.kind === "ALLOWANCE" && isNonCashAllowance(li.category),
+    (li) => li.kind === "ALLOWANCE" && isNonCashLineItem(li.category),
   )
   // Additional PCB (Employment Income) is folded into the PCB line below
   // (payslip.pcb + voluntaryPcb), so exclude it from the "Other deductions"

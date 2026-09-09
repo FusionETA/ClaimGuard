@@ -33,23 +33,8 @@ import {
   View,
 } from "@react-pdf/renderer"
 
-import {
-  PAYROLL_ADJUSTMENT_CATEGORY_META,
-  type PayrollAdjustmentCategory,
-} from "@/modules/payroll/domain/models"
+import { isNonCashLineItem } from "@/modules/payroll/domain/models"
 import type { PayslipRow } from "@/modules/payroll/domain/runs"
-
-/**
- * True when the line item is a non-cash BIK / perquisite. These rows
- * are listed for tax transparency but do NOT add into gross pay — the
- * breakdown column flags them so the admin doesn't expect the numbers
- * to sum to grossPay.
- */
-function isNonCashLineItem(category: string | null | undefined): boolean {
-  if (!category) return false
-  const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
-  return Boolean(meta?.nonCash)
-}
 
 // ─── Colours ────────────────────────────────────────────────────────────
 

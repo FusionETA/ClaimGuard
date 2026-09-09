@@ -30,6 +30,13 @@ import {
   View,
 } from "@react-pdf/renderer"
 
+import {
+  isCashNeutralLineItem,
+  isGrossReducingLineItem,
+  isNonCashLineItem,
+  isStatutoryRowLineItem,
+  isZakatLineItem,
+} from "@/modules/payroll/domain/models"
 import type { PayslipRow } from "@/modules/payroll/domain/runs"
 
 // ─── Colours / typography ──────────────────────────────────────────────
@@ -1024,6 +1031,12 @@ const payslipStyles = StyleSheet.create({
   matrixRowLabel: { flex: 1.4 },
   matrixNum: { flex: 1, textAlign: "right" },
   // ─── Footer ───────────────────────────────────────────────────────
+  disclosureNote: {
+    marginTop: 4,
+    fontSize: 7.5,
+    lineHeight: 1.35,
+    color: COLOURS.muted,
+  },
   payslipFooter: {
     position: "absolute",
     left: 36,
@@ -1047,6 +1060,122 @@ const payslipStyles = StyleSheet.create({
  * instead of one Document with N pages so that the resulting PDFs
  * are individually shareable / printable.
  */
+/// One row in the payslip's Earnings / Deductions columns, derived
+/// from a `PayslipLineItem`. `amount` carries the display sign (a
+/// gross-reducing earnings line is negative); `category` is kept so
+/// the renderer can skip lines that already have a statutory row.
+type PayslipDisplayLine = {
+  id: string
+  label: string
+  amount: number
+  category: string | null
+}
+
+/**
+ * The cash lines that make up the Earnings column: allowances and
+ * reimbursements as positives, gross-reducing deductions (unpaid
+ * leave, advances) as negatives. BIK is excluded — it never enters
+ * gross and has its own section further down the payslip.
+ */
+function buildEarningLines(p: PayslipRow): PayslipDisplayLine[] {
+  const lines: PayslipDisplayLine[] = []
+  for (const li of p.lineItems) {
+    const base = { id: li.id, label: li.label, category: li.category }
+    if (li.kind === "REIMBURSEMENT") {
+      lines.push({ ...base, amount: li.amount })
+    } else if (li.kind === "ALLOWANCE") {
+      if (!isNonCashLineItem(li.category)) {
+        lines.push({ ...base, amount: li.amount })
+      }
+    } else if (isGrossReducingLineItem(li.category)) {
+      lines.push({ ...base, amount: -li.amount })
+    }
+  }
+  return lines
+}
+
+/**
+ * The deductions actually withheld from take-home this month — what
+ * `totalDeductions` is the sum of. Gross-reducing lines are excluded
+ * (they came off the earnings side) and so are cash-neutral TP1 lines
+ * (declared for PCB relief, never withheld). Statutory lines (zakat,
+ * CP38, Additional PCB) stay IN so the total reconciles; the renderer
+ * drops them from the visible rows since each already has one.
+ */
+function buildDeductionLines(p: PayslipRow): PayslipDisplayLine[] {
+  return p.lineItems
+    .filter(
+      (li) =>
+        li.kind === "DEDUCTION" &&
+        !isGrossReducingLineItem(li.category) &&
+        !isCashNeutralLineItem(li.category),
+    )
+    .map((li) => ({
+      id: li.id,
+      label: li.label,
+      amount: li.amount,
+      category: li.category,
+    }))
+}
+
+/**
+ * Whether the itemised earnings rows visibly add up to the "Total
+ * earnings" figure (which prints `grossPay`, not a re-sum of the
+ * rows). False on payslips whose line items don't reflect the
+ * scalars — chiefly YTD imports, where the previous system's
+ * aggregate columns were loaded without one line item each — and the
+ * renderer then falls back to the collapsed totals.
+ */
+function earningsReconcile(
+  p: PayslipRow,
+  lines: PayslipDisplayLine[],
+): boolean {
+  const displayed =
+    p.proratedPay + p.otPay + lines.reduce((sum, l) => sum + l.amount, 0)
+  return Math.abs(displayed - p.grossPay) < 0.005
+}
+
+/**
+ * Split the `zakat` scalar into the half that was withheld from this
+ * month's pay (`deduct_zakat`, remitted by the employer to the zakat
+ * centre) and the half the employee paid directly and declared on TP1
+ * (`deduct_zakat_tp1`). Both offset PCB and both land in the scalar,
+ * but only the withheld half is a deduction from take-home — printing
+ * the combined figure as a "Zakat" deduction row overstates what the
+ * employee actually gave up this month.
+ *
+ * `reconciles` is false on payslips carrying the scalar with no zakat
+ * line items behind it (legacy rows, YTD imports); the renderer then
+ * falls back to the scalar, i.e. the previous behaviour.
+ */
+function splitZakat(p: PayslipRow): {
+  withheld: number
+  declared: number
+  reconciles: boolean
+} {
+  let withheld = 0
+  let declared = 0
+  for (const li of p.lineItems) {
+    if (li.kind !== "DEDUCTION" || !isZakatLineItem(li.category)) continue
+    if (isCashNeutralLineItem(li.category)) declared += li.amount
+    else withheld += li.amount
+  }
+  return {
+    withheld,
+    declared,
+    reconciles: Math.abs(withheld + declared - p.zakat) < 0.005,
+  }
+}
+
+/** Deductions equivalent of `earningsReconcile`, against `totalDeductions`. */
+function deductionsReconcile(
+  p: PayslipRow,
+  lines: PayslipDisplayLine[],
+): boolean {
+  const displayed = lines.reduce((sum, l) => sum + l.amount, 0)
+  return Math.abs(displayed - p.totalDeductions) < 0.005
+}
+
 export function EmployeePayslipPdfDocument(
   props: EmployeePayslipPdfDocumentProps,
 ) {
@@ -1122,19 +1251,56 @@ export function EmployeePayslipPdfDocument(
               {p.otPay !== 0 ? (
                 <PayRow label="Overtime" amount={p.otPay} />
               ) : null}
-              {p.totalAllowances !== 0 ? (
-                <PayRow label="Allowances" amount={p.totalAllowances} />
-              ) : null}
-              {p.totalReimbursements !== 0 ? (
-                <PayRow
-                  label="Reimbursements"
-                  amount={p.totalReimbursements}
-                />
-              ) : null}
+              {/* Cash earnings, itemised. Client feedback (Sep 2026):
+                  collapsing every adjustment into one "Allowances"
+                  figure hid what it was made of — an employee seeing
+                  8,325.24 couldn't tell it was Commission + Expense
+                  Claim. The admin run table, the Payroll Summary PDF
+                  and the employee payslip page already list each line,
+                  so the payslip PDF was the odd one out.
+
+                  BIK rows are excluded — they're non-cash, don't feed
+                  gross, and get their own section further down.
+
+                  Gross-reducing lines (unpaid leave, advances) come in
+                  here as negatives rather than in the Deductions column:
+                  `grossPay` is already net of them, so deducting them a
+                  second time on the right would be double-counting.
+
+                  Falls back to the collapsed totals when the rows don't
+                  reconcile with `grossPay` — some YTD-imported payslips
+                  carry aggregate figures without one line item per
+                  column, and itemising those would print rows that
+                  visibly don't add up to "Total earnings". */}
+              {(() => {
+                const earningLines = buildEarningLines(p)
+                // Only itemise when the rows visibly add up to the
+                // "Total earnings" figure below (which is `grossPay`,
+                // not a re-sum of the rows). See `earningsReconcile`.
+                if (earningLines.length > 0 && earningsReconcile(p, earningLines)) {
+                  return earningLines.map((li) => (
+                    <PayRow key={li.id} label={li.label} amount={li.amount} />
+                  ))
+                }
+                return (
+                  <>
+                    {p.totalAllowances !== 0 ? (
+                      <PayRow label="Allowances" amount={p.totalAllowances} />
+                    ) : null}
+                    {p.totalReimbursements !== 0 ? (
+                      <PayRow
+                        label="Reimbursements"
+                        amount={p.totalReimbursements}
+                      />
+                    ) : null}
+                  </>
+                )
+              })()}
               <View style={payslipStyles.subTotalRow}>
                 <Text style={payslipStyles.subTotalLabel}>Total earnings</Text>
                 {/* grossPay = proratedPay + otPay + totalAllowances +
-                    totalReimbursements per calc.ts; don't re-add. */}
+                    totalReimbursements − gross-reducing deductions per
+                    calc.ts; don't re-add. */}
                 <Text style={payslipStyles.subTotalAmount}>
                   {fmtMyr(p.grossPay)}
                 </Text>
@@ -1148,8 +1314,8 @@ export function EmployeePayslipPdfDocument(
                   subtract once when surfacing the catch-all bucket.
                   Includes Additional PCB (Employment Income): the manual
                   top-up is remitted via the standard PCB field, so it's
-                  folded into this figure (and netted out of the "Other
-                  deductions" catch-all below), not shown as its own row. */}
+                  folded into this figure and kept out of the itemised
+                  deduction rows below, not shown as its own row. */}
               <PayRow label="PCB / MTD" amount={p.pcb + (p.voluntaryPcb ?? 0)} />
               {/* CP38 arrears — LHDN court-ordered additional PCB
                   withholding. Hidden when 0 so ordinary payslips don't
@@ -1168,13 +1334,44 @@ export function EmployeePayslipPdfDocument(
                   amount={p.skbbkEmployee ?? 0}
                 />
               ) : null}
-              {p.zakat > 0 ? (
-                <PayRow label="Zakat" amount={p.zakat} />
-              ) : null}
+              {/* Withheld zakat only. Self-paid TP1 zakat is in the
+                  same `zakat` scalar (both offset PCB) but never left
+                  the employee's pay, so it belongs in the disclosure
+                  section below, not in a column that has to sum to
+                  "Total deductions". */}
               {(() => {
-                // Subtract things we've already shown as their own
-                // rows above (zakat + cp38 + additional PCB) to avoid
-                // double-count in the catch-all "Other deductions" line.
+                const zakat = splitZakat(p)
+                const withheld = zakat.reconciles ? zakat.withheld : p.zakat
+                return withheld > 0 ? (
+                  <PayRow label="Zakat" amount={withheld} />
+                ) : null
+              })()}
+              {/* Everything that isn't statutory, itemised — same
+                  client feedback as the Earnings column: one lumped
+                  "Other deductions" figure told the employee nothing
+                  about what was withheld (loan repayment? advance
+                  recovery? a one-off correction?).
+
+                  Skipped here: zakat / CP38 / Additional PCB (each has
+                  its own row above), gross-reducing lines (already
+                  netted off the earnings side) and cash-neutral TP1
+                  lines (declared for PCB relief, never withheld). */}
+              {(() => {
+                const deductionLines = buildDeductionLines(p)
+                if (
+                  deductionLines.length > 0 &&
+                  deductionsReconcile(p, deductionLines)
+                ) {
+                  return deductionLines
+                    .filter((li) => !isStatutoryRowLineItem(li.category))
+                    .map((li) => (
+                      <PayRow key={li.id} label={li.label} amount={li.amount} />
+                    ))
+                }
+                // Fallback — legacy / imported payslips whose line items
+                // don't add up to `totalDeductions`. Subtract the rows
+                // already shown above so the catch-all doesn't
+                // double-count them.
                 const other = Math.max(
                   0,
                   p.totalDeductions -
@@ -1266,6 +1463,39 @@ export function EmployeePayslipPdfDocument(
               </View>
             )
           })() : null}
+
+          {/* Amounts declared for tax relief but never withheld —
+              self-paid zakat (TP1) and the TP1 relief lines (life
+              insurance, PRS, lifestyle, etc.). They lower the month's
+              PCB, which is why the employee sees a smaller tax figure
+              above, but the employer never deducted them, so they're
+              deliberately kept out of the Deductions column: putting
+              them there would break its sum and imply money was taken.
+              Listed here for the same reason BIK is — disclosure, not
+              cash. */}
+          {(() => {
+            const declaredLines = p.lineItems.filter(
+              (li) =>
+                li.kind === "DEDUCTION" && isCashNeutralLineItem(li.category),
+            )
+            if (declaredLines.length === 0) return null
+            return (
+              <View style={{ marginTop: 12 }}>
+                <Text style={payslipStyles.sectionLabel}>
+                  Declared for tax relief (not deducted)
+                </Text>
+                {declaredLines.map((li) => (
+                  <PayRow key={li.id} label={li.label} amount={li.amount} />
+                ))}
+                <Text style={payslipStyles.disclosureNote}>
+                  You paid these amounts directly, so they are not
+                  withheld from this month&apos;s pay. They are listed
+                  because they were declared for tax relief and reduce
+                  the PCB / MTD shown above.
+                </Text>
+              </View>
+            )
+          })()}
 
           {/* ── Year-to-date ─────────────────────────────────────── */}
           <View style={{ marginTop: 14 }}>

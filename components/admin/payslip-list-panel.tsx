@@ -27,16 +27,11 @@ import {
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import {
+  isNonCashLineItem,
   PAYROLL_ADJUSTMENT_CATEGORY_META,
   type PayrollAdjustmentCategory,
 } from "@/modules/payroll/domain/models"
 import type { PayslipRow } from "@/modules/payroll/domain/runs"
-
-function isNonCashLineItem(category: string | null | undefined): boolean {
-  if (!category) return false
-  const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
-  return Boolean(meta?.nonCash)
-}
 
 /**
  * Compact RM formatter. Drops the "RM " prefix (column headers
