@@ -1,6 +1,8 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
+import { defaultPassword } from "@/lib/auth/password"
 import { isAdminRole } from "@/lib/auth/types"
 import { safeErrorMessage } from "@/lib/errors"
 import { log } from "@/lib/log"
@@ -20,6 +22,11 @@ import {
   bustOrgConfigCaches,
 } from "@/lib/cache-invalidation"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
+import { getOriginFromHeaders } from "@/lib/request-origin"
+import {
+  sendWelcomeEmail,
+  type WelcomePasswordMode,
+} from "@/modules/organization/application/services/welcome-email.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { upsertPayrollProfile } from "@/modules/payroll/application/services/payroll-profile.service"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
@@ -493,6 +500,42 @@ export async function createHierarchyMemberAction(
     ])
   }
 
+  // Opt-in welcome email. Unticked by default in the dialog, so the
+  // quiet "just create the account" flow admins have today is
+  // unchanged unless they ask for the email.
+  //
+  // Deliberately last: the account already exists and the audit row is
+  // written, so a mail failure downgrades the message rather than
+  // failing the create.
+  const wantsWelcomeEmail =
+    String(formData.get("sendWelcomeEmail") ?? "") === "on"
+  let welcomeNote = ""
+  if (wantsWelcomeEmail) {
+    // Which password sentence the email carries. A linked account keeps
+    // the password it already had; otherwise the dialog only ever sends
+    // the house-convention password, and anything else came from a
+    // caller we can't describe — so we don't try.
+    const passwordMode: WelcomePasswordMode = linkedExistingUser
+      ? "existing"
+      : defaultPassword(parsed.data.email, parsed.data.dob) ===
+          parsed.data.password
+        ? "default"
+        : "manual"
+    const org = await organizationRepository.getOrganizationById(organizationId)
+    const outcome = await sendWelcomeEmail({
+      to: parsed.data.email,
+      name: parsed.data.name,
+      organizationName: org?.name ?? "your company",
+      // No configured base URL anywhere in the app — derive the public
+      // origin from the request the admin is on right now.
+      origin: getOriginFromHeaders(await headers()),
+      passwordMode,
+    })
+    welcomeNote = outcome.sent
+      ? ` Welcome email sent to ${parsed.data.email}.`
+      : ` The employee was created, but the welcome email failed: ${outcome.reason ?? "unknown error"}.`
+  }
+
   return {
     ...createInitialAddHierarchyMemberFormState(),
     status: "success",
@@ -500,8 +543,9 @@ export async function createHierarchyMemberAction(
     // another company), the admin gets a specific message so they know
     // the password they typed was IGNORED — the linked user keeps
     // their existing password and will sign in with that.
-    message: linkedExistingUser
-      ? `${parsed.data.name} was linked from an existing account at another company. They'll sign in with their existing password.`
-      : "Employee added successfully.",
+    message:
+      (linkedExistingUser
+        ? `${parsed.data.name} was linked from an existing account at another company. They'll sign in with their existing password.`
+        : "Employee added successfully.") + welcomeNote,
   }
 }

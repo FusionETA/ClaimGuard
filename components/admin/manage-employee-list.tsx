@@ -336,6 +336,23 @@ function AddEmployeeDialog({
               <p className="text-[11px] text-muted-foreground">
                 Password is email + date of birth (MMDD). Employee should change it after first login.
               </p>
+              {/* Opt-in, unticked by default: creating an account stays
+                  silent unless the admin asks for the email. The email
+                  explains the password FORMAT rather than printing the
+                  password, so it isn't a working credential on its own. */}
+              <label className="flex items-start gap-2 pt-1 text-[11px] text-muted-foreground">
+                <input
+                  type="checkbox"
+                  name="sendWelcomeEmail"
+                  disabled={pending}
+                  className="mt-0.5 h-3.5 w-3.5 accent-primary"
+                />
+                <span>
+                  Email them a welcome message with the sign-in link, how
+                  their password is formed, and how to add the portal to
+                  their phone.
+                </span>
+              </label>
             </div>
           </Labelled>
           <Labelled label="Employee policy">
