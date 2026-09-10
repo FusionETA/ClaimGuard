@@ -81,8 +81,16 @@ const DialogContent = React.forwardRef<
           if (!allowDismissOutside) event.preventDefault()
           onEscapeKeyDown?.(event)
         }}
+        // `content-start` matters on mobile: the panel is pinned top AND
+        // bottom (full-height sheet), so a grid with the default
+        // `align-content: stretch` hands every auto row an equal slice of
+        // the leftover height. A short dialog came out visibly spread —
+        // a gap under the description, a two-line-tall tab strip. Rows
+        // now pack at the top and the surplus stays at the bottom. No
+        // effect from `sm:` up, where `sm:bottom-auto` already sizes the
+        // panel to its content.
         className={cn(
-          "fixed inset-x-4 top-[max(16px,env(safe-area-inset-top))] bottom-[max(16px,env(safe-area-inset-bottom))] z-50 grid w-auto gap-4 overflow-y-auto rounded-[32px] border border-white/40 bg-card/95 p-6 shadow-panel backdrop-blur-xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:w-[min(92vw,880px)] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:overflow-visible sm:p-8",
+          "fixed inset-x-4 top-[max(16px,env(safe-area-inset-top))] bottom-[max(16px,env(safe-area-inset-bottom))] z-50 grid w-auto content-start gap-4 overflow-y-auto rounded-[32px] border border-white/40 bg-card/95 p-6 shadow-panel backdrop-blur-xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:w-[min(92vw,880px)] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:overflow-visible sm:p-8",
           className,
         )}
         {...props}

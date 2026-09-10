@@ -180,7 +180,7 @@ export function ClockOutSummaryDialog({
       onClick={() => setTab(id)}
       disabled={pending}
       className={cn(
-        "flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
+        "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
         tab === id
           ? "bg-card text-foreground shadow-sm"
           : "text-muted-foreground hover:text-foreground",
@@ -209,7 +209,10 @@ export function ClockOutSummaryDialog({
 
         <div className="flex gap-1 rounded-2xl border border-border/60 bg-surface-low p-1">
           {tabBtn("summary", "Summary", Clock)}
-          {tabBtn("adjust", "Request adjustment", PencilLine)}
+          {/* "Request adjustment" wrapped to two lines at phone width,
+              which stretched the whole strip (and the Summary tab with
+              it). The pencil icon carries the "request" part. */}
+          {tabBtn("adjust", "Adjustment", PencilLine)}
         </div>
 
         {tab === "summary" ? (
