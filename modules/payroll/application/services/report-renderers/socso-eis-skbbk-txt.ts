@@ -3,6 +3,8 @@ import "server-only"
 import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
 import {
   loadStatutoryRunPayload,
+  looksLikePlaceholderId,
+  normaliseEmployerCode,
   normaliseNewIc,
   padLeft,
   padRight,
@@ -55,11 +57,21 @@ export async function renderSocsoEisSkbbkTxt(input: {
   })
   if (!payload) throw new Error("Payroll run not found.")
 
-  const employerCode = payload.companyInfo?.perkesoEmployerCode ?? ""
+  // Normalised, because the code goes verbatim into a fixed-width
+  // column: "A 3702 1815 43P" typed off the certificate would ship its
+  // spaces to PERKESO, which answers "Invalid employer code format".
+  const employerCode = normaliseEmployerCode(
+    payload.companyInfo?.perkesoEmployerCode,
+  )
   const myCoId = payload.companyInfo?.registrationNo ?? ""
-  if (employerCode.trim().length === 0) {
+  if (employerCode.length === 0) {
     throw new Error(
       "PERKESO Employer Code is missing. Set it in Payroll Settings → Company Info before generating the SOCSO + EIS + SKBBK file.",
+    )
+  }
+  if (looksLikePlaceholderId(employerCode)) {
+    throw new Error(
+      `PERKESO Employer Code "${payload.companyInfo?.perkesoEmployerCode}" looks like a placeholder. Enter the real code from PERKESO in Payroll Settings → Company Info — it is the first field of every row, so the portal rejects the upload on line 1.`,
     )
   }
 

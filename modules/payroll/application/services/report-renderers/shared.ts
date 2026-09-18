@@ -200,6 +200,43 @@ export function padZero(n: number | string, width: number): string {
 /// renderer imports keep working.
 export { toSen, senDigits } from "@/modules/payroll/domain/perkeso-format"
 
+/**
+ * Normalise an employer identifier before it goes into a fixed-width
+ * statutory field: drop everything that isn't a letter or digit, and
+ * uppercase what's left.
+ *
+ * Admins type these with the separators they see on the certificate
+ * ("A 3702 1815 43P"), and the renderers write the value verbatim into
+ * a padded column — so the spaces travel to PERKESO and come back as
+ * "Invalid employer code format".
+ */
+export function normaliseEmployerCode(
+  value: string | null | undefined,
+): string {
+  return (value ?? "").replace(/[^0-9A-Za-z]/g, "").toUpperCase()
+}
+
+/**
+ * True for an identifier that is plainly a stand-in rather than a real
+ * one: a single character repeated ("0000", "1111"), or a run of the
+ * counting sequence ("1234", "123456789", "0987654321").
+ *
+ * Statutory renderers refuse when a number is MISSING, but a seeded
+ * demo value passes that check and is only caught by the agency — LHDN
+ * rejected a whole PCB submission on "No E (HQ) 1234567890 not exist",
+ * and PERKESO rejected a SOCSO file on employer code "1234". This
+ * cannot confirm a real identifier, only reject an obviously fake one,
+ * so it stays deliberately narrow: no length or format rules, which
+ * differ per agency and would block legitimate older codes.
+ */
+export function looksLikePlaceholderId(value: string | null | undefined): boolean {
+  const v = (value ?? "").trim().toUpperCase()
+  if (v.length < 3) return false
+  if (/^(.)\1*$/.test(v)) return true
+  if (!/^[0-9]+$/.test(v)) return false
+  return "01234567890".includes(v) || "09876543210".includes(v)
+}
+
 /// Strip dashes + spaces from an IC number, keep digits only.
 export function normaliseNewIc(idNumber: string | null | undefined): string {
   if (!idNumber) return ""
