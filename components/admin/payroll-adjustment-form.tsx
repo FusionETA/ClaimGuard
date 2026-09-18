@@ -278,7 +278,7 @@ export function PayrollAdjustmentForm(props: {
           <CardTitle className="text-base">Working hours</CardTitle>
           <CardDescription>
             {isMonthly
-              ? "Percentage of expected hours actually worked. Paid leave is already excluded from the target, so full attendance = 100%. Unpaid leave lowers this and prorates the salary. Leave blank to use the value computed from attendance."
+              ? "Percentage of expected hours actually worked. Paid leave is already excluded from the target, so full attendance = 100%. Reporting only — monthly basic pay does not move with this figure; unpaid leave is docked through its own deduction line. Leave blank to use the value computed from attendance."
               : "Hours paid this run (attendance plus any approved paid leave). Leave blank to use the value computed from attendance."}
           </CardDescription>
         </CardHeader>
@@ -328,7 +328,7 @@ export function PayrollAdjustmentForm(props: {
                   }h of ${
                     Math.round((props.autoHours.expectedHours ?? 0) * 10) / 10
                   }h expected).`
-                : "No attendance data this period — salary prorates by working days unless you set a percentage."
+                : "No attendance data this period. This figure is reporting only — monthly basic pay comes from join / leave proration and any unpaid-leave deduction."
               : props.autoHours.workedHours != null
                 ? `Auto from attendance: ${
                     Math.round(props.autoHours.workedHours * 100) / 100
