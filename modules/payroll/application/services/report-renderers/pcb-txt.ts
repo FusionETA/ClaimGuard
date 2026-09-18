@@ -1,8 +1,11 @@
 import "server-only"
 
+import { nationalityToCountryCode } from "@/lib/nationality-country-codes"
 import {
   loadStatutoryRunPayload,
+  looksLikePlaceholderId,
   normaliseNewIc,
+  normaliseTaxRef,
   padLeft,
   padRight,
   padZero,
@@ -34,6 +37,11 @@ import {
  *   01      "D"
  *   02-11   Tax Reference         (10 num, zero-pad, no SG/OG prefix)
  *   12      Wife Code             (0 male/single-female, 1-9 married woman)
+ *
+ *   NB: LHDN's validator reads 02-12 as ONE 11-digit TIN — the tax
+ *   reference with the wife code as its last digit. So the number on
+ *   the profile must already be 11 digits and we never synthesise the
+ *   12th character; see the check in the loop below.
  *   13-72   Employee Name         (60 alphanum, left, space-pad)
  *   73-84   Old IC                (12 alphanum, left, space-pad — blank if N/A)
  *   85-96   New IC                (12 numeric, blank if foreign)
@@ -76,12 +84,26 @@ export async function renderPcbTxt(input: {
       "Employer LHDN E-number is missing. Set it in Payroll Settings → Company Info before generating the PCB TXT.",
     )
   }
+  // A dummy E-number passes the "not empty" check above and then fails
+  // LHDN's validator on the header, which rejects the whole submission
+  // before it looks at a single employee ("No E (HQ) 1234567890 not
+  // exist", Aug 2026). Catch the obvious placeholders here instead.
+  if (looksLikePlaceholderId(rawEmployerNo)) {
+    throw new Error(
+      `Employer LHDN E-number "${payload.companyInfo?.employerTin}" looks like a placeholder. Enter the real E-number in Payroll Settings → Company Info — LHDN rejects the whole file on the header otherwise.`,
+    )
+  }
   // No separate HQ/branch fields on PayrollCompanyInfo today — use the
   // same value for both. We can add a dedicated field later.
   const employerNoHq = rawEmployerNo
   const employerNo = rawEmployerNo
 
   // Build the detail rows first so we can compute the header totals.
+  //
+  // Data problems are COLLECTED, not thrown on sight: an admin fixing
+  // one employee at a time would need one download per bad row. We skip
+  // the offending row, keep checking, and report every one together.
+  const dataErrors: string[] = []
   const detailLines: string[] = []
   let pcbTotalSen = 0
   let pcbCount = 0
@@ -101,12 +123,29 @@ export async function renderPcbTxt(input: {
 
     const employeeCode = row.employeeCode.trim()
     const employeeRef = employeeCode || row.employeeName
-    const taxRef = taxRefWithoutWifeCode(row.incomeTaxNumber)
-    if (taxRef.length === 0) {
-      throw new Error(
-        `PCB TXT cannot be generated: ${employeeRef} is missing an income tax number.`,
-      )
+    // LHDN reads positions 2-12 as ONE 11-digit TIN: our 10-digit tax
+    // reference plus the wife code. So the stored number must already
+    // be 11 digits, and we must not invent the 11th.
+    //
+    // It used to be inferred from gender + marital status whenever the
+    // stored value was shorter. A number saved without its leading zero
+    // ("IG2661447020" instead of "IG02661447020") therefore shifted one
+    // place left AND picked up a guessed digit on the end — a married
+    // woman got a "1". The Aug 2026 submission came back with nine
+    // "Tax Identification Number ... does not exist" errors, one for
+    // every employee whose TIN begins with zero.
+    const taxDigits = normaliseTaxRef(row.incomeTaxNumber)
+    if (taxDigits.length === 0) {
+      dataErrors.push(`${employeeRef} — no income tax number on file.`)
+      continue
     }
+    if (taxDigits.length !== 11) {
+      dataErrors.push(
+        `${employeeRef} — income tax number "${row.incomeTaxNumber}" has ${taxDigits.length} digits, LHDN expects 11 (keep any leading zero, e.g. IG02661447020).`,
+      )
+      continue
+    }
+    const taxRef = taxRefWithoutWifeCode(row.incomeTaxNumber)
     const wifeCode = pcbWifeCode({
       taxRef: row.incomeTaxNumber,
       gender: row.gender,
@@ -114,29 +153,45 @@ export async function renderPcbTxt(input: {
     })
 
     // Identification: locals carry New IC, foreigners carry Passport +
-    // Country Code.
+    // Country Code. A PASSPORT id type wins over whatever the
+    // nationality string says — an employee marked "Malaysian" while
+    // holding a passport used to take the local branch, where
+    // `normaliseNewIc` strips the letters and writes the remains into
+    // the IC field ("Z5712674" → "5712674", Aug 2026 record 101).
     const isMalaysian =
-      (row.nationality ?? "").toLowerCase() === "malaysian" || row.hasPr
+      row.idType !== "PASSPORT" &&
+      ((row.nationality ?? "").toLowerCase() === "malaysian" || row.hasPr)
     const newIc = isMalaysian ? normaliseNewIc(row.idNumber) : ""
     const passport = !isMalaysian ? normalisePassport(row.idNumber) : ""
     if (isMalaysian && newIc.length === 0) {
-      throw new Error(
-        `PCB TXT cannot be generated: ${employeeRef} is missing a New IC number.`,
+      dataErrors.push(`${employeeRef} — no New IC number on file.`)
+      continue
+    }
+    // A Malaysian New IC is always 12 digits. Anything else is some
+    // other document in the IC field, and LHDN answers with "New
+    // Identification No. ... does not match".
+    if (isMalaysian && newIc.length !== 12) {
+      dataErrors.push(
+        `${employeeRef} — New IC "${row.idNumber}" is ${newIc.length} digits, not 12. If this is a passport, set the ID type to Passport and the nationality to the employee's own country.`,
       )
+      continue
     }
     if (!isMalaysian && passport.length === 0) {
-      throw new Error(
-        `PCB TXT cannot be generated: ${employeeRef} is missing a passport number.`,
-      )
+      dataErrors.push(`${employeeRef} — no passport number on file.`)
+      continue
     }
     if (employeeCode.length === 0) {
-      throw new Error(
-        `PCB TXT cannot be generated: ${row.employeeName} is missing an employee/payroll number.`,
-      )
+      dataErrors.push(`${row.employeeName} — no employee/payroll number.`)
+      continue
     }
-    // Country code not yet captured separately on PayrollProfile —
-    // leave blank. Admin can dry-run + we add it if LHDN rejects.
-    const countryCode = ""
+    // Country code (positions 109-110) belongs to the passport, so it
+    // is derived from the employee's nationality — no second field for
+    // the admin to fill and keep in step. Blank for Malaysians, and
+    // blank when the nationality isn't one we can map, which is what
+    // this field held for everyone until now.
+    const countryCode = isMalaysian
+      ? ""
+      : nationalityToCountryCode(row.nationality)
 
     const pcbSen = toSen(rowPcb)
     if (pcbSen > 0) {
@@ -151,7 +206,7 @@ export async function renderPcbTxt(input: {
 
     const detail =
       "D" +
-      padZero(taxRef.length === 0 ? "0" : taxRef, 10) +
+      padZero(taxRef, 10) + // guaranteed 10 digits by the check above
       wifeCode +
       padRight(row.employeeName, 60) +
       padRight("", 12) + // Old IC — intentionally blank (see header comment)
@@ -167,6 +222,14 @@ export async function renderPcbTxt(input: {
     } else {
       detailLines.push(detail)
     }
+  }
+
+  // One error naming every bad row, so the admin fixes the lot in a
+  // single pass instead of rediscovering the next one per download.
+  if (dataErrors.length > 0) {
+    throw new Error(
+      `PCB TXT cannot be generated — ${dataErrors.length} employee${dataErrors.length === 1 ? "" : "s"} need fixing first:\n\n${dataErrors.map((e) => `• ${e}`).join("\n")}`,
+    )
   }
 
   const header =
