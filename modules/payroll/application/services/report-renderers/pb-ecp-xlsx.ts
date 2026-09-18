@@ -197,7 +197,16 @@ export async function renderPbEcpXlsx(input: {
       reference, // H
       `EMP ${row.employeeCode}`.slice(0, 20), // I
       "", "", // J, K — emails
-      "", "", // L, M — mobiles
+      // L, M — mobiles. `null`, NOT `""`. SheetJS writes an empty
+      // string as a real cell of type "s" (text) and skips a null
+      // entirely. PB declares these two columns numeric ("(O) - Char:
+      // 15 - N"), so a present-but-empty TEXT cell fails its type
+      // check: the 17 Sep 2026 upload came back with "Invalid Mobile
+      // Number" on all 198 rows. The email columns either side are
+      // alphanumeric, which is why `""` passes there and only the
+      // mobiles were flagged. The columns stay — deleting them would
+      // shift N-U left and break the 21-column template.
+      null, null, // L, M
       "", "", "", // N, O, P — joint
       "", "", "", "", "", // Q-U — email content
     ])
