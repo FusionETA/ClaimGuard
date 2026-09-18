@@ -2117,7 +2117,18 @@ async function fetchNagerHolidays(
     if (!res.ok) {
       return { ok: false, message: `date.nager.at returned ${res.status}.` }
     }
-    const raw = (await res.json()) as Array<{
+    // nager answers 204 (or, rarely, 200 with an empty body) for countries it
+    // has no calendar for at all — Malaysia is one of them. `res.ok` is true
+    // for 204, so without this guard we'd fall into `res.json()` on an empty
+    // body and report a parse failure as "could not reach date.nager.at".
+    const body = (await res.text()).trim()
+    if (res.status === 204 || body === "") {
+      return {
+        ok: false,
+        message: `date.nager.at has no public-holiday data for ${countryCode}. Set CALENDARIFIC_API_KEY to import this country.`,
+      }
+    }
+    const raw = JSON.parse(body) as Array<{
       date: string
       localName?: string
       name?: string
@@ -2192,6 +2203,34 @@ async function fetchCalendarificHolidays(
   }
 }
 
+/**
+ * Fetch a country's public holidays, preferring Calendarific when a key is
+ * configured (richer coverage — date.nager.at has no data at all for MY) and
+ * falling back to date.nager.at when Calendarific is unconfigured or fails.
+ */
+async function fetchHolidaysWithFallback(
+  year: number,
+  countryCode: string
+): Promise<
+  | { ok: true; holidays: Array<{ date: string; name: string }>; source: HolidayApiSource }
+  | { ok: false; message: string }
+> {
+  if (!process.env.CALENDARIFIC_API_KEY) {
+    const only = await fetchNagerHolidays(year, countryCode)
+    return only.ok ? { ...only, source: "nager" } : only
+  }
+
+  const primary = await fetchCalendarificHolidays(year, countryCode)
+  if (primary.ok) return { ...primary, source: "calendarific" }
+
+  const fallback = await fetchNagerHolidays(year, countryCode)
+  if (fallback.ok) return { ...fallback, source: "nager" }
+
+  // Both upstreams failed — lead with the preferred source's reason and keep
+  // the fallback's so the admin can tell which leg actually broke.
+  return { ok: false, message: `${primary.message} (${fallback.message})` }
+}
+
 export async function importProjectHolidaysAction(
   projectId: string,
   year: number,
@@ -2207,27 +2246,9 @@ export async function importProjectHolidaysAction(
     return { ok: false, message: "Country code must be 2 uppercase letters (e.g. MY)." }
   }
 
-  // Try Calendarific first when a key is configured (richer, esp. for MY).
-  // Fall back to date.nager.at on failure or when no key is set.
-  let usedSource: HolidayApiSource = "nager"
-  let result = process.env.CALENDARIFIC_API_KEY
-    ? await fetchCalendarificHolidays(year, countryCode)
-    : await fetchNagerHolidays(year, countryCode)
-  if (result.ok && process.env.CALENDARIFIC_API_KEY) usedSource = "calendarific"
-
-  if (!result.ok) {
-    if (usedSource === "calendarific") {
-      const fallback = await fetchNagerHolidays(year, countryCode)
-      if (fallback.ok) {
-        result = fallback
-        usedSource = "nager"
-      } else {
-        return { ok: false, message: result.message }
-      }
-    } else {
-      return { ok: false, message: result.message }
-    }
-  }
+  const result = await fetchHolidaysWithFallback(year, countryCode)
+  if (!result.ok) return { ok: false, message: result.message }
+  const usedSource = result.source
   if (result.holidays.length === 0) {
     return { ok: false, message: "No holidays returned for that year." }
   }
@@ -2395,25 +2416,9 @@ export async function importOrgHolidaysAction(
     return { ok: false, message: "Country code must be 2 uppercase letters (e.g. MY)." }
   }
 
-  let usedSource: HolidayApiSource = "nager"
-  let result = process.env.CALENDARIFIC_API_KEY
-    ? await fetchCalendarificHolidays(year, countryCode)
-    : await fetchNagerHolidays(year, countryCode)
-  if (result.ok && process.env.CALENDARIFIC_API_KEY) usedSource = "calendarific"
-
-  if (!result.ok) {
-    if (usedSource === "calendarific") {
-      const fallback = await fetchNagerHolidays(year, countryCode)
-      if (fallback.ok) {
-        result = fallback
-        usedSource = "nager"
-      } else {
-        return { ok: false, message: result.message }
-      }
-    } else {
-      return { ok: false, message: result.message }
-    }
-  }
+  const result = await fetchHolidaysWithFallback(year, countryCode)
+  if (!result.ok) return { ok: false, message: result.message }
+  const usedSource = result.source
   if (result.holidays.length === 0) {
     return { ok: false, message: "No holidays returned for that year." }
   }
