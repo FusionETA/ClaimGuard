@@ -352,8 +352,13 @@ function GeneralTab(props: {
             Working-days rule
           </CardTitle>
           <CardDescription>
-            Used to convert monthly salary → daily / hourly rate for
-            proration and OT.
+            Sets two things. The overtime hourly rate is always monthly
+            salary ÷ (26 × daily hours), per EA s.60I. Incomplete months
+            — a joiner, a leaver — follow this setting:{" "}
+            <strong>26 days</strong> pays that month&apos;s Mon–Sat days
+            worked ÷ its Mon–Sat days (24–27, counted for real, not a
+            flat 26); <strong>calendar days</strong> pays calendar days
+            worked ÷ days in the month, the EA s.18A formula.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">

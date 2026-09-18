@@ -6,6 +6,7 @@ import {
   calcSocso,
   effectiveWorkedDays,
   pickEpfBranch,
+  sixDayWorkDaysInMonth,
   type CalcPayslipInput,
 } from "../calc"
 import type { PayrollAdjustmentCategory } from "../models"
@@ -928,8 +929,10 @@ describe("effectiveWorkedDays — incomplete month per EA s.18A", () => {
 describe("calcPayslip — exact proration (no intermediate rounding)", () => {
   it("late joiner 19 Feb on RM4999.99 → 1785.71, not 1785.50", () => {
     const result = calcPayslip({
+      // CALENDAR basis: this test is about rounding, so it pins the
+      // divisor to calendar days. The TWENTY_SIX basis is covered below.
       profile: makeProfile({ monthlySalary: 4999.99, joinDate: "2026-02-19" }),
-      settings: baseSettings, // TWENTY_SIX
+      settings: { ...baseSettings, workingDaysRule: "CALENDAR" },
       periodYear: 2026,
       periodMonth: 2,
       workingDaySet: new Set([1, 2, 3, 4, 5]),
@@ -941,6 +944,98 @@ describe("calcPayslip — exact proration (no intermediate rounding)", () => {
     expect(result.grossPay).toBe(1785.71)
     // Snapshot factor is still rounded to 4dp for the Decimal(5,4) column.
     expect(result.proratedFactor).toBe(0.3571)
+  })
+})
+
+describe("proration basis follows workingDaysRule", () => {
+  it("counts the real Mon-Sat days per month, never a flat 26", () => {
+    expect(sixDayWorkDaysInMonth(2026, 2)).toBe(24)
+    expect(sixDayWorkDaysInMonth(2026, 7)).toBe(27)
+    expect(sixDayWorkDaysInMonth(2026, 8)).toBe(26)
+  })
+
+  it("TWENTY_SIX: joins 4 Aug 2026 → 24/26 of RM3000", () => {
+    // Missed Sat 1 and Mon 3; Sun 2 is not a working day either side of
+    // the fraction. 3000 × 24/26 = 2769.23, which is also
+    // 3000 − 2 × (3000/26).
+    const result = calcPayslip({
+      profile: makeProfile({ monthlySalary: 3000, joinDate: "2026-08-04" }),
+      settings: baseSettings, // TWENTY_SIX
+      periodYear: 2026,
+      periodMonth: 8,
+    })
+    expect(result.proratedDays).toBe(24)
+    expect(result.totalWorkingDays).toBe(26)
+    expect(result.proratedPay).toBe(2769.23)
+  })
+
+  it("CALENDAR: the same joiner is 28/31 instead", () => {
+    const result = calcPayslip({
+      profile: makeProfile({ monthlySalary: 3000, joinDate: "2026-08-04" }),
+      settings: { ...baseSettings, workingDaysRule: "CALENDAR" },
+      periodYear: 2026,
+      periodMonth: 8,
+    })
+    expect(result.proratedDays).toBe(28)
+    expect(result.totalWorkingDays).toBe(31)
+    expect(result.proratedPay).toBe(2709.68)
+  })
+
+  it("TWENTY_SIX: a joiner who missed no working day is paid in full", () => {
+    // 1 Feb 2026 is a Sunday, so joining on the 2nd costs him nothing.
+    // A flat 26 divisor would have docked RM 230.77 for that Sunday.
+    const result = calcPayslip({
+      profile: makeProfile({ monthlySalary: 3000, joinDate: "2026-02-02" }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 2,
+    })
+    expect(result.proratedDays).toBe(24)
+    expect(result.totalWorkingDays).toBe(24)
+    expect(result.proratedPay).toBe(3000)
+  })
+
+  it("TWENTY_SIX: a 27-working-day month still docks the day missed", () => {
+    // Jul 2026 has 27 Mon-Sat days. Under a flat 26 this employee
+    // scored 26/26 and took home a full month despite missing Wed 1 Jul.
+    const result = calcPayslip({
+      profile: makeProfile({ monthlySalary: 3000, joinDate: "2026-07-02" }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 7,
+    })
+    expect(result.proratedDays).toBe(26)
+    expect(result.totalWorkingDays).toBe(27)
+    expect(result.proratedPay).toBe(2888.89)
+  })
+
+  it("TWENTY_SIX: counting worked days and docking absent days agree", () => {
+    // The property that makes a divisor sound. Aug 2026, joins the 4th:
+    // 24 days worked ÷ 26, and 3000 − 2 × (3000 ÷ 26), must be the
+    // same ringgit. A flat 26 against a Mon-Fri roster breaks this.
+    const result = calcPayslip({
+      profile: makeProfile({ monthlySalary: 3000, joinDate: "2026-08-04" }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 8,
+    })
+    const dailyRate = 3000 / result.totalWorkingDays
+    const absentDays = result.totalWorkingDays - result.proratedDays
+    expect(result.proratedPay).toBeCloseTo(3000 - dailyRate * absentDays, 2)
+  })
+
+  it("leaves the overtime hourly rate on the flat 26 basis", () => {
+    // The two divisors must not collapse into one: proration moved to
+    // 24-27 days, the s.60I hourly rate stays monthly ÷ (26 × 8).
+    const monSat = calcPayslip({
+      profile: makeProfile({ monthlySalary: 5200 }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 7,
+      otNormalHours: 10,
+    })
+    // 5200 ÷ (26 × 8) = 25.00/h, × 1.5 × 10h = 375.00
+    expect(monSat.otPay).toBe(375)
   })
 })
 

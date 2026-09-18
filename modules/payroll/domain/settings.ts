@@ -23,7 +23,7 @@ export type WorkingDaysRule = (typeof workingDaysRules)[number]
 
 export const WORKING_DAYS_RULE_LABELS: Record<WorkingDaysRule, string> = {
   CALENDAR: "Calendar days in month",
-  TWENTY_SIX: "26 days (Malaysian convention)",
+  TWENTY_SIX: "26 days (Mon–Sat week)",
 }
 
 // ─── PayrollSettings (per-org operational rules) ─────────────────────────
