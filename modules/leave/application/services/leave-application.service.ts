@@ -201,21 +201,40 @@ async function currentStepApproverUserIds(args: {
   return step.approvers.map((a) => a.approverId)
 }
 
+/**
+ * The employee's working weekdays, from the org's roster.
+ *
+ * This used to load the profile and then discard it, always returning
+ * Mon-Fri — so a six-day company's Saturday leave cost nothing. The org
+ * CSV has existed on `Organization.workingDays` all along (attendance
+ * and payroll proration both read it); leave just never did. Project
+ * overrides are deliberately not consulted: leave is granted org-wide,
+ * and the holiday set below is org-level for the same reason.
+ */
 async function workingDaysForEmployee(employeeProfileId: string): Promise<Set<number>> {
-  const prisma = getLeavePrismaClientSafe()
-  if (!prisma) return parseWorkingDays(null)
-  // Prefer the employee's primary team/project working-days CSV; fall back
-  // to a sensible default. Keep it simple — leave is org-wide so we don't
-  // need project-scoped resolution like attendance.
-  const profile = await prisma.employeeProfile.findFirst({
-    where: { id: employeeProfileId },
-    include: {
-      user: { select: { organization: { select: { id: true } } } },
-    },
-  })
-  if (!profile) return parseWorkingDays(null)
-  // No explicit org-level working-days CSV today; default to Mon–Fri.
-  return parseWorkingDays(null)
+  const orgId = await leaveRepository.getEmployeeOrgId(employeeProfileId)
+  if (!orgId) return parseWorkingDays(null)
+  return parseWorkingDays(await leaveRepository.getOrgWorkingDays(orgId))
+}
+
+/**
+ * Org public holidays inside the requested range, as `YYYY-MM-DD`.
+ * Empty when the org hasn't configured any — which is most of them, so
+ * the count simply stays weekday-only until they import a calendar.
+ */
+async function holidaysForEmployee(
+  employeeProfileId: string,
+  startDate: Date,
+  endDate: Date,
+): Promise<Set<string>> {
+  const orgId = await leaveRepository.getEmployeeOrgId(employeeProfileId)
+  if (!orgId) return new Set()
+  const dates = await leaveRepository.listOrgHolidayDates(
+    orgId,
+    startDate,
+    endDate,
+  )
+  return new Set(dates)
 }
 
 export async function submitLeaveApplication(
@@ -233,14 +252,23 @@ export async function submitLeaveApplication(
   }
 
   const workingDays = await workingDaysForEmployee(input.employeeProfileId)
+  const holidays = await holidaysForEmployee(
+    input.employeeProfileId,
+    input.startDate,
+    input.endDate,
+  )
   const totalDays = computeTotalDays(
     input.startDate,
     input.endDate,
     input.duration,
     workingDays,
+    holidays,
   )
   if (totalDays <= 0) {
-    return { ok: false, error: "Selected dates contain no working days" }
+    return {
+      ok: false,
+      error: "Selected dates contain no working days (rest days and public holidays don't count)",
+    }
   }
 
   const year = input.startDate.getUTCFullYear()
@@ -383,14 +411,23 @@ export async function applyLeaveOnBehalfOfEmployee(input: {
   }
 
   const workingDays = await workingDaysForEmployee(payload.employeeProfileId)
+  const holidays = await holidaysForEmployee(
+    payload.employeeProfileId,
+    payload.startDate,
+    payload.endDate,
+  )
   const totalDays = computeTotalDays(
     payload.startDate,
     payload.endDate,
     payload.duration,
     workingDays,
+    holidays,
   )
   if (totalDays <= 0) {
-    return { ok: false, error: "Selected dates contain no working days" }
+    return {
+      ok: false,
+      error: "Selected dates contain no working days (rest days and public holidays don't count)",
+    }
   }
 
   const year = payload.startDate.getUTCFullYear()
@@ -538,9 +575,23 @@ export async function editLeaveApplication(
   }
 
   const workingDays = await workingDaysForEmployee(app.employeeId)
-  const totalDays = computeTotalDays(input.startDate, input.endDate, input.duration, workingDays)
+  const holidays = await holidaysForEmployee(
+    app.employeeId,
+    input.startDate,
+    input.endDate,
+  )
+  const totalDays = computeTotalDays(
+    input.startDate,
+    input.endDate,
+    input.duration,
+    workingDays,
+    holidays,
+  )
   if (totalDays <= 0) {
-    return { ok: false, error: "Selected dates contain no working days" }
+    return {
+      ok: false,
+      error: "Selected dates contain no working days (rest days and public holidays don't count)",
+    }
   }
 
   const year = input.startDate.getUTCFullYear()

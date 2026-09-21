@@ -3,26 +3,43 @@ import { isoWeekday } from "@/modules/attendance/domain/hours-summary"
 import type { LeaveAccrualMethod, LeaveDuration } from "./models"
 
 /// Compute the totalDays for a leave application.
-/// - MORNING / AFTERNOON: always 0.5 (caller must enforce startDate==endDate).
-/// - FULL_DAY: count of calendar days in [start, end] whose ISO weekday is
-///   in `workingDays` (default Mon-Fri).
+/// - MORNING / AFTERNOON: 0.5, or 0 when that day isn't worked (rest day
+///   or public holiday) — caller must enforce startDate==endDate.
+/// - FULL_DAY: count of calendar days in [start, end] that fall on a
+///   working weekday AND aren't a public holiday.
+///
+/// Holidays are excluded because a paid public holiday inside a leave
+/// period is a day off in its own right — charging it to the balance
+/// bills the employee twice for the same day (EA s.60D). Pass the org's
+/// holiday dates as `YYYY-MM-DD`; omit the set and the behaviour is the
+/// weekday-only count it has always been.
 export function computeTotalDays(
   startDate: Date,
   endDate: Date,
   duration: LeaveDuration,
   workingDays: Set<number>,
+  holidays?: ReadonlySet<string>,
 ): number {
-  if (duration !== "FULL_DAY") return 0.5
+  const isWorked = (day: Date): boolean =>
+    workingDays.has(isoWeekday(day)) && !(holidays?.has(isoDate(day)) ?? false)
+
+  if (duration !== "FULL_DAY") {
+    return isWorked(utcMidnight(startDate)) ? 0.5 : 0
+  }
   const start = utcMidnight(startDate)
   const end = utcMidnight(endDate)
   if (end < start) return 0
   let days = 0
   const cursor = new Date(start)
   while (cursor <= end) {
-    if (workingDays.has(isoWeekday(cursor))) days += 1
+    if (isWorked(cursor)) days += 1
     cursor.setUTCDate(cursor.getUTCDate() + 1)
   }
   return days
+}
+
+function isoDate(d: Date): string {
+  return d.toISOString().slice(0, 10)
 }
 
 function utcMidnight(d: Date): Date {

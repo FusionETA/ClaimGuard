@@ -193,6 +193,39 @@ export const leaveRepository = {
   },
 
   /**
+   * The org's working-days CSV (ISO weekdays, "1,2,3,4,5"), or null when
+   * the org never set one — the caller defaults to Mon-Fri.
+   */
+  async getOrgWorkingDays(orgId: string): Promise<string | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { workingDays: true },
+    })
+    return row?.workingDays ?? null
+  },
+
+  /**
+   * Org public-holiday dates in `[from, to]`, as `YYYY-MM-DD` strings —
+   * the shape the day-counter compares against. `OrgHoliday.date` is a
+   * DATE column, so it comes back at UTC midnight and slices cleanly.
+   */
+  async listOrgHolidayDates(
+    orgId: string,
+    from: Date,
+    to: Date,
+  ): Promise<string[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const rows = await prisma.orgHoliday.findMany({
+      where: { organizationId: orgId, date: { gte: from, lte: to } },
+      select: { date: true },
+    })
+    return rows.map((r) => r.date.toISOString().slice(0, 10))
+  },
+
+  /**
    * Per-employee leave-entitlement rows for an org × year, in the slim
    * shape the leave-settings page needs (employeeId, leaveTypeId,
    * entitledDays). The settings page uses this to show admin overrides

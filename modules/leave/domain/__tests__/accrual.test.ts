@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   availableDaysFor,
   bookableDaysFor,
+  computeTotalDays,
   initialProRatedAccrual,
 } from "../accrual"
 
@@ -175,5 +176,94 @@ describe("bookableDaysFor", () => {
 
   it("handles half-days", () => {
     expect(bookableDaysFor({ availableDays: 14, pendingDays: 0.5 })).toBe(13.5)
+  })
+})
+
+describe("computeTotalDays — public holidays don't consume leave", () => {
+  const monToFri = new Set([1, 2, 3, 4, 5])
+  const monToSat = new Set([1, 2, 3, 4, 5, 6])
+
+  it("charges every working day when no holidays are configured", () => {
+    // Mon 24 Aug 2026 → Fri 28 Aug.
+    expect(
+      computeTotalDays(d("2026-08-24"), d("2026-08-28"), "FULL_DAY", monToFri),
+    ).toBe(5)
+  })
+
+  it("skips a holiday inside the range", () => {
+    // Same week, with Tue 25 Aug (Prophet Muhammad's Birthday) off.
+    expect(
+      computeTotalDays(
+        d("2026-08-24"),
+        d("2026-08-28"),
+        "FULL_DAY",
+        monToFri,
+        new Set(["2026-08-25"]),
+      ),
+    ).toBe(4)
+  })
+
+  it("doesn't double-count a holiday that falls on a rest day", () => {
+    // Diwali 2026 is a Sunday — already excluded by the roster.
+    expect(
+      computeTotalDays(
+        d("2026-11-02"),
+        d("2026-11-08"),
+        "FULL_DAY",
+        monToFri,
+        new Set(["2026-11-08"]),
+      ),
+    ).toBe(5)
+  })
+
+  it("counts Saturday for a six-day roster, minus a Saturday holiday", () => {
+    // Mon 28 Dec → Sat 2 Jan would be 6 days on Mon-Sat; Fri 1 Jan off.
+    expect(
+      computeTotalDays(d("2026-12-28"), d("2027-01-02"), "FULL_DAY", monToSat),
+    ).toBe(6)
+    expect(
+      computeTotalDays(
+        d("2026-12-28"),
+        d("2027-01-02"),
+        "FULL_DAY",
+        monToSat,
+        new Set(["2027-01-01"]),
+      ),
+    ).toBe(5)
+  })
+
+  it("returns 0 when the whole range is holidays", () => {
+    // Caller turns this into "no working days" rather than booking 0.
+    expect(
+      computeTotalDays(
+        d("2026-03-20"),
+        d("2026-03-20"),
+        "FULL_DAY",
+        monToFri,
+        new Set(["2026-03-20"]),
+      ),
+    ).toBe(0)
+  })
+
+  it("half a day on a holiday costs nothing, on a working day costs 0.5", () => {
+    expect(
+      computeTotalDays(
+        d("2026-08-25"),
+        d("2026-08-25"),
+        "AFTERNOON",
+        monToFri,
+        new Set(["2026-08-25"]),
+      ),
+    ).toBe(0)
+    expect(
+      computeTotalDays(d("2026-08-26"), d("2026-08-26"), "AFTERNOON", monToFri),
+    ).toBe(0.5)
+  })
+
+  it("half a day on a rest day costs nothing", () => {
+    // Sun 30 Aug 2026. Previously any half-day returned 0.5 regardless.
+    expect(
+      computeTotalDays(d("2026-08-30"), d("2026-08-30"), "MORNING", monToFri),
+    ).toBe(0)
   })
 })
