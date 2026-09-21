@@ -1409,3 +1409,96 @@ describe("calcPayslip — net pay floor (EA 1955 s.24)", () => {
     expect(result.netShortfall).toBe(0)
   })
 })
+
+describe("allowances prorate on calendar days, never workingDaysRule", () => {
+  // An allowance is a flat monthly entitlement, not wages earned per
+  // working day, so it always prorates by the calendar fraction of the
+  // month the employee was employed — whatever the org's rule says.
+  // Basic pay still follows the rule; these tests pin the divergence.
+  const withPetrol = (joinDate: string) =>
+    makeProfile({
+      monthlySalary: 3000,
+      joinDate,
+      fixedAllowances: [
+        {
+          category: "allowance_travel_private" satisfies PayrollAdjustmentCategory,
+          name: "PETROL",
+          amount: 300,
+        },
+      ],
+    })
+
+  it("TWENTY_SIX org: salary is 24/26 but the allowance is 28/31", () => {
+    // Aug 2026: 26 Mon-Sat days, 31 calendar days. Joins Mon 4 Aug, so
+    // he missed Sat 1 + Mon 3 (2 working days) but 3 calendar days.
+    const result = calcPayslip({
+      profile: withPetrol("2026-08-04"),
+      settings: baseSettings, // TWENTY_SIX
+      periodYear: 2026,
+      periodMonth: 8,
+    })
+    // Salary keeps the Mon-Sat basis.
+    expect(result.proratedDays).toBe(24)
+    expect(result.totalWorkingDays).toBe(26)
+    expect(result.proratedPay).toBe(2769.23)
+    // Allowance is on calendar: 300 × 28/31 = 270.97, NOT 300 × 24/26.
+    const petrol = result.lineItems.find((l) => l.category === "allowance_travel_private")
+    expect(petrol?.amount).toBe(270.97)
+  })
+
+  it("CALENDAR org: allowance is unchanged by this rule", () => {
+    const result = calcPayslip({
+      profile: withPetrol("2026-08-04"),
+      settings: { ...baseSettings, workingDaysRule: "CALENDAR" },
+      periodYear: 2026,
+      periodMonth: 8,
+    })
+    const petrol = result.lineItems.find((l) => l.category === "allowance_travel_private")
+    expect(petrol?.amount).toBe(270.97)
+  })
+
+  it("the two rules now agree on allowances but differ on salary", () => {
+    const args = { periodYear: 2026, periodMonth: 8 } as const
+    const monSat = calcPayslip({
+      profile: withPetrol("2026-08-04"),
+      settings: baseSettings,
+      ...args,
+    })
+    const calendar = calcPayslip({
+      profile: withPetrol("2026-08-04"),
+      settings: { ...baseSettings, workingDaysRule: "CALENDAR" },
+      ...args,
+    })
+    const amt = (r: typeof monSat) =>
+      r.lineItems.find((l) => l.category === "allowance_travel_private")?.amount
+    expect(amt(monSat)).toBe(amt(calendar))
+    expect(monSat.proratedPay).not.toBe(calendar.proratedPay)
+  })
+
+  it("a Sunday-only gap still costs the allowance a day", () => {
+    // 1 Feb 2026 is a Sunday. Under TWENTY_SIX the salary is untouched
+    // (no working day missed), but the allowance loses 1/28 because the
+    // employee genuinely was not employed that calendar day.
+    const result = calcPayslip({
+      profile: withPetrol("2026-02-02"),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 2,
+    })
+    expect(result.proratedPay).toBe(3000) // salary: full month
+    const petrol = result.lineItems.find((l) => l.category === "allowance_travel_private")
+    expect(petrol?.amount).toBe(289.29) // 300 × 27/28
+  })
+
+  it("full-month employees are untouched", () => {
+    const result = calcPayslip({
+      profile: withPetrol("2024-01-01"),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 8,
+    })
+    expect(result.proratedPay).toBe(3000)
+    const petrol = result.lineItems.find((l) => l.category === "allowance_travel_private")
+    expect(petrol?.amount).toBe(300)
+  })
+})

@@ -993,6 +993,30 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     prorationDivisor > 0 ? workedDays / prorationDivisor : 0
   const proratedFactor = round4(prorationRatio)
 
+  // Allowances / BIK prorate on the CALENDAR basis ALWAYS — the org's
+  // `workingDaysRule` does not apply to them. An allowance is a flat
+  // monthly entitlement (petrol, phone, parking), not wages earned per
+  // working day, so the fraction of the month the employee was actually
+  // employed is the calendar fraction. Basic pay above keeps following
+  // the setting; these two ratios are deliberately different.
+  //
+  // BOTH sides are recounted on the calendar basis. Reusing `workedDays`
+  // here would pair a Mon-Sat numerator with a calendar divisor and
+  // silently under-pay every allowance in a TWENTY_SIX org — the
+  // mixed-basis bug described on `sixDayWorkDaysInMonth`, in reverse.
+  const allowanceDivisor = calendarDaysInMonth(periodYear, periodMonth)
+  const allowanceWorkedDays =
+    effectiveWorkedDays({
+      periodYear,
+      periodMonth,
+      joinDate: profile.joinDate,
+      leaveDate: profile.leaveDate,
+      workingDays: allowanceDivisor,
+      rule: "CALENDAR",
+    }) ?? 0
+  const allowanceProrationRatio =
+    allowanceDivisor > 0 ? allowanceWorkedDays / allowanceDivisor : 0
+
   let basicPay = 0
   if (profile.salaryType === "MONTHLY" && profile.monthlySalary != null) {
     basicPay = profile.monthlySalary
@@ -1098,13 +1122,15 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     if (a.amount <= 0) continue
     const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[a.category]
     if (!meta) continue
-    // Most recurring lines prorate with the salary (join/leave factor).
+    // Most recurring lines prorate by the join/leave factor, on the
+    // CALENDAR basis — NOT the salary's `workingDaysRule` basis. See
+    // `allowanceProrationRatio` above for why the two differ.
     // `skipProration` lines (e.g. unpaid leave) are already at the full
     // daily rate, so they're taken as-is. Use the exact ratio (not the
     // 4dp-rounded snapshot factor) to avoid losing cents.
     const amt = meta.skipProration
       ? round2(a.amount)
-      : round2(a.amount * prorationRatio)
+      : round2(a.amount * allowanceProrationRatio)
 
     // Compute how much of this row contributes to the PCB base. By
     // default it's `amt` (the full amount). When `taxExemptLimit` is
