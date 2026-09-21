@@ -177,6 +177,28 @@ export const UPCOMING_FEATURES: UpcomingFeature[] = []
  */
 export const RECENTLY_SHIPPED: ShippedFeature[] = [
   {
+    id: "ship-employee-welcome-email-2026-09-10",
+    date: "2026-09-10",
+    title: "Optional welcome email when adding an employee",
+    body:
+      "The Add-employee dialog now has a “Send welcome email” checkbox, " +
+      "unticked by default. Turn it on to email the new hire their login " +
+      "link and how their password is set, so you don't have to pass that " +
+      "on by hand. Bulk XLSX imports stay silent either way.",
+    audience: "ADMIN",
+  },
+  {
+    id: "ship-mobile-dialog-content-align-2026-09-10",
+    date: "2026-09-10",
+    title: "Mobile dialogs no longer stretch with extra gaps",
+    body:
+      "On phones, short dialogs could stretch to fill the screen with odd " +
+      "spacing below the text and buttons. Dialogs now size to their " +
+      "content properly, and the clock-out screen's tab labels no longer " +
+      "wrap awkwardly.",
+    audience: "ALL",
+  },
+  {
     id: "ship-v1-api-read-endpoints-2026-08-24",
     date: "2026-08-24",
     title: "Connected apps can now read leave, payroll and org activity",
