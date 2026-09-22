@@ -66,6 +66,11 @@ export type ParsedYtdRow = {
     unpaidLeave: number
     netSalaryDeduction: number
     zakat: number
+    /// SKBBK (Skim LINDUNG 24 Jam) employee contribution. Optional
+    /// because the scheme only started 1 Jun 2026 — a history load
+    /// covering earlier months has no such column, and a missing
+    /// column reads as 0.
+    skbbkEmployee: number
     /// Columns whose header matched a PAYROLL_ADJUSTMENT_CATEGORY_META
     /// label (the same category set the per-run adjustment form uses)
     /// but isn't one of the 11 legacy named scalars above. Each entry
@@ -124,6 +129,9 @@ const OPTIONAL_HEADER_TO_KEY: Record<string, keyof ParsedYtdRow["amounts"]> = {
   "unpaid leave": "unpaidLeave",
   "net salary deduction": "netSalaryDeduction",
   zakat: "zakat",
+  "employee skbbk": "skbbkEmployee",
+  skbbk: "skbbkEmployee",
+  "skbbk employee": "skbbkEmployee",
 }
 
 // Display labels for the unknown-column warning. Keyed on the same
@@ -142,6 +150,7 @@ const OPTIONAL_KEY_LABEL: Partial<Record<string, string>> = {
   unpaidLeave: "Unpaid Leave",
   netSalaryDeduction: "Net Salary Deduction",
   zakat: "Zakat",
+  skbbkEmployee: "Employee SKBBK",
 }
 
 // Lookup of every standard adjustment category by its display label
@@ -751,6 +760,7 @@ function freshAmounts(): ParsedYtdRow["amounts"] {
     unpaidLeave: 0,
     netSalaryDeduction: 0,
     zakat: 0,
+    skbbkEmployee: 0,
     customLineItems: [],
   }
 }

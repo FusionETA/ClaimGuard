@@ -80,6 +80,10 @@ const OPTIONAL_COLUMNS = [
   "Unpaid Leave",
   "Net Salary Deduction",
   "Zakat",
+  // SKBBK (Skim LINDUNG 24 Jam) runs from 1 Jun 2026. Blank for any
+  // month before that; a previous system's June-onwards history does
+  // carry it, and without a column there is nowhere to put it.
+  "Employee SKBBK",
 ] as const
 
 const NUM_FORMAT = "#,##0.00;(#,##0.00);-"
@@ -199,6 +203,7 @@ function buildInstructionsSheet(
         "  • Parking Allowance",
         "  • Phone/Broadband Allowance (also: \"Phone Allowance\", \"Broadband Allowance\")",
         "  • Other Allowance · Unpaid Leave · Net Salary Deduction · Zakat",
+        "  • Employee SKBBK (Skim LINDUNG 24 Jam — Jun 2026 onwards; leave blank for earlier months)",
         "Full category list (any of these labels also works — same set the per-run adjustment form on the run-detail page offers):",
         "  • Remuneration: Annual Bonus, Non-Annual Bonus, Commission, Incentive, Arrears, Service Charge, Leave Pay, Gratuity, Compensation for Loss of Employment, Ex-Gratia, Tax Borne By Employer, Director Fee",
         "  • Allowances: Standard Allowance, Travel/Petrol/Toll (Official Duty), Travel/Petrol Allowance (Private Use/Commuting), Parking Allowance, Meal Allowance, Childcare Allowance, Phone/Internet Bill Payment, Phone Allowance (Fixed)",

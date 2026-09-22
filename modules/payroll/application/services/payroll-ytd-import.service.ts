@@ -401,6 +401,7 @@ function buildImportedPayslipInput(input: {
       a.epfEmployee -
       a.socsoEmployee -
       a.eisEmployee -
+      a.skbbkEmployee -
       a.pcb -
       netOnlyDeductions -
       a.zakat +
@@ -576,19 +577,22 @@ function buildImportedPayslipInput(input: {
     socsoEmployer: a.socsoEmployer,
     eisEmployee: a.eisEmployee,
     eisEmployer: a.eisEmployer,
-    // SKBBK didn't exist on the previous payroll system (pre Jun 2026)
-    // so we have no historical data to import. Stays 0 on imported
-    // payslips — when the org's first computed run in Jun 2026 lands,
-    // SKBBK gets deducted there.
-    //
-    // `contributeToSkbbk` snapshot false — the payslip was imported,
-    // not computed against a live opt-in decision. If admin later
-    // re-edits this run, the recompute will read this false snapshot
-    // and leave SKBBK at 0 (matching what was imported); admin can
-    // enable SKBBK for future runs via the profile toggle instead.
-    skbbkEmployee: 0,
+    // SKBBK (Skim LINDUNG 24 Jam) started 1 Jun 2026, so a history
+    // load that reaches into June carries real contributions — this
+    // used to be hard-coded to 0 on the assumption that the previous
+    // system never had the scheme, which stopped being true the month
+    // it launched. Columns for earlier months are absent and parse as
+    // 0, so pre-June rows are unaffected.
+    skbbkEmployee: a.skbbkEmployee,
+    // The wage the contribution was looked up against isn't in the
+    // import — only the contribution itself. Left 0 rather than
+    // reverse-engineered from the gazette table; nothing recomputes
+    // from it on an imported row.
     skbbkWage: 0,
-    contributeToSkbbk: false,
+    // Snapshot the opt-in from the data: a row carrying a contribution
+    // was contributing. Without this a later re-edit of the run would
+    // read `false` and silently drop the SKBBK it just imported.
+    contributeToSkbbk: a.skbbkEmployee > 0,
     pcb: a.pcb,
     // YTD imports don't split out CP38 — historical payroll data
     // typically already merged it into the PCB total. Leave 0 unless
