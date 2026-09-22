@@ -47,6 +47,7 @@ import {
   requireAdminModule,
 } from "@/modules/organization/application/services/admin-access.service"
 import { getPayrollReportsModalData } from "@/modules/payroll/application/services/payroll-reports.service"
+import { PAYROLL_REPORT_META } from "@/modules/payroll/domain/reports"
 import { getPayrollRunReadiness } from "@/modules/payroll/application/services/payroll-readiness.service"
 import { getXeroConnectionSummary } from "@/modules/organization/application/services/xero-connection.service"
 import {
@@ -105,6 +106,15 @@ export default async function AdminPayrollRunDetailPage({
     data.run.status === "SUBMITTED"
       ? await getPayrollReportsModalData({ runId: id })
       : null
+
+  // Imported runs offer payslips and nothing else. Filtering here keeps
+  // the JSX below readable; the real enforcement is the matching
+  // IMPORTED gate in `renderPayrollReportFileForOrg`, which every
+  // download (in-app route and /api/v1 token endpoint) goes through.
+  const importedPayslipRows =
+    reportsModalData?.rows.filter(
+      (r) => PAYROLL_REPORT_META[r.kind].group === "PAYSLIPS",
+    ) ?? []
 
   // Later submitted months that a revert of this run would also cascade
   // back to draft — surfaced in the revert confirm modal.
@@ -687,28 +697,53 @@ export default async function AdminPayrollRunDetailPage({
       {isSubmitted && (
         <>
           {data.run.source === "IMPORTED" ? (
-            // Imported runs are view-only — Download files / Revert
-            // to draft are deliberately hidden. The "one year, one
-            // upload" rule means the only way to change an imported
-            // run's data is to re-upload the year's XLSX from the
-            // Payroll Runs page (which atomically replaces every
-            // imported run for that year).
-            <div className="flex items-start gap-2 rounded-md border border-violet-300/60 bg-violet-50/40 p-3 text-xs text-violet-900 dark:border-violet-700/40 dark:bg-violet-950/20 dark:text-violet-200">
-              <FileText className="mt-0.5 h-4 w-4 shrink-0" />
-              <div>
-                <strong>This run was imported from a YTD upload.</strong>{" "}
-                Payslip values come from the uploaded XLSX as-typed, not
-                from the calc engine. To change any value, re-import the
-                whole year from{" "}
-                <Link
-                  href="/admin/payroll/runs"
-                  className="underline underline-offset-2 hover:text-violet-700 dark:hover:text-violet-300"
-                >
-                  Payroll Runs
-                </Link>{" "}
-                — the new upload replaces every imported run for the
-                year.
+            // Imported runs are view-only — Revert to draft stays
+            // hidden. The "one year, one upload" rule means the only
+            // way to change an imported run's data is to re-upload the
+            // year's XLSX from the Payroll Runs page (which atomically
+            // replaces every imported run for that year).
+            //
+            // Payslips ARE downloadable: they render the stored figures
+            // as-typed, which is exactly what the admin uploaded. The
+            // statutory / bank / summary files are not offered, because
+            // they'd assert engine-derived numbers off data the calc
+            // engine never produced. `renderPayrollReportFileForOrg`
+            // enforces the same rule server-side, so this filter is
+            // presentation only — not the security boundary.
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 rounded-md border border-violet-300/60 bg-violet-50/40 p-3 text-xs text-violet-900 dark:border-violet-700/40 dark:bg-violet-950/20 dark:text-violet-200">
+                <FileText className="mt-0.5 h-4 w-4 shrink-0" />
+                <div>
+                  <strong>This run was imported from a YTD upload.</strong>{" "}
+                  Payslip values come from the uploaded XLSX as-typed, not
+                  from the calc engine, so only payslips can be
+                  downloaded — statutory, bank and summary files aren&apos;t
+                  available for imported runs. To change any value,
+                  re-import the whole year from{" "}
+                  <Link
+                    href="/admin/payroll/runs"
+                    className="underline underline-offset-2 hover:text-violet-700 dark:hover:text-violet-300"
+                  >
+                    Payroll Runs
+                  </Link>{" "}
+                  — the new upload replaces every imported run for the
+                  year.
+                </div>
               </div>
+              {reportsModalData && importedPayslipRows.length > 0 ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <PayrollDownloadsModal
+                    runId={reportsModalData.runId}
+                    organizationName={reportsModalData.organizationName}
+                    periodLabel={periodLabel(
+                      data.run.periodYear,
+                      data.run.periodMonth,
+                    )}
+                    canGenerate={reportsModalData.canGenerate}
+                    rows={importedPayslipRows}
+                  />
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-3">

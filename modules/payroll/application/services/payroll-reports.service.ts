@@ -204,6 +204,20 @@ export async function renderPayrollReportFileForOrg(input: {
   // SUBMITTED gate — statutory outputs are only produced for finalised
   // runs. Drafts return null (→ 404) so the browser never gets bytes.
   if (run.status !== "SUBMITTED") return null
+  // IMPORTED runs never went through the calc engine — their figures are
+  // the uploaded XLSX as-typed (see payroll-ytd-import.service.ts). A
+  // payslip is just a faithful render of those stored figures, so it stays
+  // downloadable. Everything else would assert engine-derived numbers to a
+  // third party — LHDN / KWSP / PERKESO or the bank — off data AltomateHR
+  // never computed, so it's refused here rather than only hidden in the UI.
+  // This is the single chokepoint for BOTH the in-app route and the
+  // token-authenticated /api/v1 download, so neither can bypass it.
+  if (
+    run.source === "IMPORTED" &&
+    PAYROLL_REPORT_META[input.kind].group !== "PAYSLIPS"
+  ) {
+    return null
+  }
 
   let fileName = buildReportFileName({
     kind: input.kind,
