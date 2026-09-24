@@ -16,6 +16,7 @@ import {
   workingDaysForPeriod,
 } from "@/modules/payroll/domain/calc"
 import { PAYROLL_RUN_STATUS_LABELS, periodLabel } from "@/modules/payroll/domain/runs"
+import { foldTp3Carryover } from "@/modules/payroll/domain/tp3-carryover"
 import type {
   FixedAllowance,
   IdType,
@@ -1323,23 +1324,11 @@ export async function previewEmployeeNetForRunInOrg(input: {
     year: run.periodYear,
     excludeRunId: run.id,
   })
-  const joinedThisYear =
-    e.profile.joinDate &&
-    new Date(e.profile.joinDate).getUTCFullYear() === run.periodYear
-  const isPrevForSameYear =
-    joinedThisYear && (e.profile.prevEmploymentYear ?? null) === run.periodYear
-  const ytd = {
-    ytdTaxable:
-      ytdRaw.ytdTaxable + (isPrevForSameYear ? e.profile.prevRemuneration ?? 0 : 0),
-    ytdEpf: ytdRaw.ytdEpf + (isPrevForSameYear ? e.profile.prevEpf ?? 0 : 0),
-    ytdPcb: ytdRaw.ytdPcb + (isPrevForSameYear ? e.profile.prevPcb ?? 0 : 0),
-    ytdZakat: ytdRaw.ytdZakat + (isPrevForSameYear ? e.profile.prevZakat ?? 0 : 0),
-    ytdSocsoEis: ytdRaw.ytdSocsoEis,
-    ytdAllowableDeductions:
-      ytdRaw.ytdAllowableDeductions +
-      (isPrevForSameYear ? e.profile.prevAllowableDeductions ?? 0 : 0),
-    ytdAllowanceByCategory: ytdRaw.ytdAllowanceByCategory,
-  }
+  // TP3 carryover. Shared with generatePayrollPayslips — a preview that
+  // disagrees with what generation produces is worse than no preview: the
+  // admin approves one number and the employee is paid against another.
+  // That is exactly what happened while this was a second copy.
+  const ytd = foldTp3Carryover(ytdRaw, e.profile, run.periodYear)
 
   const policy = e.policyId ? policies.find((p) => p.id === e.policyId) ?? null : null
   const cashOt = policy !== null && policy.otEnabled && policy.otMethod === "CASH"
@@ -1579,69 +1568,17 @@ export async function generatePayrollPayslips(input: {
         year: run.periodYear,
         excludeRunId: run.id,
       })
-      // Add prev-employer TP3-like carryover when the employee's prior
-      // figures are tagged for this calendar year (typically a mid-year
-      // joiner; for a rehire the prevEmploymentYear is set during
-      // restore).
+      // TP3 carryover, shared with previewEmployeeNetForRunInOrg so the
+      // preview cannot disagree with what this generates. Per LHDN MTD
+      // Spec §10 (page 23) the form provides (Y-K), X, Z, ΣLP for the
+      // tagged calendar year only.
       //
-      // joinedThisYear is no longer a precondition — rehires keep their
-      // original join date from years past, but the carryover still
-      // applies to the same-year prev figures. The
-      // prevEmploymentYear === run.periodYear check is what actually
-      // gates this carryover.
-      const isPrevForSameYear =
-        (e.profile.prevEmploymentYear ?? null) === run.periodYear
-      // Rehire path: if the admin entered prev* as the TOTAL YTD
-      // (including the period the employee already worked at THIS
-      // employer this year), subtract this org's submitted-payslip YTD
-      // before adding — otherwise we'd double-count.
-      const subtractThisOrg = e.profile.prevIncludesPriorThisOrgPeriod === true
-      const effPrevRem = subtractThisOrg
-        ? Math.max(0, (e.profile.prevRemuneration ?? 0) - ytd.ytdTaxable)
-        : (e.profile.prevRemuneration ?? 0)
-      const effPrevEpf = subtractThisOrg
-        ? Math.max(0, (e.profile.prevEpf ?? 0) - ytd.ytdEpf)
-        : (e.profile.prevEpf ?? 0)
-      const effPrevPcb = subtractThisOrg
-        ? Math.max(0, (e.profile.prevPcb ?? 0) - ytd.ytdPcb)
-        : (e.profile.prevPcb ?? 0)
-      const effPrevZakat = subtractThisOrg
-        ? Math.max(0, (e.profile.prevZakat ?? 0) - ytd.ytdZakat)
-        : (e.profile.prevZakat ?? 0)
-      // Prior-employer TP1 allowable-deduction carryover (ΣLP portion
-      // from Borang TP3 §D). Same rehire-safe subtraction as the
-      // taxable/EPF/PCB/zakat fields above.
-      const effPrevAllowableDeductions = subtractThisOrg
-        ? Math.max(
-            0,
-            (e.profile.prevAllowableDeductions ?? 0) -
-              ytd.ytdAllowableDeductions,
-          )
-        : (e.profile.prevAllowableDeductions ?? 0)
+      // SOCSO + EIS is deliberately not carried: the RM 350 cap saturates
+      // within the first few months, so a mid-year joiner converges to the
+      // same answer either way (the PCB delta is typically < RM 5/month).
       return {
         empId: e.employeeProfileId,
-        // TP3 carryover: add the prev-employer figures to each YTD
-        // bucket only when the employee's `prevEmploymentYear` equals
-        // the current run's calendar year. Per LHDN MTD Spec § 10
-        // (page 23) the TP3 form provides (Y-K), X, Z, ΣLP.
-        ytdTaxable: ytd.ytdTaxable + (isPrevForSameYear ? effPrevRem : 0),
-        ytdEpf: ytd.ytdEpf + (isPrevForSameYear ? effPrevEpf : 0),
-        ytdPcb: ytd.ytdPcb + (isPrevForSameYear ? effPrevPcb : 0),
-        ytdZakat: ytd.ytdZakat + (isPrevForSameYear ? effPrevZakat : 0),
-        // Prev-employer SOCSO+EIS carryover is intentionally omitted —
-        // the RM 350 cap saturates at typical contribution levels
-        // within the first ~3-4 months, so a mid-year joiner converges
-        // to the same answer with or without the prior-employer
-        // figure. (We could add a `prevSocsoEis` profile field later
-        // if needed for early-year joiners, but the PCB delta is
-        // typically < RM 5 / month.)
-        ytdSocsoEis: ytd.ytdSocsoEis,
-        // TP1 relief accumulated — from this org's prior submitted
-        // payslips PLUS the prior-employer TP3 carryover.
-        ytdAllowableDeductions:
-          ytd.ytdAllowableDeductions +
-          (isPrevForSameYear ? effPrevAllowableDeductions : 0),
-        ytdAllowanceByCategory: ytd.ytdAllowanceByCategory,
+        ...foldTp3Carryover(ytd, e.profile, run.periodYear),
       }
     }),
   )
