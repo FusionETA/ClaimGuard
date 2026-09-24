@@ -19,6 +19,7 @@ import {
   payrollRunRepository,
 } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { payslipRepository } from "@/modules/payroll/infrastructure/payslip.repository"
+import { consumeTaxExemptHeadroom } from "@/modules/payroll/domain/tax-exempt-headroom"
 
 /**
  * Generate a downloadable YTD import template — XLSX pre-filled with
@@ -254,8 +255,24 @@ export async function importYtdPayrollHistory(input: {
   summary.replacedRuns = runsDeleted
 
   // 6. Write the new rows.
+  //
+  // In CALENDAR order, not file order (a Map iterates in insertion order,
+  // i.e. however the admin's sheet happened to be laid out). Annual
+  // PCB-exemption ceilings are used up month by month from January, so
+  // processing August before April would hand the exemption to the wrong
+  // months.
+  //
+  // `exemptUsed` is that running total, keyed by employee + category, so
+  // imported allowances get the same `pcbTaxableAmount` the calc engine
+  // would have written. It is seeded per employee from the year's
+  // remaining SUBMITTED runs — after step 5 those are only COMPUTED months,
+  // which this upload is not allowed to overlap — so a year with an
+  // earlier computed month doesn't hand the ceiling back.
   const unknownReported = new Set<string>() // dedupe per-employee skips
-  for (const [monthIdx, rows] of byMonth) {
+  const exemptUsed = new Map<string, number>()
+  const seededEmployees = new Set<string>()
+  const monthsInOrder = Array.from(byMonth.entries()).sort((a, b) => a[0] - b[0])
+  for (const [monthIdx, rows] of monthsInOrder) {
     const periodMonth = monthIdx + 1
 
     // findOrCreateImportedRun can no longer hit the COMPUTED conflict
@@ -297,7 +314,30 @@ export async function importYtdPayrollHistory(input: {
         continue
       }
 
-      const payslipInput = buildImportedPayslipInput({ match, row })
+      // Seed once per employee, at their earliest imported month — before
+      // any of their imported rows exist, so only computed months count.
+      // Skipped entirely for employees with no capped category, which is
+      // most of them.
+      if (
+        !seededEmployees.has(match.employeeProfileId) &&
+        row.amounts.customLineItems.some(
+          (li) =>
+            typeof PAYROLL_ADJUSTMENT_CATEGORY_META[
+              li.categoryCode as PayrollAdjustmentCategory
+            ]?.taxExemptLimit === "number",
+        )
+      ) {
+        const ytd = await payslipRepository.getYtdForEmployee({
+          employeeProfileId: match.employeeProfileId,
+          year: input.year,
+        })
+        for (const [category, amount] of Object.entries(ytd.ytdAllowanceByCategory)) {
+          exemptUsed.set(`${match.employeeProfileId}|${category}`, amount)
+        }
+        seededEmployees.add(match.employeeProfileId)
+      }
+
+      const payslipInput = buildImportedPayslipInput({ match, row, exemptUsed })
       const { created } = await payslipRepository.addImportedPayslip({
         payrollRunId: runId,
         payslip: payslipInput,
@@ -335,6 +375,10 @@ function buildImportedPayslipInput(input: {
     ReturnType<typeof payrollProfileRepository.listEmployeesForImportMatch>
   >[number]
   row: ParsedYtdRow
+  /// Annual PCB-exemption headroom already used, keyed
+  /// `${employeeProfileId}|${category}`. Mutated: this row's exempt
+  /// portions are added so the next month sees them.
+  exemptUsed: Map<string, number>
 }) {
   const m = input.match
   const a = input.row.amounts
@@ -436,9 +480,9 @@ function buildImportedPayslipInput(input: {
     kind: "ALLOWANCE" | "DEDUCTION" | "REIMBURSEMENT"
     label: string
     amount: number
-    /// YTD-imported rows never apply per-line taxExemptLimit clamping
-    /// (the admin is entering pre-aggregated figures), so this is
-    /// always null — the ytd read path falls back to `amount`.
+    /// Set on custom-category rows whose category has an annual
+    /// `taxExemptLimit`, exactly as the calc engine would; null (the ytd
+    /// read path falls back to `amount`) for everything else.
     pcbTaxableAmount: number | null
     category: string | null
     subjectToEpf: boolean
@@ -521,11 +565,19 @@ function buildImportedPayslipInput(input: {
       li.categoryCode as PayrollAdjustmentCategory
     ]
     if (!meta) continue
+    const amount = round2(li.amount)
+    const key = `${m.employeeProfileId}|${li.categoryCode}`
+    const { pcbTaxableAmount, exempt } = consumeTaxExemptHeadroom({
+      meta,
+      amount,
+      used: input.exemptUsed.get(key) ?? 0,
+    })
+    if (exempt > 0) input.exemptUsed.set(key, (input.exemptUsed.get(key) ?? 0) + exempt)
     lineItems.push({
       kind: meta.kind,
       label: meta.label,
-      amount: round2(li.amount),
-      pcbTaxableAmount: null,
+      amount,
+      pcbTaxableAmount,
       category: li.categoryCode,
       subjectToEpf: meta.subjectToEpf,
       subjectToSocso: meta.subjectToSocso,
